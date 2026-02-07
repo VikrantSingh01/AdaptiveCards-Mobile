@@ -1,6 +1,14 @@
 import Foundation
 
 public struct SchemaValidator {
+    public static let validElementTypes: Set<String> = [
+        "TextBlock", "Image", "Media", "RichTextBlock", "Container", "ColumnSet",
+        "ImageSet", "FactSet", "ActionSet", "Table", "Input.Text", "Input.Number",
+        "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet", "Carousel",
+        "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
+        "TabSet", "List", "CompoundButton", "DonutChart", "BarChart", "LineChart", "PieChart"
+    ]
+    
     public init() {}
     
     public func validate(json: String) -> [SchemaValidationError] {
@@ -105,19 +113,11 @@ public struct SchemaValidator {
                 actual: "undefined"
             ))
         } else if let type = element["type"] as? String {
-            let validTypes = [
-                "TextBlock", "Image", "Media", "RichTextBlock", "Container", "ColumnSet",
-                "ImageSet", "FactSet", "ActionSet", "Table", "Input.Text", "Input.Number",
-                "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet", "Carousel",
-                "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
-                "TabSet", "List", "CompoundButton", "DonutChart", "BarChart", "LineChart", "PieChart"
-            ]
-            
-            if !validTypes.contains(type) {
+            if !Self.validElementTypes.contains(type) {
                 errors.append(SchemaValidationError(
                     path: "\(path).type",
                     message: "Unknown element type",
-                    expected: "One of: \(validTypes.joined(separator: ", "))",
+                    expected: "One of: \(Self.validElementTypes.sorted().joined(separator: ", "))",
                     actual: type
                 ))
             }

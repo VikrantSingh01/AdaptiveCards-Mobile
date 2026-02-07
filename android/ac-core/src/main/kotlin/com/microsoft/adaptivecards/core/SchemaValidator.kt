@@ -8,6 +8,16 @@ data class SchemaValidationError(
 )
 
 class SchemaValidator {
+    companion object {
+        val VALID_ELEMENT_TYPES = setOf(
+            "TextBlock", "Image", "Media", "RichTextBlock", "Container", "ColumnSet",
+            "ImageSet", "FactSet", "ActionSet", "Table", "Input.Text", "Input.Number",
+            "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet", "Carousel",
+            "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
+            "TabSet", "List", "CompoundButton", "DonutChart", "BarChart", "LineChart", "PieChart"
+        )
+    }
+    
     fun validate(json: String): List<SchemaValidationError> {
         val errors = mutableListOf<SchemaValidationError>()
         
@@ -111,19 +121,12 @@ class SchemaValidator {
             ))
         } else {
             val type = element["type"]?.jsonPrimitive?.content
-            val validTypes = setOf(
-                "TextBlock", "Image", "Media", "RichTextBlock", "Container", "ColumnSet",
-                "ImageSet", "FactSet", "ActionSet", "Table", "Input.Text", "Input.Number",
-                "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet", "Carousel",
-                "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
-                "TabSet", "List", "CompoundButton", "DonutChart", "BarChart", "LineChart", "PieChart"
-            )
             
-            if (type != null && type !in validTypes) {
+            if (type != null && type !in VALID_ELEMENT_TYPES) {
                 errors.add(SchemaValidationError(
                     path = "$path.type",
                     message = "Unknown element type",
-                    expected = "One of: ${validTypes.joinToString(", ")}",
+                    expected = "One of: ${VALID_ELEMENT_TYPES.sorted().joinToString(", ")}",
                     actual = type
                 ))
             }
