@@ -2,6 +2,8 @@
 
 Modern Android SDK for rendering [Adaptive Cards](https://adaptivecards.io/) using Jetpack Compose and MVVM architecture.
 
+> **Cross-Platform Design**: This SDK is designed as a companion to the iOS SwiftUI implementation, with aligned naming conventions and API design. See [NAMING_CONVENTIONS.md](NAMING_CONVENTIONS.md) for details on iOS/Android alignment.
+
 ## Features
 
 - 🎨 **Jetpack Compose UI** - Modern declarative UI with Material3
@@ -299,9 +301,21 @@ Copyright (c) Microsoft Corporation. All rights reserved.
 
 This project welcomes contributions and suggestions. Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
 
+## Cross-Platform Alignment
+
+This SDK is designed to work seamlessly with its iOS SwiftUI counterpart. Key alignments:
+
+- ✅ **Identical model names**: `AdaptiveCard`, `TextBlock`, `ActionSubmit`, etc.
+- ✅ **Identical view names**: `AdaptiveCardView`, `TextBlockView`, etc.
+- ✅ **Identical API patterns**: Both use MVVM with reactive state management
+- ✅ **Same method signatures**: `onSubmit(data)`, `validateText(value)`, etc.
+
+See [NAMING_CONVENTIONS.md](NAMING_CONVENTIONS.md) for complete cross-platform naming guide.
+
 ## Resources
 
 - [Adaptive Cards Documentation](https://docs.microsoft.com/en-us/adaptive-cards/)
 - [Adaptive Cards Schema](https://adaptivecards.io/explorer/)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - [Material Design 3](https://m3.material.io/)
+- [Cross-Platform Naming Guide](NAMING_CONVENTIONS.md)
