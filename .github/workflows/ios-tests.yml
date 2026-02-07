@@ -1,0 +1,53 @@
+name: iOS Tests
+
+on:
+  push:
+    branches: [ main, 'copilot/**' ]
+    paths:
+      - 'ios/**'
+      - 'shared/test-cards/**'
+      - '.github/workflows/ios-tests.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'ios/**'
+      - 'shared/test-cards/**'
+
+jobs:
+  test:
+    name: Run iOS Tests
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+    
+    - name: Swift Version
+      run: swift --version
+      
+    - name: Build iOS Package
+      working-directory: ios
+      run: swift build
+      
+    - name: Run iOS Tests
+      working-directory: ios
+      run: swift test --parallel
+      
+    - name: Check Test Coverage
+      working-directory: ios
+      run: |
+        echo "Running tests with coverage..."
+        swift test --enable-code-coverage
+        
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-test-results
+        path: ios/.build/debug/
+        retention-days: 7
