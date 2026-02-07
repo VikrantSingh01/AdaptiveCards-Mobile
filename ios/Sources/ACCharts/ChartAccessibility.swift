@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension Angle {
-    var radians: CGFloat {
+    var asCGFloatRadians: CGFloat {
         CGFloat(self.radians)
     }
 }
