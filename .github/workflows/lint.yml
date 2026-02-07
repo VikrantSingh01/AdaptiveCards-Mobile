@@ -10,6 +10,8 @@ jobs:
   lint-ios:
     name: SwiftLint (iOS)
     runs-on: macos-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
@@ -27,6 +29,8 @@ jobs:
   lint-android:
     name: ktlint (Android)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
