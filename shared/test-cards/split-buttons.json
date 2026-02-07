@@ -13,25 +13,12 @@
       "type": "TextBlock",
       "text": "Test ActionSet with overflow mode and menu actions.",
       "wrap": true
-    }
-  ],
-  "actions": [
-    {
-      "type": "Action.Submit",
-      "title": "Save"
     },
-    {
-      "type": "Action.Execute",
-      "title": "Cancel",
-      "verb": "cancel"
-    }
-  ],
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-  "body": [
     {
       "type": "TextBlock",
       "text": "Default ActionSet (buttons)",
-      "weight": "Bolder"
+      "weight": "Bolder",
+      "spacing": "Medium"
     },
     {
       "type": "ActionSet",
@@ -51,7 +38,8 @@
     {
       "type": "TextBlock",
       "text": "Overflow ActionSet (dropdown menu)",
-      "weight": "Bolder"
+      "weight": "Bolder",
+      "spacing": "Medium"
     },
     {
       "type": "ActionSet",
@@ -78,6 +66,17 @@
           "verb": "archive"
         }
       ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Save"
+    },
+    {
+      "type": "Action.Execute",
+      "title": "Cancel",
+      "verb": "cancel"
     }
   ]
 }

@@ -37,8 +37,8 @@ public struct CitationView: View {
                             .lineLimit(3)
                     }
                     
-                    if let url = citation.url {
-                        Link(url, destination: URL(string: url)!)
+                    if let url = citation.url, let validUrl = URL(string: url) {
+                        Link(url, destination: validUrl)
                             .font(.caption2)
                             .lineLimit(1)
                     }
