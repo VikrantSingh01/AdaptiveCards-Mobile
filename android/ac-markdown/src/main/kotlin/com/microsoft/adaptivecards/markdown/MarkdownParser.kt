@@ -265,5 +265,5 @@ fun String.containsMarkdown(): Boolean {
            this.contains("`") ||
            this.startsWith("#") ||
            this.startsWith("- ") ||
-           this.matches(Regex(""".*\d+\.\s+.*"""))
+           this.matches(Regex("""^\d+\.\s"""))
 }

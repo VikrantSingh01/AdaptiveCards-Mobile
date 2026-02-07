@@ -31,6 +31,12 @@ public struct MarkdownTextView: View {
 
 /// Helper to detect if text contains markdown syntax
 public extension String {
+    /// Static regex for numbered list detection (reused for performance)
+    private static let numberedListRegex = try? NSRegularExpression(
+        pattern: #"^\d+\.\s"#,
+        options: []
+    )
+    
     /// Check if the string contains markdown syntax
     var containsMarkdown: Bool {
         // Check for inline formatting
@@ -49,8 +55,7 @@ public extension String {
         }
         
         // Check for numbered lists (must start with digit followed by ". ")
-        let numberedListPattern = #"^\d+\.\s"#
-        if let regex = try? NSRegularExpression(pattern: numberedListPattern),
+        if let regex = String.numberedListRegex,
            regex.firstMatch(in: self, range: NSRange(self.startIndex..., in: self)) != nil {
             return true
         }
