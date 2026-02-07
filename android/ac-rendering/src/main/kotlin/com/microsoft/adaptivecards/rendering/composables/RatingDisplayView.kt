@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarHalf
-import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -72,7 +72,7 @@ fun RatingDisplayView(
                         imageVector = when {
                             starValue >= 1.0 -> Icons.Filled.Star
                             starValue >= 0.5 -> Icons.Filled.StarHalf
-                            else -> Icons.Outlined.StarOutline
+                            else -> Icons.Outlined.StarBorder
                         },
                         contentDescription = when {
                             starValue >= 1.0 -> "Filled star"

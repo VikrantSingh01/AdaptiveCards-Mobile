@@ -5,7 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +103,7 @@ fun RatingInputView(
                     imageVector = if (isSelected) {
                         Icons.Filled.Star
                     } else {
-                        Icons.Outlined.StarOutline
+                        Icons.Outlined.StarBorder
                     },
                     contentDescription = if (isSelected) {
                         "Star $i, selected"
