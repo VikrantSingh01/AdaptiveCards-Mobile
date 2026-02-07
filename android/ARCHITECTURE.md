@@ -1036,3 +1036,158 @@ Located in `shared/test-cards/`:
 
 **Document Maintained By:** Android SDK Team  
 **Contact:** See CONTRIBUTING.md for contribution guidelines
+
+---
+
+## Sample Application Architecture
+
+### Overview
+
+The Android Sample App (`android/sample-app/`) demonstrates best practices for integrating the Adaptive Cards SDK in a production Jetpack Compose application.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│               MainActivity                              │
+│           (ComponentActivity)                           │
+└───────────────────┬─────────────────────────────────────┘
+                    │
+                    ▼
+         ┌──────────────────────┐
+         │    MainScreen        │
+         │  (Scaffold+NavHost)  │
+         └──────────┬───────────┘
+                    │
+        ┌───────────┼───────────┬───────────┐
+        │           │           │           │
+        ▼           ▼           ▼           ▼
+   ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐
+   │Gallery │  │ Editor │  │ Teams  │  │  More  │
+   │ Screen │  │ Screen │  │ Screen │  │ Screen │
+   └────────┘  └────────┘  └────────┘  └────────┘
+        │           │           │           │
+        └───────────┴───────────┴───────────┘
+                    │
+        ┌───────────┴───────────────┐
+        │                           │
+        ▼                           ▼
+   ┌─────────────┐         ┌──────────────┐
+   │ ac-rendering│         │   ac-core    │
+   │    Module   │         │   Module     │
+   └─────────────┘         └──────────────┘
+```
+
+### Key Components
+
+#### State Management
+- **ActionLogState**: Mutable state managing action history
+- **SettingsState**: Mutable state managing app preferences
+- Uses Compose `remember` and `mutableStateOf` for reactivity
+
+```kotlin
+val actionLogState = remember { ActionLogState() }
+val settingsState = remember { SettingsState() }
+```
+
+#### Screens
+
+1. **CardGalleryScreen**
+   - LazyColumn of test cards
+   - Search/filter by category
+   - Material Design 3 Cards
+
+2. **CardDetailScreen**
+   - Card preview
+   - JSON toggle
+   - Parse/render metrics
+   - Action history
+
+3. **CardEditorScreen**
+   - JSON editor with validation
+   - Tab-based navigation (Editor/Preview)
+   - Format/sample utilities
+
+4. **TeamsSimulatorScreen**
+   - Material chat UI
+   - Message bubbles with cards
+   - Pre-built templates
+
+5. **PerformanceDashboardScreen**
+   - Parse/render metrics
+   - Memory tracking
+   - Recording controls
+
+6. **ActionLogScreen**
+   - LazyColumn of actions
+   - Search/filter
+   - Detail dialog
+
+7. **SettingsScreen**
+   - Material preferences UI
+   - Theme/font settings
+   - Accessibility options
+
+### Data Flow
+
+```
+User Interaction
+     │
+     ▼
+CardGalleryScreen (select card)
+     │
+     ▼
+CardDetailScreen (render card)
+     │
+     ▼
+ac-rendering (parse + render)
+     │
+     ▼
+Action Executed
+     │
+     ▼
+ActionLogState (log action)
+     │
+     ▼
+ActionLogScreen (display log)
+```
+
+### Best Practices Demonstrated
+
+1. **Compose Architecture**: Modern declarative UI patterns
+2. **State Management**: `remember`, `mutableStateOf`, state hoisting
+3. **Navigation**: Navigation Compose with type-safe routes
+4. **Material Design 3**: Latest design system components
+5. **Performance**: LazyColumn, efficient recomposition
+6. **Accessibility**: Semantic properties, TalkBack support
+7. **Testing**: Structured for Compose testing
+
+### Module Structure
+
+```
+sample-app/
+├── build.gradle.kts              # Dependencies
+├── src/main/
+│   ├── kotlin/.../sample/
+│   │   ├── MainActivity.kt       # Entry point
+│   │   ├── CardGalleryScreen.kt
+│   │   ├── CardDetailScreen.kt
+│   │   ├── CardEditorScreen.kt
+│   │   ├── TeamsSimulatorScreen.kt
+│   │   ├── ActionLogScreen.kt
+│   │   ├── SettingsScreen.kt
+│   │   ├── PerformanceDashboardScreen.kt
+│   │   └── ui/theme/Theme.kt
+│   └── assets/test-cards/        # Test card JSON files
+└── README.md
+```
+
+### Building the Sample App
+
+See [android/sample-app/README.md](sample-app/README.md) for detailed build instructions.
+
+---
+
+**Document Version**: 1.0.1  
+**Last Updated**: 2024-02-07  
+**Next Review**: 2024-03-07

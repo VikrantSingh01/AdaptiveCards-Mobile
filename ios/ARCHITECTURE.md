@@ -866,3 +866,141 @@ Located in `shared/test-cards/`:
 
 **Document Maintained By:** iOS SDK Team  
 **Contact:** See CONTRIBUTING.md for contribution guidelines
+
+---
+
+## Sample Application Architecture
+
+### Overview
+
+The iOS Sample App (`ios/SampleApp/`) demonstrates best practices for integrating the Adaptive Cards SDK in a production SwiftUI application.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              AdaptiveCardsSampleApp                     │
+│                   (@main App)                           │
+└───────────────────┬─────────────────────────────────────┘
+                    │
+                    ▼
+         ┌──────────────────────┐
+         │    ContentView       │
+         │     (TabView)        │
+         └──────────┬───────────┘
+                    │
+        ┌───────────┼───────────┬───────────┐
+        │           │           │           │
+        ▼           ▼           ▼           ▼
+   ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐
+   │Gallery │  │ Editor │  │ Teams  │  │  More  │
+   │  View  │  │  View  │  │  View  │  │  View  │
+   └────────┘  └────────┘  └────────┘  └────────┘
+        │           │           │           │
+        └───────────┴───────────┴───────────┘
+                    │
+        ┌───────────┴───────────────┐
+        │                           │
+        ▼                           ▼
+   ┌────────────┐          ┌──────────────┐
+   │ ACRendering│          │  ACCore      │
+   │   Module   │          │  Module      │
+   └────────────┘          └──────────────┘
+```
+
+### Key Components
+
+#### State Management
+- **ActionLogStore**: `ObservableObject` managing action history
+- **AppSettings**: `ObservableObject` managing app preferences
+- Uses `@EnvironmentObject` for global state sharing
+
+```swift
+@StateObject private var actionLog = ActionLogStore()
+@StateObject private var settings = AppSettings()
+
+ContentView()
+    .environmentObject(actionLog)
+    .environmentObject(settings)
+```
+
+#### Views
+
+1. **CardGalleryView**
+   - Lists all test cards with search/filter
+   - Categories: Basic, Inputs, Actions, Containers, Advanced, Teams, Templating
+   - Uses `NavigationStack` + `List` for efficient rendering
+
+2. **CardDetailView**
+   - Renders selected card
+   - Shows JSON payload (toggleable)
+   - Displays parse/render metrics
+   - Lists recent actions
+
+3. **CardEditorView**
+   - Live JSON editor with validation
+   - Real-time preview (split-view or tabs)
+   - Format/sample loading utilities
+
+4. **TeamsSimulatorView**
+   - Teams-style chat UI
+   - Message bubbles with cards
+   - Pre-built card templates
+
+5. **PerformanceDashboardView**
+   - Parse/render metrics
+   - Memory usage tracking
+   - Recording controls
+
+6. **ActionLogView**
+   - Action history with search
+   - Detailed action inspection
+   - Export functionality
+
+7. **SettingsView**
+   - Theme selection
+   - Font scale slider
+   - Accessibility toggles
+
+### Data Flow
+
+```
+User Interaction
+     │
+     ▼
+CardGalleryView (select card)
+     │
+     ▼
+CardDetailView (render card)
+     │
+     ▼
+ACRendering (parse + render)
+     │
+     ▼
+Action Executed
+     │
+     ▼
+ActionLogStore (log action)
+     │
+     ▼
+ActionLogView (display log)
+```
+
+### Best Practices Demonstrated
+
+1. **Modular Design**: Clear separation between UI and SDK logic
+2. **State Management**: Proper use of `@State`, `@StateObject`, `@EnvironmentObject`
+3. **Navigation**: Modern `NavigationStack` with type-safe routing
+4. **Performance**: Lazy loading, efficient list rendering
+5. **Accessibility**: VoiceOver labels, Dynamic Type support
+6. **Testing**: Structured for easy unit/UI testing
+
+### Building the Sample App
+
+See [ios/SampleApp/README.md](SampleApp/README.md) for detailed build instructions.
+
+---
+
+**Document Version**: 1.0.1  
+**Last Updated**: 2024-02-07  
+**Next Review**: 2024-03-07
