@@ -1,0 +1,50 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Code Block Example",
+      "weight": "bolder",
+      "size": "large"
+    },
+    {
+      "type": "TextBlock",
+      "text": "JavaScript Function",
+      "weight": "bolder"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "codeBlock1",
+      "language": "javascript",
+      "startLineNumber": 1,
+      "wrap": false,
+      "code": "function greet(name) {\n  console.log(`Hello, ${name}!`);\n  return `Welcome to Adaptive Cards, ${name}`;\n}\n\ngreet('World');"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Python Example",
+      "weight": "bolder"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "codeBlock2",
+      "language": "python",
+      "startLineNumber": 10,
+      "wrap": false,
+      "code": "def calculate_fibonacci(n):\n    if n <= 1:\n        return n\n    return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)\n\nprint(calculate_fibonacci(10))"
+    },
+    {
+      "type": "TextBlock",
+      "text": "JSON Configuration",
+      "weight": "bolder"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "codeBlock3",
+      "language": "json",
+      "wrap": true,
+      "code": "{\n  \"name\": \"adaptive-cards\",\n  \"version\": \"1.6.0\",\n  \"description\": \"Platform-agnostic UI snippets\",\n  \"features\": [\"mobile\", \"web\", \"desktop\"]\n}"
+    }
+  ]
+}

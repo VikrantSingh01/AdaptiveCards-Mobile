@@ -1,0 +1,95 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Carousel Example",
+      "weight": "bolder",
+      "size": "large"
+    },
+    {
+      "type": "Carousel",
+      "id": "carousel1",
+      "timer": 5000,
+      "initialPage": 0,
+      "pages": [
+        {
+          "items": [
+            {
+              "type": "Container",
+              "style": "emphasis",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Page 1",
+                  "weight": "bolder",
+                  "size": "medium"
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "This is the first page of the carousel"
+                },
+                {
+                  "type": "Image",
+                  "url": "https://picsum.photos/400/200?random=1",
+                  "size": "stretch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "Container",
+              "style": "good",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Page 2",
+                  "weight": "bolder",
+                  "size": "medium"
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "This is the second page with different content"
+                },
+                {
+                  "type": "Image",
+                  "url": "https://picsum.photos/400/200?random=2",
+                  "size": "stretch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "type": "Container",
+              "style": "accent",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Page 3",
+                  "weight": "bolder",
+                  "size": "medium"
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "Final page of the carousel"
+                },
+                {
+                  "type": "Image",
+                  "url": "https://picsum.photos/400/200?random=3",
+                  "size": "stretch"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
