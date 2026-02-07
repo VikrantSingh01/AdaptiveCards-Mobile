@@ -13,10 +13,15 @@ on:
       - 'android/**'
       - 'shared/test-cards/**'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run Android Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
