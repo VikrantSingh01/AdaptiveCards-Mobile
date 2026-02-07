@@ -84,8 +84,5 @@ let package = Package(
         .testTarget(
             name: "ACChartsTests",
             dependencies: ["ACCharts"]),
-        .testTarget(
-            name: "ACFluentUITests",
-            dependencies: ["ACFluentUI"]),
     ]
 )
