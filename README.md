@@ -403,37 +403,83 @@ The templating engine supports powerful data binding:
 
 ## 🗺️ Roadmap
 
-### ✅ Phase 1: Templating Engine (85% Complete)
+### ✅ Phase 1: Templating Engine (Complete)
 - [x] iOS ACTemplating module with 60+ functions
 - [x] Expression parser and evaluator
 - [x] Test cards and comprehensive tests
-- [ ] Android ac-templating implementation
+- [x] Android ac-templating implementation
 
-### 🚧 Phase 2: Advanced Elements + Markdown + Fluent (Planned)
-- [ ] Markdown rendering
-- [ ] ListView element
-- [ ] DataGridInput
-- [ ] CompoundButton
-- [ ] Charts (Donut, Bar, Line, Pie)
-- [ ] Fluent UI theming
-- [ ] Schema validation
+### ✅ Phase 2: Advanced Elements + Markdown + Fluent (Complete)
+- [x] Markdown rendering
+- [x] ListView element
+- [x] DataGrid component
+- [x] CompoundButton
+- [x] Charts (Donut, Bar, Line, Pie)
+- [x] Fluent UI theming
+- [x] Schema validation
 
-### 📋 Phase 3: Advanced Actions + Copilot + Teams (Planned)
-- [ ] Advanced actions (Popover, RunCommands, OpenUrlDialog)
-- [ ] Copilot Extensions module
-- [ ] Teams Integration module
+### ✅ Phase 3: Advanced Actions + Copilot + Teams (Complete)
+- [x] Advanced actions (Popover, MenuAction, etc.)
+- [x] Copilot Extensions module
+- [x] Teams Integration module
 
-### 📋 Phase 4: Sample Apps (Planned)
-- [ ] iOS sample app with card gallery, editor, Teams simulator
-- [ ] Android sample app with same features
+### ✅ Phase 4: Sample Apps (Complete)
+- [x] iOS sample app with card gallery, editor, Teams simulator
+- [x] Android sample app with same features
 
-### 📋 Phase 5: Production Readiness (Planned)
-- [ ] Visual regression tests
-- [ ] Performance benchmarks
-- [ ] SDK publishing configuration
-- [ ] API documentation (DocC/Dokka)
+### ✅ Phase 5: Production Readiness (Complete)
+- [x] Visual regression tests
+- [x] Performance benchmarks
+- [x] SDK publishing configuration
+- [x] API documentation (DocC/Dokka)
+- [x] CI/CD pipelines
+- [x] Comprehensive documentation
 
-See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for complete details.
+### 🚀 Phase 6: SDK Hardening & Ecosystem (In Progress)
+
+**Goal:** Bridge the gap between "v1.0 code complete" and "production-adopted SDK"
+
+#### 🔧 Phase 6A: Codebase Hygiene & README Accuracy (In Progress)
+- [ ] Update README roadmap to reflect reality
+- [ ] Fix ForEach offset-as-ID anti-pattern across all views
+- [ ] Add CHANGELOG section for v1.1.0-dev
+- [ ] Organize documentation with clear index
+
+#### 📦 Phase 6B: CI/CD Validation & Green Build
+- [ ] Audit and fix iOS workflow (Xcode 15+, macos-14)
+- [ ] Audit and fix Android workflow (JDK 17, AGP, Compose)
+- [ ] Add workflow status badges to README
+- [ ] Implement PR check workflow
+
+#### 🧪 Phase 6C: Integration Tests & Real-Device Validation
+- [ ] iOS integration tests (rendering, templating, actions)
+- [ ] Android instrumented tests (Compose testing)
+- [ ] Document test cards with purpose and expectations
+- [ ] Run integration tests in CI
+
+#### ⚡ Phase 6D: Performance Optimization & Caching
+- [ ] Card parse caching (NSCache/LruCache)
+- [ ] Image caching with disk + memory
+- [ ] LazyVStack/LazyColumn optimization
+- [ ] Performance benchmark tests
+- [ ] Document performance characteristics
+
+#### 🎬 Phase 6E: Animation Support & Card Transitions
+- [ ] Card appear/disappear animations
+- [ ] Staggered element loading animations
+- [ ] ToggleVisibility action animations
+- [ ] AnimationConfig in HostConfig
+- [ ] Animation test card and sample app toggle
+
+#### 🌐 Phase 6F: Ecosystem & Community Readiness
+- [ ] GitHub issue templates (bug, feature, question)
+- [ ] PR template with checklist
+- [ ] Add MIT LICENSE file
+- [ ] Quick start guide (5-minute setup)
+- [ ] CocoaPods/Carthage support
+- [ ] Documentation site structure
+
+See [docs/](./docs) for detailed documentation and [docs/session-artifacts/](./docs/session-artifacts/) for phase completion reports.
 
 ## 🤝 Contributing
 

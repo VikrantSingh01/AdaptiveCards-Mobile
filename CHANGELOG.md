@@ -5,6 +5,25 @@ All notable changes to the Adaptive Cards Mobile SDK will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0-dev] - Unreleased
+
+### 🔧 Phase 6A: Codebase Hygiene & README Accuracy
+
+#### Changed
+- **Updated README roadmap**: Marked Phases 1-5 as ✅ Complete, added Phase 6 with sub-phases (6A-6F)
+- **Fixed ForEach offset-as-ID anti-pattern**: Replaced `ForEach(Array(...enumerated()), id: \.offset)` with stable identifiers across all iOS view files
+  - Made `CardElement` conform to `Identifiable` protocol
+  - Added non-optional `id` property that uses element's JSON ID or generates a deterministic identifier
+  - Renamed existing `id` property to `elementId` to distinguish between JSON ID and Identifiable ID
+  - Updated 7 view files: `AdaptiveCardView`, `ContainerView`, `ColumnView`, `TableView`, `AccordionView`, `CarouselView`, `TabSetView`
+- **Documentation organization**: Updated docs/README.md to reference session artifacts folder
+
+#### Why This Matters
+- **Stable identities prevent UI glitches**: SwiftUI's ForEach requires stable identifiers to correctly track view identity across updates. Using array indices (`.offset`) can cause views to be incorrectly reused or animated when the underlying data changes.
+- **Improved README accuracy**: The roadmap now reflects the actual project state, making it easier for contributors and users to understand project status.
+
+---
+
 ## [1.0.0] - 2024-02-07
 
 ### 🎉 Initial Release

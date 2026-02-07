@@ -53,8 +53,8 @@ public struct AdaptiveCardView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 if let body = card.body, !body.isEmpty {
-                    ForEach(Array(body.enumerated()), id: \.offset) { index, element in
-                        if viewModel.isElementVisible(elementId: element.id) {
+                    ForEach(body) { element in
+                        if viewModel.isElementVisible(elementId: element.elementId) {
                             ElementView(element: element, hostConfig: hostConfig)
                         }
                     }

@@ -100,8 +100,8 @@ struct AccordionPanelView: View {
             
             if isExpanded {
                 VStack(spacing: 0) {
-                    ForEach(Array(panel.content.enumerated()), id: \.offset) { index, element in
-                        if viewModel.isElementVisible(elementId: element.id) {
+                    ForEach(panel.content) { element in
+                        if viewModel.isElementVisible(elementId: element.elementId) {
                             ElementView(element: element, hostConfig: hostConfig)
                         }
                     }

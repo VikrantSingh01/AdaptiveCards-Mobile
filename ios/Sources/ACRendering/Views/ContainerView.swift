@@ -12,8 +12,8 @@ struct ContainerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(container.items.enumerated()), id: \.offset) { index, element in
-                if viewModel.isElementVisible(elementId: element.id) {
+            ForEach(container.items) { element in
+                if viewModel.isElementVisible(elementId: element.elementId) {
                     ElementView(element: element, hostConfig: hostConfig)
                 }
             }
