@@ -1,0 +1,190 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "TabSet Example",
+      "weight": "bolder",
+      "size": "large"
+    },
+    {
+      "type": "TabSet",
+      "id": "tabSet1",
+      "selectedTabId": "tab1",
+      "tabs": [
+        {
+          "id": "tab1",
+          "title": "Overview",
+          "icon": "📋",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Overview",
+              "weight": "bolder",
+              "size": "medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "This is the overview tab with general information about the product.",
+              "wrap": true
+            },
+            {
+              "type": "FactSet",
+              "facts": [
+                {
+                  "title": "Version",
+                  "value": "1.6.0"
+                },
+                {
+                  "title": "Released",
+                  "value": "2024-01-15"
+                },
+                {
+                  "title": "Status",
+                  "value": "Active"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tab2",
+          "title": "Features",
+          "icon": "✨",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Key Features",
+              "weight": "bolder",
+              "size": "medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "• Cross-platform support\n• Native rendering\n• JSON-based schema\n• Extensible components\n• Theme support",
+              "wrap": true
+            },
+            {
+              "type": "Container",
+              "style": "good",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "NEW: Advanced elements now available!",
+                  "weight": "bolder"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tab3",
+          "title": "Documentation",
+          "icon": "📖",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Documentation",
+              "weight": "bolder",
+              "size": "medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "Access comprehensive documentation and guides:",
+              "wrap": true
+            },
+            {
+              "type": "ColumnSet",
+              "columns": [
+                {
+                  "width": "stretch",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Getting Started",
+                      "weight": "bolder"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "Quick start guide for new users",
+                      "isSubtle": true,
+                      "wrap": true
+                    }
+                  ]
+                },
+                {
+                  "width": "stretch",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "API Reference",
+                      "weight": "bolder"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "Complete API documentation",
+                      "isSubtle": true,
+                      "wrap": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tab4",
+          "title": "Settings",
+          "icon": "⚙️",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Settings",
+              "weight": "bolder",
+              "size": "medium"
+            },
+            {
+              "type": "Input.Toggle",
+              "id": "enableNotifications",
+              "title": "Enable notifications",
+              "value": "true"
+            },
+            {
+              "type": "Input.Toggle",
+              "id": "darkMode",
+              "title": "Dark mode",
+              "value": "false"
+            },
+            {
+              "type": "Input.ChoiceSet",
+              "id": "language",
+              "label": "Language",
+              "style": "compact",
+              "value": "en",
+              "choices": [
+                {
+                  "title": "English",
+                  "value": "en"
+                },
+                {
+                  "title": "Español",
+                  "value": "es"
+                },
+                {
+                  "title": "Français",
+                  "value": "fr"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Save Settings"
+    }
+  ]
+}

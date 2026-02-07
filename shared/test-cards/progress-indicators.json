@@ -1,0 +1,96 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Progress Indicators Example",
+      "weight": "bolder",
+      "size": "large"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Progress Bars",
+      "weight": "bolder"
+    },
+    {
+      "type": "ProgressBar",
+      "id": "progress1",
+      "label": "Download Progress",
+      "value": 0.75,
+      "color": "#0078D4"
+    },
+    {
+      "type": "ProgressBar",
+      "id": "progress2",
+      "label": "Upload Progress",
+      "value": 0.45,
+      "color": "#107C10"
+    },
+    {
+      "type": "ProgressBar",
+      "id": "progress3",
+      "label": "Processing",
+      "value": 0.90
+    },
+    {
+      "type": "TextBlock",
+      "text": "Spinners",
+      "weight": "bolder"
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "width": "auto",
+          "items": [
+            {
+              "type": "Spinner",
+              "id": "spinner1",
+              "size": "small",
+              "label": "Small"
+            }
+          ]
+        },
+        {
+          "width": "auto",
+          "items": [
+            {
+              "type": "Spinner",
+              "id": "spinner2",
+              "size": "medium",
+              "label": "Medium"
+            }
+          ]
+        },
+        {
+          "width": "auto",
+          "items": [
+            {
+              "type": "Spinner",
+              "id": "spinner3",
+              "size": "large",
+              "label": "Large"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Loading Content...",
+          "horizontalAlignment": "center"
+        },
+        {
+          "type": "Spinner",
+          "id": "spinner4",
+          "size": "medium"
+        }
+      ]
+    }
+  ]
+}

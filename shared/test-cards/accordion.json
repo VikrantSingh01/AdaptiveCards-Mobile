@@ -1,0 +1,77 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Accordion Example",
+      "weight": "bolder",
+      "size": "large"
+    },
+    {
+      "type": "Accordion",
+      "id": "accordion1",
+      "expandMode": "single",
+      "panels": [
+        {
+          "title": "What is Adaptive Cards?",
+          "isExpanded": true,
+          "content": [
+            {
+              "type": "TextBlock",
+              "text": "Adaptive Cards are platform-agnostic snippets of UI, authored in JSON, that apps and services can openly exchange. When delivered to a specific app, the JSON is transformed into native UI that automatically adapts to its surroundings.",
+              "wrap": true
+            }
+          ]
+        },
+        {
+          "title": "How do I get started?",
+          "content": [
+            {
+              "type": "TextBlock",
+              "text": "Visit the Adaptive Cards documentation to learn more about the schema and how to implement Adaptive Cards in your application.",
+              "wrap": true
+            },
+            {
+              "type": "TextBlock",
+              "text": "• Choose your platform\n• Install the SDK\n• Start rendering cards",
+              "wrap": true
+            }
+          ]
+        },
+        {
+          "title": "Where can I use Adaptive Cards?",
+          "content": [
+            {
+              "type": "TextBlock",
+              "text": "Adaptive Cards can be used in:",
+              "wrap": true,
+              "weight": "bolder"
+            },
+            {
+              "type": "FactSet",
+              "facts": [
+                {
+                  "title": "Microsoft Teams",
+                  "value": "Bots and Messaging Extensions"
+                },
+                {
+                  "title": "Outlook",
+                  "value": "Actionable Messages"
+                },
+                {
+                  "title": "Windows",
+                  "value": "Timeline and Notifications"
+                },
+                {
+                  "title": "Custom Apps",
+                  "value": "Mobile and Web"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

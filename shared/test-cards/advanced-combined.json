@@ -1,0 +1,163 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Advanced Elements Showcase",
+      "weight": "bolder",
+      "size": "extraLarge",
+      "horizontalAlignment": "center"
+    },
+    {
+      "type": "TabSet",
+      "id": "mainTabs",
+      "selectedTabId": "carouselTab",
+      "tabs": [
+        {
+          "id": "carouselTab",
+          "title": "Carousel",
+          "items": [
+            {
+              "type": "Carousel",
+              "id": "showcase-carousel",
+              "timer": 4000,
+              "pages": [
+                {
+                  "items": [
+                    {
+                      "type": "Container",
+                      "style": "accent",
+                      "items": [
+                        {
+                          "type": "TextBlock",
+                          "text": "Feature 1: Auto-Advance",
+                          "weight": "bolder",
+                          "size": "large"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": "Carousels support automatic page transitions with configurable timers.",
+                          "wrap": true
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "items": [
+                    {
+                      "type": "Container",
+                      "style": "good",
+                      "items": [
+                        {
+                          "type": "TextBlock",
+                          "text": "Feature 2: Swipe Navigation",
+                          "weight": "bolder",
+                          "size": "large"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": "Users can swipe between pages for intuitive navigation.",
+                          "wrap": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "accordionTab",
+          "title": "Accordion",
+          "items": [
+            {
+              "type": "Accordion",
+              "id": "showcase-accordion",
+              "expandMode": "multiple",
+              "panels": [
+                {
+                  "title": "Progressive Disclosure",
+                  "isExpanded": true,
+                  "content": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Accordions allow users to show/hide content sections, perfect for FAQs and long-form content.",
+                      "wrap": true
+                    }
+                  ]
+                },
+                {
+                  "title": "Flexible Modes",
+                  "content": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Support for single and multiple expansion modes.",
+                      "wrap": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "codeTab",
+          "title": "Code",
+          "items": [
+            {
+              "type": "CodeBlock",
+              "id": "showcase-code",
+              "language": "kotlin",
+              "startLineNumber": 1,
+              "code": "@Composable\nfun CarouselView(carousel: Carousel) {\n    HorizontalPager(pageCount = carousel.pages.size) { page ->\n        // Render carousel page\n    }\n}"
+            }
+          ]
+        },
+        {
+          "id": "interactiveTab",
+          "title": "Interactive",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Rate Your Experience",
+              "weight": "bolder"
+            },
+            {
+              "type": "Input.Rating",
+              "id": "experience-rating",
+              "label": "Overall satisfaction",
+              "max": 5,
+              "isRequired": true
+            },
+            {
+              "type": "ProgressBar",
+              "id": "completion",
+              "label": "Form completion",
+              "value": 0.6,
+              "color": "#0078D4"
+            },
+            {
+              "type": "TextBlock",
+              "text": "Processing your feedback...",
+              "size": "small"
+            },
+            {
+              "type": "Spinner",
+              "id": "loading",
+              "size": "small"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Submit Feedback"
+    }
+  ]
+}

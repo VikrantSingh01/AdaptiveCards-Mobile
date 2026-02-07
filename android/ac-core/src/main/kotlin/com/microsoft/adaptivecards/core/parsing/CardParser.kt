@@ -30,6 +30,15 @@ object CardParser {
                 subclass(InputTime::class)
                 subclass(InputToggle::class)
                 subclass(InputChoiceSet::class)
+                // Advanced elements
+                subclass(Carousel::class)
+                subclass(Accordion::class)
+                subclass(CodeBlock::class)
+                subclass(RatingDisplay::class)
+                subclass(RatingInput::class)
+                subclass(ProgressBar::class)
+                subclass(Spinner::class)
+                subclass(TabSet::class)
             }
             polymorphic(CardAction::class) {
                 subclass(ActionSubmit::class)
