@@ -8,6 +8,15 @@ struct ListView: View {
     
     @EnvironmentObject var viewModel: CardViewModel
     
+    // Layout constants for consistency
+    private enum Layout {
+        static let bulletWidth: CGFloat = 20
+        static let numberWidth: CGFloat = 24
+        static let itemSpacing: CGFloat = 8
+        static let minTouchTarget: CGFloat = 44
+        static let itemVerticalPadding: CGFloat = 4
+    }
+    
     var body: some View {
         let maxHeightValue = parseMaxHeight(list.maxHeight)
         let listStyle = list.style ?? "default"
@@ -15,19 +24,19 @@ struct ListView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(list.items.enumerated()), id: \.offset) { index, item in
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: Layout.itemSpacing) {
                         // Render list item prefix based on style
                         if listStyle == "bulleted" {
                             Text("•")
                                 .font(.system(size: 18))
                                 .foregroundColor(.primary)
-                                .frame(width: 20, alignment: .leading)
+                                .frame(width: Layout.bulletWidth, alignment: .leading)
                                 .accessibilityHidden(true)
                         } else if listStyle == "numbered" {
                             Text("\(index + 1).")
                                 .font(.system(size: 14))
                                 .foregroundColor(.primary)
-                                .frame(width: 24, alignment: .leading)
+                                .frame(width: Layout.numberWidth, alignment: .leading)
                                 .accessibilityHidden(true)
                         }
                         
@@ -35,11 +44,11 @@ struct ListView: View {
                         ElementView(element: item, hostConfig: hostConfig)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(minHeight: 44) // Minimum touch target
-                    .padding(.vertical, 4)
+                    .frame(minHeight: Layout.minTouchTarget) // Minimum touch target
+                    .padding(.vertical, Layout.itemVerticalPadding)
                 }
             }
-            .padding(.horizontal, listStyle != "default" ? 0 : 8)
+            .padding(.horizontal, listStyle != "default" ? 0 : Layout.itemSpacing)
         }
         .frame(maxHeight: maxHeightValue)
         .accessibilityElement(children: .contain)
