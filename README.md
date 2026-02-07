@@ -520,24 +520,6 @@ See [android/sample-app/README.md](android/sample-app/README.md) for detailed in
 - [iOS Architecture](ios/ARCHITECTURE.md) - iOS SDK architecture deep-dive
 - [Android Architecture](android/ARCHITECTURE.md) - Android SDK architecture deep-dive
 
-## 🧪 Testing
-
-### iOS
-```bash
-cd ios
-swift test                    # Run all tests
-swift test --filter ACCoreTests  # Run specific tests
-swift test --enable-code-coverage  # With coverage
-```
-
-### Android
-```bash
-cd android
-./gradlew test               # Run all tests
-./gradlew :ac-core:test      # Run module tests
-./gradlew testDebugUnitTestCoverage  # With coverage
-```
-
 ## 🔄 CI/CD
 
 The project uses GitHub Actions for continuous integration:
