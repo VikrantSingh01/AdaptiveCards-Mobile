@@ -268,6 +268,7 @@ public struct ActionSet: Codable, Equatable {
     public let type: String = "ActionSet"
     public var id: String?
     public var actions: [CardAction]
+    public var mode: ActionSetMode?
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
@@ -277,6 +278,7 @@ public struct ActionSet: Codable, Equatable {
     public init(
         id: String? = nil,
         actions: [CardAction],
+        mode: ActionSetMode? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -285,6 +287,7 @@ public struct ActionSet: Codable, Equatable {
     ) {
         self.id = id
         self.actions = actions
+        self.mode = mode
         self.spacing = spacing
         self.separator = separator
         self.height = height

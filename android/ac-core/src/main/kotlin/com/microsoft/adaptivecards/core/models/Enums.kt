@@ -141,6 +141,12 @@ enum class ActionMode {
 }
 
 @Serializable
+enum class ActionSetMode {
+    @SerialName("default") Default,
+    @SerialName("overflow") Overflow
+}
+
+@Serializable
 enum class TargetWidth {
     @SerialName("narrow") Narrow,
     @SerialName("standard") Standard,

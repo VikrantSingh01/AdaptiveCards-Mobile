@@ -6,6 +6,9 @@ public indirect enum CardAction: Codable, Equatable {
     case showCard(ShowCardAction)
     case execute(ExecuteAction)
     case toggleVisibility(ToggleVisibilityAction)
+    case popover(PopoverAction)
+    case runCommands(RunCommandsAction)
+    case openUrlDialog(OpenUrlDialogAction)
     
     enum CodingKeys: String, CodingKey {
         case type
@@ -26,6 +29,12 @@ public indirect enum CardAction: Codable, Equatable {
             self = .execute(try ExecuteAction(from: decoder))
         case "Action.ToggleVisibility":
             self = .toggleVisibility(try ToggleVisibilityAction(from: decoder))
+        case "Action.Popover":
+            self = .popover(try PopoverAction(from: decoder))
+        case "Action.RunCommands":
+            self = .runCommands(try RunCommandsAction(from: decoder))
+        case "Action.OpenUrlDialog":
+            self = .openUrlDialog(try OpenUrlDialogAction(from: decoder))
         default:
             throw DecodingError.dataCorruptedError(
                 forKey: .type,
@@ -46,6 +55,12 @@ public indirect enum CardAction: Codable, Equatable {
         case .execute(let action):
             try action.encode(to: encoder)
         case .toggleVisibility(let action):
+            try action.encode(to: encoder)
+        case .popover(let action):
+            try action.encode(to: encoder)
+        case .runCommands(let action):
+            try action.encode(to: encoder)
+        case .openUrlDialog(let action):
             try action.encode(to: encoder)
         }
     }
@@ -249,6 +264,129 @@ public struct ToggleVisibilityAction: BaseAction {
             self.elementId = elementId
             self.isVisible = isVisible
         }
+    }
+}
+
+// MARK: - Action.Popover
+
+public struct PopoverAction: BaseAction {
+    public let type: String = "Action.Popover"
+    public var id: String?
+    public var title: String?
+    public var iconUrl: String?
+    public var style: ActionStyle?
+    public var tooltip: String?
+    public var isEnabled: Bool?
+    public var mode: ActionMode?
+    public var popoverTitle: String?
+    public var popoverBody: [CardElement]
+    public var dismissBehavior: String?
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        iconUrl: String? = nil,
+        style: ActionStyle? = nil,
+        tooltip: String? = nil,
+        isEnabled: Bool? = nil,
+        mode: ActionMode? = nil,
+        popoverTitle: String? = nil,
+        popoverBody: [CardElement],
+        dismissBehavior: String? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.iconUrl = iconUrl
+        self.style = style
+        self.tooltip = tooltip
+        self.isEnabled = isEnabled
+        self.mode = mode
+        self.popoverTitle = popoverTitle
+        self.popoverBody = popoverBody
+        self.dismissBehavior = dismissBehavior
+    }
+}
+
+// MARK: - Action.RunCommands
+
+public struct RunCommandsAction: BaseAction {
+    public let type: String = "Action.RunCommands"
+    public var id: String?
+    public var title: String?
+    public var iconUrl: String?
+    public var style: ActionStyle?
+    public var tooltip: String?
+    public var isEnabled: Bool?
+    public var mode: ActionMode?
+    public var commands: [Command]
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        iconUrl: String? = nil,
+        style: ActionStyle? = nil,
+        tooltip: String? = nil,
+        isEnabled: Bool? = nil,
+        mode: ActionMode? = nil,
+        commands: [Command]
+    ) {
+        self.id = id
+        self.title = title
+        self.iconUrl = iconUrl
+        self.style = style
+        self.tooltip = tooltip
+        self.isEnabled = isEnabled
+        self.mode = mode
+        self.commands = commands
+    }
+    
+    public struct Command: Codable, Equatable {
+        public var type: String
+        public var id: String
+        public var data: [String: AnyCodable]?
+        
+        public init(type: String, id: String, data: [String: AnyCodable]? = nil) {
+            self.type = type
+            self.id = id
+            self.data = data
+        }
+    }
+}
+
+// MARK: - Action.OpenUrlDialog
+
+public struct OpenUrlDialogAction: BaseAction {
+    public let type: String = "Action.OpenUrlDialog"
+    public var id: String?
+    public var title: String?
+    public var iconUrl: String?
+    public var style: ActionStyle?
+    public var tooltip: String?
+    public var isEnabled: Bool?
+    public var mode: ActionMode?
+    public var url: String
+    public var dialogTitle: String?
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        iconUrl: String? = nil,
+        style: ActionStyle? = nil,
+        tooltip: String? = nil,
+        isEnabled: Bool? = nil,
+        mode: ActionMode? = nil,
+        url: String,
+        dialogTitle: String? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.iconUrl = iconUrl
+        self.style = style
+        self.tooltip = tooltip
+        self.isEnabled = isEnabled
+        self.mode = mode
+        self.url = url
+        self.dialogTitle = dialogTitle
     }
 }
 

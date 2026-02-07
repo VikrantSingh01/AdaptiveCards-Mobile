@@ -177,7 +177,8 @@ data class ActionSet(
     override val height: BlockElementHeight? = null,
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
-    val actions: List<CardAction>
+    val actions: List<CardAction>,
+    val mode: ActionSetMode? = null
 ) : CardElement
 
 @Serializable
