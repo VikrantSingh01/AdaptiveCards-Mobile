@@ -1,0 +1,86 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build iOS",
+      "type": "shell",
+      "command": "swift",
+      "args": ["build"],
+      "options": {
+        "cwd": "${workspaceFolder}/ios"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Test iOS",
+      "type": "shell",
+      "command": "swift",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder}/ios"
+      },
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "Build Android",
+      "type": "shell",
+      "command": "gradle",
+      "args": ["build"],
+      "options": {
+        "cwd": "${workspaceFolder}/android"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Test Android",
+      "type": "shell",
+      "command": "gradle",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder}/android"
+      },
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "Test All Platforms",
+      "dependsOn": ["Test iOS", "Test Android"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Validate Test Cards",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "for f in shared/test-cards/*.json; do python3 -m json.tool \"$f\" > /dev/null && echo \"✓ $(basename $f)\" || echo \"✗ $(basename $f)\"; done"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}
