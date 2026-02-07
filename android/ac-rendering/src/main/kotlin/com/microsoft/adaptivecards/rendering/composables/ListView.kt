@@ -25,6 +25,16 @@ import com.microsoft.adaptivecards.core.models.ListElement
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
+// Layout constants for consistency
+private object ListLayout {
+    val BulletWidth = 20.dp
+    val NumberWidth = 24.dp
+    val ItemSpacing = 8.dp
+    val MinTouchTarget = 44.dp
+    val ItemVerticalPadding = 4.dp
+    val ItemSpacingVertical = 4.dp
+}
+
 /**
  * Renders a List element with support for different styles and scrolling
  */
@@ -55,13 +65,13 @@ fun ListView(
                     columnCount = 1
                 )
             },
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(ListLayout.ItemSpacingVertical)
     ) {
         itemsIndexed(element.items) { index, item ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = 44.dp),
+                    .defaultMinSize(minHeight = ListLayout.MinTouchTarget),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.Top
             ) {
@@ -73,8 +83,8 @@ fun ListView(
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
-                                .width(20.dp)
-                                .padding(end = 8.dp)
+                                .width(ListLayout.BulletWidth)
+                                .padding(end = ListLayout.ItemSpacing)
                         )
                     }
                     "numbered" -> {
@@ -83,8 +93,8 @@ fun ListView(
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
-                                .width(24.dp)
-                                .padding(end = 8.dp)
+                                .width(ListLayout.NumberWidth)
+                                .padding(end = ListLayout.ItemSpacing)
                         )
                     }
                 }
@@ -93,7 +103,7 @@ fun ListView(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(vertical = 4.dp)
+                        .padding(vertical = ListLayout.ItemVerticalPadding)
                 ) {
                     RenderElement(
                         element = item,
