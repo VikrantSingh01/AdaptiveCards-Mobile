@@ -24,7 +24,7 @@ public class DefaultActionHandler: ActionHandler {
         case .submit(let submitAction):
             let handler = SubmitActionHandler(
                 delegate: delegate,
-                gatherInputs: { viewModel.gatherInputs() }
+                gatherInputs: { viewModel.gatherInputValues() }
             )
             handler.handle(submitAction)
             
@@ -41,7 +41,7 @@ public class DefaultActionHandler: ActionHandler {
         case .execute(let executeAction):
             let handler = ExecuteActionHandler(
                 delegate: delegate,
-                gatherInputs: { viewModel.gatherInputs() }
+                gatherInputs: { viewModel.gatherInputValues() }
             )
             handler.handle(executeAction)
             

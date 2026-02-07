@@ -17,6 +17,7 @@ public indirect enum CardElement: Codable, Equatable {
     case timeInput(TimeInput)
     case toggleInput(ToggleInput)
     case choiceSetInput(ChoiceSetInput)
+    case unknown(type: String)
     
     enum CodingKeys: String, CodingKey {
         case type
@@ -60,11 +61,8 @@ public indirect enum CardElement: Codable, Equatable {
         case "Input.ChoiceSet":
             self = .choiceSetInput(try ChoiceSetInput(from: decoder))
         default:
-            throw DecodingError.dataCorruptedError(
-                forKey: .type,
-                in: container,
-                debugDescription: "Unknown element type: \(type)"
-            )
+            // Gracefully fallback for unknown element types per Adaptive Cards spec
+            self = .unknown(type: type)
         }
     }
     
@@ -102,6 +100,9 @@ public indirect enum CardElement: Codable, Equatable {
             try element.encode(to: encoder)
         case .choiceSetInput(let element):
             try element.encode(to: encoder)
+        case .unknown(let type):
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
         }
     }
     
@@ -123,6 +124,7 @@ public indirect enum CardElement: Codable, Equatable {
         case .timeInput(let element): return element.id
         case .toggleInput(let element): return element.id
         case .choiceSetInput(let element): return element.id
+        case .unknown: return nil
         }
     }
     
@@ -144,6 +146,30 @@ public indirect enum CardElement: Codable, Equatable {
         case .timeInput(let element): return element.isVisible ?? true
         case .toggleInput(let element): return element.isVisible ?? true
         case .choiceSetInput(let element): return element.isVisible ?? true
+        case .unknown: return false
+        }
+    }
+    
+    /// Returns the type string for this element
+    public var typeString: String {
+        switch self {
+        case .textBlock: return "TextBlock"
+        case .image: return "Image"
+        case .media: return "Media"
+        case .richTextBlock: return "RichTextBlock"
+        case .container: return "Container"
+        case .columnSet: return "ColumnSet"
+        case .imageSet: return "ImageSet"
+        case .factSet: return "FactSet"
+        case .actionSet: return "ActionSet"
+        case .table: return "Table"
+        case .textInput: return "Input.Text"
+        case .numberInput: return "Input.Number"
+        case .dateInput: return "Input.Date"
+        case .timeInput: return "Input.Time"
+        case .toggleInput: return "Input.Toggle"
+        case .choiceSetInput: return "Input.ChoiceSet"
+        case .unknown(let type): return type
         }
     }
 }
