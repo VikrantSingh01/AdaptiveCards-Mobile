@@ -1,0 +1,28 @@
+import Foundation
+import UIKit
+import ACCore
+
+public class OpenUrlActionHandler {
+    private weak var delegate: ActionDelegate?
+    
+    public init(delegate: ActionDelegate?) {
+        self.delegate = delegate
+    }
+    
+    public func handle(_ action: OpenUrlAction) {
+        guard let url = URL(string: action.url) else {
+            print("Invalid URL: \(action.url)")
+            return
+        }
+        
+        // Notify delegate
+        delegate?.onOpenUrl(url: url, actionId: action.id)
+        
+        // Attempt to open URL
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            print("Cannot open URL: \(url)")
+        }
+    }
+}

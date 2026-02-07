@@ -1,0 +1,39 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+*.xcodeproj/
+*.xcworkspace/
+
+# macOS
+.DS_Store
+
+# iOS
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift
+*.swiftmodule
+*.swiftdoc
+*.swiftsourceinfo
+
+# Dependencies
+Packages/
+.build/
+xcuserdata/
+DerivedData/
+
+# Android
+*.apk
+*.aab
+build/
+.gradle/
+local.properties
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Misc
+*.log
