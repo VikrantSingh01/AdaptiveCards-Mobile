@@ -451,8 +451,6 @@ final class AdvancedElementsParserTests: XCTestCase {
             body: [
                 .carousel(Carousel(
                     id: "carousel1",
-                    timer: 3000,
-                    initialPage: 0,
                     pages: [
                         CarouselPage(items: [
                             .textBlock(TextBlock(text: "Page 1"))
@@ -460,7 +458,9 @@ final class AdvancedElementsParserTests: XCTestCase {
                         CarouselPage(items: [
                             .textBlock(TextBlock(text: "Page 2"))
                         ])
-                    ]
+                    ],
+                    timer: 3000,
+                    initialPage: 0
                 ))
             ]
         )
@@ -485,7 +485,6 @@ final class AdvancedElementsParserTests: XCTestCase {
             body: [
                 .tabSet(TabSet(
                     id: "tabs1",
-                    selectedTabId: "tab1",
                     tabs: [
                         Tab(
                             id: "tab1",
@@ -495,7 +494,8 @@ final class AdvancedElementsParserTests: XCTestCase {
                                 .textBlock(TextBlock(text: "Overview content"))
                             ]
                         )
-                    ]
+                    ],
+                    selectedTabId: "tab1"
                 ))
             ]
         )
