@@ -7,6 +7,7 @@ public enum CardInput: Codable, Equatable {
     case time(TimeInput)
     case toggle(ToggleInput)
     case choiceSet(ChoiceSetInput)
+    case rating(RatingInput)
     
     enum CodingKeys: String, CodingKey {
         case type
@@ -29,6 +30,8 @@ public enum CardInput: Codable, Equatable {
             self = .toggle(try ToggleInput(from: decoder))
         case "Input.ChoiceSet":
             self = .choiceSet(try ChoiceSetInput(from: decoder))
+        case "Input.Rating":
+            self = .rating(try RatingInput(from: decoder))
         default:
             throw DecodingError.dataCorruptedError(
                 forKey: .type,
@@ -52,6 +55,8 @@ public enum CardInput: Codable, Equatable {
             try input.encode(to: encoder)
         case .choiceSet(let input):
             try input.encode(to: encoder)
+        case .rating(let input):
+            try input.encode(to: encoder)
         }
     }
     
@@ -63,6 +68,7 @@ public enum CardInput: Codable, Equatable {
         case .time(let input): return input.id
         case .toggle(let input): return input.id
         case .choiceSet(let input): return input.id
+        case .rating(let input): return input.id
         }
     }
     
@@ -74,6 +80,7 @@ public enum CardInput: Codable, Equatable {
         case .time(let input): return input.isRequired ?? false
         case .toggle(let input): return false
         case .choiceSet(let input): return input.isRequired ?? false
+        case .rating(let input): return input.isRequired ?? false
         }
     }
 }

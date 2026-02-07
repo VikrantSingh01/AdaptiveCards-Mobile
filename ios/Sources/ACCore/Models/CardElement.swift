@@ -17,6 +17,14 @@ public indirect enum CardElement: Codable, Equatable {
     case timeInput(TimeInput)
     case toggleInput(ToggleInput)
     case choiceSetInput(ChoiceSetInput)
+    case carousel(Carousel)
+    case accordion(Accordion)
+    case codeBlock(CodeBlock)
+    case ratingDisplay(RatingDisplay)
+    case ratingInput(RatingInput)
+    case progressBar(ProgressBar)
+    case spinner(Spinner)
+    case tabSet(TabSet)
     case unknown(type: String)
     
     enum CodingKeys: String, CodingKey {
@@ -60,6 +68,22 @@ public indirect enum CardElement: Codable, Equatable {
             self = .toggleInput(try ToggleInput(from: decoder))
         case "Input.ChoiceSet":
             self = .choiceSetInput(try ChoiceSetInput(from: decoder))
+        case "Carousel":
+            self = .carousel(try Carousel(from: decoder))
+        case "Accordion":
+            self = .accordion(try Accordion(from: decoder))
+        case "CodeBlock":
+            self = .codeBlock(try CodeBlock(from: decoder))
+        case "Rating":
+            self = .ratingDisplay(try RatingDisplay(from: decoder))
+        case "Input.Rating":
+            self = .ratingInput(try RatingInput(from: decoder))
+        case "ProgressBar":
+            self = .progressBar(try ProgressBar(from: decoder))
+        case "Spinner":
+            self = .spinner(try Spinner(from: decoder))
+        case "TabSet":
+            self = .tabSet(try TabSet(from: decoder))
         default:
             // Gracefully fallback for unknown element types per Adaptive Cards spec
             self = .unknown(type: type)
@@ -100,6 +124,22 @@ public indirect enum CardElement: Codable, Equatable {
             try element.encode(to: encoder)
         case .choiceSetInput(let element):
             try element.encode(to: encoder)
+        case .carousel(let element):
+            try element.encode(to: encoder)
+        case .accordion(let element):
+            try element.encode(to: encoder)
+        case .codeBlock(let element):
+            try element.encode(to: encoder)
+        case .ratingDisplay(let element):
+            try element.encode(to: encoder)
+        case .ratingInput(let element):
+            try element.encode(to: encoder)
+        case .progressBar(let element):
+            try element.encode(to: encoder)
+        case .spinner(let element):
+            try element.encode(to: encoder)
+        case .tabSet(let element):
+            try element.encode(to: encoder)
         case .unknown(let type):
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(type, forKey: .type)
@@ -124,6 +164,14 @@ public indirect enum CardElement: Codable, Equatable {
         case .timeInput(let element): return element.id
         case .toggleInput(let element): return element.id
         case .choiceSetInput(let element): return element.id
+        case .carousel(let element): return element.id
+        case .accordion(let element): return element.id
+        case .codeBlock(let element): return element.id
+        case .ratingDisplay(let element): return element.id
+        case .ratingInput(let element): return element.id
+        case .progressBar(let element): return element.id
+        case .spinner(let element): return element.id
+        case .tabSet(let element): return element.id
         case .unknown: return nil
         }
     }
@@ -146,6 +194,14 @@ public indirect enum CardElement: Codable, Equatable {
         case .timeInput(let element): return element.isVisible ?? true
         case .toggleInput(let element): return element.isVisible ?? true
         case .choiceSetInput(let element): return element.isVisible ?? true
+        case .carousel(let element): return element.isVisible ?? true
+        case .accordion(let element): return element.isVisible ?? true
+        case .codeBlock(let element): return element.isVisible ?? true
+        case .ratingDisplay(let element): return element.isVisible ?? true
+        case .ratingInput(let element): return element.isVisible ?? true
+        case .progressBar(let element): return element.isVisible ?? true
+        case .spinner(let element): return element.isVisible ?? true
+        case .tabSet(let element): return element.isVisible ?? true
         case .unknown: return false
         }
     }
@@ -169,6 +225,14 @@ public indirect enum CardElement: Codable, Equatable {
         case .timeInput: return "Input.Time"
         case .toggleInput: return "Input.Toggle"
         case .choiceSetInput: return "Input.ChoiceSet"
+        case .carousel: return "Carousel"
+        case .accordion: return "Accordion"
+        case .codeBlock: return "CodeBlock"
+        case .ratingDisplay: return "Rating"
+        case .ratingInput: return "Input.Rating"
+        case .progressBar: return "ProgressBar"
+        case .spinner: return "Spinner"
+        case .tabSet: return "TabSet"
         case .unknown(let type): return type
         }
     }
