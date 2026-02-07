@@ -89,6 +89,27 @@ struct ElementView: View {
                 value: binding(for: input.id, defaultValue: input.value),
                 validationState: validationState
             )
+        case .carousel(let carousel):
+            CarouselView(carousel: carousel, hostConfig: hostConfig)
+        case .accordion(let accordion):
+            AccordionView(accordion: accordion, hostConfig: hostConfig)
+        case .codeBlock(let codeBlock):
+            CodeBlockView(codeBlock: codeBlock, hostConfig: hostConfig)
+        case .ratingDisplay(let rating):
+            RatingDisplayView(rating: rating, hostConfig: hostConfig)
+        case .ratingInput(let input):
+            RatingInputView(
+                input: input,
+                hostConfig: hostConfig,
+                value: binding(for: input.id, defaultValue: input.value ?? 0.0),
+                validationState: validationState
+            )
+        case .progressBar(let progressBar):
+            ProgressBarView(progressBar: progressBar, hostConfig: hostConfig)
+        case .spinner(let spinner):
+            SpinnerView(spinner: spinner, hostConfig: hostConfig)
+        case .tabSet(let tabSet):
+            TabSetView(tabSet: tabSet, hostConfig: hostConfig)
         case .unknown(let type):
             // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG
