@@ -96,5 +96,9 @@ let package = Package(
         .testTarget(
             name: "ACChartsTests",
             dependencies: ["ACCharts"]),
+        .testTarget(
+            name: "IntegrationTests",
+            dependencies: ["ACCore"],
+            resources: [.copy("Resources")]),
     ]
 )
