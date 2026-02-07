@@ -142,3 +142,32 @@ data class Choice(
     val title: String,
     val value: String
 )
+
+@Serializable
+@SerialName("Input.DataGrid")
+data class InputDataGrid(
+    override val type: String = "Input.DataGrid",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    override val label: String? = null,
+    override val isRequired: Boolean = false,
+    override val errorMessage: String? = null,
+    val columns: List<DataGridColumn>,
+    val rows: List<List<JsonElement>>? = null,
+    val maxRows: Int? = null
+) : CardInput
+
+@Serializable
+data class DataGridColumn(
+    val id: String,
+    val title: String,
+    val type: String,
+    val width: String? = null,
+    val isEditable: Boolean? = null,
+    val isSortable: Boolean? = null
+)
