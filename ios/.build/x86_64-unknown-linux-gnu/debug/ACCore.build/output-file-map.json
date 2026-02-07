@@ -1,0 +1,103 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/master.swiftdeps"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/HostConfig/HostConfig.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfig.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfig.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfig.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/HostConfig/HostConfigParser.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfigParser.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfigParser.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfigParser~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfigParser.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/HostConfigParser.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/HostConfig/TeamsHostConfig.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/TeamsHostConfig.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/TeamsHostConfig.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/TeamsHostConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/TeamsHostConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/TeamsHostConfig.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/AdaptiveCard.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/AdaptiveCard.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/AdaptiveCard.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/AdaptiveCard~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/AdaptiveCard.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/AdaptiveCard.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/CardAction.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardAction.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardAction.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardAction~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardAction.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardAction.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/CardElement.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardElement.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardElement.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardElement~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardElement.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardElement.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/CardInput.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardInput.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardInput.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardInput~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardInput.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardInput.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/ContainerTypes.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ContainerTypes.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ContainerTypes.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ContainerTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ContainerTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ContainerTypes.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/Enums.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Enums.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Enums.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Enums~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Enums.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Enums.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/MediaTypes.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/MediaTypes.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/MediaTypes.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/MediaTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/MediaTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/MediaTypes.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/Metadata.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Metadata.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Metadata.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Metadata~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Metadata.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/Metadata.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Parsing/CardParser.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardParser.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardParser.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardParser~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardParser.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/CardParser.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Parsing/ElementDecoder.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ElementDecoder.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ElementDecoder.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ElementDecoder~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ElementDecoder.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/ElementDecoder.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Parsing/FallbackHandler.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/FallbackHandler.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/FallbackHandler.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/FallbackHandler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/FallbackHandler.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/FallbackHandler.dia"
+  }
+}

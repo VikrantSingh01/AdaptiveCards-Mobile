@@ -1,0 +1,3 @@
+module ACCore {
+    header "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACCore.build/include/ACCore-Swift.h"
+}

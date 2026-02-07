@@ -1,0 +1,14 @@
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/HostConfig/HostConfig.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/HostConfig/HostConfigParser.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/HostConfig/TeamsHostConfig.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/AdaptiveCard.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/CardAction.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/CardElement.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/CardInput.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/ContainerTypes.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/Enums.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/MediaTypes.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Models/Metadata.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Parsing/CardParser.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Parsing/ElementDecoder.swift
+/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACCore/Parsing/FallbackHandler.swift

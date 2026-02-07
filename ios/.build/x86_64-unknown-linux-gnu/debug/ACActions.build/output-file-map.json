@@ -1,0 +1,54 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/master.swiftdeps"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/ActionButton.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionButton.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionButton.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionButton~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionButton.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionButton.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/ActionDelegate.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionDelegate.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionDelegate.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionDelegate~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionDelegate.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ActionDelegate.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/ExecuteActionHandler.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ExecuteActionHandler.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ExecuteActionHandler.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ExecuteActionHandler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ExecuteActionHandler.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ExecuteActionHandler.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/OpenUrlActionHandler.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/OpenUrlActionHandler.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/OpenUrlActionHandler.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/OpenUrlActionHandler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/OpenUrlActionHandler.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/OpenUrlActionHandler.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/ShowCardActionHandler.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ShowCardActionHandler.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ShowCardActionHandler.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ShowCardActionHandler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ShowCardActionHandler.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ShowCardActionHandler.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/SubmitActionHandler.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/SubmitActionHandler.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/SubmitActionHandler.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/SubmitActionHandler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/SubmitActionHandler.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/SubmitActionHandler.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACActions/ToggleVisibilityHandler.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ToggleVisibilityHandler.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ToggleVisibilityHandler.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ToggleVisibilityHandler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ToggleVisibilityHandler.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACActions.build/ToggleVisibilityHandler.dia"
+  }
+}

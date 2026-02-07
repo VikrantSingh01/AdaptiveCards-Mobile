@@ -1,0 +1,61 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/master.swiftdeps"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Validation/InputValidator.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/InputValidator.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/InputValidator.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/InputValidator~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/InputValidator.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/InputValidator.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Validation/ValidationState.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ValidationState.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ValidationState.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ValidationState~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ValidationState.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ValidationState.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Views/ChoiceSetInputView.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ChoiceSetInputView.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ChoiceSetInputView.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ChoiceSetInputView~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ChoiceSetInputView.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ChoiceSetInputView.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Views/DateInputView.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/DateInputView.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/DateInputView.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/DateInputView~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/DateInputView.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/DateInputView.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Views/NumberInputView.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/NumberInputView.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/NumberInputView.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/NumberInputView~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/NumberInputView.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/NumberInputView.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Views/TextInputView.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TextInputView.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TextInputView.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TextInputView~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TextInputView.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TextInputView.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Views/TimeInputView.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TimeInputView.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TimeInputView.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TimeInputView~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TimeInputView.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/TimeInputView.dia"
+  },
+  "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/Sources/ACInputs/Views/ToggleInputView.swift": {
+    "dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ToggleInputView.d",
+    "object": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ToggleInputView.swift.o",
+    "swiftmodule": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ToggleInputView~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ToggleInputView.swiftdeps",
+    "diagnostics": "/home/runner/work/AdaptiveCards-Mobile/AdaptiveCards-Mobile/ios/.build/x86_64-unknown-linux-gnu/debug/ACInputs.build/ToggleInputView.dia"
+  }
+}

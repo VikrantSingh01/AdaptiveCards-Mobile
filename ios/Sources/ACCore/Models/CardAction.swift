@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CardAction: Codable, Equatable {
+public indirect enum CardAction: Codable, Equatable {
     case submit(SubmitAction)
     case openUrl(OpenUrlAction)
     case showCard(ShowCardAction)

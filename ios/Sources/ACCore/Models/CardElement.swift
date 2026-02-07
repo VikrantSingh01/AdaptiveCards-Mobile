@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CardElement: Codable, Equatable {
+public indirect enum CardElement: Codable, Equatable {
     case textBlock(TextBlock)
     case image(Image)
     case media(Media)
