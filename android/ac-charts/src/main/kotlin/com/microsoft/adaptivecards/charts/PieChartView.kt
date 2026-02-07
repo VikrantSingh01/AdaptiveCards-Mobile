@@ -109,6 +109,14 @@ fun PieChartView(chart: PieChart) {
                     val radius = canvasSize / 2f
                     val center = Offset(size.width / 2f, size.height / 2f)
                     
+                    // Reusable paint for percentage labels
+                    val textPaint = android.graphics.Paint().apply {
+                        color = android.graphics.Color.WHITE
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        textSize = 28f
+                        isFakeBoldText = true
+                    }
+                    
                     var startAngle = -90f
                     
                     chart.data.forEachIndexed { index, dataPoint ->
@@ -156,20 +164,12 @@ fun PieChartView(chart: PieChart) {
                             
                             val percentageText = "${(percentage * 100).toInt()}%"
                             
-                            drawContext.canvas.nativeCanvas.apply {
-                                val paint = android.graphics.Paint().apply {
-                                    this.color = android.graphics.Color.WHITE
-                                    textAlign = android.graphics.Paint.Align.CENTER
-                                    textSize = 28f
-                                    isFakeBoldText = true
-                                }
-                                drawText(
-                                    percentageText,
-                                    labelX,
-                                    labelY + 10f,
-                                    paint
-                                )
-                            }
+                            drawContext.canvas.nativeCanvas.drawText(
+                                percentageText,
+                                labelX,
+                                labelY + 10f,
+                                textPaint
+                            )
                         }
                         
                         startAngle += sweepAngle

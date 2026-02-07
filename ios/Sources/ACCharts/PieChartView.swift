@@ -83,8 +83,8 @@ public struct PieChartView: View {
                     if chart.showPercentages ?? false, animationProgress > 0.9 {
                         let midAngle = startAngle + sweepAngle / 2
                         let labelRadius = radius * 0.65
-                        let labelX = center.x + labelRadius * cos(midAngle.radians)
-                        let labelY = center.y + labelRadius * sin(midAngle.radians)
+                        let labelX = center.x + labelRadius * cos(midAngle.asCGFloatRadians)
+                        let labelY = center.y + labelRadius * sin(midAngle.asCGFloatRadians)
                         
                         let percentageText = String(format: "%.0f%%", percentage * 100)
                         let textPoint = CGPoint(x: labelX, y: labelY)
