@@ -136,3 +136,22 @@ public enum AssociatedInputs: String, Codable {
     case auto = "Auto"
     case none = "None"
 }
+
+// MARK: - Advanced Elements
+
+public enum ExpandMode: String, Codable {
+    case single = "Single"
+    case multiple = "Multiple"
+}
+
+public enum RatingSize: String, Codable {
+    case small = "Small"
+    case medium = "Medium"
+    case large = "Large"
+}
+
+public enum SpinnerSize: String, Codable {
+    case small = "Small"
+    case medium = "Medium"
+    case large = "Large"
+}
