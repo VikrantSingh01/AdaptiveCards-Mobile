@@ -10,7 +10,7 @@ final class CardParserTests: XCTestCase {
     }
     
     func testParseSimpleCard() throws {
-        let json = try loadTestCard(named: "simple-card")
+        let json = try loadTestCard(named: "simple-text")
         let card = try parser.parse(json)
         
         XCTAssertEqual(card.version, "1.6")
@@ -44,7 +44,7 @@ final class CardParserTests: XCTestCase {
     }
     
     func testParseContainerColumnSet() throws {
-        let json = try loadTestCard(named: "container-columnset")
+        let json = try loadTestCard(named: "containers")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
@@ -67,7 +67,7 @@ final class CardParserTests: XCTestCase {
     }
     
     func testParseActions() throws {
-        let json = try loadTestCard(named: "actions")
+        let json = try loadTestCard(named: "all-actions")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
@@ -90,7 +90,7 @@ final class CardParserTests: XCTestCase {
     }
     
     func testParseRichContent() throws {
-        let json = try loadTestCard(named: "rich-content")
+        let json = try loadTestCard(named: "rich-text")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
@@ -177,7 +177,7 @@ final class CardParserTests: XCTestCase {
     }
     
     func testRoundTripEncoding() throws {
-        let json = try loadTestCard(named: "simple-card")
+        let json = try loadTestCard(named: "simple-text")
         let card = try parser.parse(json)
         
         // Encode back to JSON
@@ -188,6 +188,61 @@ final class CardParserTests: XCTestCase {
         
         XCTAssertEqual(card.version, reparsedCard.version)
         XCTAssertEqual(card.body?.count, reparsedCard.body?.count)
+    }
+    
+    func testUnknownElementTypeFallback() throws {
+        // Test JSON with an unknown element type
+        let json = """
+        {
+            "type": "AdaptiveCard",
+            "version": "1.6",
+            "body": [
+                {
+                    "type": "TextBlock",
+                    "text": "Before unknown"
+                },
+                {
+                    "type": "FutureElement",
+                    "someProperty": "value"
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "After unknown"
+                }
+            ]
+        }
+        """
+        
+        let card = try parser.parse(json)
+        
+        XCTAssertNotNil(card.body)
+        XCTAssertEqual(card.body?.count, 3)
+        
+        // Verify first element is TextBlock
+        if case .textBlock(let textBlock) = card.body?[0] {
+            XCTAssertEqual(textBlock.text, "Before unknown")
+        } else {
+            XCTFail("Expected TextBlock as first element")
+        }
+        
+        // Verify second element is unknown
+        if case .unknown(let type) = card.body?[1] {
+            XCTAssertEqual(type, "FutureElement")
+        } else {
+            XCTFail("Expected unknown element as second element")
+        }
+        
+        // Verify third element is TextBlock
+        if case .textBlock(let textBlock) = card.body?[2] {
+            XCTAssertEqual(textBlock.text, "After unknown")
+        } else {
+            XCTFail("Expected TextBlock as third element")
+        }
+        
+        // Verify unknown element properties
+        let unknownElement = card.body?[1]
+        XCTAssertNil(unknownElement?.id)
+        XCTAssertFalse(unknownElement?.isVisible ?? true)
     }
     
     // MARK: - Helper Methods

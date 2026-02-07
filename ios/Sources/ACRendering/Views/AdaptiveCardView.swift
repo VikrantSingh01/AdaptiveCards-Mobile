@@ -6,7 +6,7 @@ import ACInputs
 
 /// Root SwiftUI view for rendering an Adaptive Card
 public struct AdaptiveCardView: View {
-    let json: String
+    let cardJson: String
     let hostConfig: HostConfig
     let actionDelegate: ActionDelegate?
     
@@ -15,12 +15,12 @@ public struct AdaptiveCardView: View {
     private let actionHandler: ActionHandler
     
     public init(
-        json: String,
+        cardJson: String,
         hostConfig: HostConfig = TeamsHostConfig.create(),
         actionDelegate: ActionDelegate? = nil,
         actionHandler: ActionHandler = DefaultActionHandler()
     ) {
-        self.json = json
+        self.cardJson = cardJson
         self.hostConfig = hostConfig
         self.actionDelegate = actionDelegate
         self.actionHandler = actionHandler
@@ -34,7 +34,7 @@ public struct AdaptiveCardView: View {
             .environment(\.actionHandler, actionHandler)
             .environment(\.validationState, validationState)
             .onAppear {
-                viewModel.parse(json: json)
+                viewModel.parseCard(json: cardJson)
             }
     }
     
@@ -50,22 +50,24 @@ public struct AdaptiveCardView: View {
     }
     
     private func cardContent(card: AdaptiveCard) -> some View {
-        VStack(spacing: 0) {
-            if let body = card.body, !body.isEmpty {
-                ForEach(Array(body.enumerated()), id: \.offset) { index, element in
-                    if viewModel.isVisible(elementId: element.id) {
-                        ElementView(element: element, hostConfig: hostConfig)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                if let body = card.body, !body.isEmpty {
+                    ForEach(Array(body.enumerated()), id: \.offset) { index, element in
+                        if viewModel.isElementVisible(elementId: element.id) {
+                            ElementView(element: element, hostConfig: hostConfig)
+                        }
                     }
                 }
+                
+                if let actions = card.actions, !actions.isEmpty {
+                    ActionSetView(actions: actions, hostConfig: hostConfig)
+                        .padding(.top, CGFloat(hostConfig.spacing.default))
+                }
             }
-            
-            if let actions = card.actions, !actions.isEmpty {
-                ActionSetView(actions: actions, hostConfig: hostConfig)
-                    .padding(.top, CGFloat(hostConfig.spacing.default))
-            }
+            .padding(CGFloat(hostConfig.spacing.padding))
+            .containerStyle(nil, hostConfig: hostConfig)
         }
-        .padding(CGFloat(hostConfig.spacing.padding))
-        .containerStyle(nil, hostConfig: hostConfig)
     }
     
     private func errorView(error: Error) -> some View {
