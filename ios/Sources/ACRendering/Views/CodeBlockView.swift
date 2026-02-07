@@ -7,6 +7,8 @@ struct CodeBlockView: View {
     let hostConfig: HostConfig
     
     @State private var showCopied = false
+    @Environment(\.sizeCategory) var sizeCategory
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -16,6 +18,7 @@ struct CodeBlockView: View {
                     Text(language)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .accessibilityLabel("Programming language: \(language)")
                 }
                 
                 Spacer()
@@ -27,8 +30,12 @@ struct CodeBlockView: View {
                             .font(.caption)
                     }
                     .foregroundColor(.blue)
+                    .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(showCopied ? "Code copied to clipboard" : "Copy code to clipboard")
+                .accessibilityHint("Double tap to copy code")
+                .accessibilityAddTraits(.isButton)
             }
             .padding(.horizontal, 8)
             .padding(.top, 8)
@@ -40,14 +47,16 @@ struct CodeBlockView: View {
                         HStack(spacing: 8) {
                             if let startLine = codeBlock.startLineNumber {
                                 Text("\(startLine + index)")
-                                    .font(.system(.caption, design: .monospaced))
+                                    .font(.system(adaptiveFontSize, design: .monospaced))
                                     .foregroundColor(.secondary)
                                     .frame(minWidth: 30, alignment: .trailing)
+                                    .accessibilityHidden(true)
                             }
                             
                             Text(line)
-                                .font(.system(.body, design: .monospaced))
+                                .font(.system(adaptiveFontSize, design: .monospaced))
                                 .foregroundColor(.primary)
+                                .lineLimit(codeBlock.wrap == true ? nil : 1)
                         }
                     }
                 }
@@ -55,22 +64,36 @@ struct CodeBlockView: View {
             }
             .background(backgroundColor)
             .cornerRadius(8)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Code block")
+            .accessibilityValue(codeBlock.code)
+            .accessibilityHint("Swipe right to scroll through code")
         }
         .spacing(codeBlock.spacing, hostConfig: hostConfig)
         .separator(codeBlock.separator, hostConfig: hostConfig)
     }
     
     private var codeLines: [String] {
-        if codeBlock.wrap == true {
-            // For wrapped code, we still split by lines but let SwiftUI handle wrapping
-            return codeBlock.code.components(separatedBy: .newlines)
-        } else {
-            return codeBlock.code.components(separatedBy: .newlines)
-        }
+        return codeBlock.code.components(separatedBy: .newlines)
     }
     
     private var backgroundColor: Color {
         return Color.gray.opacity(0.1)
+    }
+    
+    private var adaptiveFontSize: CGFloat {
+        if sizeCategory.isAccessibilityCategory {
+            return .body
+        } else {
+            switch sizeCategory {
+            case .extraSmall, .small:
+                return .caption
+            case .large, .extraLarge:
+                return .body
+            default:
+                return .callout
+            }
+        }
     }
     
     private func copyToClipboard() {
@@ -82,6 +105,10 @@ struct CodeBlockView: View {
         #endif
         
         showCopied = true
+        
+        // Announce to VoiceOver
+        UIAccessibility.post(notification: .announcement, argument: "Code copied to clipboard")
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             showCopied = false
         }
