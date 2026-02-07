@@ -557,6 +557,88 @@ final class AdvancedElementsParserTests: XCTestCase {
         XCTAssertNil(codeBlock.id)
     }
     
+    // MARK: - List Tests
+    
+    func testParseList() throws {
+        let json = try loadTestCard(named: "list")
+        let card = try parser.parse(json)
+        
+        XCTAssertNotNil(card.body)
+        
+        // Find the basic list
+        let basicList = card.body?.first { element in
+            if case .list(let list) = element {
+                return list.id == "basicList"
+            }
+            return false
+        }
+        
+        XCTAssertNotNil(basicList)
+        
+        if case .list(let list) = basicList {
+            XCTAssertEqual(list.id, "basicList")
+            XCTAssertEqual(list.style, "default")
+            XCTAssertEqual(list.items.count, 3)
+        } else {
+            XCTFail("Expected List element")
+        }
+    }
+    
+    func testParseListWithMaxHeight() throws {
+        let json = try loadTestCard(named: "list")
+        let card = try parser.parse(json)
+        
+        // Find the scrollable list
+        let scrollableList = card.body?.first { element in
+            if case .list(let list) = element {
+                return list.id == "scrollableList"
+            }
+            return false
+        }
+        
+        if case .list(let list) = scrollableList {
+            XCTAssertEqual(list.maxHeight, "150px")
+            XCTAssertEqual(list.style, "numbered")
+            XCTAssertEqual(list.items.count, 7)
+        } else {
+            XCTFail("Expected List element with maxHeight")
+        }
+    }
+    
+    func testListRoundTrip() throws {
+        let list = ListElement(
+            id: "testList",
+            items: [
+                .textBlock(TextBlock(text: "Item 1")),
+                .textBlock(TextBlock(text: "Item 2"))
+            ],
+            maxHeight: "200px",
+            style: "bulleted"
+        )
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(list)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(ListElement.self, from: data)
+        
+        XCTAssertEqual(decoded.id, list.id)
+        XCTAssertEqual(decoded.maxHeight, list.maxHeight)
+        XCTAssertEqual(decoded.style, list.style)
+        XCTAssertEqual(decoded.items.count, list.items.count)
+    }
+    
+    func testListEmptyItems() throws {
+        let list = ListElement(
+            id: "emptyList",
+            items: []
+        )
+        
+        XCTAssertEqual(list.items.count, 0)
+        XCTAssertNil(list.maxHeight)
+        XCTAssertNil(list.style)
+    }
+    
     // MARK: - Helper Methods
     
     private func loadTestCard(named name: String) throws -> String {

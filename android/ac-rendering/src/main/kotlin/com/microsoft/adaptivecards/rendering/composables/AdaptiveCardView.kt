@@ -128,6 +128,7 @@ fun RenderElement(
             is ProgressBar -> ProgressBarView(element, elementModifier)
             is Spinner -> SpinnerView(element, elementModifier)
             is TabSet -> TabSetView(element, viewModel, actionHandler, elementModifier)
+            is ListElement -> ListView(element, viewModel, actionHandler, elementModifier)
             else -> {
                 // Unknown element type - could check custom registry here
             }

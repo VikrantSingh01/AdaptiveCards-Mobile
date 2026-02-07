@@ -161,3 +161,21 @@ data class Tab(
     val icon: String? = null,
     val items: List<CardElement>
 )
+
+// List Element
+@Serializable
+@SerialName("List")
+data class ListElement(
+    override val type: String = "List",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val items: List<CardElement>,
+    val maxHeight: String? = null,
+    val style: String? = null
+) : CardElement
+

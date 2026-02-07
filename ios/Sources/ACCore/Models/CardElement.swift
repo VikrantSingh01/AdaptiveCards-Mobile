@@ -25,6 +25,7 @@ public indirect enum CardElement: Codable, Equatable {
     case progressBar(ProgressBar)
     case spinner(Spinner)
     case tabSet(TabSet)
+    case list(ListElement)
     case unknown(type: String)
     
     enum CodingKeys: String, CodingKey {
@@ -84,6 +85,8 @@ public indirect enum CardElement: Codable, Equatable {
             self = .spinner(try Spinner(from: decoder))
         case "TabSet":
             self = .tabSet(try TabSet(from: decoder))
+        case "List":
+            self = .list(try ListElement(from: decoder))
         default:
             // Gracefully fallback for unknown element types per Adaptive Cards spec
             self = .unknown(type: type)
@@ -140,6 +143,8 @@ public indirect enum CardElement: Codable, Equatable {
             try element.encode(to: encoder)
         case .tabSet(let element):
             try element.encode(to: encoder)
+        case .list(let element):
+            try element.encode(to: encoder)
         case .unknown(let type):
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(type, forKey: .type)
@@ -172,6 +177,7 @@ public indirect enum CardElement: Codable, Equatable {
         case .progressBar(let element): return element.id
         case .spinner(let element): return element.id
         case .tabSet(let element): return element.id
+        case .list(let element): return element.id
         case .unknown: return nil
         }
     }
@@ -202,6 +208,7 @@ public indirect enum CardElement: Codable, Equatable {
         case .progressBar(let element): return element.isVisible ?? true
         case .spinner(let element): return element.isVisible ?? true
         case .tabSet(let element): return element.isVisible ?? true
+        case .list(let element): return element.isVisible ?? true
         case .unknown: return false
         }
     }
@@ -233,6 +240,7 @@ public indirect enum CardElement: Codable, Equatable {
         case .progressBar: return "ProgressBar"
         case .spinner: return "Spinner"
         case .tabSet: return "TabSet"
+        case .list: return "List"
         case .unknown(let type): return type
         }
     }

@@ -381,4 +381,138 @@ class AdvancedElementsParserTest {
         assertEquals("tab1", tabSet.selectedTabId)
         assertEquals(1, tabSet.tabs.size)
     }
+    
+    @Test
+    fun `parse List element`() {
+        val json = """
+            {
+                "type": "AdaptiveCard",
+                "version": "1.6",
+                "body": [
+                    {
+                        "type": "List",
+                        "id": "list1",
+                        "style": "bulleted",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Item 1"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": "Item 2"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": "Item 3"
+                            }
+                        ]
+                    }
+                ]
+            }
+        """.trimIndent()
+        
+        val card = CardParser.parse(json)
+        
+        assertEquals(1, card.body?.size)
+        val list = card.body?.first() as ListElement
+        
+        assertEquals("list1", list.id)
+        assertEquals("bulleted", list.style)
+        assertEquals(3, list.items.size)
+        assertTrue(list.items[0] is TextBlock)
+    }
+    
+    @Test
+    fun `parse List with maxHeight`() {
+        val json = """
+            {
+                "type": "AdaptiveCard",
+                "version": "1.6",
+                "body": [
+                    {
+                        "type": "List",
+                        "id": "scrollableList",
+                        "style": "numbered",
+                        "maxHeight": "200px",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Item 1"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": "Item 2"
+                            }
+                        ]
+                    }
+                ]
+            }
+        """.trimIndent()
+        
+        val card = CardParser.parse(json)
+        
+        assertEquals(1, card.body?.size)
+        val list = card.body?.first() as ListElement
+        
+        assertEquals("scrollableList", list.id)
+        assertEquals("numbered", list.style)
+        assertEquals("200px", list.maxHeight)
+        assertEquals(2, list.items.size)
+    }
+    
+    @Test
+    fun `parse List with empty items`() {
+        val json = """
+            {
+                "type": "AdaptiveCard",
+                "version": "1.6",
+                "body": [
+                    {
+                        "type": "List",
+                        "id": "emptyList",
+                        "items": []
+                    }
+                ]
+            }
+        """.trimIndent()
+        
+        val card = CardParser.parse(json)
+        
+        assertEquals(1, card.body?.size)
+        val list = card.body?.first() as ListElement
+        
+        assertEquals("emptyList", list.id)
+        assertEquals(0, list.items.size)
+        assertNull(list.maxHeight)
+        assertNull(list.style)
+    }
+    
+    @Test
+    fun `serialize and deserialize List`() {
+        val originalCard = AdaptiveCard(
+            version = "1.6",
+            body = listOf(
+                ListElement(
+                    id = "list1",
+                    style = "bulleted",
+                    maxHeight = "300px",
+                    items = listOf(
+                        TextBlock(text = "Item 1"),
+                        TextBlock(text = "Item 2")
+                    )
+                )
+            )
+        )
+        
+        val json = CardParser.serialize(originalCard)
+        val parsedCard = CardParser.parse(json)
+        
+        assertEquals(1, parsedCard.body?.size)
+        val list = parsedCard.body?.first() as ListElement
+        assertEquals("list1", list.id)
+        assertEquals("bulleted", list.style)
+        assertEquals("300px", list.maxHeight)
+        assertEquals(2, list.items.size)
+    }
 }
