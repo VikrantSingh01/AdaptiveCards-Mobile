@@ -119,6 +119,15 @@ fun RenderElement(
             is InputTime -> com.microsoft.adaptivecards.inputs.composables.TimeInputView(element, viewModel, elementModifier)
             is InputToggle -> com.microsoft.adaptivecards.inputs.composables.ToggleInputView(element, viewModel, elementModifier)
             is InputChoiceSet -> com.microsoft.adaptivecards.inputs.composables.ChoiceSetInputView(element, viewModel, elementModifier)
+            // Advanced elements
+            is Carousel -> CarouselView(element, viewModel, actionHandler, elementModifier)
+            is Accordion -> AccordionView(element, viewModel, actionHandler, elementModifier)
+            is CodeBlock -> CodeBlockView(element, elementModifier)
+            is RatingDisplay -> RatingDisplayView(element, elementModifier)
+            is RatingInput -> com.microsoft.adaptivecards.inputs.composables.RatingInputView(element, viewModel, elementModifier)
+            is ProgressBar -> ProgressBarView(element, elementModifier)
+            is Spinner -> SpinnerView(element, elementModifier)
+            is TabSet -> TabSetView(element, viewModel, actionHandler, elementModifier)
             else -> {
                 // Unknown element type - could check custom registry here
             }
