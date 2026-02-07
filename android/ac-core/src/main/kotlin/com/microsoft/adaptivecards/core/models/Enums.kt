@@ -147,3 +147,23 @@ enum class TargetWidth {
     @SerialName("wide") Wide,
     @SerialName("veryWide") VeryWide
 }
+
+@Serializable
+enum class ExpandMode {
+    @SerialName("single") SINGLE,
+    @SerialName("multiple") MULTIPLE
+}
+
+@Serializable
+enum class RatingSize {
+    @SerialName("small") SMALL,
+    @SerialName("medium") MEDIUM,
+    @SerialName("large") LARGE
+}
+
+@Serializable
+enum class SpinnerSize {
+    @SerialName("small") SMALL,
+    @SerialName("medium") MEDIUM,
+    @SerialName("large") LARGE
+}

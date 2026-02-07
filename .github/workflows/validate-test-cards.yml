@@ -1,0 +1,87 @@
+name: Validate Test Cards
+
+on:
+  push:
+    branches: [ main, 'copilot/**' ]
+    paths:
+      - 'shared/test-cards/**'
+      - '.github/workflows/validate-test-cards.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'shared/test-cards/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate JSON Test Cards
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Validate JSON Syntax
+      run: |
+        echo "Validating all test cards..."
+        cd shared/test-cards
+        FAILED=0
+        for file in *.json; do
+          if python3 -m json.tool "$file" > /dev/null 2>&1; then
+            echo "✓ $file is valid"
+          else
+            echo "✗ $file is INVALID"
+            FAILED=$((FAILED + 1))
+          fi
+        done
+        
+        if [ $FAILED -gt 0 ]; then
+          echo "ERROR: $FAILED test cards failed validation"
+          exit 1
+        fi
+        
+        echo "SUCCESS: All test cards are valid JSON"
+        
+    - name: Validate Adaptive Cards Schema
+      run: |
+        echo "Checking for required Adaptive Card fields..."
+        cd shared/test-cards
+        for file in *.json; do
+          # Check for required fields
+          if grep -q '"type": "AdaptiveCard"' "$file"; then
+            echo "✓ $file has AdaptiveCard type"
+          else
+            echo "⚠ $file might not be an AdaptiveCard"
+          fi
+          
+          if grep -q '"version":' "$file"; then
+            echo "✓ $file has version field"
+          else
+            echo "⚠ $file missing version field"
+          fi
+        done
+        
+    - name: Check Symlinks (iOS)
+      run: |
+        echo "Verifying iOS test resource symlinks..."
+        cd ios/Tests/ACCoreTests/Resources
+        for link in *.json; do
+          if [ -L "$link" ]; then
+            if [ -f "$link" ]; then
+              echo "✓ $link → $(readlink $link)"
+            else
+              echo "✗ $link is broken symlink"
+              exit 1
+            fi
+          fi
+        done
+        echo "All symlinks valid"
