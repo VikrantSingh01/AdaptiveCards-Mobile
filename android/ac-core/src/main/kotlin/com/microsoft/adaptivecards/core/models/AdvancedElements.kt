@@ -179,3 +179,23 @@ data class ListElement(
     val style: String? = null
 ) : CardElement
 
+// CompoundButton Element
+@Serializable
+@SerialName("CompoundButton")
+data class CompoundButton(
+    override val type: String = "CompoundButton",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val title: String,
+    val subtitle: String? = null,
+    val icon: String? = null,
+    val iconPosition: String? = null,
+    val action: CardAction? = null,
+    val style: String? = null
+) : CardElement
+
