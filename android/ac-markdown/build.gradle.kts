@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
-    namespace = "com.microsoft.adaptivecards.rendering"
+    namespace = "com.microsoft.adaptivecards.markdown"
     compileSdk = 34
 
     defaultConfig {
@@ -15,14 +16,6 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -31,6 +24,10 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+
+    buildFeatures {
+        compose = true
     }
 
     compileOptions {
@@ -45,29 +42,22 @@ android {
 
 dependencies {
     implementation(project(":ac-core"))
-    implementation(project(":ac-host-config"))
-    implementation(project(":ac-markdown"))
-
+    
     implementation(libs.kotlin.stdlib)
+    implementation(libs.androidx.core.ktx)
     
     // Compose
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
-    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.ui.text)
     implementation(libs.compose.material3)
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.runtime)
     
-    // Lifecycle
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.lifecycle.runtime.compose)
-    
-    // Image Loading
-    implementation(libs.coil.compose)
-
-    debugImplementation(libs.compose.ui.tooling)
+    // Collection for LruCache
+    implementation(libs.androidx.collection.ktx)
 
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.kotlin.test)
 }
 

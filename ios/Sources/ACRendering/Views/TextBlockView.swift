@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACMarkdown
 
 struct TextBlockView: View {
     let textBlock: TextBlock
@@ -9,15 +10,34 @@ struct TextBlockView: View {
     @Environment(\.layoutDirection) var layoutDirection
     
     var body: some View {
-        Text(textBlock.text)
-            .font(font)
-            .foregroundColor(foregroundColor)
-            .multilineTextAlignment(textAlignment)
-            .lineLimit(textBlock.maxLines)
-            .frame(maxWidth: .infinity, alignment: frameAlignment)
-            .spacing(textBlock.spacing, hostConfig: hostConfig)
-            .separator(textBlock.separator, hostConfig: hostConfig)
-            .accessibilityElement(label: textBlock.text)
+        if textBlock.text.containsMarkdown {
+            // Render with markdown support
+            let tokens = MarkdownParser.parse(textBlock.text)
+            let attributedString = MarkdownRenderer.render(
+                tokens: tokens,
+                font: font,
+                color: foregroundColor
+            )
+            
+            Text(attributedString)
+                .multilineTextAlignment(textAlignment)
+                .lineLimit(textBlock.maxLines)
+                .frame(maxWidth: .infinity, alignment: frameAlignment)
+                .spacing(textBlock.spacing, hostConfig: hostConfig)
+                .separator(textBlock.separator, hostConfig: hostConfig)
+                .accessibilityElement(label: textBlock.text)
+        } else {
+            // Render plain text
+            Text(textBlock.text)
+                .font(font)
+                .foregroundColor(foregroundColor)
+                .multilineTextAlignment(textAlignment)
+                .lineLimit(textBlock.maxLines)
+                .frame(maxWidth: .infinity, alignment: frameAlignment)
+                .spacing(textBlock.spacing, hostConfig: hostConfig)
+                .separator(textBlock.separator, hostConfig: hostConfig)
+                .accessibilityElement(label: textBlock.text)
+        }
     }
     
     private var font: Font {

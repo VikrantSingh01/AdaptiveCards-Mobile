@@ -27,6 +27,9 @@ let package = Package(
         .library(
             name: "ACTemplating",
             targets: ["ACTemplating"]),
+        .library(
+            name: "ACMarkdown",
+            targets: ["ACMarkdown"]),
     ],
     targets: [
         .target(
@@ -39,6 +42,9 @@ let package = Package(
             name: "ACTemplating",
             dependencies: ["ACCore"]),
         .target(
+            name: "ACMarkdown",
+            dependencies: ["ACCore"]),
+        .target(
             name: "ACInputs",
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
@@ -46,7 +52,7 @@ let package = Package(
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
             name: "ACRendering",
-            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility"]),
+            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown"]),
         .testTarget(
             name: "ACCoreTests",
             dependencies: ["ACCore"],
@@ -60,5 +66,8 @@ let package = Package(
         .testTarget(
             name: "ACTemplatingTests",
             dependencies: ["ACTemplating"]),
+        .testTarget(
+            name: "ACMarkdownTests",
+            dependencies: ["ACMarkdown"]),
     ]
 )
