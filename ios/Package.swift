@@ -24,6 +24,9 @@ let package = Package(
         .library(
             name: "ACAccessibility",
             targets: ["ACAccessibility"]),
+        .library(
+            name: "ACTemplating",
+            targets: ["ACTemplating"]),
     ],
     targets: [
         .target(
@@ -31,6 +34,9 @@ let package = Package(
             dependencies: []),
         .target(
             name: "ACAccessibility",
+            dependencies: ["ACCore"]),
+        .target(
+            name: "ACTemplating",
             dependencies: ["ACCore"]),
         .target(
             name: "ACInputs",
@@ -51,5 +57,8 @@ let package = Package(
         .testTarget(
             name: "ACInputsTests",
             dependencies: ["ACInputs"]),
+        .testTarget(
+            name: "ACTemplatingTests",
+            dependencies: ["ACTemplating"]),
     ]
 )
