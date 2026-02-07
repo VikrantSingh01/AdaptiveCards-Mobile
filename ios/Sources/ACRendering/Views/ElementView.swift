@@ -110,6 +110,10 @@ struct ElementView: View {
             SpinnerView(spinner: spinner, hostConfig: hostConfig)
         case .tabSet(let tabSet):
             TabSetView(tabSet: tabSet, hostConfig: hostConfig)
+        case .list(let list):
+            ListView(list: list, hostConfig: hostConfig)
+        case .compoundButton(let button):
+            CompoundButtonView(button: button, hostConfig: hostConfig)
         case .unknown(let type):
             // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG

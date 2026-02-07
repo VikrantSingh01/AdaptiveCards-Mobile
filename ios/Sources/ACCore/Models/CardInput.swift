@@ -8,6 +8,7 @@ public enum CardInput: Codable, Equatable {
     case toggle(ToggleInput)
     case choiceSet(ChoiceSetInput)
     case rating(RatingInput)
+    case dataGrid(DataGridInput)
     
     enum CodingKeys: String, CodingKey {
         case type
@@ -32,6 +33,8 @@ public enum CardInput: Codable, Equatable {
             self = .choiceSet(try ChoiceSetInput(from: decoder))
         case "Input.Rating":
             self = .rating(try RatingInput(from: decoder))
+        case "Input.DataGrid":
+            self = .dataGrid(try DataGridInput(from: decoder))
         default:
             throw DecodingError.dataCorruptedError(
                 forKey: .type,
@@ -57,6 +60,8 @@ public enum CardInput: Codable, Equatable {
             try input.encode(to: encoder)
         case .rating(let input):
             try input.encode(to: encoder)
+        case .dataGrid(let input):
+            try input.encode(to: encoder)
         }
     }
     
@@ -69,6 +74,7 @@ public enum CardInput: Codable, Equatable {
         case .toggle(let input): return input.id
         case .choiceSet(let input): return input.id
         case .rating(let input): return input.id
+        case .dataGrid(let input): return input.id
         }
     }
     
@@ -81,6 +87,7 @@ public enum CardInput: Codable, Equatable {
         case .toggle(let input): return false
         case .choiceSet(let input): return input.isRequired ?? false
         case .rating(let input): return input.isRequired ?? false
+        case .dataGrid(let input): return input.isRequired ?? false
         }
     }
 }

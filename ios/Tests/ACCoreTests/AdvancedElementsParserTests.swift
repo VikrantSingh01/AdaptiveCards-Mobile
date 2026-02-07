@@ -557,6 +557,307 @@ final class AdvancedElementsParserTests: XCTestCase {
         XCTAssertNil(codeBlock.id)
     }
     
+    // MARK: - List Tests
+    
+    func testParseList() throws {
+        let json = try loadTestCard(named: "list")
+        let card = try parser.parse(json)
+        
+        XCTAssertNotNil(card.body)
+        
+        // Find the basic list
+        let basicList = card.body?.first { element in
+            if case .list(let list) = element {
+                return list.id == "basicList"
+            }
+            return false
+        }
+        
+        XCTAssertNotNil(basicList)
+        
+        if case .list(let list) = basicList {
+            XCTAssertEqual(list.id, "basicList")
+            XCTAssertEqual(list.style, "default")
+            XCTAssertEqual(list.items.count, 3)
+        } else {
+            XCTFail("Expected List element")
+        }
+    }
+    
+    func testParseListWithMaxHeight() throws {
+        let json = try loadTestCard(named: "list")
+        let card = try parser.parse(json)
+        
+        // Find the scrollable list
+        let scrollableList = card.body?.first { element in
+            if case .list(let list) = element {
+                return list.id == "scrollableList"
+            }
+            return false
+        }
+        
+        if case .list(let list) = scrollableList {
+            XCTAssertEqual(list.maxHeight, "150px")
+            XCTAssertEqual(list.style, "numbered")
+            XCTAssertEqual(list.items.count, 7)
+        } else {
+            XCTFail("Expected List element with maxHeight")
+        }
+    }
+    
+    func testListRoundTrip() throws {
+        let list = ListElement(
+            id: "testList",
+            items: [
+                .textBlock(TextBlock(text: "Item 1")),
+                .textBlock(TextBlock(text: "Item 2"))
+            ],
+            maxHeight: "200px",
+            style: "bulleted"
+        )
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(list)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(ListElement.self, from: data)
+        
+        XCTAssertEqual(decoded.id, list.id)
+        XCTAssertEqual(decoded.maxHeight, list.maxHeight)
+        XCTAssertEqual(decoded.style, list.style)
+        XCTAssertEqual(decoded.items.count, list.items.count)
+    }
+    
+    func testListEmptyItems() throws {
+        let list = ListElement(
+            id: "emptyList",
+            items: []
+        )
+        
+        XCTAssertEqual(list.items.count, 0)
+        XCTAssertNil(list.maxHeight)
+        XCTAssertNil(list.style)
+    }
+    
+    // MARK: - CompoundButton Tests
+    
+    func testParseCompoundButton() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        XCTAssertNotNil(card.body)
+        
+        // Find the default style button
+        let defaultButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_default"
+            }
+            return false
+        }
+        
+        XCTAssertNotNil(defaultButton)
+        
+        if case .compoundButton(let button) = defaultButton {
+            XCTAssertEqual(button.id, "btn_default")
+            XCTAssertEqual(button.title, "Default Style Button")
+            XCTAssertEqual(button.subtitle, "Leading icon with default styling")
+            XCTAssertEqual(button.icon, "checkmark.circle.fill")
+            XCTAssertEqual(button.iconPosition, "leading")
+            XCTAssertNotNil(button.action)
+        } else {
+            XCTFail("Expected CompoundButton element")
+        }
+    }
+    
+    func testParseCompoundButtonEmphasis() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the emphasis style button
+        let emphasisButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_emphasis"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = emphasisButton {
+            XCTAssertEqual(button.style, "emphasis")
+            XCTAssertNotNil(button.action)
+        } else {
+            XCTFail("Expected CompoundButton with emphasis style")
+        }
+    }
+    
+    func testParseCompoundButtonPositive() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the positive style button
+        let positiveButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_positive"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = positiveButton {
+            XCTAssertEqual(button.style, "positive")
+            XCTAssertEqual(button.title, "Approve Request")
+            XCTAssertNotNil(button.action)
+        } else {
+            XCTFail("Expected CompoundButton with positive style")
+        }
+    }
+    
+    func testParseCompoundButtonDestructive() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the destructive style button
+        let destructiveButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_destructive"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = destructiveButton {
+            XCTAssertEqual(button.style, "destructive")
+            XCTAssertEqual(button.title, "Delete Item")
+            XCTAssertNotNil(button.action)
+        } else {
+            XCTFail("Expected CompoundButton with destructive style")
+        }
+    }
+    
+    func testParseCompoundButtonTrailingIcon() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the trailing icon button
+        let trailingButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_trailing_icon"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = trailingButton {
+            XCTAssertEqual(button.iconPosition, "trailing")
+            XCTAssertNotNil(button.icon)
+        } else {
+            XCTFail("Expected CompoundButton with trailing icon")
+        }
+    }
+    
+    func testParseCompoundButtonNoIcon() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the no-icon button
+        let noIconButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_no_icon"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = noIconButton {
+            XCTAssertNil(button.icon)
+            XCTAssertNotNil(button.subtitle)
+        } else {
+            XCTFail("Expected CompoundButton without icon")
+        }
+    }
+    
+    func testParseCompoundButtonNoSubtitle() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the no-subtitle button
+        let noSubtitleButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_no_subtitle"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = noSubtitleButton {
+            XCTAssertNil(button.subtitle)
+            XCTAssertNotNil(button.icon)
+            XCTAssertNotNil(button.action)
+        } else {
+            XCTFail("Expected CompoundButton without subtitle")
+        }
+    }
+    
+    func testParseCompoundButtonNoAction() throws {
+        let json = try loadTestCard(named: "compound-buttons")
+        let card = try parser.parse(json)
+        
+        // Find the disabled button (no action)
+        let disabledButton = card.body?.first { element in
+            if case .compoundButton(let button) = element {
+                return button.id == "btn_disabled"
+            }
+            return false
+        }
+        
+        if case .compoundButton(let button) = disabledButton {
+            XCTAssertNil(button.action)
+        } else {
+            XCTFail("Expected CompoundButton without action")
+        }
+    }
+    
+    func testCompoundButtonRoundTrip() throws {
+        let button = CompoundButton(
+            id: "testButton",
+            title: "Test Button",
+            subtitle: "Test subtitle",
+            icon: "star.fill",
+            iconPosition: "leading",
+            action: CardAction.submit(ActionSubmit(title: "Submit")),
+            style: "emphasis"
+        )
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(button)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(CompoundButton.self, from: data)
+        
+        XCTAssertEqual(decoded.id, button.id)
+        XCTAssertEqual(decoded.title, button.title)
+        XCTAssertEqual(decoded.subtitle, button.subtitle)
+        XCTAssertEqual(decoded.icon, button.icon)
+        XCTAssertEqual(decoded.iconPosition, button.iconPosition)
+        XCTAssertEqual(decoded.style, button.style)
+    }
+    
+    func testCompoundButtonTypeString() {
+        let button = CardElement.compoundButton(CompoundButton(title: "Test"))
+        XCTAssertEqual(button.typeString, "CompoundButton")
+    }
+    
+    func testCompoundButtonVisibility() {
+        let button = CardElement.compoundButton(CompoundButton(title: "Test"))
+        XCTAssertTrue(button.isVisible)
+        
+        let hiddenButton = CompoundButton(title: "Test", isVisible: false)
+        let hiddenElement = CardElement.compoundButton(hiddenButton)
+        XCTAssertFalse(hiddenElement.isVisible)
+    }
+    
+    func testCompoundButtonId() {
+        let button = CardElement.compoundButton(CompoundButton(id: "test123", title: "Test"))
+        XCTAssertEqual(button.id, "test123")
+        
+        let noIdButton = CardElement.compoundButton(CompoundButton(title: "Test"))
+        XCTAssertNil(noIdButton.id)
+    }
+    
     // MARK: - Helper Methods
     
     private func loadTestCard(named name: String) throws -> String {

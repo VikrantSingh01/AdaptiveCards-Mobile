@@ -27,6 +27,21 @@ let package = Package(
         .library(
             name: "ACTemplating",
             targets: ["ACTemplating"]),
+        .library(
+            name: "ACMarkdown",
+            targets: ["ACMarkdown"]),
+        .library(
+            name: "ACCharts",
+            targets: ["ACCharts"]),
+        .library(
+            name: "ACFluentUI",
+            targets: ["ACFluentUI"]),
+        .library(
+            name: "ACCopilotExtensions",
+            targets: ["ACCopilotExtensions"]),
+        .library(
+            name: "ACTeams",
+            targets: ["ACTeams"]),
     ],
     targets: [
         .target(
@@ -39,6 +54,15 @@ let package = Package(
             name: "ACTemplating",
             dependencies: ["ACCore"]),
         .target(
+            name: "ACMarkdown",
+            dependencies: []),
+        .target(
+            name: "ACCharts",
+            dependencies: ["ACCore"]),
+        .target(
+            name: "ACFluentUI",
+            dependencies: []),
+        .target(
             name: "ACInputs",
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
@@ -46,7 +70,13 @@ let package = Package(
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
             name: "ACRendering",
-            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility"]),
+            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts"]),
+        .target(
+            name: "ACCopilotExtensions",
+            dependencies: ["ACCore"]),
+        .target(
+            name: "ACTeams",
+            dependencies: ["ACCore", "ACRendering"]),
         .testTarget(
             name: "ACCoreTests",
             dependencies: ["ACCore"],
@@ -60,5 +90,11 @@ let package = Package(
         .testTarget(
             name: "ACTemplatingTests",
             dependencies: ["ACTemplating"]),
+        .testTarget(
+            name: "ACMarkdownTests",
+            dependencies: ["ACMarkdown"]),
+        .testTarget(
+            name: "ACChartsTests",
+            dependencies: ["ACCharts"]),
     ]
 )

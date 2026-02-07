@@ -98,6 +98,11 @@ public enum ActionMode: String, Codable {
     case secondary = "Secondary"
 }
 
+public enum ActionSetMode: String, Codable {
+    case `default` = "Default"
+    case overflow = "Overflow"
+}
+
 // MARK: - Text
 
 public enum TextBlockStyle: String, Codable {

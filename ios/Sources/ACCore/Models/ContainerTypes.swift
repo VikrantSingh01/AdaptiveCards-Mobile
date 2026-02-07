@@ -17,6 +17,7 @@ public struct Container: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
     
     public init(
         id: String? = nil,
@@ -31,7 +32,8 @@ public struct Container: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        targetWidth: String? = nil
     ) {
         self.id = id
         self.items = items
@@ -46,6 +48,7 @@ public struct Container: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
     }
 }
 
@@ -265,6 +268,7 @@ public struct ActionSet: Codable, Equatable {
     public let type: String = "ActionSet"
     public var id: String?
     public var actions: [CardAction]
+    public var mode: ActionSetMode?
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
@@ -274,6 +278,7 @@ public struct ActionSet: Codable, Equatable {
     public init(
         id: String? = nil,
         actions: [CardAction],
+        mode: ActionSetMode? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -282,6 +287,7 @@ public struct ActionSet: Codable, Equatable {
     ) {
         self.id = id
         self.actions = actions
+        self.mode = mode
         self.spacing = spacing
         self.separator = separator
         self.height = height
@@ -449,6 +455,8 @@ public struct Image: Codable, Equatable {
     public var separator: Bool?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
+    public var themedUrls: [String: String]?
     
     public init(
         id: String? = nil,
@@ -463,7 +471,9 @@ public struct Image: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        targetWidth: String? = nil,
+        themedUrls: [String: String]? = nil
     ) {
         self.id = id
         self.url = url
@@ -478,5 +488,7 @@ public struct Image: Codable, Equatable {
         self.separator = separator
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
+        self.themedUrls = themedUrls
     }
 }

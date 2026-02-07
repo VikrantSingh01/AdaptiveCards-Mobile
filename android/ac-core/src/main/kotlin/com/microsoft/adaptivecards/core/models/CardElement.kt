@@ -36,7 +36,8 @@ data class TextBlock(
     val maxLines: Int? = null,
     val horizontalAlignment: HorizontalAlignment? = null,
     val isSubtle: Boolean? = null,
-    val style: String? = null
+    val style: String? = null,
+    val targetWidth: String? = null
 ) : CardElement
 
 @Serializable
@@ -57,7 +58,9 @@ data class Image(
     val style: ImageStyle? = null,
     val width: String? = null,
     val horizontalAlignment: HorizontalAlignment? = null,
-    val selectAction: CardAction? = null
+    val selectAction: CardAction? = null,
+    val targetWidth: String? = null,
+    val themedUrls: Map<String, String>? = null
 ) : CardElement
 
 @Serializable
@@ -78,6 +81,7 @@ data class Container(
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,
+    val targetWidth: String? = null,
     val rtl: Boolean? = null
 ) : CardElement
 
@@ -173,7 +177,8 @@ data class ActionSet(
     override val height: BlockElementHeight? = null,
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
-    val actions: List<CardAction>
+    val actions: List<CardAction>,
+    val mode: ActionSetMode? = null
 ) : CardElement
 
 @Serializable

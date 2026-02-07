@@ -1,9 +1,12 @@
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -12,6 +15,9 @@ import androidx.compose.ui.unit.sp
 import com.microsoft.adaptivecards.core.models.*
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
 import com.microsoft.adaptivecards.accessibility.scaledTextSize
+import com.microsoft.adaptivecards.markdown.MarkdownParser
+import com.microsoft.adaptivecards.markdown.MarkdownRenderer
+import com.microsoft.adaptivecards.markdown.containsMarkdown
 
 /**
  * Renders a TextBlock element
@@ -60,17 +66,54 @@ fun TextBlockView(
         null -> TextAlign.Start
     }
     
-    Text(
-        text = element.text,
-        fontSize = textSize,
-        fontWeight = fontWeight,
-        fontFamily = fontFamily,
-        color = textColor,
-        textAlign = textAlign,
-        maxLines = element.maxLines ?: if (element.wrap == true) Int.MAX_VALUE else 1,
-        overflow = if (element.wrap == true) TextOverflow.Visible else TextOverflow.Ellipsis,
-        modifier = modifier
-    )
+    val maxLines = element.maxLines ?: if (element.wrap == true) Int.MAX_VALUE else 1
+    val overflow = if (element.wrap == true) TextOverflow.Visible else TextOverflow.Ellipsis
+    
+    // Check if text contains markdown
+    if (element.text.containsMarkdown()) {
+        // Render with markdown support
+        val tokens = MarkdownParser.parse(element.text)
+        val annotatedString = MarkdownRenderer.render(tokens, textSize, textColor)
+        val uriHandler = LocalUriHandler.current
+        
+        ClickableText(
+            text = annotatedString,
+            modifier = modifier,
+            style = LocalTextStyle.current.copy(
+                fontSize = textSize,
+                fontWeight = fontWeight,
+                fontFamily = fontFamily,
+                color = textColor,
+                textAlign = textAlign
+            ),
+            maxLines = maxLines,
+            overflow = overflow,
+            onClick = { offset ->
+                // Handle link clicks
+                annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                    .firstOrNull()?.let { annotation ->
+                        try {
+                            uriHandler.openUri(annotation.item)
+                        } catch (e: Exception) {
+                            // Handle URI opening error gracefully
+                        }
+                    }
+            }
+        )
+    } else {
+        // Render plain text
+        Text(
+            text = element.text,
+            fontSize = textSize,
+            fontWeight = fontWeight,
+            fontFamily = fontFamily,
+            color = textColor,
+            textAlign = textAlign,
+            maxLines = maxLines,
+            overflow = overflow,
+            modifier = modifier
+        )
+    }
 }
 
 /**

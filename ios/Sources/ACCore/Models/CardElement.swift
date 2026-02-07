@@ -25,6 +25,12 @@ public indirect enum CardElement: Codable, Equatable {
     case progressBar(ProgressBar)
     case spinner(Spinner)
     case tabSet(TabSet)
+    case list(ListElement)
+    case compoundButton(CompoundButton)
+    case donutChart(DonutChart)
+    case barChart(BarChart)
+    case lineChart(LineChart)
+    case pieChart(PieChart)
     case unknown(type: String)
     
     enum CodingKeys: String, CodingKey {
@@ -84,6 +90,18 @@ public indirect enum CardElement: Codable, Equatable {
             self = .spinner(try Spinner(from: decoder))
         case "TabSet":
             self = .tabSet(try TabSet(from: decoder))
+        case "List":
+            self = .list(try ListElement(from: decoder))
+        case "CompoundButton":
+            self = .compoundButton(try CompoundButton(from: decoder))
+        case "DonutChart":
+            self = .donutChart(try DonutChart(from: decoder))
+        case "BarChart":
+            self = .barChart(try BarChart(from: decoder))
+        case "LineChart":
+            self = .lineChart(try LineChart(from: decoder))
+        case "PieChart":
+            self = .pieChart(try PieChart(from: decoder))
         default:
             // Gracefully fallback for unknown element types per Adaptive Cards spec
             self = .unknown(type: type)
@@ -140,6 +158,18 @@ public indirect enum CardElement: Codable, Equatable {
             try element.encode(to: encoder)
         case .tabSet(let element):
             try element.encode(to: encoder)
+        case .list(let element):
+            try element.encode(to: encoder)
+        case .compoundButton(let element):
+            try element.encode(to: encoder)
+        case .donutChart(let element):
+            try element.encode(to: encoder)
+        case .barChart(let element):
+            try element.encode(to: encoder)
+        case .lineChart(let element):
+            try element.encode(to: encoder)
+        case .pieChart(let element):
+            try element.encode(to: encoder)
         case .unknown(let type):
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(type, forKey: .type)
@@ -172,6 +202,12 @@ public indirect enum CardElement: Codable, Equatable {
         case .progressBar(let element): return element.id
         case .spinner(let element): return element.id
         case .tabSet(let element): return element.id
+        case .list(let element): return element.id
+        case .compoundButton(let element): return element.id
+        case .donutChart(let element): return element.id
+        case .barChart(let element): return element.id
+        case .lineChart(let element): return element.id
+        case .pieChart(let element): return element.id
         case .unknown: return nil
         }
     }
@@ -202,6 +238,12 @@ public indirect enum CardElement: Codable, Equatable {
         case .progressBar(let element): return element.isVisible ?? true
         case .spinner(let element): return element.isVisible ?? true
         case .tabSet(let element): return element.isVisible ?? true
+        case .list(let element): return element.isVisible ?? true
+        case .compoundButton(let element): return element.isVisible ?? true
+        case .donutChart(let element): return element.isVisible ?? true
+        case .barChart(let element): return element.isVisible ?? true
+        case .lineChart(let element): return element.isVisible ?? true
+        case .pieChart(let element): return element.isVisible ?? true
         case .unknown: return false
         }
     }
@@ -233,6 +275,12 @@ public indirect enum CardElement: Codable, Equatable {
         case .progressBar: return "ProgressBar"
         case .spinner: return "Spinner"
         case .tabSet: return "TabSet"
+        case .list: return "List"
+        case .compoundButton: return "CompoundButton"
+        case .donutChart: return "DonutChart"
+        case .barChart: return "BarChart"
+        case .lineChart: return "LineChart"
+        case .pieChart: return "PieChart"
         case .unknown(let type): return type
         }
     }

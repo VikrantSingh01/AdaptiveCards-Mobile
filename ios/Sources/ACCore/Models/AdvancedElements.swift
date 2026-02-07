@@ -343,3 +343,391 @@ public struct Tab: Codable, Equatable {
         self.items = items
     }
 }
+
+// MARK: - List
+
+public struct ListElement: Codable, Equatable {
+    public let type: String = "List"
+    public var id: String?
+    public var items: [CardElement]
+    public var maxHeight: String?
+    public var style: String?
+    public var spacing: Spacing?
+    public var separator: Bool?
+    public var height: BlockElementHeight?
+    public var isVisible: Bool?
+    public var requires: [String: String]?
+    
+    public init(
+        id: String? = nil,
+        items: [CardElement],
+        maxHeight: String? = nil,
+        style: String? = nil,
+        spacing: Spacing? = nil,
+        separator: Bool? = nil,
+        height: BlockElementHeight? = nil,
+        isVisible: Bool? = nil,
+        requires: [String: String]? = nil
+    ) {
+        self.id = id
+        self.items = items
+        self.maxHeight = maxHeight
+        self.style = style
+        self.spacing = spacing
+        self.separator = separator
+        self.height = height
+        self.isVisible = isVisible
+        self.requires = requires
+    }
+}
+
+// MARK: - DataGrid Input
+
+public struct DataGridInput: Codable, Equatable {
+    public let type: String = "Input.DataGrid"
+    public var id: String
+    public var label: String?
+    public var columns: [DataGridColumn]
+    public var rows: [[DataGridCellValue]]?
+    public var maxRows: Int?
+    public var isRequired: Bool?
+    public var errorMessage: String?
+    public var spacing: Spacing?
+    public var separator: Bool?
+    public var height: BlockElementHeight?
+    public var isVisible: Bool?
+    
+    public init(
+        id: String,
+        label: String? = nil,
+        columns: [DataGridColumn],
+        rows: [[DataGridCellValue]]? = nil,
+        maxRows: Int? = nil,
+        isRequired: Bool? = nil,
+        errorMessage: String? = nil,
+        spacing: Spacing? = nil,
+        separator: Bool? = nil,
+        height: BlockElementHeight? = nil,
+        isVisible: Bool? = nil
+    ) {
+        self.id = id
+        self.label = label
+        self.columns = columns
+        self.rows = rows
+        self.maxRows = maxRows
+        self.isRequired = isRequired
+        self.errorMessage = errorMessage
+        self.spacing = spacing
+        self.separator = separator
+        self.height = height
+        self.isVisible = isVisible
+    }
+}
+
+public struct DataGridColumn: Codable, Equatable {
+    public var id: String
+    public var title: String
+    public var type: String
+    public var width: String?
+    public var isEditable: Bool?
+    public var isSortable: Bool?
+    
+    public init(
+        id: String,
+        title: String,
+        type: String,
+        width: String? = nil,
+        isEditable: Bool? = nil,
+        isSortable: Bool? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.type = type
+        self.width = width
+        self.isEditable = isEditable
+        self.isSortable = isSortable
+    }
+}
+
+public enum DataGridCellValue: Codable, Equatable {
+    case string(String)
+    case number(Double)
+    case bool(Bool)
+    case null
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if container.decodeNil() {
+            self = .null
+        } else if let boolValue = try? container.decode(Bool.self) {
+            self = .bool(boolValue)
+        } else if let doubleValue = try? container.decode(Double.self) {
+            self = .number(doubleValue)
+        } else if let stringValue = try? container.decode(String.self) {
+            self = .string(stringValue)
+        } else {
+            self = .null
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let value):
+            try container.encode(value)
+        case .number(let value):
+            try container.encode(value)
+        case .bool(let value):
+            try container.encode(value)
+        case .null:
+            try container.encodeNil()
+        }
+    }
+}
+
+// MARK: - CompoundButton
+
+public struct CompoundButton: Codable, Equatable {
+    public let type: String = "CompoundButton"
+    public var id: String?
+    public var title: String
+    public var subtitle: String?
+    public var icon: String?
+    public var iconPosition: String?
+    public var action: CardAction?
+    public var style: String?
+    public var isVisible: Bool?
+    public var separator: Bool?
+    public var spacing: Spacing?
+    public var height: BlockElementHeight?
+    public var requires: [String: String]?
+    
+    public init(
+        id: String? = nil,
+        title: String,
+        subtitle: String? = nil,
+        icon: String? = nil,
+        iconPosition: String? = nil,
+        action: CardAction? = nil,
+        style: String? = nil,
+        isVisible: Bool? = nil,
+        separator: Bool? = nil,
+        spacing: Spacing? = nil,
+        height: BlockElementHeight? = nil,
+        requires: [String: String]? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
+        self.icon = icon
+        self.iconPosition = iconPosition
+        self.action = action
+        self.style = style
+        self.isVisible = isVisible
+        self.separator = separator
+        self.spacing = spacing
+        self.height = height
+        self.requires = requires
+    }
+}
+
+// MARK: - Charts
+
+public struct ChartDataPoint: Codable, Equatable {
+    public var label: String
+    public var value: Double
+    public var color: String?
+    
+    public init(
+        label: String,
+        value: Double,
+        color: String? = nil
+    ) {
+        self.label = label
+        self.value = value
+        self.color = color
+    }
+}
+
+public struct DonutChart: Codable, Equatable {
+    public let type: String = "DonutChart"
+    public var id: String?
+    public var title: String?
+    public var data: [ChartDataPoint]
+    public var colors: [String]?
+    public var size: String?
+    public var showLegend: Bool?
+    public var innerRadiusRatio: Double?
+    public var isVisible: Bool?
+    public var spacing: Spacing?
+    public var separator: Bool?
+    public var height: BlockElementHeight?
+    public var requires: [String: String]?
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        data: [ChartDataPoint],
+        colors: [String]? = nil,
+        size: String? = nil,
+        showLegend: Bool? = nil,
+        innerRadiusRatio: Double? = nil,
+        isVisible: Bool? = nil,
+        spacing: Spacing? = nil,
+        separator: Bool? = nil,
+        height: BlockElementHeight? = nil,
+        requires: [String: String]? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.data = data
+        self.colors = colors
+        self.size = size
+        self.showLegend = showLegend
+        self.innerRadiusRatio = innerRadiusRatio
+        self.isVisible = isVisible
+        self.spacing = spacing
+        self.separator = separator
+        self.height = height
+        self.requires = requires
+    }
+}
+
+public struct BarChart: Codable, Equatable {
+    public let type: String = "BarChart"
+    public var id: String?
+    public var title: String?
+    public var data: [ChartDataPoint]
+    public var colors: [String]?
+    public var size: String?
+    public var showLegend: Bool?
+    public var orientation: String?
+    public var showValues: Bool?
+    public var isVisible: Bool?
+    public var spacing: Spacing?
+    public var separator: Bool?
+    public var height: BlockElementHeight?
+    public var requires: [String: String]?
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        data: [ChartDataPoint],
+        colors: [String]? = nil,
+        size: String? = nil,
+        showLegend: Bool? = nil,
+        orientation: String? = nil,
+        showValues: Bool? = nil,
+        isVisible: Bool? = nil,
+        spacing: Spacing? = nil,
+        separator: Bool? = nil,
+        height: BlockElementHeight? = nil,
+        requires: [String: String]? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.data = data
+        self.colors = colors
+        self.size = size
+        self.showLegend = showLegend
+        self.orientation = orientation
+        self.showValues = showValues
+        self.isVisible = isVisible
+        self.spacing = spacing
+        self.separator = separator
+        self.height = height
+        self.requires = requires
+    }
+}
+
+public struct LineChart: Codable, Equatable {
+    public let type: String = "LineChart"
+    public var id: String?
+    public var title: String?
+    public var data: [ChartDataPoint]
+    public var colors: [String]?
+    public var size: String?
+    public var showLegend: Bool?
+    public var showDataPoints: Bool?
+    public var smooth: Bool?
+    public var isVisible: Bool?
+    public var spacing: Spacing?
+    public var separator: Bool?
+    public var height: BlockElementHeight?
+    public var requires: [String: String]?
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        data: [ChartDataPoint],
+        colors: [String]? = nil,
+        size: String? = nil,
+        showLegend: Bool? = nil,
+        showDataPoints: Bool? = nil,
+        smooth: Bool? = nil,
+        isVisible: Bool? = nil,
+        spacing: Spacing? = nil,
+        separator: Bool? = nil,
+        height: BlockElementHeight? = nil,
+        requires: [String: String]? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.data = data
+        self.colors = colors
+        self.size = size
+        self.showLegend = showLegend
+        self.showDataPoints = showDataPoints
+        self.smooth = smooth
+        self.isVisible = isVisible
+        self.spacing = spacing
+        self.separator = separator
+        self.height = height
+        self.requires = requires
+    }
+}
+
+public struct PieChart: Codable, Equatable {
+    public let type: String = "PieChart"
+    public var id: String?
+    public var title: String?
+    public var data: [ChartDataPoint]
+    public var colors: [String]?
+    public var size: String?
+    public var showLegend: Bool?
+    public var showPercentages: Bool?
+    public var isVisible: Bool?
+    public var spacing: Spacing?
+    public var separator: Bool?
+    public var height: BlockElementHeight?
+    public var requires: [String: String]?
+    
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        data: [ChartDataPoint],
+        colors: [String]? = nil,
+        size: String? = nil,
+        showLegend: Bool? = nil,
+        showPercentages: Bool? = nil,
+        isVisible: Bool? = nil,
+        spacing: Spacing? = nil,
+        separator: Bool? = nil,
+        height: BlockElementHeight? = nil,
+        requires: [String: String]? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.data = data
+        self.colors = colors
+        self.size = size
+        self.showLegend = showLegend
+        self.showPercentages = showPercentages
+        self.isVisible = isVisible
+        self.spacing = spacing
+        self.separator = separator
+        self.height = height
+        self.requires = requires
+    }
+}
