@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ACCore
 import ACAccessibility
 
@@ -8,7 +9,6 @@ struct CodeBlockView: View {
     
     @State private var showCopied = false
     @Environment(\.sizeCategory) var sizeCategory
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

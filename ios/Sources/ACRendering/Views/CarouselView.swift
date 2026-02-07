@@ -13,6 +13,7 @@ struct CarouselView: View {
     @Environment(\.actionDelegate) var actionDelegate
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
+    @Environment(\.sizeCategory) var sizeCategory
     
     init(carousel: Carousel, hostConfig: HostConfig) {
         self.carousel = carousel
@@ -62,20 +63,29 @@ struct CarouselView: View {
     }
     
     private var adaptiveMinHeight: CGFloat {
-        // Adjust height based on device size class
+        let baseHeight: CGFloat
         if horizontalSizeClass == .regular && verticalSizeClass == .regular {
             // iPad
-            return 300
+            baseHeight = 300
         } else {
             // iPhone
-            return 200
+            baseHeight = 200
         }
+        
+        // Increase for accessibility text sizes
+        if sizeCategory.isAccessibilityCategory {
+            return baseHeight * 1.3
+        }
+        return baseHeight
     }
     
     private func setupAutoAdvance() {
         guard let timerInterval = carousel.timer, timerInterval > 0 else {
             return
         }
+        
+        // Invalidate existing timer to prevent leaks
+        timer?.invalidate()
         
         timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(timerInterval) / 1000.0, repeats: true) { _ in
             withAnimation {

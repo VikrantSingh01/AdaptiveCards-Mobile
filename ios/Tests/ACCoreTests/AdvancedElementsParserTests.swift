@@ -375,6 +375,188 @@ final class AdvancedElementsParserTests: XCTestCase {
         XCTAssertEqual(tabSet.typeString, "TabSet")
     }
     
+    // MARK: - Edge Case Tests
+    
+    func testCarouselWithEmptyPages() throws {
+        let carousel = Carousel(pages: [])
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(carousel)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Carousel.self, from: data)
+        
+        XCTAssertEqual(decoded.pages.count, 0)
+    }
+    
+    func testCarouselWithoutTimer() throws {
+        let carousel = Carousel(
+            pages: [
+                CarouselPage(items: [.textBlock(TextBlock(text: "Test"))])
+            ],
+            timer: nil
+        )
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(carousel)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Carousel.self, from: data)
+        
+        XCTAssertNil(decoded.timer)
+    }
+    
+    func testAccordionMultipleExpandMode() throws {
+        let accordion = Accordion(
+            panels: [
+                AccordionPanel(title: "Panel 1", content: [], isExpanded: true),
+                AccordionPanel(title: "Panel 2", content: [], isExpanded: true)
+            ],
+            expandMode: .multiple
+        )
+        
+        XCTAssertEqual(accordion.expandMode, .multiple)
+        XCTAssertTrue(accordion.panels[0].isExpanded ?? false)
+        XCTAssertTrue(accordion.panels[1].isExpanded ?? false)
+    }
+    
+    func testRatingDisplayBoundaryValues() throws {
+        // Test minimum rating
+        let minRating = RatingDisplay(value: 0.0, max: 5)
+        XCTAssertEqual(minRating.value, 0.0)
+        
+        // Test maximum rating
+        let maxRating = RatingDisplay(value: 5.0, max: 5)
+        XCTAssertEqual(maxRating.value, 5.0)
+        
+        // Test half-star value
+        let halfRating = RatingDisplay(value: 3.5, max: 5)
+        XCTAssertEqual(halfRating.value, 3.5)
+    }
+    
+    func testRatingInputDefaultValues() throws {
+        let input = RatingInput(id: "test")
+        
+        XCTAssertNil(input.max)
+        XCTAssertNil(input.value)
+        XCTAssertNil(input.label)
+        XCTAssertNil(input.isRequired)
+    }
+    
+    func testProgressBarValueClamping() throws {
+        // Test values within range
+        let normalProgress = ProgressBar(value: 0.5)
+        XCTAssertEqual(normalProgress.value, 0.5)
+        
+        // Test minimum value
+        let minProgress = ProgressBar(value: 0.0)
+        XCTAssertEqual(minProgress.value, 0.0)
+        
+        // Test maximum value
+        let maxProgress = ProgressBar(value: 1.0)
+        XCTAssertEqual(maxProgress.value, 1.0)
+    }
+    
+    func testSpinnerDefaultSize() throws {
+        let spinner = Spinner()
+        XCTAssertNil(spinner.size)
+    }
+    
+    func testCodeBlockMultilineContent() throws {
+        let multilineCode = "func test() {\n    print(\"line 1\")\n    print(\"line 2\")\n}"
+        let codeBlock = CodeBlock(code: multilineCode)
+        
+        XCTAssertEqual(codeBlock.code, multilineCode)
+        XCTAssertTrue(codeBlock.code.contains("\n"))
+    }
+    
+    func testTabSetWithoutSelectedTab() throws {
+        let tabSet = TabSet(
+            tabs: [
+                Tab(id: "tab1", title: "Tab 1", items: [])
+            ],
+            selectedTabId: nil
+        )
+        
+        XCTAssertNil(tabSet.selectedTabId)
+    }
+    
+    func testTabWithoutIcon() throws {
+        let tab = Tab(id: "test", title: "Test Tab", icon: nil, items: [])
+        XCTAssertNil(tab.icon)
+    }
+    
+    // MARK: - Visibility Tests
+    
+    func testAdvancedElementsVisibility() throws {
+        let carousel = CardElement.carousel(Carousel(pages: []))
+        XCTAssertTrue(carousel.isVisible)
+        
+        let accordion = CardElement.accordion(Accordion(panels: []))
+        XCTAssertTrue(accordion.isVisible)
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(code: "test"))
+        XCTAssertTrue(codeBlock.isVisible)
+        
+        let rating = CardElement.ratingDisplay(RatingDisplay(value: 4.5))
+        XCTAssertTrue(rating.isVisible)
+        
+        let progressBar = CardElement.progressBar(ProgressBar(value: 0.5))
+        XCTAssertTrue(progressBar.isVisible)
+        
+        let spinner = CardElement.spinner(Spinner())
+        XCTAssertTrue(spinner.isVisible)
+        
+        let tabSet = CardElement.tabSet(TabSet(tabs: []))
+        XCTAssertTrue(tabSet.isVisible)
+    }
+    
+    func testAdvancedElementsWithIsVisibleFalse() throws {
+        let carousel = Carousel(pages: [], isVisible: false)
+        let carouselElement = CardElement.carousel(carousel)
+        XCTAssertFalse(carouselElement.isVisible)
+        
+        let accordion = Accordion(panels: [], isVisible: false)
+        let accordionElement = CardElement.accordion(accordion)
+        XCTAssertFalse(accordionElement.isVisible)
+    }
+    
+    // MARK: - ID Tests
+    
+    func testAdvancedElementsWithIds() throws {
+        let carousel = CardElement.carousel(Carousel(id: "carousel1", pages: []))
+        XCTAssertEqual(carousel.id, "carousel1")
+        
+        let accordion = CardElement.accordion(Accordion(id: "accordion1", panels: []))
+        XCTAssertEqual(accordion.id, "accordion1")
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(id: "code1", code: "test"))
+        XCTAssertEqual(codeBlock.id, "code1")
+        
+        let rating = CardElement.ratingDisplay(RatingDisplay(id: "rating1", value: 4.5))
+        XCTAssertEqual(rating.id, "rating1")
+        
+        let progressBar = CardElement.progressBar(ProgressBar(id: "progress1", value: 0.5))
+        XCTAssertEqual(progressBar.id, "progress1")
+        
+        let spinner = CardElement.spinner(Spinner(id: "spinner1"))
+        XCTAssertEqual(spinner.id, "spinner1")
+        
+        let tabSet = CardElement.tabSet(TabSet(id: "tabs1", tabs: []))
+        XCTAssertEqual(tabSet.id, "tabs1")
+    }
+    
+    func testAdvancedElementsWithoutIds() throws {
+        let carousel = CardElement.carousel(Carousel(pages: []))
+        XCTAssertNil(carousel.id)
+        
+        let accordion = CardElement.accordion(Accordion(panels: []))
+        XCTAssertNil(accordion.id)
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(code: "test"))
+        XCTAssertNil(codeBlock.id)
+    }
+    
     // MARK: - Helper Methods
     
     private func loadTestCard(named name: String) throws -> String {
