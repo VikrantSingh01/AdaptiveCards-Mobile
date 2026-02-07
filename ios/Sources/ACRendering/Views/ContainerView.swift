@@ -1,0 +1,52 @@
+import SwiftUI
+import ACCore
+import ACAccessibility
+
+struct ContainerView: View {
+    let container: Container
+    let hostConfig: HostConfig
+    
+    @Environment(\.actionHandler) var actionHandler
+    @Environment(\.actionDelegate) var actionDelegate
+    @EnvironmentObject var viewModel: CardViewModel
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(container.items.enumerated()), id: \.offset) { index, element in
+                if viewModel.isVisible(elementId: element.id) {
+                    ElementView(element: element, hostConfig: hostConfig)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
+        .frame(minHeight: minHeight)
+        .padding(container.bleed == true ? 0 : CGFloat(hostConfig.spacing.padding))
+        .containerStyle(container.style, hostConfig: hostConfig)
+        .spacing(container.spacing, hostConfig: hostConfig)
+        .separator(container.separator, hostConfig: hostConfig)
+        .selectAction(container.selectAction) { action in
+            actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
+        }
+        .accessibilityContainer(label: "Container")
+    }
+    
+    private var verticalContentAlignment: Alignment {
+        guard let alignment = container.verticalContentAlignment else {
+            return .center
+        }
+        
+        switch alignment {
+        case .top:
+            return .top
+        case .center:
+            return .center
+        case .bottom:
+            return .bottom
+        }
+    }
+    
+    private var minHeight: CGFloat? {
+        guard let minHeightStr = container.minHeight else { return nil }
+        return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)
+    }
+}
