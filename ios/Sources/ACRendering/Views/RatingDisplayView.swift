@@ -1,71 +1,84 @@
 import SwiftUI
 import ACCore
+import ACAccessibility
 
 struct RatingDisplayView: View {
     let rating: RatingDisplay
     let hostConfig: HostConfig
     
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.sizeCategory) var sizeCategory
-    
-    private var isTablet: Bool {
-        horizontalSizeClass == .regular
-    }
-    
-    private var starSize: CGFloat {
-        let baseSize: CGFloat
-        switch rating.size {
-        case .small:
-            baseSize = 16
-        case .large:
-            baseSize = 32
-        default:
-            baseSize = 24
-        }
-        return isTablet ? baseSize + 4 : baseSize
-    }
-    
-    private var maxStars: Int {
-        rating.max ?? 5
-    }
     
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(0..<maxStars, id: \.self) { index in
-                starImage(for: index)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: starSize, height: starSize)
-                    .foregroundColor(Color(red: 1.0, green: 0.76, blue: 0.03))
+            // Star icons
+            HStack(spacing: 2) {
+                ForEach(0..<maxStars, id: \.self) { index in
+                    starImage(for: index)
+                        .foregroundColor(.yellow)
+                        .font(starSize)
+                        .accessibilityHidden(true)
+                }
             }
             
+            // Value text
+            Text(String(format: "%.1f", rating.value))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .accessibilityHidden(true)
+            
+            // Count if provided
             if let count = rating.count {
                 Text("(\(count))")
-                    .font(isTablet ? .body : .caption)
+                    .font(.caption)
                     .foregroundColor(.secondary)
-                    .padding(.leading, 4)
+                    .accessibilityHidden(true)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Rating")
-        .accessibilityValue(ratingDescription)
+        .spacing(rating.spacing, hostConfig: hostConfig)
+        .separator(rating.separator, hostConfig: hostConfig)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityAddTraits(.isStaticText)
+    }
+    
+    private var maxStars: Int {
+        return rating.max ?? 5
+    }
+    
+    private var starSize: Font {
+        let baseSize: Font
+        switch rating.size {
+        case .small:
+            baseSize = .caption
+        case .large:
+            baseSize = .title3
+        default:
+            baseSize = .body
+        }
+        
+        // Scale for accessibility
+        if sizeCategory.isAccessibilityCategory {
+            return .title3
+        }
+        return baseSize
     }
     
     private func starImage(for index: Int) -> Image {
-        let position = Double(index) + 1.0
-        if rating.value >= position {
+        let starValue = Double(index + 1)
+        
+        if rating.value >= starValue {
             return Image(systemName: "star.fill")
-        } else if rating.value > Double(index) {
+        } else if rating.value >= starValue - 0.5 {
             return Image(systemName: "star.leadinghalf.filled")
         } else {
             return Image(systemName: "star")
         }
     }
     
-    private var ratingDescription: String {
-        var description = "\(rating.value) out of \(maxStars) stars"
+    private var accessibilityDescription: String {
+        var description = "Rating: \(String(format: "%.1f", rating.value)) out of \(maxStars) stars"
         if let count = rating.count {
-            description += ", \(count) reviews"
+            description += ", based on \(count) reviews"
         }
         return description
     }

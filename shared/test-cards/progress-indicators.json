@@ -1,96 +1,110 @@
 {
   "type": "AdaptiveCard",
   "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "body": [
     {
       "type": "TextBlock",
-      "text": "Progress Indicators Example",
-      "weight": "bolder",
-      "size": "large"
+      "text": "Progress Indicators",
+      "size": "Large",
+      "weight": "Bolder"
     },
     {
       "type": "TextBlock",
-      "text": "Progress Bars",
-      "weight": "bolder"
+      "text": "Task Progress",
+      "weight": "Bolder",
+      "size": "Medium"
     },
     {
       "type": "ProgressBar",
-      "id": "progress1",
-      "label": "Download Progress",
-      "value": 0.75,
+      "id": "taskProgress",
+      "label": "Overall Completion",
+      "value": 0.75
+    },
+    {
+      "type": "ProgressBar",
+      "id": "uploadProgress",
+      "label": "File Upload",
+      "value": 0.45,
       "color": "#0078D4"
     },
     {
       "type": "ProgressBar",
-      "id": "progress2",
-      "label": "Upload Progress",
-      "value": 0.45,
-      "color": "#107C10"
-    },
-    {
-      "type": "ProgressBar",
-      "id": "progress3",
-      "label": "Processing",
-      "value": 0.90
+      "id": "downloadProgress",
+      "label": "Download",
+      "value": 0.90,
+      "color": "green"
     },
     {
       "type": "TextBlock",
-      "text": "Spinners",
-      "weight": "bolder"
-    },
-    {
-      "type": "ColumnSet",
-      "columns": [
-        {
-          "width": "auto",
-          "items": [
-            {
-              "type": "Spinner",
-              "id": "spinner1",
-              "size": "small",
-              "label": "Small"
-            }
-          ]
-        },
-        {
-          "width": "auto",
-          "items": [
-            {
-              "type": "Spinner",
-              "id": "spinner2",
-              "size": "medium",
-              "label": "Medium"
-            }
-          ]
-        },
-        {
-          "width": "auto",
-          "items": [
-            {
-              "type": "Spinner",
-              "id": "spinner3",
-              "size": "large",
-              "label": "Large"
-            }
-          ]
-        }
-      ]
+      "text": "Loading States",
+      "weight": "Bolder",
+      "size": "Medium"
     },
     {
       "type": "Container",
-      "style": "emphasis",
       "items": [
         {
           "type": "TextBlock",
-          "text": "Loading Content...",
-          "horizontalAlignment": "center"
+          "text": "Small Spinner:",
+          "size": "Small"
         },
         {
           "type": "Spinner",
-          "id": "spinner4",
-          "size": "medium"
+          "id": "smallSpinner",
+          "size": "Small",
+          "label": "Loading..."
+        },
+        {
+          "type": "TextBlock",
+          "text": "Medium Spinner (default):",
+          "size": "Small"
+        },
+        {
+          "type": "Spinner",
+          "id": "mediumSpinner",
+          "size": "Medium",
+          "label": "Processing your request..."
+        },
+        {
+          "type": "TextBlock",
+          "text": "Large Spinner:",
+          "size": "Small"
+        },
+        {
+          "type": "Spinner",
+          "id": "largeSpinner",
+          "size": "Large",
+          "label": "Please wait..."
         }
       ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "Step Progress",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "ProgressBar",
+      "label": "Step 1 of 4: Personal Information",
+      "value": 0.25
+    },
+    {
+      "type": "ProgressBar",
+      "label": "Step 2 of 4: Address",
+      "value": 0.50
+    },
+    {
+      "type": "ProgressBar",
+      "label": "Step 3 of 4: Payment",
+      "value": 0.75
+    },
+    {
+      "type": "ProgressBar",
+      "label": "Step 4 of 4: Review",
+      "value": 1.0,
+      "color": "#107C10"
     }
   ]
 }

@@ -1,114 +1,125 @@
 {
   "type": "AdaptiveCard",
   "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "body": [
     {
       "type": "TextBlock",
-      "text": "TabSet Example",
-      "weight": "bolder",
-      "size": "large"
+      "text": "Project Dashboard",
+      "size": "Large",
+      "weight": "Bolder"
     },
     {
       "type": "TabSet",
-      "id": "tabSet1",
-      "selectedTabId": "tab1",
+      "id": "projectTabs",
+      "selectedTabId": "overview",
       "tabs": [
         {
-          "id": "tab1",
+          "id": "overview",
           "title": "Overview",
-          "icon": "📋",
+          "icon": "house.fill",
           "items": [
             {
               "type": "TextBlock",
-              "text": "Overview",
-              "weight": "bolder",
-              "size": "medium"
+              "text": "Project Overview",
+              "weight": "Bolder",
+              "size": "Medium"
             },
             {
               "type": "TextBlock",
-              "text": "This is the overview tab with general information about the product.",
+              "text": "Welcome to the Adaptive Cards Mobile SDK project!",
               "wrap": true
             },
             {
               "type": "FactSet",
               "facts": [
                 {
-                  "title": "Version",
-                  "value": "1.6.0"
-                },
-                {
-                  "title": "Released",
-                  "value": "2024-01-15"
-                },
-                {
-                  "title": "Status",
+                  "title": "Status:",
                   "value": "Active"
+                },
+                {
+                  "title": "Team Size:",
+                  "value": "8 members"
+                },
+                {
+                  "title": "Start Date:",
+                  "value": "Jan 15, 2024"
+                },
+                {
+                  "title": "Completion:",
+                  "value": "75%"
                 }
               ]
+            },
+            {
+              "type": "ProgressBar",
+              "label": "Overall Progress",
+              "value": 0.75,
+              "color": "#0078D4"
             }
           ]
         },
         {
-          "id": "tab2",
-          "title": "Features",
-          "icon": "✨",
+          "id": "tasks",
+          "title": "Tasks",
+          "icon": "checklist",
           "items": [
             {
               "type": "TextBlock",
-              "text": "Key Features",
-              "weight": "bolder",
-              "size": "medium"
-            },
-            {
-              "type": "TextBlock",
-              "text": "• Cross-platform support\n• Native rendering\n• JSON-based schema\n• Extensible components\n• Theme support",
-              "wrap": true
+              "text": "Active Tasks",
+              "weight": "Bolder",
+              "size": "Medium"
             },
             {
               "type": "Container",
-              "style": "good",
+              "style": "Emphasis",
               "items": [
                 {
                   "type": "TextBlock",
-                  "text": "NEW: Advanced elements now available!",
-                  "weight": "bolder"
+                  "text": "✅ Implement Carousel element",
+                  "wrap": true
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "✅ Implement Accordion element",
+                  "wrap": true
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "🔄 Add CodeBlock syntax highlighting",
+                  "wrap": true
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "⏳ Write comprehensive tests",
+                  "wrap": true
                 }
               ]
             }
           ]
         },
         {
-          "id": "tab3",
-          "title": "Documentation",
-          "icon": "📖",
+          "id": "team",
+          "title": "Team",
+          "icon": "person.3.fill",
           "items": [
             {
               "type": "TextBlock",
-              "text": "Documentation",
-              "weight": "bolder",
-              "size": "medium"
-            },
-            {
-              "type": "TextBlock",
-              "text": "Access comprehensive documentation and guides:",
-              "wrap": true
+              "text": "Team Members",
+              "weight": "Bolder",
+              "size": "Medium"
             },
             {
               "type": "ColumnSet",
               "columns": [
                 {
-                  "width": "stretch",
+                  "width": "auto",
                   "items": [
                     {
-                      "type": "TextBlock",
-                      "text": "Getting Started",
-                      "weight": "bolder"
-                    },
-                    {
-                      "type": "TextBlock",
-                      "text": "Quick start guide for new users",
-                      "isSubtle": true,
-                      "wrap": true
+                      "type": "Image",
+                      "url": "https://picsum.photos/50/50?random=10",
+                      "style": "Person",
+                      "size": "Small"
                     }
                   ]
                 },
@@ -117,14 +128,46 @@
                   "items": [
                     {
                       "type": "TextBlock",
-                      "text": "API Reference",
-                      "weight": "bolder"
+                      "text": "Alice Johnson",
+                      "weight": "Bolder"
                     },
                     {
                       "type": "TextBlock",
-                      "text": "Complete API documentation",
-                      "isSubtle": true,
-                      "wrap": true
+                      "text": "Tech Lead",
+                      "size": "Small",
+                      "color": "Accent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "ColumnSet",
+              "columns": [
+                {
+                  "width": "auto",
+                  "items": [
+                    {
+                      "type": "Image",
+                      "url": "https://picsum.photos/50/50?random=11",
+                      "style": "Person",
+                      "size": "Small"
+                    }
+                  ]
+                },
+                {
+                  "width": "stretch",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Bob Smith",
+                      "weight": "Bolder"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "iOS Developer",
+                      "size": "Small",
+                      "color": "Accent"
                     }
                   ]
                 }
@@ -133,48 +176,44 @@
           ]
         },
         {
-          "id": "tab4",
-          "title": "Settings",
-          "icon": "⚙️",
+          "id": "analytics",
+          "title": "Analytics",
+          "icon": "chart.bar.fill",
           "items": [
             {
               "type": "TextBlock",
-              "text": "Settings",
-              "weight": "bolder",
-              "size": "medium"
+              "text": "Project Metrics",
+              "weight": "Bolder",
+              "size": "Medium"
             },
             {
-              "type": "Input.Toggle",
-              "id": "enableNotifications",
-              "title": "Enable notifications",
-              "value": "true"
+              "type": "TextBlock",
+              "text": "Code Coverage",
+              "weight": "Bolder"
             },
             {
-              "type": "Input.Toggle",
-              "id": "darkMode",
-              "title": "Dark mode",
-              "value": "false"
+              "type": "ProgressBar",
+              "label": "Unit Tests",
+              "value": 0.85,
+              "color": "green"
             },
             {
-              "type": "Input.ChoiceSet",
-              "id": "language",
-              "label": "Language",
-              "style": "compact",
-              "value": "en",
-              "choices": [
-                {
-                  "title": "English",
-                  "value": "en"
-                },
-                {
-                  "title": "Español",
-                  "value": "es"
-                },
-                {
-                  "title": "Français",
-                  "value": "fr"
-                }
-              ]
+              "type": "ProgressBar",
+              "label": "Integration Tests",
+              "value": 0.72,
+              "color": "blue"
+            },
+            {
+              "type": "TextBlock",
+              "text": "User Satisfaction",
+              "weight": "Bolder"
+            },
+            {
+              "type": "Rating",
+              "value": 4.7,
+              "count": 234,
+              "max": 5,
+              "size": "Large"
             }
           ]
         }
@@ -184,7 +223,7 @@
   "actions": [
     {
       "type": "Action.Submit",
-      "title": "Save Settings"
+      "title": "Save Changes"
     }
   ]
 }

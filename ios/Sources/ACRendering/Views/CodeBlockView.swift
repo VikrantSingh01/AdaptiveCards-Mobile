@@ -1,112 +1,116 @@
 import SwiftUI
 import UIKit
 import ACCore
+import ACAccessibility
 
 struct CodeBlockView: View {
     let codeBlock: CodeBlock
     let hostConfig: HostConfig
     
-    @State private var copySuccess = false
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @State private var showCopied = false
     @Environment(\.sizeCategory) var sizeCategory
     
-    private var isTablet: Bool {
-        horizontalSizeClass == .regular
-    }
-    
-    private var padding: CGFloat {
-        isTablet ? 16 : 12
-    }
-    
-    private var fontSize: CGFloat {
-        isTablet ? 16 : 14
-    }
-    
-    private var copyButtonSize: CGFloat {
-        isTablet ? 36 : 32
-    }
-    
-    private var lines: [String] {
-        codeBlock.code.components(separatedBy: .newlines)
-    }
-    
-    private var lineCount: Int {
-        lines.count
-    }
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header with language and copy button
             HStack {
                 if let language = codeBlock.language {
-                    Text(language.uppercased())
+                    Text(language)
                         .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.secondary)
+                        .accessibilityLabel("Programming language: \(language)")
                 }
                 
                 Spacer()
                 
                 Button(action: copyToClipboard) {
-                    Image(systemName: copySuccess ? "checkmark" : "doc.on.doc")
-                        .foregroundColor(.white)
-                        .frame(width: copyButtonSize, height: copyButtonSize)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(6)
-                }
-                .accessibilityLabel("Copy code")
-                .accessibilityHint("Double tap to copy code to clipboard")
-                .accessibilityAddTraits(.isButton)
-                .frame(minWidth: 44, minHeight: 44)
-            }
-            .padding(.horizontal, padding)
-            .padding(.top, padding)
-            
-            ScrollView(.horizontal, showsIndicators: codeBlock.wrap != true) {
-                HStack(alignment: .top, spacing: padding) {
-                    if let startLine = codeBlock.startLineNumber {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            ForEach(0..<lineCount, id: \.self) { index in
-                                Text("\(startLine + index)")
-                                    .font(.system(size: fontSize, design: .monospaced))
-                                    .foregroundColor(.white.opacity(0.5))
-                            }
-                        }
-                        .padding(.trailing, 8)
+                    HStack(spacing: 4) {
+                        Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
+                        Text(showCopied ? "Copied" : "Copy")
+                            .font(.caption)
                     }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        ForEach(0..<lineCount, id: \.self) { index in
-                            Text(lines[index])
-                                .font(.system(size: fontSize, design: .monospaced))
-                                .foregroundColor(.white)
+                    .foregroundColor(.blue)
+                    .frame(minWidth: 44, minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(showCopied ? "Code copied to clipboard" : "Copy code to clipboard")
+                .accessibilityHint("Double tap to copy code")
+                .accessibilityAddTraits(.isButton)
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+            
+            // Code content
+            ScrollView(.horizontal, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(codeLines.enumerated()), id: \.offset) { index, line in
+                        HStack(spacing: 8) {
+                            if let startLine = codeBlock.startLineNumber {
+                                Text("\(startLine + index)")
+                                    .font(.system(adaptiveFontSize, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                                    .frame(minWidth: 30, alignment: .trailing)
+                                    .accessibilityHidden(true)
+                            }
+                            
+                            Text(line)
+                                .font(.system(adaptiveFontSize, design: .monospaced))
+                                .foregroundColor(.primary)
                                 .lineLimit(codeBlock.wrap == true ? nil : 1)
                         }
                     }
                 }
-                .padding(padding)
+                .padding(8)
+            }
+            .background(backgroundColor)
+            .cornerRadius(8)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Code block")
+            .accessibilityValue(codeBlock.code)
+            .accessibilityHint("Swipe right to scroll through code")
+        }
+        .spacing(codeBlock.spacing, hostConfig: hostConfig)
+        .separator(codeBlock.separator, hostConfig: hostConfig)
+    }
+    
+    private var codeLines: [String] {
+        return codeBlock.code.components(separatedBy: .newlines)
+    }
+    
+    private var backgroundColor: Color {
+        return Color.gray.opacity(0.1)
+    }
+    
+    private var adaptiveFontSize: CGFloat {
+        if sizeCategory.isAccessibilityCategory {
+            return 17  // Body size
+        } else {
+            switch sizeCategory {
+            case .extraSmall, .small:
+                return 12  // Caption size
+            case .large, .extraLarge:
+                return 17  // Body size
+            default:
+                return 15  // Callout size
             }
         }
-        .background(Color(red: 0.12, green: 0.12, blue: 0.12))
-        .cornerRadius(8)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(codeBlock.language != nil ? "\(codeBlock.language!) code block" : "Code block")
-        .accessibilityValue("\(lineCount) lines")
-        .accessibilityHint("Contains code that can be copied")
     }
     
     private func copyToClipboard() {
         #if os(iOS)
         UIPasteboard.general.string = codeBlock.code
-        // Announce to VoiceOver
-        UIAccessibility.post(notification: .announcement, argument: "Code copied to clipboard")
         #elseif os(macOS)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(codeBlock.code, forType: .string)
         #endif
         
-        copySuccess = true
+        showCopied = true
+        
+        // Announce to VoiceOver
+        UIAccessibility.post(notification: .announcement, argument: "Code copied to clipboard")
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            copySuccess = false
+            showCopied = false
         }
     }
 }

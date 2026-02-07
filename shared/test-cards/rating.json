@@ -1,89 +1,98 @@
 {
   "type": "AdaptiveCard",
   "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "body": [
     {
       "type": "TextBlock",
-      "text": "Rating Example",
-      "weight": "bolder",
-      "size": "large"
+      "text": "Product Reviews",
+      "size": "Large",
+      "weight": "Bolder"
     },
     {
       "type": "TextBlock",
-      "text": "Display Rating (Read-only)",
-      "weight": "bolder"
-    },
-    {
-      "type": "Container",
-      "style": "emphasis",
-      "items": [
-        {
-          "type": "TextBlock",
-          "text": "Product A",
-          "weight": "bolder"
-        },
-        {
-          "type": "Rating",
-          "id": "rating1",
-          "value": 4.5,
-          "max": 5,
-          "count": 127,
-          "size": "medium"
-        },
-        {
-          "type": "TextBlock",
-          "text": "127 reviews",
-          "size": "small",
-          "isSubtle": true
-        }
-      ]
-    },
-    {
-      "type": "TextBlock",
-      "text": "Small Rating Display",
-      "weight": "bolder"
+      "text": "Adaptive Cards Mobile SDK",
+      "weight": "Bolder",
+      "size": "Medium"
     },
     {
       "type": "Rating",
-      "id": "rating2",
-      "value": 3.8,
+      "id": "productRating",
+      "value": 4.5,
+      "count": 128,
       "max": 5,
-      "count": 45,
-      "size": "small"
+      "size": "Medium"
     },
     {
       "type": "TextBlock",
-      "text": "Large Rating Display",
-      "weight": "bolder"
-    },
-    {
-      "type": "Rating",
-      "id": "rating3",
-      "value": 5.0,
-      "max": 5,
-      "count": 5,
-      "size": "large"
+      "text": "A fantastic SDK for building mobile experiences!",
+      "wrap": true
     },
     {
       "type": "TextBlock",
-      "text": "Interactive Rating Input",
-      "weight": "bolder"
+      "text": "Rate Your Experience",
+      "weight": "Bolder",
+      "size": "Medium"
     },
     {
       "type": "Input.Rating",
-      "id": "ratingInput1",
-      "label": "Rate this product",
+      "id": "userRating",
+      "label": "How would you rate this product?",
       "max": 5,
       "value": 0,
       "isRequired": true,
       "errorMessage": "Please provide a rating"
     },
     {
-      "type": "Input.Rating",
-      "id": "ratingInput2",
-      "label": "How satisfied are you?",
-      "max": 10,
-      "value": 7
+      "type": "Input.Text",
+      "id": "feedback",
+      "label": "Additional feedback (optional)",
+      "isMultiline": true,
+      "placeholder": "Tell us more about your experience..."
+    },
+    {
+      "type": "TextBlock",
+      "text": "Different Rating Sizes",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Small:",
+          "size": "Small"
+        },
+        {
+          "type": "Rating",
+          "value": 3.5,
+          "max": 5,
+          "size": "Small"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Medium (default):",
+          "size": "Small"
+        },
+        {
+          "type": "Rating",
+          "value": 4.0,
+          "max": 5,
+          "size": "Medium"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Large:",
+          "size": "Small"
+        },
+        {
+          "type": "Rating",
+          "value": 5.0,
+          "max": 5,
+          "size": "Large"
+        }
+      ]
     }
   ],
   "actions": [

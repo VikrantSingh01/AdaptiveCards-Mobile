@@ -1,50 +1,51 @@
 {
   "type": "AdaptiveCard",
   "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "body": [
     {
       "type": "TextBlock",
-      "text": "Code Block Example",
-      "weight": "bolder",
-      "size": "large"
+      "text": "Code Examples",
+      "size": "Large",
+      "weight": "Bolder"
     },
     {
       "type": "TextBlock",
-      "text": "JavaScript Function",
-      "weight": "bolder"
+      "text": "Swift Example",
+      "weight": "Bolder",
+      "size": "Medium"
     },
     {
       "type": "CodeBlock",
-      "id": "codeBlock1",
+      "id": "swiftCode",
+      "language": "swift",
+      "startLineNumber": 1,
+      "code": "import SwiftUI\n\nstruct ContentView: View {\n    @State private var count = 0\n    \n    var body: some View {\n        VStack {\n            Text(\"Count: \\(count)\")\n            Button(\"Increment\") {\n                count += 1\n            }\n        }\n    }\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "JavaScript Example",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "jsCode",
       "language": "javascript",
       "startLineNumber": 1,
-      "wrap": false,
-      "code": "function greet(name) {\n  console.log(`Hello, ${name}!`);\n  return `Welcome to Adaptive Cards, ${name}`;\n}\n\ngreet('World');"
+      "code": "function greet(name) {\n    const message = `Hello, ${name}!`;\n    console.log(message);\n    return message;\n}\n\nconst result = greet('World');"
     },
     {
       "type": "TextBlock",
-      "text": "Python Example",
-      "weight": "bolder"
+      "text": "JSON Example (No Line Numbers)",
+      "weight": "Bolder",
+      "size": "Medium"
     },
     {
       "type": "CodeBlock",
-      "id": "codeBlock2",
-      "language": "python",
-      "startLineNumber": 10,
-      "wrap": false,
-      "code": "def calculate_fibonacci(n):\n    if n <= 1:\n        return n\n    return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)\n\nprint(calculate_fibonacci(10))"
-    },
-    {
-      "type": "TextBlock",
-      "text": "JSON Configuration",
-      "weight": "bolder"
-    },
-    {
-      "type": "CodeBlock",
-      "id": "codeBlock3",
+      "id": "jsonCode",
       "language": "json",
-      "wrap": true,
-      "code": "{\n  \"name\": \"adaptive-cards\",\n  \"version\": \"1.6.0\",\n  \"description\": \"Platform-agnostic UI snippets\",\n  \"features\": [\"mobile\", \"web\", \"desktop\"]\n}"
+      "code": "{\n  \"type\": \"AdaptiveCard\",\n  \"version\": \"1.6\",\n  \"body\": [\n    {\n      \"type\": \"TextBlock\",\n      \"text\": \"Hello!\"\n    }\n  ]\n}"
     }
   ]
 }

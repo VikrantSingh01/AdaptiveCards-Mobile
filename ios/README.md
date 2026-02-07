@@ -116,6 +116,138 @@ AdaptiveCardView(
 )
 ```
 
+### Advanced Elements Examples
+
+#### Carousel with Auto-Advance
+
+```swift
+let carouselJSON = """
+{
+    "type": "AdaptiveCard",
+    "version": "1.6",
+    "body": [
+        {
+            "type": "Carousel",
+            "timer": 5000,
+            "pages": [
+                {
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://example.com/image1.jpg",
+                            "size": "Stretch"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Slide 1",
+                            "weight": "Bolder"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""
+```
+
+#### Accordion with Single-Expand Mode
+
+```swift
+let accordionJSON = """
+{
+    "type": "AdaptiveCard",
+    "version": "1.6",
+    "body": [
+        {
+            "type": "Accordion",
+            "expandMode": "Single",
+            "panels": [
+                {
+                    "title": "FAQ Item 1",
+                    "isExpanded": true,
+                    "content": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Answer goes here",
+                            "wrap": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""
+```
+
+#### Rating Input with Validation
+
+```swift
+let ratingJSON = """
+{
+    "type": "AdaptiveCard",
+    "version": "1.6",
+    "body": [
+        {
+            "type": "Input.Rating",
+            "id": "userRating",
+            "label": "Rate this product",
+            "max": 5,
+            "isRequired": true,
+            "errorMessage": "Please provide a rating"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Submit"
+        }
+    ]
+}
+"""
+```
+
+#### TabSet with Multiple Tabs
+
+```swift
+let tabSetJSON = """
+{
+    "type": "AdaptiveCard",
+    "version": "1.6",
+    "body": [
+        {
+            "type": "TabSet",
+            "tabs": [
+                {
+                    "id": "tab1",
+                    "title": "Overview",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Tab 1 content"
+                        }
+                    ]
+                },
+                {
+                    "id": "tab2",
+                    "title": "Details",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Tab 2 content"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""
+```
+
+For more examples, see the test cards in [shared/test-cards/](../shared/test-cards/).
+
 ## Supported Elements
 
 ### Display Elements
@@ -140,6 +272,18 @@ AdaptiveCardView(
 - **Input.Time**: Time picker
 - **Input.Toggle**: Boolean switch
 - **Input.ChoiceSet**: Dropdown/radio/checkbox with compact/expanded/filtered styles
+- **Input.Rating**: Interactive star picker with validation
+
+### Advanced Elements
+- **Carousel**: Swipeable pages with auto-advance timer, page indicators, and per-page actions
+- **Accordion**: Collapsible panels with single or multi-expand modes
+- **CodeBlock**: Code display with syntax highlighting, line numbers, and copy-to-clipboard
+- **Rating**: Read-only star rating display with half-star support and review counts
+- **ProgressBar**: Linear progress indicator with custom colors (hex or named)
+- **Spinner**: Circular loading indicator with three sizes (small, medium, large)
+- **TabSet**: Tab navigation with scrollable tab bar, icons, and multi-content areas
+
+> **Note**: All advanced elements are fully accessible (VoiceOver, Dynamic Type) and responsive (iPhone/iPad). See [ACCESSIBILITY.md](ACCESSIBILITY.md) for details.
 
 ### Actions
 - **Action.Submit**: Gather inputs and submit to delegate

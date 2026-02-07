@@ -1,17 +1,18 @@
 {
   "type": "AdaptiveCard",
   "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "body": [
     {
       "type": "TextBlock",
-      "text": "Accordion Example",
-      "weight": "bolder",
-      "size": "large"
+      "text": "FAQ Accordion",
+      "size": "Large",
+      "weight": "Bolder"
     },
     {
       "type": "Accordion",
-      "id": "accordion1",
-      "expandMode": "single",
+      "id": "faqAccordion",
+      "expandMode": "Single",
       "panels": [
         {
           "title": "What is Adaptive Cards?",
@@ -25,49 +26,50 @@
           ]
         },
         {
-          "title": "How do I get started?",
+          "title": "Where can I use Adaptive Cards?",
+          "isExpanded": false,
           "content": [
             {
               "type": "TextBlock",
-              "text": "Visit the Adaptive Cards documentation to learn more about the schema and how to implement Adaptive Cards in your application.",
+              "text": "Adaptive Cards can be used in:",
               "wrap": true
             },
             {
               "type": "TextBlock",
-              "text": "• Choose your platform\n• Install the SDK\n• Start rendering cards",
+              "text": "• Microsoft Teams\n• Outlook Actionable Messages\n• Bot Framework\n• Windows Timeline\n• And more!",
               "wrap": true
             }
           ]
         },
         {
-          "title": "Where can I use Adaptive Cards?",
+          "title": "How do I get started?",
+          "isExpanded": false,
           "content": [
             {
               "type": "TextBlock",
-              "text": "Adaptive Cards can be used in:",
-              "wrap": true,
-              "weight": "bolder"
+              "text": "Visit adaptivecards.io to explore the designer, view samples, and read the documentation.",
+              "wrap": true
             },
             {
-              "type": "FactSet",
-              "facts": [
+              "type": "ActionSet",
+              "actions": [
                 {
-                  "title": "Microsoft Teams",
-                  "value": "Bots and Messaging Extensions"
-                },
-                {
-                  "title": "Outlook",
-                  "value": "Actionable Messages"
-                },
-                {
-                  "title": "Windows",
-                  "value": "Timeline and Notifications"
-                },
-                {
-                  "title": "Custom Apps",
-                  "value": "Mobile and Web"
+                  "type": "Action.OpenUrl",
+                  "title": "Visit Site",
+                  "url": "https://adaptivecards.io"
                 }
               ]
+            }
+          ]
+        },
+        {
+          "title": "What elements are supported?",
+          "isExpanded": false,
+          "content": [
+            {
+              "type": "TextBlock",
+              "text": "Adaptive Cards support a rich set of elements including text, images, containers, inputs, and actions. New advanced elements like Carousel, Accordion, CodeBlock, Rating, TabSet, and progress indicators are now available!",
+              "wrap": true
             }
           ]
         }
