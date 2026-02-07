@@ -23,7 +23,7 @@ struct ListView: View {
         
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(list.items.enumerated()), id: \.offset) { index, item in
+                ForEach(Array(list.items.enumerated()), id: \.element.id) { index, item in
                     HStack(alignment: .top, spacing: Layout.itemSpacing) {
                         // Render list item prefix based on style
                         if listStyle == "bulleted" {

@@ -12,8 +12,8 @@ public struct StreamingCardView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(partialContent.enumerated()), id: \.offset) { _, element in
-                Text("Element: \(element.type)")
+            ForEach(partialContent) { element in
+                Text("Element: \(element.typeString)")
                     .font(.body)
             }
             
