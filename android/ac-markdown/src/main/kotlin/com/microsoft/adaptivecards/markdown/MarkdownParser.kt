@@ -80,12 +80,17 @@ class MarkdownParser private constructor() {
             tokens.add(MarkdownToken.LineBreak)
         }
         
-        // Remove trailing line breaks
-        while (tokens.lastOrNull() is MarkdownToken.LineBreak) {
-            tokens.removeAt(tokens.lastIndex)
+        // Remove trailing line breaks efficiently
+        var endIndex = tokens.size
+        while (endIndex > 0 && tokens[endIndex - 1] is MarkdownToken.LineBreak) {
+            endIndex--
         }
         
-        return tokens
+        return if (endIndex < tokens.size) {
+            tokens.subList(0, endIndex)
+        } else {
+            tokens
+        }
     }
     
     private fun parseHeader(line: String): MarkdownToken? {
@@ -136,11 +141,9 @@ class MarkdownParser private constructor() {
                     }
                     tokens.add(MarkdownToken.Bold(text))
                     i = endIndex
-                    return@let
                 } ?: run {
                     currentText.append(char)
                     i++
-                    return@run
                 }
                 continue
             }
@@ -154,11 +157,9 @@ class MarkdownParser private constructor() {
                     }
                     tokens.add(MarkdownToken.Italic(text))
                     i = endIndex
-                    return@let
                 } ?: run {
                     currentText.append(char)
                     i++
-                    return@run
                 }
                 continue
             }
@@ -172,11 +173,9 @@ class MarkdownParser private constructor() {
                     }
                     tokens.add(MarkdownToken.Code(text))
                     i = endIndex
-                    return@let
                 } ?: run {
                     currentText.append(char)
                     i++
-                    return@run
                 }
                 continue
             }
@@ -190,11 +189,9 @@ class MarkdownParser private constructor() {
                     }
                     tokens.add(MarkdownToken.Link(text, url))
                     i = endIndex
-                    return@let
                 } ?: run {
                     currentText.append(char)
                     i++
-                    return@run
                 }
                 continue
             }

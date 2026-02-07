@@ -33,12 +33,29 @@ public struct MarkdownTextView: View {
 public extension String {
     /// Check if the string contains markdown syntax
     var containsMarkdown: Bool {
-        return self.contains("*") ||
-               self.contains("[") ||
-               self.contains("`") ||
-               self.hasPrefix("#") ||
-               self.hasPrefix("- ") ||
-               self.contains(where: { $0.isNumber }) && self.contains(". ")
+        // Check for inline formatting
+        if self.contains("*") || self.contains("[") || self.contains("`") {
+            return true
+        }
+        
+        // Check for headers
+        if self.hasPrefix("#") {
+            return true
+        }
+        
+        // Check for bullet lists
+        if self.hasPrefix("- ") {
+            return true
+        }
+        
+        // Check for numbered lists (must start with digit followed by ". ")
+        let numberedListPattern = #"^\d+\.\s"#
+        if let regex = try? NSRegularExpression(pattern: numberedListPattern),
+           regex.firstMatch(in: self, range: NSRange(self.startIndex..., in: self)) != nil {
+            return true
+        }
+        
+        return false
     }
 }
 

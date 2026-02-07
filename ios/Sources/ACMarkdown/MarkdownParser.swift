@@ -76,7 +76,7 @@ public class MarkdownParser {
         }
         
         // Remove trailing line breaks
-        while tokens.last == .lineBreak {
+        while case .lineBreak = tokens.last {
             tokens.removeLast()
         }
         

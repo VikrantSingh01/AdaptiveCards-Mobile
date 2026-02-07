@@ -43,7 +43,7 @@ let package = Package(
             dependencies: ["ACCore"]),
         .target(
             name: "ACMarkdown",
-            dependencies: ["ACCore"]),
+            dependencies: []),
         .target(
             name: "ACInputs",
             dependencies: ["ACCore", "ACAccessibility"]),
