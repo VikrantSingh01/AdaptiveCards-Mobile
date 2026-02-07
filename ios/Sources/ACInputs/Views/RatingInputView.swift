@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ACCore
 
 public struct RatingInputView: View {
@@ -84,6 +85,8 @@ public struct RatingInputView: View {
     private func starButton(for index: Int) -> some View {
         Button(action: {
             value = Double(index)
+            // Announce selection to VoiceOver
+            UIAccessibility.post(notification: .announcement, argument: "\(index) star\(index == 1 ? "" : "s") selected")
         }) {
             Image(systemName: value >= Double(index) ? "star.fill" : "star")
                 .resizable()

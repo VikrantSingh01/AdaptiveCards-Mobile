@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ACCore
 
 struct CodeBlockView: View {
@@ -96,6 +97,8 @@ struct CodeBlockView: View {
     private func copyToClipboard() {
         #if os(iOS)
         UIPasteboard.general.string = codeBlock.code
+        // Announce to VoiceOver
+        UIAccessibility.post(notification: .announcement, argument: "Code copied to clipboard")
         #elseif os(macOS)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(codeBlock.code, forType: .string)
