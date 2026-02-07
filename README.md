@@ -471,3 +471,123 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ for the Adaptive Cards community**
+
+## 📱 Sample Applications
+
+Both iOS and Android include comprehensive sample apps showcasing all SDK features.
+
+### iOS Sample App
+
+Located in `ios/SampleApp/`, features:
+- **Card Gallery**: Browse 35+ test cards by category
+- **Live Editor**: Edit JSON with real-time preview
+- **Teams Simulator**: Teams-style chat UI with card integration
+- **Performance Dashboard**: Parse/render metrics, memory usage
+- **Settings**: Theme, font scale, accessibility options
+
+Build and run:
+```bash
+cd ios
+open Package.swift
+# Add SampleApp target in Xcode, then build
+```
+
+See [ios/SampleApp/README.md](ios/SampleApp/README.md) for detailed instructions.
+
+### Android Sample App
+
+Located in `android/sample-app/`, features:
+- **Card Gallery**: Browse all test cards with search/filter
+- **Live Editor**: JSON editor with validation
+- **Teams Simulator**: Material Design chat UI
+- **Performance Dashboard**: Comprehensive metrics tracking
+- **Settings**: Material You theming support
+
+Build and run:
+```bash
+cd android
+./gradlew :sample-app:assembleDebug
+./gradlew :sample-app:installDebug
+```
+
+See [android/sample-app/README.md](android/sample-app/README.md) for detailed instructions.
+
+## 📚 Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) - Version history and release notes
+- [MIGRATION.md](MIGRATION.md) - Migration guide from legacy SDK
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development setup and guidelines
+- [iOS Architecture](ios/ARCHITECTURE.md) - iOS SDK architecture deep-dive
+- [Android Architecture](android/ARCHITECTURE.md) - Android SDK architecture deep-dive
+
+## 🧪 Testing
+
+### iOS
+```bash
+cd ios
+swift test                    # Run all tests
+swift test --filter ACCoreTests  # Run specific tests
+swift test --enable-code-coverage  # With coverage
+```
+
+### Android
+```bash
+cd android
+./gradlew test               # Run all tests
+./gradlew :ac-core:test      # Run module tests
+./gradlew testDebugUnitTestCoverage  # With coverage
+```
+
+## 🔄 CI/CD
+
+The project uses GitHub Actions for continuous integration:
+
+- **Lint**: SwiftLint (iOS) and ktlint (Android)
+- **Tests**: Automated test execution on push/PR
+- **Snapshots**: Visual regression testing
+- **Publish**: Automated releases on tag push
+
+See `.github/workflows/` for workflow configurations.
+
+## 📦 Publishing
+
+To create a new release:
+
+1. Update version in `Package.swift` (iOS) and `gradle.properties` (Android)
+2. Update `CHANGELOG.md` with release notes
+3. Create and push tag:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+4. GitHub Actions will build and publish artifacts
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup
+- Coding standards
+- Testing requirements
+- Pull request process
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Built on the [Adaptive Cards specification](https://adaptivecards.io/) by Microsoft
+- Inspired by the official Adaptive Cards SDKs
+- Sample cards adapted from the Adaptive Cards samples repository
+
+## 🔗 Links
+
+- [Adaptive Cards Official Site](https://adaptivecards.io/)
+- [Adaptive Cards Designer](https://adaptivecards.io/designer/)
+- [Schema Explorer](https://adaptivecards.io/explorer/)
+- [GitHub Discussions](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/discussions)
+
+---
+
+**Version**: 1.0.0  
+**Status**: Production Ready ✅

@@ -42,6 +42,10 @@ jobs:
     - name: Run iOS Tests
       working-directory: ios
       run: swift test --parallel
+    
+    - name: Run Snapshot Tests
+      working-directory: ios
+      run: swift test --filter SnapshotTests
       
     - name: Check Test Coverage
       working-directory: ios

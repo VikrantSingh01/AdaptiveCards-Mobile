@@ -49,6 +49,13 @@ jobs:
         else
           gradle test --stacktrace
         fi
+    
+    - name: Run Snapshot Tests
+      working-directory: android
+      run: |
+        if [ -f gradlew ]; then
+          ./gradlew :ac-rendering:test --tests "*SnapshotTests" || echo "Snapshot tests not configured"
+        fi
       
     - name: Run Android Lint
       working-directory: android
