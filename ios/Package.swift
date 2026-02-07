@@ -36,6 +36,12 @@ let package = Package(
         .library(
             name: "ACFluentUI",
             targets: ["ACFluentUI"]),
+        .library(
+            name: "ACCopilotExtensions",
+            targets: ["ACCopilotExtensions"]),
+        .library(
+            name: "ACTeams",
+            targets: ["ACTeams"]),
     ],
     targets: [
         .target(
@@ -65,6 +71,12 @@ let package = Package(
         .target(
             name: "ACRendering",
             dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts"]),
+        .target(
+            name: "ACCopilotExtensions",
+            dependencies: ["ACCore"]),
+        .target(
+            name: "ACTeams",
+            dependencies: ["ACCore", "ACRendering"]),
         .testTarget(
             name: "ACCoreTests",
             dependencies: ["ACCore"],
