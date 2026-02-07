@@ -12,9 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.microsoft.adaptivecards.core.models.RatingDisplay
 import com.microsoft.adaptivecards.core.models.RatingSize
 import kotlin.math.ceil
@@ -22,27 +23,48 @@ import kotlin.math.floor
 
 /**
  * Renders a RatingDisplay element (read-only star display)
+ * Accessibility: Announces rating value and count
+ * Responsive: Adapts star size and spacing for tablets
  */
 @Composable
 fun RatingDisplayView(
     element: RatingDisplay,
     modifier: Modifier = Modifier
 ) {
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
+    
     val maxStars = element.max ?: 5
-    val starSize = when (element.size ?: RatingSize.MEDIUM) {
+    val baseStarSize = when (element.size ?: RatingSize.MEDIUM) {
         RatingSize.SMALL -> 16.dp
         RatingSize.MEDIUM -> 24.dp
         RatingSize.LARGE -> 32.dp
     }
+    val starSize = if (isTablet) baseStarSize + 4.dp else baseStarSize
     
     val starColor = Color(0xFFFFC107) // Amber color for stars
+    
+    val ratingDescription = buildString {
+        append("Rating: ${String.format("%.1f", element.value)} out of $maxStars stars")
+        element.count?.let { count ->
+            append(", $count reviews")
+        }
+    }
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.semantics {
+            contentDescription = ratingDescription
+        }
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Render stars
-            Row {
+            Row(
+                modifier = Modifier.semantics {
+                    contentDescription = "${String.format("%.1f", element.value)} stars out of $maxStars"
+                }
+            ) {
                 for (i in 1..maxStars) {
                     val starValue = element.value - (i - 1)
                     
@@ -52,18 +74,28 @@ fun RatingDisplayView(
                             starValue >= 0.5 -> Icons.Filled.StarHalf
                             else -> Icons.Outlined.StarOutline
                         },
-                        contentDescription = null,
+                        contentDescription = when {
+                            starValue >= 1.0 -> "Filled star"
+                            starValue >= 0.5 -> "Half star"
+                            else -> "Empty star"
+                        },
                         tint = if (starValue > 0) starColor else Color.Gray,
-                        modifier = Modifier.size(starSize)
+                        modifier = Modifier
+                            .size(starSize)
+                            .padding(horizontal = if (isTablet) 2.dp else 1.dp)
                     )
                 }
             }
 
             // Display rating value
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(if (isTablet) 12.dp else 8.dp))
             Text(
                 text = String.format("%.1f", element.value),
-                style = MaterialTheme.typography.bodyMedium,
+                style = if (isTablet) {
+                    MaterialTheme.typography.bodyLarge
+                } else {
+                    MaterialTheme.typography.bodyMedium
+                },
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
@@ -72,8 +104,15 @@ fun RatingDisplayView(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "($count)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    style = if (isTablet) {
+                        MaterialTheme.typography.bodyMedium
+                    } else {
+                        MaterialTheme.typography.bodySmall
+                    },
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    modifier = Modifier.semantics {
+                        contentDescription = "$count reviews"
+                    }
                 )
             }
         }

@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.models.TabSet
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
@@ -12,6 +15,8 @@ import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
 /**
  * Renders a TabSet element with scrollable tabs
+ * Accessibility: Announces selected tab and total tabs, keyboard navigable
+ * Responsive: Adapts padding and text size for tablets
  */
 @Composable
 fun TabSetView(
@@ -21,6 +26,8 @@ fun TabSetView(
     modifier: Modifier = Modifier
 ) {
     val hostConfig = LocalHostConfig.current
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
     
     // Find initial selected tab index
     val initialTabIndex = element.selectedTabId?.let { selectedId ->
@@ -29,14 +36,23 @@ fun TabSetView(
     
     var selectedTabIndex by remember { mutableStateOf(initialTabIndex) }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                contentDescription = "Tab set with ${element.tabs.size} tabs, ${element.tabs.getOrNull(selectedTabIndex)?.title} selected"
+            }
+    ) {
         // Tab Row
         if (element.tabs.size > 1) {
             ScrollableTabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary,
-                edgePadding = 0.dp
+                edgePadding = if (isTablet) 8.dp else 0.dp,
+                modifier = Modifier.semantics {
+                    contentDescription = "Tab navigation with ${element.tabs.size} tabs"
+                }
             ) {
                 element.tabs.forEachIndexed { index, tab ->
                     Tab(
@@ -44,16 +60,41 @@ fun TabSetView(
                         onClick = { selectedTabIndex = index },
                         text = {
                             Row(
-                                horizontalArrangement = Arrangement.Center
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(
+                                    horizontal = if (isTablet) 8.dp else 4.dp,
+                                    vertical = if (isTablet) 4.dp else 0.dp
+                                )
                             ) {
                                 // Icon (emoji)
                                 tab.icon?.let { icon ->
-                                    Text(text = icon)
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = icon,
+                                        style = if (isTablet) {
+                                            MaterialTheme.typography.titleMedium
+                                        } else {
+                                            MaterialTheme.typography.titleSmall
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(if (isTablet) 6.dp else 4.dp))
                                 }
                                 
                                 // Title
-                                Text(text = tab.title)
+                                Text(
+                                    text = tab.title,
+                                    style = if (isTablet) {
+                                        MaterialTheme.typography.titleMedium
+                                    } else {
+                                        MaterialTheme.typography.titleSmall
+                                    }
+                                )
+                            }
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = if (selectedTabIndex == index) {
+                                "${tab.title} tab, selected"
+                            } else {
+                                "${tab.title} tab"
                             }
                         }
                     )
@@ -69,7 +110,12 @@ fun TabSetView(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(
+                        all = if (isTablet) 24.dp else 16.dp
+                    )
+                    .semantics {
+                        contentDescription = "Content for ${tab.title} tab"
+                    }
             ) {
                 tab.items.forEachIndexed { index, item ->
                     RenderElement(
