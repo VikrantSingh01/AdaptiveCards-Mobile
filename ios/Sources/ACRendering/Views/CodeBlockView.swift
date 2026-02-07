@@ -83,15 +83,15 @@ struct CodeBlockView: View {
     
     private var adaptiveFontSize: CGFloat {
         if sizeCategory.isAccessibilityCategory {
-            return .body
+            return 17  // Body size
         } else {
             switch sizeCategory {
             case .extraSmall, .small:
-                return .caption
+                return 12  // Caption size
             case .large, .extraLarge:
-                return .body
+                return 17  // Body size
             default:
-                return .callout
+                return 15  // Callout size
             }
         }
     }
