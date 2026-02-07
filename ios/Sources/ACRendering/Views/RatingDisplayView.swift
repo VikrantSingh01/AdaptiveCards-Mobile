@@ -6,6 +6,8 @@ struct RatingDisplayView: View {
     let rating: RatingDisplay
     let hostConfig: HostConfig
     
+    @Environment(\.sizeCategory) var sizeCategory
+    
     var body: some View {
         HStack(spacing: 4) {
             // Star icons
@@ -14,6 +16,7 @@ struct RatingDisplayView: View {
                     starImage(for: index)
                         .foregroundColor(.yellow)
                         .font(starSize)
+                        .accessibilityHidden(true)
                 }
             }
             
@@ -21,16 +24,21 @@ struct RatingDisplayView: View {
             Text(String(format: "%.1f", rating.value))
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             
             // Count if provided
             if let count = rating.count {
                 Text("(\(count))")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
             }
         }
         .spacing(rating.spacing, hostConfig: hostConfig)
         .separator(rating.separator, hostConfig: hostConfig)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityAddTraits(.isStaticText)
     }
     
     private var maxStars: Int {
@@ -38,14 +46,21 @@ struct RatingDisplayView: View {
     }
     
     private var starSize: Font {
+        let baseSize: Font
         switch rating.size {
         case .small:
-            return .caption
+            baseSize = .caption
         case .large:
-            return .title3
+            baseSize = .title3
         default:
-            return .body
+            baseSize = .body
         }
+        
+        // Scale for accessibility
+        if sizeCategory.isAccessibilityCategory {
+            return .title3
+        }
+        return baseSize
     }
     
     private func starImage(for index: Int) -> Image {
@@ -58,5 +73,13 @@ struct RatingDisplayView: View {
         } else {
             return Image(systemName: "star")
         }
+    }
+    
+    private var accessibilityDescription: String {
+        var description = "Rating: \(String(format: "%.1f", rating.value)) out of \(maxStars) stars"
+        if let count = rating.count {
+            description += ", based on \(count) reviews"
+        }
+        return description
     }
 }

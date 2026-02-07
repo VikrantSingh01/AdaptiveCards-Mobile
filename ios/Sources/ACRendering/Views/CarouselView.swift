@@ -11,6 +11,8 @@ struct CarouselView: View {
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     
     init(carousel: Carousel, hostConfig: HostConfig) {
         self.carousel = carousel
@@ -24,19 +26,49 @@ struct CarouselView: View {
                 ForEach(Array(carousel.pages.enumerated()), id: \.offset) { index, page in
                     CarouselPageView(page: page, hostConfig: hostConfig)
                         .tag(index)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Page \(index + 1) of \(carousel.pages.count)")
                 }
             }
             .tabViewStyle(.page)
             .indexViewStyle(.page(backgroundDisplayMode: .always))
+            .frame(minHeight: adaptiveMinHeight)
         }
-        .frame(minHeight: 200)
         .spacing(carousel.spacing, hostConfig: hostConfig)
         .separator(carousel.separator, hostConfig: hostConfig)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Carousel")
+        .accessibilityHint("Swipe left or right to navigate between pages")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment:
+                if currentPage < carousel.pages.count - 1 {
+                    currentPage += 1
+                }
+            case .decrement:
+                if currentPage > 0 {
+                    currentPage -= 1
+                }
+            @unknown default:
+                break
+            }
+        }
         .onAppear {
             setupAutoAdvance()
         }
         .onDisappear {
             timer?.invalidate()
+        }
+    }
+    
+    private var adaptiveMinHeight: CGFloat {
+        // Adjust height based on device size class
+        if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+            // iPad
+            return 300
+        } else {
+            // iPhone
+            return 200
         }
     }
     

@@ -8,6 +8,8 @@ struct TabSetView: View {
     
     @State private var selectedTabId: String
     @EnvironmentObject var viewModel: CardViewModel
+    @Environment(\.sizeCategory) var sizeCategory
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     init(tabSet: TabSet, hostConfig: HostConfig) {
         self.tabSet = tabSet
@@ -27,15 +29,19 @@ struct TabSetView: View {
                         TabButton(
                             tab: tab,
                             isSelected: selectedTabId == tab.id,
-                            hostConfig: hostConfig
+                            hostConfig: hostConfig,
+                            sizeCategory: sizeCategory
                         ) {
                             selectedTabId = tab.id
+                            UIAccessibility.post(notification: .announcement, argument: "\(tab.title) tab selected")
                         }
                     }
                 }
             }
-            .frame(height: 44)
+            .frame(height: adaptiveTabBarHeight)
             .background(Color.gray.opacity(0.1))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Tab bar with \(tabSet.tabs.count) tabs")
             
             Divider()
             
@@ -47,12 +53,21 @@ struct TabSetView: View {
         .spacing(tabSet.spacing, hostConfig: hostConfig)
         .separator(tabSet.separator, hostConfig: hostConfig)
     }
+    
+    private var adaptiveTabBarHeight: CGFloat {
+        if sizeCategory.isAccessibilityCategory {
+            return 60
+        } else {
+            return 44
+        }
+    }
 }
 
 struct TabButton: View {
     let tab: Tab
     let isSelected: Bool
     let hostConfig: HostConfig
+    let sizeCategory: ContentSizeCategory
     let action: () -> Void
     
     var body: some View {
@@ -60,15 +75,18 @@ struct TabButton: View {
             HStack(spacing: 4) {
                 if let iconName = tab.icon {
                     Image(systemName: iconName)
-                        .font(.caption)
+                        .font(adaptiveIconSize)
+                        .accessibilityHidden(true)
                 }
                 
                 Text(tab.title)
-                    .font(.subheadline)
+                    .font(adaptiveTextSize)
+                    .lineLimit(1)
             }
             .foregroundColor(isSelected ? .blue : .primary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, adaptiveHorizontalPadding)
+            .padding(.vertical, adaptiveVerticalPadding)
+            .frame(minWidth: 44, minHeight: 44)
             .background(
                 isSelected ? Color.blue.opacity(0.1) : Color.clear
             )
@@ -78,8 +96,30 @@ struct TabButton: View {
                     .foregroundColor(isSelected ? .blue : .clear),
                 alignment: .bottom
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(tab.title)
+        .accessibilityHint(isSelected ? "Selected tab" : "Double tap to select this tab")
+        .accessibilityAddTraits([.isButton, .isTab])
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+    
+    private var adaptiveIconSize: Font {
+        sizeCategory.isAccessibilityCategory ? .body : .caption
+    }
+    
+    private var adaptiveTextSize: Font {
+        sizeCategory.isAccessibilityCategory ? .body : .subheadline
+    }
+    
+    private var adaptiveHorizontalPadding: CGFloat {
+        sizeCategory.isAccessibilityCategory ? 20 : 16
+    }
+    
+    private var adaptiveVerticalPadding: CGFloat {
+        sizeCategory.isAccessibilityCategory ? 16 : 12
     }
 }
 
@@ -88,6 +128,7 @@ struct TabContentView: View {
     let hostConfig: HostConfig
     
     @EnvironmentObject var viewModel: CardViewModel
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         ScrollView {
@@ -98,7 +139,19 @@ struct TabContentView: View {
                     }
                 }
             }
-            .padding(CGFloat(hostConfig.spacing.padding))
+            .padding(adaptivePadding)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(tab.title) tab content")
+    }
+    
+    private var adaptivePadding: CGFloat {
+        if horizontalSizeClass == .regular {
+            // iPad - more padding
+            return CGFloat(hostConfig.spacing.padding) * 1.5
+        } else {
+            // iPhone
+            return CGFloat(hostConfig.spacing.padding)
         }
     }
 }
