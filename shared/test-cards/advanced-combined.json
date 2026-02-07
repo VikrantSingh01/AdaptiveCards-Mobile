@@ -1,43 +1,49 @@
 {
   "type": "AdaptiveCard",
   "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "body": [
     {
       "type": "TextBlock",
       "text": "Advanced Elements Showcase",
-      "weight": "bolder",
-      "size": "extraLarge",
-      "horizontalAlignment": "center"
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "TextBlock",
+      "text": "This card demonstrates all new advanced elements working together.",
+      "wrap": true
     },
     {
       "type": "TabSet",
       "id": "mainTabs",
-      "selectedTabId": "carouselTab",
+      "selectedTabId": "demo",
       "tabs": [
         {
-          "id": "carouselTab",
-          "title": "Carousel",
+          "id": "demo",
+          "title": "Demo",
           "items": [
             {
               "type": "Carousel",
-              "id": "showcase-carousel",
-              "timer": 4000,
+              "id": "featureCarousel",
+              "timer": 0,
               "pages": [
                 {
                   "items": [
                     {
                       "type": "Container",
-                      "style": "accent",
+                      "style": "Emphasis",
                       "items": [
                         {
                           "type": "TextBlock",
-                          "text": "Feature 1: Auto-Advance",
-                          "weight": "bolder",
-                          "size": "large"
+                          "text": "🎠 Carousel",
+                          "size": "ExtraLarge",
+                          "horizontalAlignment": "Center"
                         },
                         {
                           "type": "TextBlock",
-                          "text": "Carousels support automatic page transitions with configurable timers.",
+                          "text": "Swipe through pages with auto-advance support",
+                          "horizontalAlignment": "Center",
                           "wrap": true
                         }
                       ]
@@ -48,17 +54,40 @@
                   "items": [
                     {
                       "type": "Container",
-                      "style": "good",
+                      "style": "Emphasis",
                       "items": [
                         {
                           "type": "TextBlock",
-                          "text": "Feature 2: Swipe Navigation",
-                          "weight": "bolder",
-                          "size": "large"
+                          "text": "📋 Accordion",
+                          "size": "ExtraLarge",
+                          "horizontalAlignment": "Center"
                         },
                         {
                           "type": "TextBlock",
-                          "text": "Users can swipe between pages for intuitive navigation.",
+                          "text": "Collapsible panels with single or multiple expand modes",
+                          "horizontalAlignment": "Center",
+                          "wrap": true
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "items": [
+                    {
+                      "type": "Container",
+                      "style": "Emphasis",
+                      "items": [
+                        {
+                          "type": "TextBlock",
+                          "text": "💻 CodeBlock",
+                          "size": "ExtraLarge",
+                          "horizontalAlignment": "Center"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": "Display code with syntax highlighting and copy functionality",
+                          "horizontalAlignment": "Center",
                           "wrap": true
                         }
                       ]
@@ -66,36 +95,56 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "TextBlock",
+              "text": "Project Status",
+              "weight": "Bolder",
+              "size": "Medium"
+            },
+            {
+              "type": "ProgressBar",
+              "label": "Implementation Progress",
+              "value": 0.95,
+              "color": "#107C10"
+            },
+            {
+              "type": "Rating",
+              "value": 4.8,
+              "count": 42,
+              "max": 5,
+              "size": "Medium"
             }
           ]
         },
         {
-          "id": "accordionTab",
-          "title": "Accordion",
+          "id": "code",
+          "title": "Code",
           "items": [
             {
               "type": "Accordion",
-              "id": "showcase-accordion",
-              "expandMode": "multiple",
+              "expandMode": "Multiple",
               "panels": [
                 {
-                  "title": "Progressive Disclosure",
+                  "title": "Swift Implementation",
                   "isExpanded": true,
                   "content": [
                     {
-                      "type": "TextBlock",
-                      "text": "Accordions allow users to show/hide content sections, perfect for FAQs and long-form content.",
-                      "wrap": true
+                      "type": "CodeBlock",
+                      "language": "swift",
+                      "startLineNumber": 1,
+                      "code": "struct ContentView: View {\n    var body: some View {\n        AdaptiveCardView(\n            json: cardJSON,\n            hostConfig: config\n        )\n    }\n}"
                     }
                   ]
                 },
                 {
-                  "title": "Flexible Modes",
+                  "title": "JSON Schema",
+                  "isExpanded": false,
                   "content": [
                     {
-                      "type": "TextBlock",
-                      "text": "Support for single and multiple expansion modes.",
-                      "wrap": true
+                      "type": "CodeBlock",
+                      "language": "json",
+                      "code": "{\n  \"type\": \"Carousel\",\n  \"pages\": [\n    {\n      \"items\": [...]\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -104,50 +153,84 @@
           ]
         },
         {
-          "id": "codeTab",
-          "title": "Code",
-          "items": [
-            {
-              "type": "CodeBlock",
-              "id": "showcase-code",
-              "language": "kotlin",
-              "startLineNumber": 1,
-              "code": "@Composable\nfun CarouselView(carousel: Carousel) {\n    HorizontalPager(pageCount = carousel.pages.size) { page ->\n        // Render carousel page\n    }\n}"
-            }
-          ]
-        },
-        {
-          "id": "interactiveTab",
-          "title": "Interactive",
+          "id": "feedback",
+          "title": "Feedback",
           "items": [
             {
               "type": "TextBlock",
               "text": "Rate Your Experience",
-              "weight": "bolder"
+              "weight": "Bolder",
+              "size": "Medium"
             },
             {
               "type": "Input.Rating",
-              "id": "experience-rating",
-              "label": "Overall satisfaction",
+              "id": "overallRating",
+              "label": "How would you rate these new elements?",
               "max": 5,
+              "value": 0,
               "isRequired": true
             },
             {
-              "type": "ProgressBar",
-              "id": "completion",
-              "label": "Form completion",
-              "value": 0.6,
-              "color": "#0078D4"
-            },
-            {
-              "type": "TextBlock",
-              "text": "Processing your feedback...",
-              "size": "small"
+              "type": "Accordion",
+              "expandMode": "Single",
+              "panels": [
+                {
+                  "title": "Carousel Feedback",
+                  "content": [
+                    {
+                      "type": "Input.Rating",
+                      "id": "carouselRating",
+                      "label": "Carousel",
+                      "max": 5
+                    },
+                    {
+                      "type": "Input.Text",
+                      "id": "carouselComment",
+                      "placeholder": "Comments...",
+                      "isMultiline": true
+                    }
+                  ]
+                },
+                {
+                  "title": "Accordion Feedback",
+                  "content": [
+                    {
+                      "type": "Input.Rating",
+                      "id": "accordionRating",
+                      "label": "Accordion",
+                      "max": 5
+                    },
+                    {
+                      "type": "Input.Text",
+                      "id": "accordionComment",
+                      "placeholder": "Comments...",
+                      "isMultiline": true
+                    }
+                  ]
+                },
+                {
+                  "title": "CodeBlock Feedback",
+                  "content": [
+                    {
+                      "type": "Input.Rating",
+                      "id": "codeRating",
+                      "label": "CodeBlock",
+                      "max": 5
+                    },
+                    {
+                      "type": "Input.Text",
+                      "id": "codeComment",
+                      "placeholder": "Comments...",
+                      "isMultiline": true
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "Spinner",
-              "id": "loading",
-              "size": "small"
+              "label": "Submitting feedback...",
+              "size": "Small"
             }
           ]
         }

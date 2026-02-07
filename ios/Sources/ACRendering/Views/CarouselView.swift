@@ -1,5 +1,6 @@
 import SwiftUI
 import ACCore
+import ACAccessibility
 
 struct CarouselView: View {
     let carousel: Carousel
@@ -7,7 +8,11 @@ struct CarouselView: View {
     
     @State private var currentPage: Int
     @State private var timer: Timer?
+    @EnvironmentObject var viewModel: CardViewModel
+    @Environment(\.actionHandler) var actionHandler
+    @Environment(\.actionDelegate) var actionDelegate
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.sizeCategory) var sizeCategory
     
     init(carousel: Carousel, hostConfig: HostConfig) {
@@ -16,62 +21,71 @@ struct CarouselView: View {
         _currentPage = State(initialValue: carousel.initialPage ?? 0)
     }
     
-    private var isTablet: Bool {
-        horizontalSizeClass == .regular
-    }
-    
-    private var padding: CGFloat {
-        isTablet ? 12 : 8
-    }
-    
-    private var indicatorSize: CGFloat {
-        isTablet ? 10 : 8
-    }
-    
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
-                ForEach(0..<carousel.pages.count, id: \.self) { index in
-                    CarouselPageView(
-                        page: carousel.pages[index],
-                        hostConfig: hostConfig
-                    )
-                    .tag(index)
+                ForEach(Array(carousel.pages.enumerated()), id: \.offset) { index, page in
+                    CarouselPageView(page: page, hostConfig: hostConfig)
+                        .tag(index)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Page \(index + 1) of \(carousel.pages.count)")
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(minHeight: 200)
-            
-            HStack(spacing: padding) {
-                ForEach(0..<carousel.pages.count, id: \.self) { index in
-                    Circle()
-                        .fill(currentPage == index ? Color.accentColor : Color.gray.opacity(0.4))
-                        .frame(width: indicatorSize, height: indicatorSize)
-                        .onTapGesture {
-                            currentPage = index
-                        }
-                        .accessibilityHidden(true)
-                }
-            }
-            .padding(.top, padding)
+            .tabViewStyle(.page)
+            .indexViewStyle(.page(backgroundDisplayMode: .always))
+            .frame(minHeight: adaptiveMinHeight)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Carousel with \(carousel.pages.count) pages")
-        .accessibilityValue("Page \(currentPage + 1) of \(carousel.pages.count)")
+        .spacing(carousel.spacing, hostConfig: hostConfig)
+        .separator(carousel.separator, hostConfig: hostConfig)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Carousel")
         .accessibilityHint("Swipe left or right to navigate between pages")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment:
+                if currentPage < carousel.pages.count - 1 {
+                    currentPage += 1
+                }
+            case .decrement:
+                if currentPage > 0 {
+                    currentPage -= 1
+                }
+            @unknown default:
+                break
+            }
+        }
         .onAppear {
-            startAutoAdvanceTimer()
+            setupAutoAdvance()
         }
         .onDisappear {
-            stopAutoAdvanceTimer()
-        }
-        .onChange(of: currentPage) { _ in
-            restartAutoAdvanceTimer()
+            timer?.invalidate()
         }
     }
     
-    private func startAutoAdvanceTimer() {
-        guard let timerInterval = carousel.timer, timerInterval > 0 else { return }
+    private var adaptiveMinHeight: CGFloat {
+        let baseHeight: CGFloat
+        if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+            // iPad
+            baseHeight = 300
+        } else {
+            // iPhone
+            baseHeight = 200
+        }
+        
+        // Increase for accessibility text sizes
+        if sizeCategory.isAccessibilityCategory {
+            return baseHeight * 1.3
+        }
+        return baseHeight
+    }
+    
+    private func setupAutoAdvance() {
+        guard let timerInterval = carousel.timer, timerInterval > 0 else {
+            return
+        }
+        
+        // Invalidate existing timer to prevent leaks
+        timer?.invalidate()
         
         timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(timerInterval) / 1000.0, repeats: true) { _ in
             withAnimation {
@@ -79,31 +93,27 @@ struct CarouselView: View {
             }
         }
     }
-    
-    private func stopAutoAdvanceTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    private func restartAutoAdvanceTimer() {
-        stopAutoAdvanceTimer()
-        startAutoAdvanceTimer()
-    }
 }
 
-private struct CarouselPageView: View {
+struct CarouselPageView: View {
     let page: CarouselPage
     let hostConfig: HostConfig
     
     @EnvironmentObject var viewModel: CardViewModel
+    @Environment(\.actionHandler) var actionHandler
+    @Environment(\.actionDelegate) var actionDelegate
     
     var body: some View {
-        VStack(spacing: 8) {
-            ForEach(Array(page.items.enumerated()), id: \.offset) { _, item in
-                if item.isVisible {
-                    ElementView(element: item, hostConfig: hostConfig)
+        VStack(spacing: 0) {
+            ForEach(Array(page.items.enumerated()), id: \.offset) { index, element in
+                if viewModel.isElementVisible(elementId: element.id) {
+                    ElementView(element: element, hostConfig: hostConfig)
                 }
             }
+        }
+        .frame(maxWidth: .infinity)
+        .selectAction(page.selectAction) { action in
+            actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
     }
 }

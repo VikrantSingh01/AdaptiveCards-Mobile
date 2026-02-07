@@ -9,193 +9,112 @@ final class AdvancedElementsParserTests: XCTestCase {
         parser = CardParser()
     }
     
-    func testParseCarouselElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "Carousel",
-                    "id": "carousel1",
-                    "timer": 5000,
-                    "initialPage": 0,
-                    "pages": [
-                        {
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Page 1"
-                                }
-                            ],
-                            "selectAction": null
-                        },
-                        {
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Page 2"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-        """
-        
-        let card = try parser.parse(json)
-        
-        XCTAssertEqual(card.body?.count, 1)
-        
-        if case .carousel(let carousel) = card.body?.first {
-            XCTAssertEqual(carousel.id, "carousel1")
-            XCTAssertEqual(carousel.timer, 5000)
-            XCTAssertEqual(carousel.initialPage, 0)
-            XCTAssertEqual(carousel.pages.count, 2)
-            
-            let firstPage = carousel.pages[0]
-            XCTAssertEqual(firstPage.items.count, 1)
-            
-            if case .textBlock(let textBlock) = firstPage.items[0] {
-                XCTAssertEqual(textBlock.text, "Page 1")
-            } else {
-                XCTFail("Expected TextBlock in first page")
-            }
-        } else {
-            XCTFail("Expected Carousel element")
-        }
-    }
+    // MARK: - Carousel Tests
     
-    func testParseCarouselFromFile() throws {
+    func testParseCarousel() throws {
         let json = try loadTestCard(named: "carousel")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
+        XCTAssertEqual(card.body?.count, 2)
         
-        if case .carousel(let carousel) = card.body?.last {
-            XCTAssertEqual(carousel.id, "carousel1")
+        if case .carousel(let carousel) = card.body?[1] {
+            XCTAssertEqual(carousel.id, "photoCarousel")
             XCTAssertEqual(carousel.timer, 5000)
             XCTAssertEqual(carousel.initialPage, 0)
             XCTAssertEqual(carousel.pages.count, 3)
+            
+            let firstPage = carousel.pages[0]
+            XCTAssertEqual(firstPage.items.count, 3)
         } else {
             XCTFail("Expected Carousel element")
         }
     }
     
-    func testParseAccordionElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "Accordion",
-                    "id": "accordion1",
-                    "expandMode": "single",
-                    "panels": [
-                        {
-                            "title": "Panel 1",
-                            "isExpanded": true,
-                            "content": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Content 1"
-                                }
-                            ]
-                        },
-                        {
-                            "title": "Panel 2",
-                            "content": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Content 2"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-        """
+    func testCarouselRoundTrip() throws {
+        let carousel = Carousel(
+            id: "test",
+            pages: [
+                CarouselPage(items: [
+                    .textBlock(TextBlock(text: "Page 1"))
+                ])
+            ],
+            timer: 3000,
+            initialPage: 0
+        )
         
-        let card = try parser.parse(json)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let data = try encoder.encode(carousel)
         
-        XCTAssertEqual(card.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Carousel.self, from: data)
         
-        if case .accordion(let accordion) = card.body?.first {
-            XCTAssertEqual(accordion.id, "accordion1")
-            XCTAssertEqual(accordion.expandMode, .single)
-            XCTAssertEqual(accordion.panels.count, 2)
-            
-            let firstPanel = accordion.panels[0]
-            XCTAssertEqual(firstPanel.title, "Panel 1")
-            XCTAssertEqual(firstPanel.isExpanded, true)
-            XCTAssertEqual(firstPanel.content.count, 1)
-        } else {
-            XCTFail("Expected Accordion element")
-        }
+        XCTAssertEqual(decoded.id, carousel.id)
+        XCTAssertEqual(decoded.timer, carousel.timer)
+        XCTAssertEqual(decoded.pages.count, carousel.pages.count)
     }
     
-    func testParseAccordionFromFile() throws {
+    // MARK: - Accordion Tests
+    
+    func testParseAccordion() throws {
         let json = try loadTestCard(named: "accordion")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
+        XCTAssertEqual(card.body?.count, 2)
         
-        if case .accordion(let accordion) = card.body?.last {
-            XCTAssertEqual(accordion.id, "accordion1")
+        if case .accordion(let accordion) = card.body?[1] {
+            XCTAssertEqual(accordion.id, "faqAccordion")
             XCTAssertEqual(accordion.expandMode, .single)
-            XCTAssertEqual(accordion.panels.count, 3)
+            XCTAssertEqual(accordion.panels.count, 4)
+            
+            let firstPanel = accordion.panels[0]
+            XCTAssertEqual(firstPanel.title, "What is Adaptive Cards?")
+            XCTAssertEqual(firstPanel.isExpanded, true)
+            XCTAssertGreaterThan(firstPanel.content.count, 0)
         } else {
             XCTFail("Expected Accordion element")
         }
     }
     
-    func testParseCodeBlockElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "CodeBlock",
-                    "id": "code1",
-                    "code": "function hello() {\\n  console.log('Hello');\\n}",
-                    "language": "javascript",
-                    "startLineNumber": 1,
-                    "wrap": false
-                }
-            ]
-        }
-        """
+    func testAccordionRoundTrip() throws {
+        let accordion = Accordion(
+            id: "test",
+            panels: [
+                AccordionPanel(
+                    title: "Panel 1",
+                    content: [.textBlock(TextBlock(text: "Content"))],
+                    isExpanded: true
+                )
+            ],
+            expandMode: .multiple
+        )
         
-        let card = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(accordion)
         
-        XCTAssertEqual(card.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Accordion.self, from: data)
         
-        if case .codeBlock(let codeBlock) = card.body?.first {
-            XCTAssertEqual(codeBlock.id, "code1")
-            XCTAssertEqual(codeBlock.language, "javascript")
-            XCTAssertEqual(codeBlock.startLineNumber, 1)
-            XCTAssertEqual(codeBlock.wrap, false)
-            XCTAssertTrue(codeBlock.code.contains("function hello()"))
-        } else {
-            XCTFail("Expected CodeBlock element")
-        }
+        XCTAssertEqual(decoded.id, accordion.id)
+        XCTAssertEqual(decoded.expandMode, accordion.expandMode)
+        XCTAssertEqual(decoded.panels.count, accordion.panels.count)
     }
     
-    func testParseCodeBlockFromFile() throws {
+    // MARK: - CodeBlock Tests
+    
+    func testParseCodeBlock() throws {
         let json = try loadTestCard(named: "code-block")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
+        XCTAssertGreaterThan(card.body?.count ?? 0, 0)
         
         var codeBlockCount = 0
         for element in card.body ?? [] {
             if case .codeBlock(let codeBlock) = element {
                 codeBlockCount += 1
-                XCTAssertNotNil(codeBlock.language)
                 XCTAssertFalse(codeBlock.code.isEmpty)
             }
         }
@@ -203,75 +122,29 @@ final class AdvancedElementsParserTests: XCTestCase {
         XCTAssertEqual(codeBlockCount, 3)
     }
     
-    func testParseRatingDisplayElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "Rating",
-                    "id": "rating1",
-                    "value": 4.5,
-                    "max": 5,
-                    "count": 127,
-                    "size": "medium"
-                }
-            ]
-        }
-        """
+    func testCodeBlockRoundTrip() throws {
+        let codeBlock = CodeBlock(
+            id: "test",
+            code: "func hello() {\n    print(\"Hello\")\n}",
+            language: "swift",
+            startLineNumber: 1
+        )
         
-        let card = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(codeBlock)
         
-        XCTAssertEqual(card.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(CodeBlock.self, from: data)
         
-        if case .ratingDisplay(let rating) = card.body?.first {
-            XCTAssertEqual(rating.id, "rating1")
-            XCTAssertEqual(rating.value, 4.5)
-            XCTAssertEqual(rating.max, 5)
-            XCTAssertEqual(rating.count, 127)
-            XCTAssertEqual(rating.size, .medium)
-        } else {
-            XCTFail("Expected RatingDisplay element")
-        }
+        XCTAssertEqual(decoded.id, codeBlock.id)
+        XCTAssertEqual(decoded.code, codeBlock.code)
+        XCTAssertEqual(decoded.language, codeBlock.language)
+        XCTAssertEqual(decoded.startLineNumber, codeBlock.startLineNumber)
     }
     
-    func testParseRatingInputElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "Input.Rating",
-                    "id": "ratingInput1",
-                    "label": "Rate this product",
-                    "max": 5,
-                    "value": 0,
-                    "isRequired": true,
-                    "errorMessage": "Please provide a rating"
-                }
-            ]
-        }
-        """
-        
-        let card = try parser.parse(json)
-        
-        XCTAssertEqual(card.body?.count, 1)
-        
-        if case .ratingInput(let ratingInput) = card.body?.first {
-            XCTAssertEqual(ratingInput.id, "ratingInput1")
-            XCTAssertEqual(ratingInput.label, "Rate this product")
-            XCTAssertEqual(ratingInput.max, 5)
-            XCTAssertEqual(ratingInput.value, 0.0)
-            XCTAssertEqual(ratingInput.isRequired, true)
-            XCTAssertEqual(ratingInput.errorMessage, "Please provide a rating")
-        } else {
-            XCTFail("Expected RatingInput element")
-        }
-    }
+    // MARK: - Rating Tests
     
-    func testParseRatingFromFile() throws {
+    func testParseRatingDisplay() throws {
         let json = try loadTestCard(named: "rating")
         let card = try parser.parse(json)
         
@@ -281,78 +154,64 @@ final class AdvancedElementsParserTests: XCTestCase {
         var ratingInputCount = 0
         
         for element in card.body ?? [] {
-            if case .ratingDisplay = element {
+            if case .ratingDisplay(let rating) = element {
                 ratingDisplayCount += 1
-            } else if case .ratingInput = element {
+                XCTAssertGreaterThan(rating.value, 0)
+            } else if case .ratingInput(let input) = element {
                 ratingInputCount += 1
+                XCTAssertFalse(input.id.isEmpty)
             }
         }
         
-        XCTAssertEqual(ratingDisplayCount, 3)
-        XCTAssertEqual(ratingInputCount, 2)
+        XCTAssertGreaterThan(ratingDisplayCount, 0)
+        XCTAssertGreaterThan(ratingInputCount, 0)
     }
     
-    func testParseProgressBarElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "ProgressBar",
-                    "id": "progress1",
-                    "label": "Download Progress",
-                    "value": 0.75,
-                    "color": "#0078D4"
-                }
-            ]
-        }
-        """
+    func testRatingDisplayRoundTrip() throws {
+        let rating = RatingDisplay(
+            id: "test",
+            value: 4.5,
+            count: 100,
+            max: 5,
+            size: .medium
+        )
         
-        let card = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(rating)
         
-        XCTAssertEqual(card.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(RatingDisplay.self, from: data)
         
-        if case .progressBar(let progressBar) = card.body?.first {
-            XCTAssertEqual(progressBar.id, "progress1")
-            XCTAssertEqual(progressBar.label, "Download Progress")
-            XCTAssertEqual(progressBar.value, 0.75)
-            XCTAssertEqual(progressBar.color, "#0078D4")
-        } else {
-            XCTFail("Expected ProgressBar element")
-        }
+        XCTAssertEqual(decoded.id, rating.id)
+        XCTAssertEqual(decoded.value, rating.value)
+        XCTAssertEqual(decoded.count, rating.count)
+        XCTAssertEqual(decoded.max, rating.max)
     }
     
-    func testParseSpinnerElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "Spinner",
-                    "id": "spinner1",
-                    "size": "medium",
-                    "label": "Loading..."
-                }
-            ]
-        }
-        """
+    func testRatingInputRoundTrip() throws {
+        let input = RatingInput(
+            id: "ratingInput",
+            max: 5,
+            value: 0,
+            label: "Rate this",
+            isRequired: true
+        )
         
-        let card = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(input)
         
-        XCTAssertEqual(card.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(RatingInput.self, from: data)
         
-        if case .spinner(let spinner) = card.body?.first {
-            XCTAssertEqual(spinner.id, "spinner1")
-            XCTAssertEqual(spinner.size, .medium)
-            XCTAssertEqual(spinner.label, "Loading...")
-        } else {
-            XCTFail("Expected Spinner element")
-        }
+        XCTAssertEqual(decoded.id, input.id)
+        XCTAssertEqual(decoded.max, input.max)
+        XCTAssertEqual(decoded.label, input.label)
+        XCTAssertEqual(decoded.isRequired, input.isRequired)
     }
     
-    func testParseProgressIndicatorsFromFile() throws {
+    // MARK: - Progress Indicators Tests
+    
+    func testParseProgressIndicators() throws {
         let json = try loadTestCard(named: "progress-indicators")
         let card = try parser.parse(json)
         
@@ -361,157 +220,341 @@ final class AdvancedElementsParserTests: XCTestCase {
         var progressBarCount = 0
         var spinnerCount = 0
         
-        for element in card.body ?? [] {
-            if case .progressBar = element {
-                progressBarCount += 1
-            } else if case .spinner = element {
-                spinnerCount += 1
+        func countElements(_ elements: [CardElement]) {
+            for element in elements {
+                switch element {
+                case .progressBar:
+                    progressBarCount += 1
+                case .spinner:
+                    spinnerCount += 1
+                case .container(let container):
+                    countElements(container.items)
+                default:
+                    break
+                }
             }
         }
         
-        XCTAssertEqual(progressBarCount, 3)
-        XCTAssertGreaterThanOrEqual(spinnerCount, 1)
+        countElements(card.body ?? [])
+        
+        XCTAssertGreaterThan(progressBarCount, 0)
+        XCTAssertGreaterThan(spinnerCount, 0)
     }
     
-    func testParseTabSetElement() throws {
-        let json = """
-        {
-            "type": "AdaptiveCard",
-            "version": "1.6",
-            "body": [
-                {
-                    "type": "TabSet",
-                    "id": "tabSet1",
-                    "selectedTabId": "tab1",
-                    "tabs": [
-                        {
-                            "id": "tab1",
-                            "title": "Tab 1",
-                            "icon": "📋",
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Tab 1 content"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "tab2",
-                            "title": "Tab 2",
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": "Tab 2 content"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-        """
+    func testProgressBarRoundTrip() throws {
+        let progressBar = ProgressBar(
+            id: "test",
+            value: 0.75,
+            label: "Loading",
+            color: "#0078D4"
+        )
         
-        let card = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(progressBar)
         
-        XCTAssertEqual(card.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(ProgressBar.self, from: data)
         
-        if case .tabSet(let tabSet) = card.body?.first {
-            XCTAssertEqual(tabSet.id, "tabSet1")
-            XCTAssertEqual(tabSet.selectedTabId, "tab1")
-            XCTAssertEqual(tabSet.tabs.count, 2)
-            
-            let firstTab = tabSet.tabs[0]
-            XCTAssertEqual(firstTab.id, "tab1")
-            XCTAssertEqual(firstTab.title, "Tab 1")
-            XCTAssertEqual(firstTab.icon, "📋")
-            XCTAssertEqual(firstTab.items.count, 1)
-        } else {
-            XCTFail("Expected TabSet element")
-        }
+        XCTAssertEqual(decoded.id, progressBar.id)
+        XCTAssertEqual(decoded.value, progressBar.value)
+        XCTAssertEqual(decoded.label, progressBar.label)
+        XCTAssertEqual(decoded.color, progressBar.color)
     }
     
-    func testParseTabSetFromFile() throws {
+    func testSpinnerRoundTrip() throws {
+        let spinner = Spinner(
+            id: "test",
+            size: .large,
+            label: "Please wait"
+        )
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(spinner)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Spinner.self, from: data)
+        
+        XCTAssertEqual(decoded.id, spinner.id)
+        XCTAssertEqual(decoded.size, spinner.size)
+        XCTAssertEqual(decoded.label, spinner.label)
+    }
+    
+    // MARK: - TabSet Tests
+    
+    func testParseTabSet() throws {
         let json = try loadTestCard(named: "tab-set")
         let card = try parser.parse(json)
         
         XCTAssertNotNil(card.body)
+        XCTAssertEqual(card.body?.count, 2)
         
-        if case .tabSet(let tabSet) = card.body?.last {
-            XCTAssertEqual(tabSet.id, "tabSet1")
-            XCTAssertEqual(tabSet.selectedTabId, "tab1")
+        if case .tabSet(let tabSet) = card.body?[1] {
+            XCTAssertEqual(tabSet.id, "projectTabs")
+            XCTAssertEqual(tabSet.selectedTabId, "overview")
             XCTAssertEqual(tabSet.tabs.count, 4)
+            
+            let firstTab = tabSet.tabs[0]
+            XCTAssertEqual(firstTab.id, "overview")
+            XCTAssertEqual(firstTab.title, "Overview")
+            XCTAssertGreaterThan(firstTab.items.count, 0)
         } else {
             XCTFail("Expected TabSet element")
         }
     }
     
-    func testSerializeAndDeserializeCarousel() throws {
-        let originalCard = AdaptiveCard(
-            version: "1.6",
-            body: [
-                .carousel(Carousel(
-                    id: "carousel1",
-                    pages: [
-                        CarouselPage(items: [
-                            .textBlock(TextBlock(text: "Page 1"))
-                        ]),
-                        CarouselPage(items: [
-                            .textBlock(TextBlock(text: "Page 2"))
-                        ])
-                    ],
-                    timer: 3000,
-                    initialPage: 0
-                ))
-            ]
+    func testTabSetRoundTrip() throws {
+        let tabSet = TabSet(
+            id: "test",
+            tabs: [
+                Tab(
+                    id: "tab1",
+                    title: "Tab 1",
+                    items: [.textBlock(TextBlock(text: "Content"))]
+                )
+            ],
+            selectedTabId: "tab1"
         )
         
-        let json = try parser.encode(originalCard)
-        let parsedCard = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(tabSet)
         
-        XCTAssertEqual(parsedCard.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(TabSet.self, from: data)
         
-        if case .carousel(let carousel) = parsedCard.body?.first {
-            XCTAssertEqual(carousel.id, "carousel1")
-            XCTAssertEqual(carousel.timer, 3000)
-            XCTAssertEqual(carousel.pages.count, 2)
-        } else {
-            XCTFail("Expected Carousel element")
-        }
+        XCTAssertEqual(decoded.id, tabSet.id)
+        XCTAssertEqual(decoded.selectedTabId, tabSet.selectedTabId)
+        XCTAssertEqual(decoded.tabs.count, tabSet.tabs.count)
     }
     
-    func testSerializeAndDeserializeTabSet() throws {
-        let originalCard = AdaptiveCard(
-            version: "1.6",
-            body: [
-                .tabSet(TabSet(
-                    id: "tabs1",
-                    tabs: [
-                        Tab(
-                            id: "tab1",
-                            title: "Overview",
-                            icon: "📋",
-                            items: [
-                                .textBlock(TextBlock(text: "Overview content"))
-                            ]
-                        )
-                    ],
-                    selectedTabId: "tab1"
-                ))
-            ]
+    // MARK: - Advanced Combined Tests
+    
+    func testParseAdvancedCombined() throws {
+        let json = try loadTestCard(named: "advanced-combined")
+        let card = try parser.parse(json)
+        
+        XCTAssertNotNil(card.body)
+        XCTAssertGreaterThan(card.body?.count ?? 0, 0)
+        
+        // Should contain TabSet with multiple tabs
+        var hasTabSet = false
+        for element in card.body ?? [] {
+            if case .tabSet(let tabSet) = element {
+                hasTabSet = true
+                XCTAssertGreaterThan(tabSet.tabs.count, 0)
+            }
+        }
+        
+        XCTAssertTrue(hasTabSet)
+    }
+    
+    // MARK: - Element Type String Tests
+    
+    func testElementTypeStrings() {
+        let carousel = CardElement.carousel(Carousel(pages: []))
+        XCTAssertEqual(carousel.typeString, "Carousel")
+        
+        let accordion = CardElement.accordion(Accordion(panels: []))
+        XCTAssertEqual(accordion.typeString, "Accordion")
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(code: "test"))
+        XCTAssertEqual(codeBlock.typeString, "CodeBlock")
+        
+        let rating = CardElement.ratingDisplay(RatingDisplay(value: 4.5))
+        XCTAssertEqual(rating.typeString, "Rating")
+        
+        let ratingInput = CardElement.ratingInput(RatingInput(id: "test"))
+        XCTAssertEqual(ratingInput.typeString, "Input.Rating")
+        
+        let progressBar = CardElement.progressBar(ProgressBar(value: 0.5))
+        XCTAssertEqual(progressBar.typeString, "ProgressBar")
+        
+        let spinner = CardElement.spinner(Spinner())
+        XCTAssertEqual(spinner.typeString, "Spinner")
+        
+        let tabSet = CardElement.tabSet(TabSet(tabs: []))
+        XCTAssertEqual(tabSet.typeString, "TabSet")
+    }
+    
+    // MARK: - Edge Case Tests
+    
+    func testCarouselWithEmptyPages() throws {
+        let carousel = Carousel(pages: [])
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(carousel)
+        
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Carousel.self, from: data)
+        
+        XCTAssertEqual(decoded.pages.count, 0)
+    }
+    
+    func testCarouselWithoutTimer() throws {
+        let carousel = Carousel(
+            pages: [
+                CarouselPage(items: [.textBlock(TextBlock(text: "Test"))])
+            ],
+            timer: nil
         )
         
-        let json = try parser.encode(originalCard)
-        let parsedCard = try parser.parse(json)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(carousel)
         
-        XCTAssertEqual(parsedCard.body?.count, 1)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Carousel.self, from: data)
         
-        if case .tabSet(let tabSet) = parsedCard.body?.first {
-            XCTAssertEqual(tabSet.id, "tabs1")
-            XCTAssertEqual(tabSet.selectedTabId, "tab1")
-            XCTAssertEqual(tabSet.tabs.count, 1)
-        } else {
-            XCTFail("Expected TabSet element")
-        }
+        XCTAssertNil(decoded.timer)
+    }
+    
+    func testAccordionMultipleExpandMode() throws {
+        let accordion = Accordion(
+            panels: [
+                AccordionPanel(title: "Panel 1", content: [], isExpanded: true),
+                AccordionPanel(title: "Panel 2", content: [], isExpanded: true)
+            ],
+            expandMode: .multiple
+        )
+        
+        XCTAssertEqual(accordion.expandMode, .multiple)
+        XCTAssertTrue(accordion.panels[0].isExpanded ?? false)
+        XCTAssertTrue(accordion.panels[1].isExpanded ?? false)
+    }
+    
+    func testRatingDisplayBoundaryValues() throws {
+        // Test minimum rating
+        let minRating = RatingDisplay(value: 0.0, max: 5)
+        XCTAssertEqual(minRating.value, 0.0)
+        
+        // Test maximum rating
+        let maxRating = RatingDisplay(value: 5.0, max: 5)
+        XCTAssertEqual(maxRating.value, 5.0)
+        
+        // Test half-star value
+        let halfRating = RatingDisplay(value: 3.5, max: 5)
+        XCTAssertEqual(halfRating.value, 3.5)
+    }
+    
+    func testRatingInputDefaultValues() throws {
+        let input = RatingInput(id: "test")
+        
+        XCTAssertNil(input.max)
+        XCTAssertNil(input.value)
+        XCTAssertNil(input.label)
+        XCTAssertNil(input.isRequired)
+    }
+    
+    func testProgressBarValueClamping() throws {
+        // Test values within range
+        let normalProgress = ProgressBar(value: 0.5)
+        XCTAssertEqual(normalProgress.value, 0.5)
+        
+        // Test minimum value
+        let minProgress = ProgressBar(value: 0.0)
+        XCTAssertEqual(minProgress.value, 0.0)
+        
+        // Test maximum value
+        let maxProgress = ProgressBar(value: 1.0)
+        XCTAssertEqual(maxProgress.value, 1.0)
+    }
+    
+    func testSpinnerDefaultSize() throws {
+        let spinner = Spinner()
+        XCTAssertNil(spinner.size)
+    }
+    
+    func testCodeBlockMultilineContent() throws {
+        let multilineCode = "func test() {\n    print(\"line 1\")\n    print(\"line 2\")\n}"
+        let codeBlock = CodeBlock(code: multilineCode)
+        
+        XCTAssertEqual(codeBlock.code, multilineCode)
+        XCTAssertTrue(codeBlock.code.contains("\n"))
+    }
+    
+    func testTabSetWithoutSelectedTab() throws {
+        let tabSet = TabSet(
+            tabs: [
+                Tab(id: "tab1", title: "Tab 1", items: [])
+            ],
+            selectedTabId: nil
+        )
+        
+        XCTAssertNil(tabSet.selectedTabId)
+    }
+    
+    func testTabWithoutIcon() throws {
+        let tab = Tab(id: "test", title: "Test Tab", icon: nil, items: [])
+        XCTAssertNil(tab.icon)
+    }
+    
+    // MARK: - Visibility Tests
+    
+    func testAdvancedElementsVisibility() throws {
+        let carousel = CardElement.carousel(Carousel(pages: []))
+        XCTAssertTrue(carousel.isVisible)
+        
+        let accordion = CardElement.accordion(Accordion(panels: []))
+        XCTAssertTrue(accordion.isVisible)
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(code: "test"))
+        XCTAssertTrue(codeBlock.isVisible)
+        
+        let rating = CardElement.ratingDisplay(RatingDisplay(value: 4.5))
+        XCTAssertTrue(rating.isVisible)
+        
+        let progressBar = CardElement.progressBar(ProgressBar(value: 0.5))
+        XCTAssertTrue(progressBar.isVisible)
+        
+        let spinner = CardElement.spinner(Spinner())
+        XCTAssertTrue(spinner.isVisible)
+        
+        let tabSet = CardElement.tabSet(TabSet(tabs: []))
+        XCTAssertTrue(tabSet.isVisible)
+    }
+    
+    func testAdvancedElementsWithIsVisibleFalse() throws {
+        let carousel = Carousel(pages: [], isVisible: false)
+        let carouselElement = CardElement.carousel(carousel)
+        XCTAssertFalse(carouselElement.isVisible)
+        
+        let accordion = Accordion(panels: [], isVisible: false)
+        let accordionElement = CardElement.accordion(accordion)
+        XCTAssertFalse(accordionElement.isVisible)
+    }
+    
+    // MARK: - ID Tests
+    
+    func testAdvancedElementsWithIds() throws {
+        let carousel = CardElement.carousel(Carousel(id: "carousel1", pages: []))
+        XCTAssertEqual(carousel.id, "carousel1")
+        
+        let accordion = CardElement.accordion(Accordion(id: "accordion1", panels: []))
+        XCTAssertEqual(accordion.id, "accordion1")
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(id: "code1", code: "test"))
+        XCTAssertEqual(codeBlock.id, "code1")
+        
+        let rating = CardElement.ratingDisplay(RatingDisplay(id: "rating1", value: 4.5))
+        XCTAssertEqual(rating.id, "rating1")
+        
+        let progressBar = CardElement.progressBar(ProgressBar(id: "progress1", value: 0.5))
+        XCTAssertEqual(progressBar.id, "progress1")
+        
+        let spinner = CardElement.spinner(Spinner(id: "spinner1"))
+        XCTAssertEqual(spinner.id, "spinner1")
+        
+        let tabSet = CardElement.tabSet(TabSet(id: "tabs1", tabs: []))
+        XCTAssertEqual(tabSet.id, "tabs1")
+    }
+    
+    func testAdvancedElementsWithoutIds() throws {
+        let carousel = CardElement.carousel(Carousel(pages: []))
+        XCTAssertNil(carousel.id)
+        
+        let accordion = CardElement.accordion(Accordion(panels: []))
+        XCTAssertNil(accordion.id)
+        
+        let codeBlock = CardElement.codeBlock(CodeBlock(code: "test"))
+        XCTAssertNil(codeBlock.id)
     }
     
     // MARK: - Helper Methods

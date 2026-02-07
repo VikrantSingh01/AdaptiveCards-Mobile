@@ -1,38 +1,15 @@
 import SwiftUI
 import UIKit
 import ACCore
+import ACAccessibility
 
 public struct RatingInputView: View {
     let input: RatingInput
     let hostConfig: HostConfig
-    
     @Binding var value: Double
-    @State private var showError = false
-    
     let validationState: ValidationState?
     
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.sizeCategory) var sizeCategory
-    
-    private var isTablet: Bool {
-        horizontalSizeClass == .regular
-    }
-    
-    private var starSize: CGFloat {
-        isTablet ? 40 : 32
-    }
-    
-    private var padding: CGFloat {
-        isTablet ? 4 : 2
-    }
-    
-    private var labelFont: Font {
-        isTablet ? .body : .subheadline
-    }
-    
-    private var maxStars: Int {
-        input.max ?? 5
-    }
     
     public init(
         input: RatingInput,
@@ -49,56 +26,80 @@ public struct RatingInputView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let label = input.label {
-                HStack {
-                    Text(label)
-                        .font(labelFont)
-                        .foregroundColor(.primary)
-                    
-                    if input.isRequired == true {
-                        Text("*")
-                            .foregroundColor(.red)
+                Text(label)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
+            }
+            
+            HStack(spacing: adaptiveSpacing) {
+                ForEach(1...maxStars, id: \.self) { starIndex in
+                    Button(action: {
+                        value = Double(starIndex)
+                        UIAccessibility.post(notification: .announcement, argument: "\(starIndex) stars selected")
+                    }) {
+                        starImage(for: starIndex)
+                            .foregroundColor(starIndex <= Int(value.rounded(.up)) ? .yellow : .gray)
+                            .font(adaptiveStarSize)
                     }
+                    .buttonStyle(.plain)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(starIndex) star\(starIndex == 1 ? "" : "s")")
+                    .accessibilityHint(starIndex <= Int(value.rounded(.up)) ? "Selected" : "Not selected. Double tap to select")
+                    .accessibilityAddTraits(.isButton)
                 }
             }
             
-            HStack(spacing: padding) {
-                ForEach(1...maxStars, id: \.self) { index in
-                    starButton(for: index)
-                }
-            }
-            
-            if showError, let errorMessage = input.errorMessage {
-                Text(errorMessage)
+            if let error = validationError {
+                Text(error)
                     .font(.caption)
                     .foregroundColor(.red)
+                    .accessibilityAddTraits(.isStaticText)
             }
         }
-        .accessibilityElement(children: .combine)
+        .spacing(input.spacing, hostConfig: hostConfig)
+        .separator(input.separator, hostConfig: hostConfig)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(input.label ?? "Rating input")
-        .accessibilityValue("\(Int(value)) out of \(maxStars) stars selected")
-        .accessibilityHint("Tap a star to rate from 1 to \(maxStars)")
-        .onChange(of: validationState?.validationErrors ?? []) { errors in
-            showError = errors.contains { $0.inputId == input.id }
+        .accessibilityValue("\(Int(value.rounded(.up))) out of \(maxStars) stars selected")
+    }
+    
+    private var maxStars: Int {
+        return input.max ?? 5
+    }
+    
+    private var adaptiveSpacing: CGFloat {
+        sizeCategory.isAccessibilityCategory ? 16 : 8
+    }
+    
+    private var adaptiveStarSize: Font {
+        if sizeCategory.isAccessibilityCategory {
+            return .title
+        } else {
+            return .title2
         }
     }
     
-    private func starButton(for index: Int) -> some View {
-        Button(action: {
-            value = Double(index)
-            // Announce selection to VoiceOver
-            UIAccessibility.post(notification: .announcement, argument: "\(index) star\(index == 1 ? "" : "s") selected")
-        }) {
-            Image(systemName: value >= Double(index) ? "star.fill" : "star")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: starSize, height: starSize)
-                .foregroundColor(Color(red: 1.0, green: 0.76, blue: 0.03))
-                .padding(padding)
+    private func starImage(for index: Int) -> Image {
+        let starValue = Double(index)
+        
+        if value >= starValue {
+            return Image(systemName: "star.fill")
+        } else if value >= starValue - 0.5 {
+            return Image(systemName: "star.leadinghalf.filled")
+        } else {
+            return Image(systemName: "star")
         }
-        .frame(minWidth: 44, minHeight: 44)
-        .accessibilityLabel("Star \(index)")
-        .accessibilityValue(value >= Double(index) ? "Selected" : "Not selected")
-        .accessibilityHint("Double tap to rate \(index) stars")
-        .accessibilityAddTraits(.isButton)
+    }
+    
+    private var validationError: String? {
+        guard let state = validationState else { return nil }
+        
+        if input.isRequired == true, value == 0 {
+            return input.errorMessage ?? "Rating is required"
+        }
+        
+        return nil
     }
 }
