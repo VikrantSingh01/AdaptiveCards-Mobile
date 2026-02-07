@@ -44,8 +44,8 @@ struct TableCellView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(cell.items.enumerated()), id: \.offset) { index, element in
-                if viewModel.isElementVisible(elementId: element.id) {
+            ForEach(cell.items) { element in
+                if viewModel.isElementVisible(elementId: element.elementId) {
                     ElementView(element: element, hostConfig: hostConfig)
                 }
             }

@@ -134,8 +134,8 @@ struct TabContentView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                ForEach(Array(tab.items.enumerated()), id: \.offset) { index, element in
-                    if viewModel.isElementVisible(elementId: element.id) {
+                ForEach(tab.items) { element in
+                    if viewModel.isElementVisible(elementId: element.elementId) {
                         ElementView(element: element, hostConfig: hostConfig)
                     }
                 }

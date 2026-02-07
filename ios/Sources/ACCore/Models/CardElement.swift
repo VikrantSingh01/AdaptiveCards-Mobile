@@ -1,6 +1,6 @@
 import Foundation
 
-public indirect enum CardElement: Codable, Equatable {
+public indirect enum CardElement: Codable, Equatable, Identifiable {
     case textBlock(TextBlock)
     case image(Image)
     case media(Media)
@@ -176,7 +176,8 @@ public indirect enum CardElement: Codable, Equatable {
         }
     }
     
-    public var id: String? {
+    /// The optional ID from the card element JSON
+    public var elementId: String? {
         switch self {
         case .textBlock(let element): return element.id
         case .image(let element): return element.id
@@ -210,6 +211,16 @@ public indirect enum CardElement: Codable, Equatable {
         case .pieChart(let element): return element.id
         case .unknown: return nil
         }
+    }
+    
+    /// Stable identifier conforming to Identifiable protocol
+    /// Uses the element's ID if available, otherwise generates a deterministic identifier
+    public var id: String {
+        if let elementId = self.elementId {
+            return elementId
+        }
+        // Generate a deterministic identifier based on type and hash value
+        return "\(typeString)_\(abs(hashValue))"
     }
     
     public var isVisible: Bool {
