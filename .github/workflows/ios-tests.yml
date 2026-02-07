@@ -13,10 +13,15 @@ on:
       - 'ios/**'
       - 'shared/test-cards/**'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run iOS Tests
     runs-on: macos-14
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code

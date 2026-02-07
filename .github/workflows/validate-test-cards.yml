@@ -11,10 +11,15 @@ on:
     paths:
       - 'shared/test-cards/**'
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     name: Validate JSON Test Cards
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
