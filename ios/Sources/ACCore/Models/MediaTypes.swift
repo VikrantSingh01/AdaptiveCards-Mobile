@@ -20,6 +20,7 @@ public struct TextBlock: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
     
     public init(
         id: String? = nil,
@@ -37,7 +38,8 @@ public struct TextBlock: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        targetWidth: String? = nil
     ) {
         self.id = id
         self.text = text
@@ -55,6 +57,7 @@ public struct TextBlock: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
     }
 }
 

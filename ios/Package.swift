@@ -33,6 +33,9 @@ let package = Package(
         .library(
             name: "ACCharts",
             targets: ["ACCharts"]),
+        .library(
+            name: "ACFluentUI",
+            targets: ["ACFluentUI"]),
     ],
     targets: [
         .target(
@@ -50,6 +53,9 @@ let package = Package(
         .target(
             name: "ACCharts",
             dependencies: ["ACCore"]),
+        .target(
+            name: "ACFluentUI",
+            dependencies: []),
         .target(
             name: "ACInputs",
             dependencies: ["ACCore", "ACAccessibility"]),
@@ -78,5 +84,8 @@ let package = Package(
         .testTarget(
             name: "ACChartsTests",
             dependencies: ["ACCharts"]),
+        .testTarget(
+            name: "ACFluentUITests",
+            dependencies: ["ACFluentUI"]),
     ]
 )
