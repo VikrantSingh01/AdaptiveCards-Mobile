@@ -267,7 +267,10 @@ public struct FactSet: Codable, Equatable {
 extension FactSet.Fact: Identifiable {
     public var id: String {
         // Create stable identifier from content
-        // This ensures the same fact content always gets the same ID
+        // Note: Uses underscore as separator. In rare edge cases where title or value
+        // contain underscores, ID collisions are theoretically possible but unlikely
+        // in typical Adaptive Card usage. For production, consider URL encoding or
+        // using a collision-resistant hash function with a UUID fallback.
         "\(title)_\(value)"
     }
 }
