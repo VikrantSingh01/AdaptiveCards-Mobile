@@ -100,7 +100,7 @@ public struct ColumnSet: Codable, Equatable {
 
 // MARK: - Column
 
-public struct Column: Codable, Equatable {
+public struct Column: Codable, Equatable, Identifiable {
     public let type: String = "Column"
     public var id: String?
     public var items: [CardElement]
@@ -115,6 +115,11 @@ public struct Column: Codable, Equatable {
     public var selectAction: CardAction?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    
+    // Stable identifier using id property or combined items IDs as fallback
+    public var stableId: String {
+        id ?? items.map { $0.id }.joined(separator: "_")
+    }
     
     public init(
         id: String? = nil,
@@ -251,9 +256,11 @@ public struct FactSet: Codable, Equatable {
         self.requires = requires
     }
     
-    public struct Fact: Codable, Equatable {
+    public struct Fact: Codable, Equatable, Identifiable {
         public var title: String
         public var value: String
+        
+        public var id: String { title }
         
         public init(title: String, value: String) {
             self.title = title
@@ -345,12 +352,15 @@ public struct Table: Codable, Equatable {
     }
 }
 
-public struct TableRow: Codable, Equatable {
+public struct TableRow: Codable, Equatable, Identifiable {
     public let type: String = "TableRow"
     public var cells: [TableCell]
     public var style: ContainerStyle?
     public var horizontalCellContentAlignment: HorizontalAlignment?
     public var verticalCellContentAlignment: VerticalAlignment?
+    
+    // Generate stable ID from cells' items IDs
+    public var id: String { cells.map { $0.items.map { $0.id }.joined() }.joined(separator: "|") }
     
     public init(
         cells: [TableCell],
@@ -365,7 +375,7 @@ public struct TableRow: Codable, Equatable {
     }
 }
 
-public struct TableCell: Codable, Equatable {
+public struct TableCell: Codable, Equatable, Identifiable {
     public let type: String = "TableCell"
     public var items: [CardElement]
     public var style: ContainerStyle?
@@ -374,6 +384,9 @@ public struct TableCell: Codable, Equatable {
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
     public var selectAction: CardAction?
+    
+    // Generate stable ID from items IDs
+    public var id: String { items.map { $0.id }.joined(separator: "_") }
     
     public init(
         items: [CardElement],
@@ -440,7 +453,7 @@ public struct BackgroundImage: Codable, Equatable {
 
 // MARK: - Image (defined here to avoid circular dependency)
 
-public struct Image: Codable, Equatable {
+public struct Image: Codable, Equatable, Identifiable {
     public let type: String = "Image"
     public var id: String?
     public var url: String
@@ -457,6 +470,11 @@ public struct Image: Codable, Equatable {
     public var requires: [String: String]?
     public var targetWidth: String?
     public var themedUrls: [String: String]?
+    
+    // Stable identifier using id property or url as fallback
+    public var stableId: String {
+        id ?? url
+    }
     
     public init(
         id: String? = nil,

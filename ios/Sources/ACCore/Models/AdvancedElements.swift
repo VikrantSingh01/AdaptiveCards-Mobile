@@ -534,10 +534,15 @@ public struct CompoundButton: Codable, Equatable {
 
 // MARK: - Charts
 
-public struct ChartDataPoint: Codable, Equatable {
+public struct ChartDataPoint: Codable, Equatable, Identifiable {
     public var label: String
     public var value: Double
     public var color: String?
+    
+    // Use label as stable ID (with value to make it unique if needed)
+    public var id: String {
+        "\(label)_\(value)"
+    }
     
     public init(
         label: String,

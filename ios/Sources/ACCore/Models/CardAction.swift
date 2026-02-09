@@ -450,3 +450,42 @@ public struct AnyCodable: Codable, Equatable {
         }
     }
 }
+
+// MARK: - CardAction Identifiable Extension
+
+extension CardAction: Identifiable {
+    /// Stable identifier for CardAction
+    /// Uses the action's id if available, otherwise generates a deterministic identifier
+    public var id: String {
+        let actionId: String?
+        switch self {
+        case .submit(let action): actionId = action.id
+        case .openUrl(let action): actionId = action.id
+        case .showCard(let action): actionId = action.id
+        case .execute(let action): actionId = action.id
+        case .toggleVisibility(let action): actionId = action.id
+        case .popover(let action): actionId = action.id
+        case .runCommands(let action): actionId = action.id
+        case .openUrlDialog(let action): actionId = action.id
+        }
+        
+        if let actionId = actionId {
+            return actionId
+        }
+        // Generate a deterministic identifier based on type and hash value
+        return "\(typeString)_\(abs(hashValue))"
+    }
+    
+    private var typeString: String {
+        switch self {
+        case .submit: return "submit"
+        case .openUrl: return "openUrl"
+        case .showCard: return "showCard"
+        case .execute: return "execute"
+        case .toggleVisibility: return "toggleVisibility"
+        case .popover: return "popover"
+        case .runCommands: return "runCommands"
+        case .openUrlDialog: return "openUrlDialog"
+        }
+    }
+}

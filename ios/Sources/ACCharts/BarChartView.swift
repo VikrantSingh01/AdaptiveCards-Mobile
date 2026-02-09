@@ -56,7 +56,7 @@ public struct BarChartView: View {
     private var verticalBars: some View {
         GeometryReader { geometry in
             HStack(alignment: .bottom, spacing: 8) {
-                ForEach(Array(chart.data.enumerated()), id: \.offset) { index, dataPoint in
+                ForEach(chart.data) { dataPoint in
                     VStack(spacing: 4) {
                         if chart.showValues ?? false {
                             Text(String(format: "%.0f", dataPoint.value))
@@ -64,6 +64,7 @@ public struct BarChartView: View {
                                 .foregroundColor(.secondary)
                         }
                         
+                        let index = chart.data.firstIndex(where: { $0.id == dataPoint.id }) ?? 0
                         let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
                         let height = (dataPoint.value / maxValue) * (geometry.size.height - 40) * animationProgress
                         
@@ -89,13 +90,14 @@ public struct BarChartView: View {
     private var horizontalBars: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Array(chart.data.enumerated()), id: \.offset) { index, dataPoint in
+                ForEach(chart.data) { dataPoint in
                     HStack(spacing: 8) {
                         Text(dataPoint.label)
                             .font(.caption)
                             .frame(width: 80, alignment: .trailing)
                         
                         GeometryReader { geometry in
+                            let index = chart.data.firstIndex(where: { $0.id == dataPoint.id }) ?? 0
                             let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
                             let width = (dataPoint.value / maxValue) * geometry.size.width * animationProgress
                             
@@ -114,6 +116,7 @@ public struct BarChartView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
+                        let index = chart.data.firstIndex(where: { $0.id == dataPoint.id }) ?? 0
                         selectedIndex = selectedIndex == index ? nil : index
                     }
                 }
@@ -125,8 +128,9 @@ public struct BarChartView: View {
     private var legend: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(Array(chart.data.enumerated()), id: \.offset) { index, dataPoint in
+                ForEach(chart.data) { dataPoint in
                     HStack(spacing: 4) {
+                        let index = chart.data.firstIndex(where: { $0.id == dataPoint.id }) ?? 0
                         let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
                         RoundedRectangle(cornerRadius: 2)
                             .fill(color)

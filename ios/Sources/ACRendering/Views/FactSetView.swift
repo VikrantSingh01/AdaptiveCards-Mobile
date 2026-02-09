@@ -8,7 +8,7 @@ struct FactSetView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: CGFloat(hostConfig.factSet.spacing)) {
-            ForEach(Array(factSet.facts.enumerated()), id: \.offset) { index, fact in
+            ForEach(factSet.facts) { fact in
                 HStack(alignment: .top, spacing: 8) {
                     Text(fact.title)
                         .fontWeight(titleWeight)
