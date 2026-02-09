@@ -487,11 +487,12 @@ extension CardAction: Identifiable {
             actionTitle = action.title
         }
         
-        if let actionId = actionId {
+        if let actionId = actionId, !actionId.isEmpty {
             return actionId
         }
         // Use type and title as fallback for stable identifier
-        let title = actionTitle ?? "untitled"
+        // Note: In practice, actions should have either an ID or a title
+        let title = actionTitle?.isEmpty == false ? actionTitle! : "action"
         return "\(typeString)_\(title)"
     }
     

@@ -118,7 +118,11 @@ public struct Column: Codable, Equatable, Identifiable {
     
     // Stable identifier using id property or combined items IDs as fallback
     public var stableId: String {
-        id ?? items.map { $0.id }.joined(separator: "_")
+        if let id = id, !id.isEmpty {
+            return id
+        }
+        let itemsId = items.map { $0.id }.joined(separator: "_")
+        return itemsId.isEmpty ? "column_empty_\(type)" : itemsId
     }
     
     public init(
@@ -360,7 +364,12 @@ public struct TableRow: Codable, Equatable, Identifiable {
     public var verticalCellContentAlignment: VerticalAlignment?
     
     // Generate stable ID from cells' items IDs
-    public var id: String { cells.map { $0.items.map { $0.id }.joined() }.joined(separator: "|") }
+    public var id: String {
+        let cellIds = cells.map { cell in
+            cell.items.map { $0.id }.joined(separator: "_")
+        }.joined(separator: "|")
+        return cellIds.isEmpty ? "row_empty" : cellIds
+    }
     
     public init(
         cells: [TableCell],
@@ -386,7 +395,10 @@ public struct TableCell: Codable, Equatable, Identifiable {
     public var selectAction: CardAction?
     
     // Generate stable ID from items IDs
-    public var id: String { items.map { $0.id }.joined(separator: "_") }
+    public var id: String {
+        let itemsId = items.map { $0.id }.joined(separator: "_")
+        return itemsId.isEmpty ? "cell_empty" : itemsId
+    }
     
     public init(
         items: [CardElement],
@@ -473,7 +485,10 @@ public struct Image: Codable, Equatable, Identifiable {
     
     // Stable identifier using id property or url as fallback
     public var stableId: String {
-        id ?? url
+        if let id = id, !id.isEmpty {
+            return id
+        }
+        return url.isEmpty ? "image_no_url" : url
     }
     
     public init(

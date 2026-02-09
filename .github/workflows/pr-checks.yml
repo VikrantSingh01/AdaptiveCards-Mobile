@@ -20,20 +20,38 @@ jobs:
       - name: Validate JSON test cards
         run: |
           echo "Validating test cards..."
+          
+          # Check if directory and files exist
+          if [ ! -d "shared/test-cards" ]; then
+            echo "❌ Error: shared/test-cards directory not found"
+            exit 1
+          fi
+          
+          # Count JSON files
+          JSON_FILES=$(find shared/test-cards -maxdepth 1 -name "*.json" 2>/dev/null | wc -l)
+          if [ "$JSON_FILES" -eq 0 ]; then
+            echo "⚠️ Warning: No JSON files found in shared/test-cards"
+            exit 0
+          fi
+          
+          echo "Found $JSON_FILES test card(s) to validate"
           ERRORS=0
           for f in shared/test-cards/*.json; do
-            if ! python3 -m json.tool "$f" > /dev/null 2>&1; then
-              echo "❌ Invalid JSON: $f"
-              ERRORS=$((ERRORS + 1))
-            else
-              echo "✅ Valid: $f"
+            if [ -f "$f" ]; then
+              if ! python3 -m json.tool "$f" > /dev/null 2>&1; then
+                echo "❌ Invalid JSON: $f"
+                ERRORS=$((ERRORS + 1))
+              else
+                echo "✅ Valid: $f"
+              fi
             fi
           done
+          
           if [ $ERRORS -gt 0 ]; then
             echo "❌ $ERRORS test card(s) have invalid JSON"
             exit 1
           fi
-          echo "✅ All test cards valid"
+          echo "✅ All $JSON_FILES test cards valid"
 
   lint-check:
     name: Code Style Check
