@@ -455,25 +455,44 @@ public struct AnyCodable: Codable, Equatable {
 
 extension CardAction: Identifiable {
     /// Stable identifier for CardAction
-    /// Uses the action's id if available, otherwise generates a deterministic identifier
+    /// Uses the action's id if available, otherwise uses type and title as fallback
     public var id: String {
         let actionId: String?
+        let actionTitle: String?
+        
         switch self {
-        case .submit(let action): actionId = action.id
-        case .openUrl(let action): actionId = action.id
-        case .showCard(let action): actionId = action.id
-        case .execute(let action): actionId = action.id
-        case .toggleVisibility(let action): actionId = action.id
-        case .popover(let action): actionId = action.id
-        case .runCommands(let action): actionId = action.id
-        case .openUrlDialog(let action): actionId = action.id
+        case .submit(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .openUrl(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .showCard(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .execute(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .toggleVisibility(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .popover(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .runCommands(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .openUrlDialog(let action):
+            actionId = action.id
+            actionTitle = action.title
         }
         
         if let actionId = actionId {
             return actionId
         }
-        // Generate a deterministic identifier based on type and hash value
-        return "\(typeString)_\(abs(hashValue))"
+        // Use type and title as fallback for stable identifier
+        let title = actionTitle ?? "untitled"
+        return "\(typeString)_\(title)"
     }
     
     private var typeString: String {
