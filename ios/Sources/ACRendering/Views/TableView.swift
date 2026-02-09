@@ -8,11 +8,9 @@ struct TableView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(table.rows) { row in
-                let rowIndex = table.rows.firstIndex(of: row) ?? 0
+            ForEach(Array(table.rows.enumerated()), id: \.element) { rowIndex, row in
                 HStack(spacing: 0) {
-                    ForEach(row.cells) { cell in
-                        let cellIndex = row.cells.firstIndex(of: cell) ?? 0
+                    ForEach(Array(row.cells.enumerated()), id: \.element) { cellIndex, cell in
                         TableCellView(
                             cell: cell,
                             isHeader: table.firstRowAsHeaders == true && rowIndex == 0,

@@ -56,8 +56,7 @@ public struct BarChartView: View {
     private var verticalBars: some View {
         GeometryReader { geometry in
             HStack(alignment: .bottom, spacing: 8) {
-                ForEach(chart.data) { dataPoint in
-                    let index = chart.data.firstIndex(of: dataPoint) ?? 0
+                ForEach(Array(chart.data.enumerated()), id: \.element) { index, dataPoint in
                     VStack(spacing: 4) {
                         if chart.showValues ?? false {
                             Text(String(format: "%.0f", dataPoint.value))
@@ -90,8 +89,7 @@ public struct BarChartView: View {
     private var horizontalBars: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(chart.data) { dataPoint in
-                    let index = chart.data.firstIndex(of: dataPoint) ?? 0
+                ForEach(Array(chart.data.enumerated()), id: \.element) { index, dataPoint in
                     HStack(spacing: 8) {
                         Text(dataPoint.label)
                             .font(.caption)
@@ -127,8 +125,7 @@ public struct BarChartView: View {
     private var legend: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(chart.data) { dataPoint in
-                    let index = chart.data.firstIndex(of: dataPoint) ?? 0
+                ForEach(Array(chart.data.enumerated()), id: \.element) { index, dataPoint in
                     HStack(spacing: 4) {
                         let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
                         RoundedRectangle(cornerRadius: 2)

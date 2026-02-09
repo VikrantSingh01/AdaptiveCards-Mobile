@@ -266,9 +266,9 @@ public struct FactSet: Codable, Equatable {
 
 extension FactSet.Fact: Identifiable {
     public var id: String {
-        // Create stable identifier from content hash
+        // Create stable identifier from content
         // This ensures the same fact content always gets the same ID
-        "\(title.hashValue)_\(value.hashValue)"
+        "\(title)_\(value)"
     }
 }
 
@@ -507,10 +507,13 @@ public struct Image: Codable, Equatable {
 
 extension TableRow: Identifiable {
     public var id: String {
-        // Create stable identifier from cells content hash
-        // Combine all cell hashes for a stable row ID
-        let cellHashes = cells.map { $0.items.map { $0.id }.joined() }.joined()
-        return "\(type)_\(cellHashes.hashValue)"
+        // Create stable identifier from cells content
+        // Combine all cell IDs for a stable row ID
+        let cellIds = cells.map { cell in
+            let itemIds = cell.items.map { $0.id }.joined(separator: ",")
+            return itemIds
+        }.joined(separator: "|")
+        return "\(type)_\(cellIds)"
     }
 }
 
@@ -518,8 +521,8 @@ extension TableRow: Identifiable {
 
 extension TableCell: Identifiable {
     public var id: String {
-        // Create stable identifier from items content hash
-        let itemIds = items.map { $0.id }.joined()
-        return "\(type)_\(itemIds.hashValue)"
+        // Create stable identifier from items content
+        let itemIds = items.map { $0.id }.joined(separator: ",")
+        return "\(type)_\(itemIds)"
     }
 }
