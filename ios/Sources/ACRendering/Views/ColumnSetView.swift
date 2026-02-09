@@ -12,7 +12,7 @@ struct ColumnSetView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: CGFloat(hostConfig.spacing.default)) {
-            ForEach(Array(columnSet.columns.enumerated()), id: \.offset) { index, column in
+            ForEach(Array(columnSet.columns.enumerated()), id: \.element) { index, column in
                 ColumnView(column: column, hostConfig: hostConfig)
                     .frame(width: columnWidth(for: column))
             }

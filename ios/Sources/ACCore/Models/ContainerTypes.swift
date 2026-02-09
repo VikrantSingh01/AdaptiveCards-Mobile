@@ -262,6 +262,16 @@ public struct FactSet: Codable, Equatable {
     }
 }
 
+// MARK: - FactSet.Fact Identifiable Extension
+
+extension FactSet.Fact: Identifiable {
+    public var id: String {
+        // Create stable identifier from content hash
+        // This ensures the same fact content always gets the same ID
+        "\(title.hashValue)_\(value.hashValue)"
+    }
+}
+
 // MARK: - ActionSet
 
 public struct ActionSet: Codable, Equatable {
@@ -490,5 +500,26 @@ public struct Image: Codable, Equatable {
         self.requires = requires
         self.targetWidth = targetWidth
         self.themedUrls = themedUrls
+    }
+}
+
+// MARK: - TableRow Identifiable Extension
+
+extension TableRow: Identifiable {
+    public var id: String {
+        // Create stable identifier from cells content hash
+        // Combine all cell hashes for a stable row ID
+        let cellHashes = cells.map { $0.items.map { $0.id }.joined() }.joined()
+        return "\(type)_\(cellHashes.hashValue)"
+    }
+}
+
+// MARK: - TableCell Identifiable Extension
+
+extension TableCell: Identifiable {
+    public var id: String {
+        // Create stable identifier from items content hash
+        let itemIds = items.map { $0.id }.joined()
+        return "\(type)_\(itemIds.hashValue)"
     }
 }

@@ -550,6 +550,16 @@ public struct ChartDataPoint: Codable, Equatable {
     }
 }
 
+// MARK: - ChartDataPoint Identifiable Extension
+
+extension ChartDataPoint: Identifiable {
+    public var id: String {
+        // Create stable identifier from label and value
+        // This ensures the same data point always gets the same ID
+        "\(label)_\(value)"
+    }
+}
+
 public struct DonutChart: Codable, Equatable {
     public let type: String = "DonutChart"
     public var id: String?
