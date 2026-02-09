@@ -24,7 +24,6 @@ jobs:
         run: |
           cd ios
           swiftlint lint --strict --reporter github-actions-logging
-        continue-on-error: true
   
   lint-android:
     name: ktlint (Android)
@@ -43,10 +42,9 @@ jobs:
           java-version: '17'
       
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v4
       
       - name: Run ktlint
         run: |
           cd android
           ./gradlew ktlintCheck
-        continue-on-error: true

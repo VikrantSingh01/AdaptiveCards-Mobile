@@ -39,20 +39,10 @@ jobs:
       working-directory: ios
       run: swift build
       
-    - name: Run iOS Tests
+    - name: Run iOS Tests with Coverage
       working-directory: ios
-      run: swift test --parallel
-    
-    - name: Run Snapshot Tests
-      working-directory: ios
-      run: swift test --filter SnapshotTests
+      run: swift test --parallel --enable-code-coverage
       
-    - name: Check Test Coverage
-      working-directory: ios
-      run: |
-        echo "Running tests with coverage..."
-        swift test --enable-code-coverage
-        
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4

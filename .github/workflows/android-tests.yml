@@ -35,36 +35,19 @@ jobs:
         cache: 'gradle'
     
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
-      
-    - name: Grant execute permission for gradlew
-      working-directory: android
-      run: chmod +x gradlew || echo "No gradlew found, using system gradle"
+      uses: gradle/actions/setup-gradle@v4
       
     - name: Run Android Tests
       working-directory: android
-      run: |
-        if [ -f gradlew ]; then
-          ./gradlew test --stacktrace
-        else
-          gradle test --stacktrace
-        fi
+      run: ./gradlew test --stacktrace
     
     - name: Run Snapshot Tests
       working-directory: android
-      run: |
-        if [ -f gradlew ]; then
-          ./gradlew :ac-rendering:test --tests "*SnapshotTests" || echo "Snapshot tests not configured"
-        fi
+      run: ./gradlew :ac-rendering:test --tests "*SnapshotTests" || echo "Snapshot tests not configured"
       
     - name: Run Android Lint
       working-directory: android
-      run: |
-        if [ -f gradlew ]; then
-          ./gradlew lint || echo "Lint not configured"
-        else
-          gradle lint --stacktrace || echo "Lint not configured"
-        fi
+      run: ./gradlew lint || echo "Lint not configured"
         
     - name: Upload Test Reports
       if: always()
