@@ -1,0 +1,58 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-test-cards:
+    name: Validate Test Cards
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate JSON test cards
+        run: |
+          echo "Validating test cards..."
+          ERRORS=0
+          for f in shared/test-cards/*.json; do
+            if ! python3 -m json.tool "$f" > /dev/null 2>&1; then
+              echo "❌ Invalid JSON: $f"
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "✅ Valid: $f"
+            fi
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "❌ $ERRORS test card(s) have invalid JSON"
+            exit 1
+          fi
+          echo "✅ All test cards valid"
+
+  lint-check:
+    name: Code Style Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for common issues
+        run: |
+          echo "Checking for common code issues..."
+          # Check for force unwraps in Swift
+          if grep -rn '!\.' ios/Sources/ --include="*.swift" | grep -v '!=' | grep -v '//' | head -5; then
+            echo "⚠️ Warning: Force unwraps detected (review recommended)"
+          fi
+          # Check for !! in Kotlin
+          if grep -rn '!!' android/ --include="*.kt" | grep -v '//' | head -5; then
+            echo "⚠️ Warning: Force non-null assertions detected (review recommended)"
+          fi
+          echo "✅ Lint check complete"
