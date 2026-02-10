@@ -8,7 +8,11 @@ struct ImageSetView: View {
     
     var body: some View {
         LazyVGrid(columns: gridColumns, spacing: CGFloat(hostConfig.spacing.small)) {
+<<<<<<< HEAD
+            ForEach(imageSet.images, id: \.stableId) { image in
+=======
             ForEach(Array(imageSet.images.enumerated()), id: \.element) { index, image in
+>>>>>>> main
                 ImageView(image: image, hostConfig: hostConfig)
             }
         }

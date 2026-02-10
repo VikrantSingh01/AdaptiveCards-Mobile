@@ -450,3 +450,65 @@ public struct AnyCodable: Codable, Equatable {
         }
     }
 }
+<<<<<<< HEAD
+
+// MARK: - CardAction Identifiable Extension
+
+extension CardAction: Identifiable {
+    /// Stable identifier for CardAction
+    /// Uses the action's id if available, otherwise uses type and title as fallback
+    public var id: String {
+        let actionId: String?
+        let actionTitle: String?
+        
+        switch self {
+        case .submit(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .openUrl(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .showCard(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .execute(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .toggleVisibility(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .popover(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .runCommands(let action):
+            actionId = action.id
+            actionTitle = action.title
+        case .openUrlDialog(let action):
+            actionId = action.id
+            actionTitle = action.title
+        }
+        
+        if let actionId = actionId, !actionId.isEmpty {
+            return actionId
+        }
+        // Use type and title as fallback for stable identifier
+        // Note: In practice, actions should have either an ID or a title
+        let title = actionTitle?.isEmpty == false ? actionTitle! : "action"
+        return "\(typeString)_\(title)"
+    }
+    
+    private var typeString: String {
+        switch self {
+        case .submit: return "submit"
+        case .openUrl: return "openUrl"
+        case .showCard: return "showCard"
+        case .execute: return "execute"
+        case .toggleVisibility: return "toggleVisibility"
+        case .popover: return "popover"
+        case .runCommands: return "runCommands"
+        case .openUrlDialog: return "openUrlDialog"
+        }
+    }
+}
+=======
+>>>>>>> main

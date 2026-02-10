@@ -100,7 +100,11 @@ public struct ColumnSet: Codable, Equatable {
 
 // MARK: - Column
 
+<<<<<<< HEAD
+public struct Column: Codable, Equatable, Identifiable {
+=======
 public struct Column: Codable, Equatable {
+>>>>>>> main
     public let type: String = "Column"
     public var id: String?
     public var items: [CardElement]
@@ -116,6 +120,18 @@ public struct Column: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
     
+<<<<<<< HEAD
+    // Stable identifier using id property or combined items IDs as fallback
+    public var stableId: String {
+        if let id = id, !id.isEmpty {
+            return id
+        }
+        let itemsId = items.map { $0.id }.joined(separator: "_")
+        return itemsId.isEmpty ? "column_empty_\(type)" : itemsId
+    }
+    
+=======
+>>>>>>> main
     public init(
         id: String? = nil,
         items: [CardElement],
@@ -251,10 +267,19 @@ public struct FactSet: Codable, Equatable {
         self.requires = requires
     }
     
+<<<<<<< HEAD
+    public struct Fact: Codable, Equatable, Identifiable {
+        public var title: String
+        public var value: String
+        
+        public var id: String { title }
+        
+=======
     public struct Fact: Codable, Equatable {
         public var title: String
         public var value: String
         
+>>>>>>> main
         public init(title: String, value: String) {
             self.title = title
             self.value = value
@@ -262,6 +287,8 @@ public struct FactSet: Codable, Equatable {
     }
 }
 
+<<<<<<< HEAD
+=======
 // MARK: - FactSet.Fact Identifiable Extension
 
 extension FactSet.Fact: Identifiable {
@@ -275,6 +302,7 @@ extension FactSet.Fact: Identifiable {
     }
 }
 
+>>>>>>> main
 // MARK: - ActionSet
 
 public struct ActionSet: Codable, Equatable {
@@ -358,13 +386,28 @@ public struct Table: Codable, Equatable {
     }
 }
 
+<<<<<<< HEAD
+public struct TableRow: Codable, Equatable, Identifiable {
+=======
 public struct TableRow: Codable, Equatable {
+>>>>>>> main
     public let type: String = "TableRow"
     public var cells: [TableCell]
     public var style: ContainerStyle?
     public var horizontalCellContentAlignment: HorizontalAlignment?
     public var verticalCellContentAlignment: VerticalAlignment?
     
+<<<<<<< HEAD
+    // Generate stable ID from cells' items IDs
+    public var id: String {
+        let cellIds = cells.map { cell in
+            cell.items.map { $0.id }.joined(separator: "_")
+        }.joined(separator: "|")
+        return cellIds.isEmpty ? "row_empty" : cellIds
+    }
+    
+=======
+>>>>>>> main
     public init(
         cells: [TableCell],
         style: ContainerStyle? = nil,
@@ -378,7 +421,11 @@ public struct TableRow: Codable, Equatable {
     }
 }
 
+<<<<<<< HEAD
+public struct TableCell: Codable, Equatable, Identifiable {
+=======
 public struct TableCell: Codable, Equatable {
+>>>>>>> main
     public let type: String = "TableCell"
     public var items: [CardElement]
     public var style: ContainerStyle?
@@ -388,6 +435,15 @@ public struct TableCell: Codable, Equatable {
     public var minHeight: String?
     public var selectAction: CardAction?
     
+<<<<<<< HEAD
+    // Generate stable ID from items IDs
+    public var id: String {
+        let itemsId = items.map { $0.id }.joined(separator: "_")
+        return itemsId.isEmpty ? "cell_empty" : itemsId
+    }
+    
+=======
+>>>>>>> main
     public init(
         items: [CardElement],
         style: ContainerStyle? = nil,
@@ -453,7 +509,11 @@ public struct BackgroundImage: Codable, Equatable {
 
 // MARK: - Image (defined here to avoid circular dependency)
 
+<<<<<<< HEAD
+public struct Image: Codable, Equatable, Identifiable {
+=======
 public struct Image: Codable, Equatable {
+>>>>>>> main
     public let type: String = "Image"
     public var id: String?
     public var url: String
@@ -471,6 +531,17 @@ public struct Image: Codable, Equatable {
     public var targetWidth: String?
     public var themedUrls: [String: String]?
     
+<<<<<<< HEAD
+    // Stable identifier using id property or url as fallback
+    public var stableId: String {
+        if let id = id, !id.isEmpty {
+            return id
+        }
+        return url.isEmpty ? "image_no_url" : url
+    }
+    
+=======
+>>>>>>> main
     public init(
         id: String? = nil,
         url: String,
@@ -505,6 +576,8 @@ public struct Image: Codable, Equatable {
         self.themedUrls = themedUrls
     }
 }
+<<<<<<< HEAD
+=======
 
 // MARK: - TableRow Identifiable Extension
 
@@ -529,3 +602,4 @@ extension TableCell: Identifiable {
         return "\(type)_\(itemIds)"
     }
 }
+>>>>>>> main
