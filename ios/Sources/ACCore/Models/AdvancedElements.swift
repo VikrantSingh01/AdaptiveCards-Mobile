@@ -534,16 +534,23 @@ public struct CompoundButton: Codable, Equatable {
 
 // MARK: - Charts
 
+<<<<<<< HEAD
 public struct ChartDataPoint: Codable, Equatable, Identifiable {
+=======
+public struct ChartDataPoint: Codable, Equatable {
+>>>>>>> main
     public var label: String
     public var value: Double
     public var color: String?
     
+<<<<<<< HEAD
     // Use label as stable ID (with value to make it unique if needed)
     public var id: String {
         "\(label)_\(value)"
     }
     
+=======
+>>>>>>> main
     public init(
         label: String,
         value: Double,
@@ -555,6 +562,19 @@ public struct ChartDataPoint: Codable, Equatable, Identifiable {
     }
 }
 
+<<<<<<< HEAD
+=======
+// MARK: - ChartDataPoint Identifiable Extension
+
+extension ChartDataPoint: Identifiable {
+    public var id: String {
+        // Create stable identifier from label and value
+        // This ensures the same data point always gets the same ID
+        "\(label)_\(value)"
+    }
+}
+
+>>>>>>> main
 public struct DonutChart: Codable, Equatable {
     public let type: String = "DonutChart"
     public var id: String?

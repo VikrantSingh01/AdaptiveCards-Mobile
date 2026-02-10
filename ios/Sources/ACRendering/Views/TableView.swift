@@ -8,23 +8,40 @@ struct TableView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+<<<<<<< HEAD
             ForEach(table.rows) { row in
                 HStack(spacing: 0) {
                     ForEach(row.cells) { cell in
                         TableCellView(
                             cell: cell,
                             isHeader: table.firstRowAsHeaders == true && table.rows.first?.id == row.id,
+=======
+            ForEach(Array(table.rows.enumerated()), id: \.element) { rowIndex, row in
+                HStack(spacing: 0) {
+                    ForEach(Array(row.cells.enumerated()), id: \.element) { cellIndex, cell in
+                        TableCellView(
+                            cell: cell,
+                            isHeader: table.firstRowAsHeaders == true && rowIndex == 0,
+>>>>>>> main
                             hostConfig: hostConfig
                         )
                         .frame(maxWidth: .infinity)
                         
+<<<<<<< HEAD
                         if table.showGridLines == true && cell.id != row.cells.last?.id {
+=======
+                        if table.showGridLines == true && cellIndex < row.cells.count - 1 {
+>>>>>>> main
                             Divider()
                         }
                     }
                 }
                 
+<<<<<<< HEAD
                 if table.showGridLines == true && row.id != table.rows.last?.id {
+=======
+                if table.showGridLines == true && rowIndex < table.rows.count - 1 {
+>>>>>>> main
                     Divider()
                 }
             }

@@ -29,7 +29,11 @@ struct ActionSetView: View {
     
     @ViewBuilder
     private var actionButtons: some View {
+<<<<<<< HEAD
         ForEach(Array(actions.prefix(hostConfig.actions.maxActions))) { action in
+=======
+        ForEach(Array(actions.prefix(hostConfig.actions.maxActions).enumerated()), id: \.element) { index, action in
+>>>>>>> main
             ActionButton(action: action, hostConfig: hostConfig) {
                 actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
             }
