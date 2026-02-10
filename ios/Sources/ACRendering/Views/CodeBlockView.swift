@@ -43,7 +43,7 @@ struct CodeBlockView: View {
             // Code content
             ScrollView(.horizontal, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(codeLines.enumerated()), id: \.offset) { index, line in
+                    ForEach(Array(codeLines.enumerated()), id: \.element) { index, line in
                         HStack(spacing: 8) {
                             if let startLine = codeBlock.startLineNumber {
                                 Text("\(startLine + index)")

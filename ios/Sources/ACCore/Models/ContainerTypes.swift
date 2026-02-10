@@ -262,6 +262,19 @@ public struct FactSet: Codable, Equatable {
     }
 }
 
+// MARK: - FactSet.Fact Identifiable Extension
+
+extension FactSet.Fact: Identifiable {
+    public var id: String {
+        // Create stable identifier from content
+        // Note: Uses underscore as separator. In rare edge cases where title or value
+        // contain underscores, ID collisions are theoretically possible but unlikely
+        // in typical Adaptive Card usage. For production, consider URL encoding or
+        // using a collision-resistant hash function with a UUID fallback.
+        "\(title)_\(value)"
+    }
+}
+
 // MARK: - ActionSet
 
 public struct ActionSet: Codable, Equatable {
@@ -490,5 +503,29 @@ public struct Image: Codable, Equatable {
         self.requires = requires
         self.targetWidth = targetWidth
         self.themedUrls = themedUrls
+    }
+}
+
+// MARK: - TableRow Identifiable Extension
+
+extension TableRow: Identifiable {
+    public var id: String {
+        // Create stable identifier from cells content
+        // Combine all cell IDs for a stable row ID
+        let cellIds = cells.map { cell in
+            let itemIds = cell.items.map { $0.id }.joined(separator: ",")
+            return itemIds
+        }.joined(separator: "|")
+        return "\(type)_\(cellIds)"
+    }
+}
+
+// MARK: - TableCell Identifiable Extension
+
+extension TableCell: Identifiable {
+    public var id: String {
+        // Create stable identifier from items content
+        let itemIds = items.map { $0.id }.joined(separator: ",")
+        return "\(type)_\(itemIds)"
     }
 }

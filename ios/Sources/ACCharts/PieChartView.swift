@@ -113,7 +113,7 @@ public struct PieChartView: View {
     
     private var legend: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(chart.data.enumerated()), id: \.offset) { index, dataPoint in
+            ForEach(Array(chart.data.enumerated()), id: \.element) { index, dataPoint in
                 HStack(spacing: 8) {
                     let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
                     RoundedRectangle(cornerRadius: 2)
