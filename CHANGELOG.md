@@ -21,15 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `ios-tests.yml` to run tests once with coverage instead of 3 separate runs (35% faster)
   - Removed `continue-on-error: true` from lint workflows - lint failures now surface as CI failures
 - **Android build consistency**: Added missing Gradle 8.5 wrapper (`gradlew`, `gradlew.bat`, `gradle-wrapper.jar`, `gradle-wrapper.properties`) to `android/` directory
+- **Added LICENSE file**: MIT License with copyright "Adaptive Cards Mobile SDK Contributors" (2024)
+- **Added PR validation workflow**: Created `.github/workflows/pr-checks.yml` for fast PR validation (JSON and lint checks)
 
 #### Why This Matters
 - **Prevents all SwiftUI ForEach bugs**: Completing the offset-as-ID fixes across all files ensures no view identity bugs in production
 - **Faster CI feedback**: iOS tests now run once instead of three times, reducing CI time by ~35%
 - **Reliable builds**: Gradle wrapper ensures consistent Android builds across all environments
 - **Visible lint failures**: Removing `continue-on-error` makes code quality issues actionable instead of silently ignored
+- **Legal compliance**: LICENSE file removes legal blocker for adoption
+- **Better PR workflow**: Fast validation catches basic issues before expensive iOS/Android tests run
 
 ---
-
 ### 🔧 Phase 6A: Codebase Hygiene & README Accuracy
 
 #### Changed
