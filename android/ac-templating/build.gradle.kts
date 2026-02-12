@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -32,11 +32,16 @@ dependencies {
     implementation(project(":ac-core"))
     
     // Kotlin
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlinx.serialization.json)
     
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.engine)
+    testImplementation(libs.kotlin.test)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
