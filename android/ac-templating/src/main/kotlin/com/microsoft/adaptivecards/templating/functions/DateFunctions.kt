@@ -3,10 +3,6 @@ package com.microsoft.adaptivecards.templating.functions
 import com.microsoft.adaptivecards.templating.EvaluationException
 import com.microsoft.adaptivecards.templating.ExpressionFunction
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 /**
@@ -49,12 +45,13 @@ object DateFunctions {
             val date = parseDate(arguments[0])
             val days = toNumber(arguments[1]).toInt()
 
-            val calendar = Calendar.getInstance()
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             calendar.time = date
             calendar.add(Calendar.DAY_OF_MONTH, days)
 
-            val instant = Instant.ofEpochMilli(calendar.timeInMillis)
-            return DateTimeFormatter.ISO_INSTANT.format(instant.atZone(ZoneId.of("UTC")))
+            val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
+            return formatter.format(calendar.time)
         }
     }
 
@@ -67,12 +64,13 @@ object DateFunctions {
             val date = parseDate(arguments[0])
             val hours = toNumber(arguments[1]).toInt()
 
-            val calendar = Calendar.getInstance()
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             calendar.time = date
             calendar.add(Calendar.HOUR_OF_DAY, hours)
 
-            val instant = Instant.ofEpochMilli(calendar.timeInMillis)
-            return DateTimeFormatter.ISO_INSTANT.format(instant.atZone(ZoneId.of("UTC")))
+            val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
+            return formatter.format(calendar.time)
         }
     }
 
@@ -98,7 +96,8 @@ object DateFunctions {
             val date = parseDate(arguments[0])
             val calendar = Calendar.getInstance()
             calendar.time = date
-            return calendar.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+            // Calendar.MONTH is 0-based (0-11), so add 1 to return 1-12 (January=1, December=12)
+            return calendar.get(Calendar.MONTH) + 1
         }
     }
 
@@ -124,10 +123,8 @@ object DateFunctions {
             val date1 = parseDate(arguments[0])
             val date2 = parseDate(arguments[1])
 
-            val instant1 = date1.toInstant()
-            val instant2 = date2.toInstant()
-
-            return ChronoUnit.DAYS.between(instant1, instant2).toInt()
+            val diffInMillis = date2.time - date1.time
+            return (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
         }
     }
 
@@ -137,8 +134,9 @@ object DateFunctions {
                 throw EvaluationException("utcNow expects 0 arguments, got ${arguments.size}")
             }
 
-            val instant = Instant.now()
-            return DateTimeFormatter.ISO_INSTANT.format(instant.atZone(ZoneId.of("UTC")))
+            val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
+            return formatter.format(Date())
         }
     }
 
@@ -148,10 +146,11 @@ object DateFunctions {
         if (value is Date) {
             return value
         } else if (value is String) {
-            // Try ISO 8601 format
+            // Try ISO 8601 format with timezone
             try {
-                val instant = Instant.parse(value)
-                return Date.from(instant)
+                val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                formatter.timeZone = TimeZone.getTimeZone("UTC")
+                return formatter.parse(value) ?: Date()
             } catch (e: Exception) {
                 // Ignore and try other formats
             }

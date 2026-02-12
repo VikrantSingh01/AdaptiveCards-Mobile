@@ -97,7 +97,7 @@ class ExpressionParser {
             }
 
             // Numbers
-            if (char.isDigit() || (char == '-' && index + 1 < input.length && input[index + 1].isDigit())) {
+            if (char.isDigit()) {
                 val numStr = StringBuilder()
                 numStr.append(char)
                 index++
