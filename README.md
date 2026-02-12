@@ -246,14 +246,116 @@ cd android
   org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m
   ```
 
+### Building with VS Code
+
+#### iOS Development in VS Code
+
+**Prerequisites:**
+- macOS with Xcode Command Line Tools installed:
+  ```bash
+  xcode-select --install
+  ```
+
+**Required VS Code Extensions:**
+- `sswg.swift-lang` (Swift extension by Swift Server Work Group)
+- Or `apple.swift` if available
+
+**Building:**
+```bash
+cd ios
+swift build
+```
+
+**Testing:**
+```bash
+cd ios
+swift test
+
+# Run specific test suite
+swift test --filter ACTemplatingTests
+```
+
+**Debugging:**
+Configure `.vscode/launch.json` for Swift debugging:
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Swift Tests",
+      "program": "${workspaceFolder}/ios/.build/debug/AdaptiveCardsPackageTests.xctest",
+      "preLaunchTask": "swift-build"
+    }
+  ]
+}
+```
+
+#### Android Development in VS Code
+
+**Prerequisites:**
+- JDK 17 or later
+- Android SDK (API 34)
+
+**Required VS Code Extensions:**
+- `mathiasfrohlich.Kotlin` (Kotlin Language support)
+- `vscjava.vscode-java-pack` (Java Extension Pack)
+- `vscjava.vscode-gradle` (Gradle for Java)
+
+**Environment Setup:**
+```bash
+# Set JAVA_HOME to JDK 17 path
+export JAVA_HOME=/path/to/jdk-17
+
+# Set Android SDK path
+export ANDROID_HOME=/path/to/android-sdk
+export ANDROID_SDK_ROOT=$ANDROID_HOME
+```
+
+**Building:**
+```bash
+cd android
+./gradlew build
+
+# Build specific module
+./gradlew :ac-core:build
+```
+
+**Testing:**
+```bash
+cd android
+./gradlew test
+
+# Run tests for specific module
+./gradlew :ac-core:test
+```
+
+**Debugging:**
+Configure `.vscode/launch.json` for Kotlin debugging:
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "kotlin",
+      "request": "launch",
+      "name": "Debug Kotlin Tests",
+      "projectRoot": "${workspaceFolder}/android",
+      "mainClass": ""
+    }
+  ]
+}
+```
+
+For a complete guide to VS Code development, see [VSCODE_COMPLETE_GUIDE.md](docs/guides/VSCODE_COMPLETE_GUIDE.md).
+
 ## 📚 Documentation
 
-- **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)**: Complete 5-phase implementation roadmap
-- **[PHASE1_COMPLETION_REPORT.md](PHASE1_COMPLETION_REPORT.md)**: Phase 1 (Templating) completion report with API reference
-- **[SESSION_SUMMARY.md](SESSION_SUMMARY.md)**: Latest session summary and progress
+- **[VSCODE_COMPLETE_GUIDE.md](docs/guides/VSCODE_COMPLETE_GUIDE.md)**: Complete guide for VS Code development setup
+- **[IMPLEMENTATION_PLAN.md](docs/architecture/IMPLEMENTATION_PLAN.md)**: Complete 5-phase implementation roadmap
 - **[iOS README](ios/README.md)**: iOS-specific documentation
 - **[Android README](android/README.md)**: Android-specific documentation
-- **[Cross-Platform Alignment](CROSS_PLATFORM_ALIGNMENT.md)**: Naming conventions and consistency guide
 - **[Shared Test Cards](shared/test-cards/)**: Example cards demonstrating all features
 
 ## 🧪 Test Cards
@@ -403,11 +505,11 @@ The templating engine supports powerful data binding:
 
 ## 🗺️ Roadmap
 
-### ✅ Phase 1: Templating Engine (Complete)
+### 🚧 Phase 1: Templating Engine (85% Complete)
 - [x] iOS ACTemplating module with 60+ functions
 - [x] Expression parser and evaluator
 - [x] Test cards and comprehensive tests
-- [x] Android ac-templating implementation
+- [ ] Android ac-templating implementation
 
 ### ✅ Phase 2: Advanced Elements + Markdown + Fluent (Complete)
 - [x] Markdown rendering
