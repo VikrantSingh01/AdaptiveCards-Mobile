@@ -450,7 +450,6 @@ public struct AnyCodable: Codable, Equatable {
         }
     }
 }
-<<<<<<< HEAD
 
 // MARK: - CardAction Identifiable Extension
 
@@ -510,5 +509,3 @@ extension CardAction: Identifiable {
         }
     }
 }
-=======
->>>>>>> main
