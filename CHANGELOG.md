@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔧 Phase 6B: Reliability & CI/CD Improvements
 
 #### Fixed
+- **CarouselView ForEach rendering bug (PR #14)**: Fixed remaining ForEach offset-as-ID issue in `CarouselView.swift`
+  - Added `Identifiable` conformance to `CarouselPage` struct with stable ID generation
+  - Updated `CarouselView.swift` to use `id: \.element.id` instead of `id: \.offset`
+  - Added comprehensive unit tests for `CarouselPage` Identifiable conformance
+  - Tests verify stable IDs, edge cases (empty items, with/without actions), and uniqueness
+- **README.md consistency**: Fixed contradictory Android templating status
+  - Updated Roadmap Phase 1 from "✅ Complete" to "🚧 85% Complete"
+  - Unchecked Android ac-templating implementation checkbox
+  - Aligned Platform Status table, Roadmap, and IMPLEMENTATION_PLAN.md
+- **IMPLEMENTATION_PLAN.md accuracy**: Updated Phase 1 completion from 54% to 85% to match actual state
+- **VS Code build instructions**: Added comprehensive VS Code development section to README
+  - iOS development: Prerequisites, required extensions (`sswg.swift-lang`), build/test commands
+  - Android development: Prerequisites, required extensions (Kotlin, Java, Gradle), environment setup
+  - Debugging configurations for both platforms
+  - Added link to existing VSCODE_COMPLETE_GUIDE.md in Documentation section
 - **Completed ForEach offset-as-ID fixes**: Extended Phase 6A fixes to remaining 9 iOS Swift files
   - iOS Rendering Views: `TableView`, `ActionSetView`, `ColumnSetView`, `FactSetView`, `ImageSetView`, `CodeBlockView`
   - iOS Chart Views: `BarChartView`, `PieChartView`, `DonutChartView`
