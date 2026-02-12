@@ -37,9 +37,25 @@ public struct Carousel: Codable, Equatable {
     }
 }
 
-public struct CarouselPage: Codable, Equatable {
+public struct CarouselPage: Codable, Equatable, Identifiable {
     public var items: [CardElement]
     public var selectAction: CardAction?
+    
+    // Generate stable ID from items and selectAction
+    public var id: String {
+        // Use item IDs if available, otherwise generate from content
+        let itemIds = items.map { $0.elementId ?? $0.typeString }.joined(separator: "_")
+        if itemIds.isEmpty {
+            return "page_empty"
+        }
+        
+        if selectAction != nil {
+            // Include a marker that action is present without accessing private properties
+            return "\(itemIds)_with_action"
+        }
+        
+        return itemIds
+    }
     
     public init(
         items: [CardElement],

@@ -55,6 +55,75 @@ final class AdvancedElementsParserTests: XCTestCase {
         XCTAssertEqual(decoded.pages.count, carousel.pages.count)
     }
     
+    // MARK: - CarouselPage Identifiable Tests
+    
+    func testCarouselPageIdentifiable() throws {
+        // Test that CarouselPage conforms to Identifiable
+        let page1 = CarouselPage(items: [
+            .textBlock(TextBlock(text: "Page 1"))
+        ])
+        
+        let page2 = CarouselPage(items: [
+            .textBlock(TextBlock(text: "Page 2"))
+        ])
+        
+        // IDs should be different for different content
+        XCTAssertNotEqual(page1.id, page2.id)
+    }
+    
+    func testCarouselPageIdentifiableStability() throws {
+        // Test that ID is stable for same content
+        let page1 = CarouselPage(items: [
+            .textBlock(TextBlock(text: "Test"))
+        ])
+        
+        let page2 = CarouselPage(items: [
+            .textBlock(TextBlock(text: "Test"))
+        ])
+        
+        // Same content should produce same ID
+        XCTAssertEqual(page1.id, page2.id)
+    }
+    
+    func testCarouselPageIdentifiableWithEmptyItems() throws {
+        // Test edge case: empty items array
+        let emptyPage = CarouselPage(items: [])
+        
+        // Should have a valid ID even with empty items
+        XCTAssertEqual(emptyPage.id, "page_empty")
+        XCTAssertFalse(emptyPage.id.isEmpty)
+    }
+    
+    func testCarouselPageIdentifiableWithSelectAction() throws {
+        // Test that selectAction affects ID
+        let pageWithAction = CarouselPage(
+            items: [.textBlock(TextBlock(text: "Test"))],
+            selectAction: .openUrl(ActionOpenUrl(url: "https://example.com"))
+        )
+        
+        let pageWithoutAction = CarouselPage(
+            items: [.textBlock(TextBlock(text: "Test"))]
+        )
+        
+        // IDs should differ when selectAction is present
+        XCTAssertNotEqual(pageWithAction.id, pageWithoutAction.id)
+        XCTAssertTrue(pageWithAction.id.contains("with_action"))
+    }
+    
+    func testCarouselPageIdentifiableUniqueInArray() throws {
+        // Test that multiple pages can be distinguished in a collection
+        let pages = [
+            CarouselPage(items: [.textBlock(TextBlock(text: "Page 1"))]),
+            CarouselPage(items: [.textBlock(TextBlock(text: "Page 2"))]),
+            CarouselPage(items: [.textBlock(TextBlock(text: "Page 3"))])
+        ]
+        
+        // All IDs should be unique
+        let ids = pages.map { $0.id }
+        let uniqueIds = Set(ids)
+        XCTAssertEqual(ids.count, uniqueIds.count, "All page IDs should be unique")
+    }
+    
     // MARK: - Accordion Tests
     
     func testParseAccordion() throws {

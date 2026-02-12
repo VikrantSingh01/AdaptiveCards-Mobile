@@ -24,7 +24,7 @@ struct CarouselView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
-                ForEach(Array(carousel.pages.enumerated()), id: \.offset) { index, page in
+                ForEach(Array(carousel.pages.enumerated()), id: \.element.id) { index, page in
                     CarouselPageView(page: page, hostConfig: hostConfig)
                         .tag(index)
                         .accessibilityElement(children: .combine)
