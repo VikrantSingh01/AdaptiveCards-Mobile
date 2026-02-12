@@ -506,7 +506,7 @@ The templating engine supports powerful data binding:
 ## 🗺️ Roadmap
 
 ### ✅ Phase 1: Templating Engine (Complete)
-- [x] iOS ACTemplating module with 60+ functions
+- [x] iOS ACTemplating module with 50 functions
 - [x] Expression parser and evaluator
 - [x] Test cards and comprehensive tests
 - [x] Android ac-templating implementation with 50+ functions
