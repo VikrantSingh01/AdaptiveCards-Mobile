@@ -26,7 +26,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 | Platform | Core SDK | Templating | Advanced Elements | Status |
 |----------|----------|------------|-------------------|--------|
 | **iOS** | ✅ Complete | ✅ Complete | ✅ Complete | Production Ready |
-| **Android** | ✅ Complete | 🚧 In Progress | ✅ Complete | Production Ready |
+| **Android** | ✅ Complete | ✅ Complete | ✅ Complete | Production Ready |
 
 ### Module Overview
 
@@ -45,7 +45,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - ✅ **ac-actions**: Action handling and delegation
 - ✅ **ac-accessibility**: Accessibility semantics
 - ✅ **ac-host-config**: Theme and configuration management
-- 🚧 **ac-templating**: Template engine (in progress)
+- ✅ **ac-templating**: Template engine with 50+ expression functions
 
 ## 🚀 Quick Start
 
@@ -505,11 +505,11 @@ The templating engine supports powerful data binding:
 
 ## 🗺️ Roadmap
 
-### 🚧 Phase 1: Templating Engine (85% Complete)
-- [x] iOS ACTemplating module with 60+ functions
+### ✅ Phase 1: Templating Engine (Complete)
+- [x] iOS ACTemplating module with 50 functions
 - [x] Expression parser and evaluator
 - [x] Test cards and comprehensive tests
-- [ ] Android ac-templating implementation
+- [x] Android ac-templating implementation with 50+ functions
 
 ### ✅ Phase 2: Advanced Elements + Markdown + Fluent (Complete)
 - [x] Markdown rendering
