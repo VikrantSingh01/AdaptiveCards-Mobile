@@ -8,6 +8,7 @@ import kotlinx.serialization.modules.subclass
 
 object CardParser {
     private val json = Json {
+        classDiscriminator = "type"  // Document expected JSON structure
         ignoreUnknownKeys = true
         isLenient = true
         prettyPrint = true
