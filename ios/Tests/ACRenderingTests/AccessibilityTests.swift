@@ -89,10 +89,9 @@ final class AccessibilityTests: XCTestCase {
             ]}
         """)
 
-        XCTAssertEqual(card.body?.count, 6)
-        for element in card.body ?? [] {
-            XCTAssertNotNil(element.elementId, "\(element.typeString) should have an ID")
-        }
+        let expectedIds = ["t1", "n1", "d1", "tm1", "tg1", "cs1"]
+        let actualIds = (card.body ?? []).compactMap { $0.elementId }
+        XCTAssertEqual(actualIds, expectedIds, "Input IDs should match JSON specifications")
     }
 
     // MARK: - Action Accessibility

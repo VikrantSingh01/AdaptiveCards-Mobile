@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    id("app.cash.paparazzi") version "1.3.4"
+    alias(libs.plugins.paparazzi)
 }
 
 android {
