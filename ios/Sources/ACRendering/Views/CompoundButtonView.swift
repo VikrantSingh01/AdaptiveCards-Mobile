@@ -5,9 +5,9 @@ import ACAccessibility
 struct CompoundButtonView: View {
     let button: CompoundButton
     let hostConfig: HostConfig
-    
+
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     private enum Layout {
         static let iconSize: CGFloat = 24
         static let iconTextSpacing: CGFloat = 12
@@ -19,7 +19,7 @@ struct CompoundButtonView: View {
         static let shadowRadius: CGFloat = 2
         static let shadowY: CGFloat = 1
     }
-    
+
     var body: some View {
         Button(action: handleAction) {
             content
@@ -32,21 +32,21 @@ struct CompoundButtonView: View {
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint(accessibilityHint)
     }
-    
+
     @ViewBuilder
     private var content: some View {
         HStack(alignment: .center, spacing: Layout.iconTextSpacing) {
             if button.iconPosition != "trailing" {
                 iconView
             }
-            
+
             VStack(alignment: .leading, spacing: Layout.titleSubtitleSpacing) {
                 Text(button.title)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.primary)
                     .lineLimit(2)
                     .truncationMode(.tail)
-                
+
                 if let subtitle = button.subtitle {
                     Text(subtitle)
                         .font(.system(size: 14))
@@ -56,11 +56,11 @@ struct CompoundButtonView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             if button.iconPosition == "trailing" {
                 iconView
             }
-            
+
             // Chevron indicator
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
@@ -70,7 +70,7 @@ struct CompoundButtonView: View {
         .padding(.vertical, Layout.verticalPadding)
         .frame(minHeight: Layout.minHeight)
     }
-    
+
     @ViewBuilder
     private var iconView: some View {
         if let iconString = button.icon {
@@ -101,7 +101,7 @@ struct CompoundButtonView: View {
             }
         }
     }
-    
+
     private var iconPlaceholder: some View {
         Image(systemName: "photo")
             .resizable()
@@ -109,19 +109,19 @@ struct CompoundButtonView: View {
             .frame(width: Layout.iconSize, height: Layout.iconSize)
             .foregroundColor(.gray)
     }
-    
+
     private var accessibilityLabel: String {
         if let subtitle = button.subtitle {
             return "\(button.title). \(subtitle)"
         }
         return button.title
     }
-    
+
     private var accessibilityHint: String {
         guard let action = button.action else {
             return ""
         }
-        
+
         switch action {
         case .openUrl:
             return "Opens URL"
@@ -141,7 +141,7 @@ struct CompoundButtonView: View {
             return "Opens URL dialog"
         }
     }
-    
+
     private func handleAction() {
         guard let action = button.action else { return }
         // TODO: Implement action handling through CardViewModel
@@ -153,7 +153,7 @@ struct CompoundButtonView: View {
 struct CompoundButtonStyle: ButtonStyle {
     let style: String
     let isDisabled: Bool
-    
+
     private enum Colors {
         #if os(iOS)
         static let defaultBackground = Color(.systemBackground)
@@ -169,7 +169,7 @@ struct CompoundButtonStyle: ButtonStyle {
         static let positiveText = Color.white
         static let destructiveText = Color.white
     }
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(backgroundColor.opacity(configuration.isPressed ? 0.8 : 1.0))
@@ -186,7 +186,7 @@ struct CompoundButtonStyle: ButtonStyle {
                     .stroke(Color.gray.opacity(0.2), lineWidth: style == "default" ? 1 : 0)
             )
     }
-    
+
     private var backgroundColor: Color {
         switch style {
         case "emphasis":

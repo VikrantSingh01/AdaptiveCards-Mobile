@@ -5,7 +5,7 @@ import ACAccessibility
 struct TableView: View {
     let table: ACCore.Table
     let hostConfig: HostConfig
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ForEach(table.rows) { row in
@@ -17,13 +17,13 @@ struct TableView: View {
                             hostConfig: hostConfig
                         )
                         .frame(maxWidth: .infinity)
-                        
+
                         if table.showGridLines == true && cell.id != row.cells.last?.id {
                             Divider()
                         }
                     }
                 }
-                
+
                 if table.showGridLines == true && row.id != table.rows.last?.id {
                     Divider()
                 }
@@ -39,9 +39,9 @@ struct TableCellView: View {
     let cell: TableCell
     let isHeader: Bool
     let hostConfig: HostConfig
-    
+
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     var body: some View {
         VStack(spacing: 0) {
             if let items = cell.items {
@@ -62,12 +62,12 @@ struct TableCellView: View {
         .containerStyle(cell.style, hostConfig: hostConfig)
         .font(isHeader ? .headline : .body)
     }
-    
+
     private var verticalContentAlignment: Alignment {
         guard let alignment = cell.verticalContentAlignment else {
             return .center
         }
-        
+
         switch alignment {
         case .top:
             return .top
@@ -77,7 +77,7 @@ struct TableCellView: View {
             return .bottom
         }
     }
-    
+
     private var minHeight: CGFloat? {
         guard let minHeightStr = cell.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)

@@ -12,7 +12,7 @@ public struct ChartColors {
         Color(hex: "#E74856"), // Red
         Color(hex: "#00CC6A")  // Green
     ]
-    
+
     public static func colors(from hexColors: [String]?) -> [Color] {
         if let hexColors = hexColors, !hexColors.isEmpty {
             return hexColors.map { Color(hex: $0) }
@@ -26,7 +26,7 @@ public enum ChartSize {
     case medium
     case large
     case auto
-    
+
     public var height: CGFloat {
         switch self {
         case .small: return 150
@@ -35,7 +35,7 @@ public enum ChartSize {
         case .auto: return 250
         }
     }
-    
+
     public static func from(_ string: String?) -> ChartSize {
         guard let string = string else { return .auto }
         switch string.lowercased() {

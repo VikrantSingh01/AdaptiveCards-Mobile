@@ -8,18 +8,18 @@ public class CardViewModel: ObservableObject {
     @Published public var visibility: [String: Bool] = [:]
     @Published public var showCards: [String: Bool] = [:]
     @Published public var parsingError: Error?
-    
+
     private let parser: CardParser
-    
+
     public init() {
         self.parser = CardParser()
     }
-    
+
     /// Parses a card from JSON string
     public func parseCard(json: String) {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            
+
             do {
                 let parsedCard = try self.parser.parse(json)
                 DispatchQueue.main.async {
@@ -36,22 +36,22 @@ public class CardViewModel: ObservableObject {
             }
         }
     }
-    
+
     /// Sets an input value
     public func setInputValue(id: String, value: Any) {
         inputValues[id] = value
     }
-    
+
     /// Gets an input value
     public func getInputValue(forId id: String) -> Any? {
         return inputValues[id]
     }
-    
+
     /// Gathers all input values for submission
     public func gatherInputValues() -> [String: Any] {
         return inputValues
     }
-    
+
     /// Toggles visibility for an element
     public func toggleVisibility(elementId: String, isVisible: Bool?) {
         if let isVisible = isVisible {
@@ -61,28 +61,28 @@ public class CardViewModel: ObservableObject {
             visibility[elementId] = !(visibility[elementId] ?? true)
         }
     }
-    
+
     /// Checks if an element is visible
     public func isElementVisible(elementId: String?) -> Bool {
         guard let elementId = elementId else { return true }
         return visibility[elementId] ?? true
     }
-    
+
     /// Toggles show card visibility
     public func toggleShowCard(cardId: String) {
         showCards[cardId] = !(showCards[cardId] ?? false)
     }
-    
+
     /// Checks if a show card is expanded
     public func isShowCardExpanded(actionId: String) -> Bool {
         return showCards[actionId] ?? false
     }
-    
+
     // MARK: - Private Helpers
-    
+
     private func initializeVisibility(for card: AdaptiveCard) {
         guard let body = card.body else { return }
-        
+
         for element in body {
             if let id = element.elementId {
                 visibility[id] = element.isVisible
@@ -92,7 +92,7 @@ public class CardViewModel: ObservableObject {
             initializeVisibilityForElement(element)
         }
     }
-    
+
     private func initializeVisibilityForElement(_ element: CardElement) {
         switch element {
         case .container(let container):
@@ -115,15 +115,15 @@ public class CardViewModel: ObservableObject {
             break
         }
     }
-    
+
     private func initializeInputValues(for card: AdaptiveCard) {
         guard let body = card.body else { return }
-        
+
         for element in body {
             initializeInputValue(for: element)
         }
     }
-    
+
     private func initializeInputValue(for element: CardElement) {
         switch element {
         case .textInput(let input):

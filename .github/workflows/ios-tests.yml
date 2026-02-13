@@ -2,7 +2,7 @@ name: iOS Tests
 
 on:
   push:
-    branches: [ main, 'copilot/**' ]
+    branches: [ main, 'copilot/**', 'feat/**' ]
     paths:
       - 'ios/**'
       - 'shared/test-cards/**'
@@ -12,6 +12,7 @@ on:
     paths:
       - 'ios/**'
       - 'shared/test-cards/**'
+      - '.github/workflows/ios-tests.yml'
 
 permissions:
   contents: read

@@ -4,24 +4,24 @@ public struct FluentTypography: Equatable {
     // Caption sizes
     public var caption2: FluentFont
     public var caption1: FluentFont
-    
+
     // Body sizes
     public var body1: FluentFont
     public var body2: FluentFont
-    
+
     // Subtitle sizes
     public var subtitle2: FluentFont
     public var subtitle1: FluentFont
-    
+
     // Title sizes
     public var title3: FluentFont
     public var title2: FluentFont
     public var title1: FluentFont
-    
+
     // Display sizes
     public var largeTitle: FluentFont
     public var display: FluentFont
-    
+
     public init(
         caption2: FluentFont = FluentFont(size: 10, weight: .regular, lineHeight: 12),
         caption1: FluentFont = FluentFont(size: 12, weight: .regular, lineHeight: 16),
@@ -53,13 +53,13 @@ public struct FluentFont: Equatable {
     public var size: CGFloat
     public var weight: Font.Weight
     public var lineHeight: CGFloat
-    
+
     public init(size: CGFloat, weight: Font.Weight, lineHeight: CGFloat) {
         self.size = size
         self.weight = weight
         self.lineHeight = lineHeight
     }
-    
+
     public var font: Font {
         .system(size: size, weight: weight)
     }

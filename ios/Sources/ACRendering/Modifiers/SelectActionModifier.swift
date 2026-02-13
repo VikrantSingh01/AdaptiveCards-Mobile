@@ -11,7 +11,7 @@ public extension View {
 struct SelectActionModifier: ViewModifier {
     let action: CardAction?
     let onTap: (CardAction) -> Void
-    
+
     func body(content: Content) -> some View {
         if let action = action {
             content

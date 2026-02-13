@@ -1,11 +1,13 @@
 package com.microsoft.adaptivecards.core.models
 
+import com.microsoft.adaptivecards.core.parsing.BackgroundImageSerializer
+import com.microsoft.adaptivecards.core.parsing.CardElementSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
-@Serializable
+@Serializable(with = CardElementSerializer::class)
 sealed interface CardElement {
     val type: String
     val id: String?
@@ -16,6 +18,24 @@ sealed interface CardElement {
     val requires: Map<String, String>?
     val fallback: JsonElement?
 }
+
+/**
+ * Represents an unknown or unsupported element type
+ * Used for forward compatibility with future element types
+ */
+@Serializable
+@SerialName("Unknown")
+data class UnknownElement(
+    @Transient override val type: String = "Unknown",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val unknownType: String? = null  // Store the actual type for debugging
+) : CardElement
 
 @Serializable
 @SerialName("TextBlock")
@@ -86,7 +106,7 @@ data class Container(
     val rtl: Boolean? = null
 ) : CardElement
 
-@Serializable
+@Serializable(with = BackgroundImageSerializer::class)
 data class BackgroundImage(
     val url: String,
     val fillMode: String? = null,

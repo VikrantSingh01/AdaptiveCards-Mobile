@@ -3,6 +3,7 @@ import XCTest
 import SwiftUI
 @testable import ACCore
 @testable import ACRendering
+@testable import ACTemplating
 
 /// Performance tests for Adaptive Card parsing and rendering.
 ///
@@ -348,6 +349,85 @@ final class CardPerformanceTests: CardSnapshotTestCase {
         measure {
             let view = AdaptiveCardView(cardJson: json)
             let _ = renderView(view, configuration: .iPhone15Pro)
+        }
+    }
+
+    // MARK: - Optimization-Specific Benchmarks
+
+    /// Tests CardElement.id generation performance.
+    /// After P0 fix: id should be deterministic hash-based, not UUID-based.
+    /// This benchmark ensures id generation is fast and stable.
+    func testPerformance_cardElementIdStability() throws {
+        let textBlock = TextBlock(text: "Test")
+        let element = CardElement.textBlock(textBlock)
+
+        measure {
+            for _ in 0..<10000 {
+                _ = element.id
+            }
+        }
+    }
+
+    /// Tests that CardElement.id produces stable results.
+    /// Before fix: UUID() generated new ID on every access
+    /// After fix: Hash-based ID is stable
+    func testCardElementIdDeterminism() throws {
+        let textBlock = TextBlock(text: "Benchmark Test")
+        let element = CardElement.textBlock(textBlock)
+
+        let ids = (0..<1000).map { _ in element.id }
+        let uniqueIds = Set(ids)
+
+        XCTAssertEqual(uniqueIds.count, 1, "CardElement.id must be deterministic - all 1000 accesses should return the same value")
+    }
+
+    /// Tests CardElement.id uniqueness across different elements
+    func testCardElementIdUniqueness() throws {
+        var ids = Set<String>()
+
+        // Create 1000 different text blocks
+        for i in 0..<1000 {
+            let textBlock = TextBlock(text: "Text \(i)")
+            let element = CardElement.textBlock(textBlock)
+            ids.insert(element.id)
+        }
+
+        XCTAssertEqual(ids.count, 1000, "Different elements should produce different IDs")
+    }
+
+    /// Tests expression evaluation performance with singleton function registry.
+    /// After optimization: Functions are registered once at app launch, not per evaluator.
+    func testPerformance_expressionEvaluationWithSingleton() throws {
+        measure {
+            for _ in 0..<1000 {
+                let context = DataContext(data: ["name": "John", "age": 30])
+                let evaluator = ExpressionEvaluator(context: context)
+                _ = try? evaluator.evaluate(expression: "concat('Hello, ', name, '! You are ', string(age), ' years old.')")
+            }
+        }
+    }
+
+    /// Tests thread safety doesn't significantly impact performance
+    func testPerformance_concurrentParsing() throws {
+        let json = try loadTestCard(named: "simple-text")
+
+        measure {
+            DispatchQueue.concurrentPerform(iterations: 100) { _ in
+                _ = try? parser.parse(json)
+            }
+        }
+    }
+
+    /// Tests thread safety of element renderer registry
+    func testPerformance_concurrentRendererRegistration() throws {
+        let registry = ElementRendererRegistry.shared
+
+        measure {
+            DispatchQueue.concurrentPerform(iterations: 100) { i in
+                registry.register("TestType\(i)") { element in
+                    Text("Test")
+                }
+            }
         }
     }
 }

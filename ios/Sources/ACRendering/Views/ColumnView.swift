@@ -5,11 +5,11 @@ import ACAccessibility
 struct ColumnView: View {
     let column: Column
     let hostConfig: HostConfig
-    
+
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     var body: some View {
         VStack(spacing: 0) {
             if let items = column.items {
@@ -28,12 +28,12 @@ struct ColumnView: View {
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
     }
-    
+
     private var verticalContentAlignment: Alignment {
         guard let alignment = column.verticalContentAlignment else {
             return .center
         }
-        
+
         switch alignment {
         case .top:
             return .top
@@ -43,7 +43,7 @@ struct ColumnView: View {
             return .bottom
         }
     }
-    
+
     private var minHeight: CGFloat? {
         guard let minHeightStr = column.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)

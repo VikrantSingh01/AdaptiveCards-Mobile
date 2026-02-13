@@ -4,31 +4,34 @@ import Foundation
 public final class ExpressionEvaluator {
     private let context: DataContext
     private let functions: [String: ExpressionFunction]
-    
-    public init(context: DataContext) {
-        self.context = context
-        
-        // Register all built-in functions
+
+    /// Shared function registry built once and reused across all evaluator instances
+    private static let sharedFunctions: [String: ExpressionFunction] = {
         var functions: [String: ExpressionFunction] = [:]
-        
+
         // String functions
         StringFunctions.register(into: &functions)
-        
+
         // Date functions
         DateFunctions.register(into: &functions)
-        
+
         // Collection functions
         CollectionFunctions.register(into: &functions)
-        
+
         // Logic functions
         LogicFunctions.register(into: &functions)
-        
+
         // Math functions
         MathFunctions.register(into: &functions)
-        
-        self.functions = functions
+
+        return functions
+    }()
+
+    public init(context: DataContext) {
+        self.context = context
+        self.functions = Self.sharedFunctions
     }
-    
+
     /// Evaluate an expression
     /// - Parameter expression: The parsed expression
     /// - Returns: The evaluated result
@@ -37,37 +40,37 @@ public final class ExpressionEvaluator {
         switch expression {
         case .literal(let value):
             return value
-            
+
         case .propertyAccess(let path):
             return context.resolve(path: path)
-            
+
         case .functionCall(let name, let arguments):
             guard let function = functions[name] else {
                 throw EvaluationError.unknownFunction(name)
             }
-            
+
             let evaluatedArgs = try arguments.map { try evaluate($0) }
             return try function.call(evaluatedArgs)
-            
+
         case .binaryOp(let op, let left, let right):
             return try evaluateBinaryOp(op: op, left: left, right: right)
-            
+
         case .unaryOp(let op, let operand):
             return try evaluateUnaryOp(op: op, operand: operand)
-            
+
         case .ternary(let condition, let trueValue, let falseValue):
             let condResult = try evaluate(condition)
             let boolResult = try coerceToBool(condResult)
             return try evaluate(boolResult ? trueValue : falseValue)
         }
     }
-    
+
     // MARK: - Binary Operations
-    
+
     private func evaluateBinaryOp(op: String, left: Expression, right: Expression) throws -> Any? {
         let leftValue = try evaluate(left)
         let rightValue = try evaluate(right)
-        
+
         switch op {
         case "+":
             // String concatenation or numeric addition
@@ -91,27 +94,27 @@ public final class ExpressionEvaluator {
             let left = try coerceToNumber(leftValue)
             let right = try coerceToNumber(rightValue)
             return left * right
-            
+
         case "/":
             let divisor = try coerceToNumber(rightValue)
             guard divisor != 0 else {
                 throw EvaluationError.divisionByZero
             }
             return try coerceToNumber(leftValue) / divisor
-            
+
         case "%":
             let divisor = try coerceToNumber(rightValue)
             guard divisor != 0 else {
                 throw EvaluationError.divisionByZero
             }
             return try coerceToNumber(leftValue).truncatingRemainder(dividingBy: divisor)
-            
+
         case "==":
             return isEqual(leftValue, rightValue)
-            
+
         case "!=":
             return !isEqual(leftValue, rightValue)
-            
+
         case "<":
             let left = try coerceToNumber(leftValue)
             let right = try coerceToNumber(rightValue)
@@ -141,29 +144,29 @@ public final class ExpressionEvaluator {
             let left = try coerceToBool(leftValue)
             let right = try coerceToBool(rightValue)
             return left || right
-            
+
         default:
             throw EvaluationError.unknownOperator(op)
         }
     }
-    
+
     private func evaluateUnaryOp(op: String, operand: Expression) throws -> Any? {
         let value = try evaluate(operand)
-        
+
         switch op {
         case "!":
             return try !coerceToBool(value)
-            
+
         case "-":
             return try -coerceToNumber(value)
-            
+
         default:
             throw EvaluationError.unknownOperator(op)
         }
     }
-    
+
     // MARK: - Type Coercion
-    
+
     private func coerceToNumber(_ value: Any?) throws -> Double {
         if let num = value as? Double {
             return num
@@ -178,10 +181,10 @@ public final class ExpressionEvaluator {
         } else if value == nil {
             return 0.0
         }
-        
+
         throw EvaluationError.typeCoercionFailed(value, "number")
     }
-    
+
     private func coerceToBool(_ value: Any?) throws -> Bool {
         if let bool = value as? Bool {
             return bool
@@ -198,10 +201,10 @@ public final class ExpressionEvaluator {
         } else if let dict = value as? [String: Any] {
             return !dict.isEmpty
         }
-        
+
         return true // Non-null objects are truthy
     }
-    
+
     private func isEqual(_ left: Any?, _ right: Any?) -> Bool {
         // Handle nil cases
         if left == nil && right == nil {
@@ -210,7 +213,7 @@ public final class ExpressionEvaluator {
         if left == nil || right == nil {
             return false
         }
-        
+
         // Try numeric comparison
         if let l = left as? Double, let r = right as? Double {
             return l == r
@@ -218,19 +221,19 @@ public final class ExpressionEvaluator {
         if let l = left as? Int, let r = right as? Int {
             return l == r
         }
-        
+
         // Try string comparison
         if let l = left as? String, let r = right as? String {
             return l == r
         }
-        
+
         // Try boolean comparison
         if let l = left as? Bool, let r = right as? Bool {
             return l == r
         }
-        
+
         // Fallback to string representation
-        return String(describing: left!) == String(describing: right!)
+        return String(describing: left ?? "nil") == String(describing: right ?? "nil")
     }
 }
 
@@ -249,7 +252,7 @@ public enum EvaluationError: Error, LocalizedError {
     case divisionByZero
     case invalidArgumentCount(expected: Int, actual: Int)
     case invalidArgument(String)
-    
+
     public var errorDescription: String? {
         switch self {
         case .unknownFunction(let name):

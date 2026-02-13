@@ -6,7 +6,7 @@ public struct Citation: Codable, Equatable, Identifiable {
     public var url: String?
     public var snippet: String?
     public var index: Int
-    
+
     public init(id: String, title: String, url: String? = nil, snippet: String? = nil, index: Int) {
         self.id = id
         self.title = title
@@ -23,7 +23,7 @@ public struct Reference: Codable, Equatable, Identifiable {
     public var snippet: String?
     public var iconUrl: String?
     public var type: ReferenceType
-    
+
     public init(id: String, title: String, url: String? = nil, snippet: String? = nil, iconUrl: String? = nil, type: ReferenceType) {
         self.id = id
         self.title = title
@@ -32,7 +32,7 @@ public struct Reference: Codable, Equatable, Identifiable {
         self.iconUrl = iconUrl
         self.type = type
     }
-    
+
     public enum ReferenceType: String, Codable {
         case file
         case url

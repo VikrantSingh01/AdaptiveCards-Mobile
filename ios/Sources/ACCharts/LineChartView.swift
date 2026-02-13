@@ -5,36 +5,36 @@ public struct LineChartView: View {
     let chart: LineChart
     @State private var selectedIndex: Int?
     @State private var animationProgress: CGFloat = 0
-    
+
     public init(chart: LineChart) {
         self.chart = chart
     }
-    
+
     private var chartSize: ChartSize {
         ChartSize.from(chart.size)
     }
-    
+
     private var colors: [Color] {
         ChartColors.colors(from: chart.colors)
     }
-    
+
     private var maxValue: Double {
         chart.data.map { $0.value }.max() ?? 1.0
     }
-    
+
     private var minValue: Double {
         chart.data.map { $0.value }.min() ?? 0.0
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let title = chart.title {
                 Text(title)
                     .font(.headline)
             }
-            
+
             lineChart
-            
+
             if chart.showLegend ?? false {
                 legend
             }
@@ -48,7 +48,7 @@ public struct LineChartView: View {
             }
         }
     }
-    
+
     private var lineChart: some View {
         GeometryReader { geometry in
             ZStack {
@@ -63,28 +63,28 @@ public struct LineChartView: View {
                         context.stroke(path, with: .color(gridColor), lineWidth: 1)
                     }
                 }
-                
+
                 // Line path
                 Canvas { context, size in
                     guard chart.data.count > 1 else { return }
-                    
+
                     let padding: CGFloat = 20
                     let availableWidth = size.width - padding * 2
                     let availableHeight = size.height - padding * 2
                     let valueRange = maxValue - minValue
-                    
+
                     let points = chart.data.enumerated().map { index, dataPoint in
                         let x = padding + (availableWidth * CGFloat(index) / CGFloat(chart.data.count - 1))
                         let normalizedValue = (dataPoint.value - minValue) / valueRange
                         let y = size.height - padding - (availableHeight * normalizedValue)
                         return CGPoint(x: x, y: y)
                     }
-                    
+
                     // Draw line
                     var path = Path()
                     if let firstPoint = points.first {
                         path.move(to: firstPoint)
-                        
+
                         if chart.smooth ?? false {
                             // Smooth curve using Catmull-Rom spline
                             for i in 0..<points.count - 1 {
@@ -107,14 +107,14 @@ public struct LineChartView: View {
                             }
                         }
                     }
-                    
+
                     let lineColor = colors.first ?? .blue
                     context.stroke(
                         path.trimmedPath(from: 0, to: animationProgress),
                         with: .color(lineColor),
                         lineWidth: 2
                     )
-                    
+
                     // Draw data points if enabled
                     if chart.showDataPoints ?? true {
                         let visibleCount = Int(Double(points.count) * Double(animationProgress))
@@ -140,7 +140,7 @@ public struct LineChartView: View {
             )
         }
     }
-    
+
     private var legend: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -158,30 +158,30 @@ public struct LineChartView: View {
             .padding(.horizontal, 8)
         }
     }
-    
+
     private func indexForLocation(_ location: CGPoint, in geometry: GeometryProxy) -> Int? {
         let padding: CGFloat = 20
         let availableWidth = geometry.size.width - padding * 2
         guard chart.data.count > 1 else { return nil }
-        
+
         let relativeX = location.x - padding
         let segmentWidth = availableWidth / CGFloat(chart.data.count - 1)
         let index = Int(round(relativeX / segmentWidth))
-        
+
         return index >= 0 && index < chart.data.count ? index : nil
     }
-    
+
     private var accessibilityDescription: String {
         var description = "Line chart"
         if let title = chart.title {
             description += " titled \(title)"
         }
         description += ". \(chart.data.count) data points: "
-        
+
         let points = chart.data.map { dataPoint in
             "\(dataPoint.label) \(String(format: "%.1f", dataPoint.value))"
         }.joined(separator: ", ")
-        
+
         description += points
         return description
     }
