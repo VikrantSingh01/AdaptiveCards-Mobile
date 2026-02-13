@@ -8,27 +8,19 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Custom polymorphic serializer for CardElement that captures unknown types.
- *
- * Maps known Adaptive Card element type strings to their serializers,
- * and gracefully falls back to [UnknownElement] for unrecognised types.
- */
-/**
  * Custom polymorphic serializer for CardElement.
  *
- * Implements [KSerializer] directly (instead of extending [JsonContentPolymorphicSerializer])
- * to control both serialization and deserialization. During serialization, injects the "type"
- * discriminator field that [Transient] suppresses. During deserialization, routes to the
- * correct concrete serializer based on the "type" JSON field.
+ * Implements [KSerializer] directly to control both serialization and deserialization.
+ * During serialization, injects the "type" discriminator field that @Transient suppresses.
+ * During deserialization, routes to the correct concrete serializer based on the "type" JSON field,
+ * falling back to [UnknownElement] for unrecognised types.
  */
 @OptIn(InternalSerializationApi::class)
 object CardElementSerializer : KSerializer<CardElement> {
@@ -93,30 +85,6 @@ object CardElementSerializer : KSerializer<CardElement> {
         } else {
             val unknown = jsonDecoder.json.decodeFromJsonElement(UnknownElement.serializer(), element)
             unknown.copy(unknownType = type)
-        }
-    }
-}
-
-/**
- * Custom serializer that creates [UnknownElement] with the captured original type name.
- *
- * Implements [KSerializer] (not just [DeserializationStrategy]) because
- * [JsonContentPolymorphicSerializer] internally casts to [KSerializer].
- */
-private class UnknownElementWithTypeSerializer(
-    private val originalType: String?
-) : KSerializer<CardElement> {
-
-    override val descriptor: SerialDescriptor = UnknownElement.serializer().descriptor
-
-    override fun deserialize(decoder: Decoder): CardElement {
-        val unknownElement = UnknownElement.serializer().deserialize(decoder)
-        return unknownElement.copy(unknownType = originalType)
-    }
-
-    override fun serialize(encoder: Encoder, value: CardElement) {
-        if (value is UnknownElement) {
-            UnknownElement.serializer().serialize(encoder, value)
         }
     }
 }
