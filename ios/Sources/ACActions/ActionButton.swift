@@ -53,6 +53,9 @@ public struct ActionButton: View {
         case .showCard(let a): return a.title
         case .execute(let a): return a.title
         case .toggleVisibility(let a): return a.title
+        case .popover(let a): return a.title
+        case .runCommands(let a): return a.title
+        case .openUrlDialog(let a): return a.title
         }
     }
     
@@ -63,6 +66,9 @@ public struct ActionButton: View {
         case .showCard(let a): return a.iconUrl
         case .execute(let a): return a.iconUrl
         case .toggleVisibility(let a): return a.iconUrl
+        case .popover(let a): return a.iconUrl
+        case .runCommands(let a): return a.iconUrl
+        case .openUrlDialog(let a): return a.iconUrl
         }
     }
     
@@ -73,6 +79,9 @@ public struct ActionButton: View {
         case .showCard(let a): return a.style
         case .execute(let a): return a.style
         case .toggleVisibility(let a): return a.style
+        case .popover(let a): return a.style
+        case .runCommands(let a): return a.style
+        case .openUrlDialog(let a): return a.style
         }
     }
     
@@ -83,6 +92,9 @@ public struct ActionButton: View {
         case .showCard(let a): return a.tooltip
         case .execute(let a): return a.tooltip
         case .toggleVisibility(let a): return a.tooltip
+        case .popover(let a): return a.tooltip
+        case .runCommands(let a): return a.tooltip
+        case .openUrlDialog(let a): return a.tooltip
         }
     }
     
@@ -93,6 +105,9 @@ public struct ActionButton: View {
         case .showCard(let a): return a.isEnabled
         case .execute(let a): return a.isEnabled
         case .toggleVisibility(let a): return a.isEnabled
+        case .popover(let a): return a.isEnabled
+        case .runCommands(let a): return a.isEnabled
+        case .openUrlDialog(let a): return a.isEnabled
         }
     }
     

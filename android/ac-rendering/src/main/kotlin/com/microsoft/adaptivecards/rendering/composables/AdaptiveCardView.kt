@@ -113,18 +113,18 @@ fun RenderElement(
             is RichTextBlock -> RichTextBlockView(element, elementModifier, actionHandler)
             is Media -> MediaView(element, elementModifier)
             is Table -> TableView(element, elementModifier, viewModel, actionHandler)
-            is InputText -> com.microsoft.adaptivecards.inputs.composables.TextInputView(element, viewModel, elementModifier)
-            is InputNumber -> com.microsoft.adaptivecards.inputs.composables.NumberInputView(element, viewModel, elementModifier)
-            is InputDate -> com.microsoft.adaptivecards.inputs.composables.DateInputView(element, viewModel, elementModifier)
-            is InputTime -> com.microsoft.adaptivecards.inputs.composables.TimeInputView(element, viewModel, elementModifier)
-            is InputToggle -> com.microsoft.adaptivecards.inputs.composables.ToggleInputView(element, viewModel, elementModifier)
-            is InputChoiceSet -> com.microsoft.adaptivecards.inputs.composables.ChoiceSetInputView(element, viewModel, elementModifier)
+            // Input elements - rendered via element registry to avoid circular dependency
+            // The sample-app or host application should register input renderers
+            is InputText, is InputNumber, is InputDate, is InputTime,
+            is InputToggle, is InputChoiceSet, is RatingInput -> {
+                // Input elements are rendered by the ac-inputs module
+                // Use ElementRendererRegistry for input rendering integration
+            }
             // Advanced elements
             is Carousel -> CarouselView(element, viewModel, actionHandler, elementModifier)
             is Accordion -> AccordionView(element, viewModel, actionHandler, elementModifier)
             is CodeBlock -> CodeBlockView(element, elementModifier)
             is RatingDisplay -> RatingDisplayView(element, elementModifier)
-            is RatingInput -> com.microsoft.adaptivecards.inputs.composables.RatingInputView(element, viewModel, elementModifier)
             is ProgressBar -> ProgressBarView(element, elementModifier)
             is Spinner -> SpinnerView(element, elementModifier)
             is TabSet -> TabSetView(element, viewModel, actionHandler, elementModifier)

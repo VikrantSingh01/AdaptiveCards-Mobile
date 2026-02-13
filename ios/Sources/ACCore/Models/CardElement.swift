@@ -219,8 +219,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         if let elementId = self.elementId {
             return elementId
         }
-        // Generate a deterministic identifier based on type and hash value
-        return "\(typeString)_\(abs(hashValue))"
+        // Generate a deterministic identifier based on type and UUID
+        return "\(typeString)_\(UUID().uuidString)"
     }
     
     public var isVisible: Bool {

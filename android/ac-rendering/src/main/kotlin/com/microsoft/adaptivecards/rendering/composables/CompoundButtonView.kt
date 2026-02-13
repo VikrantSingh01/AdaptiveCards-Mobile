@@ -35,6 +35,7 @@ private object CompoundButtonLayout {
 /**
  * Renders a CompoundButton element with icon, title, and subtitle
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun CompoundButtonView(
     element: CompoundButton,
@@ -62,7 +63,14 @@ fun CompoundButtonView(
     
     Card(
         onClick = {
-            element.action?.let { actionHandler.onAction(it) }
+            element.action?.let { action ->
+                when (action) {
+                    is com.microsoft.adaptivecards.core.models.ActionOpenUrl -> actionHandler.onOpenUrl(action.url)
+                    is com.microsoft.adaptivecards.core.models.ActionSubmit -> actionHandler.onSubmit(emptyMap())
+                    is com.microsoft.adaptivecards.core.models.ActionExecute -> actionHandler.onExecute(action.verb ?: "", emptyMap())
+                    else -> { /* Other action types */ }
+                }
+            }
         },
         modifier = modifier
             .fillMaxWidth()

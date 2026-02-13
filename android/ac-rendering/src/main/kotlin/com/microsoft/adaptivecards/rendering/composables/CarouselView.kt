@@ -13,8 +13,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import com.microsoft.adaptivecards.core.models.Carousel
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
  * Accessibility: Announces current page and total pages, supports swipe gestures
  * Responsive: Adapts padding and card size for tablets
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun CarouselView(
     element: Carousel,
@@ -39,7 +40,8 @@ fun CarouselView(
     val isTablet = configuration.screenWidthDp >= 600
     
     val pagerState = rememberPagerState(
-        initialPage = element.initialPage ?: 0
+        initialPage = element.initialPage ?: 0,
+        pageCount = { element.pages.size }
     )
     val scope = rememberCoroutineScope()
 
@@ -63,7 +65,6 @@ fun CarouselView(
     ) {
         // Horizontal pager for carousel pages
         HorizontalPager(
-            count = element.pages.size,
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
@@ -114,7 +115,7 @@ fun CarouselView(
             ) {
                 repeat(element.pages.size) { index ->
                     val color = if (pagerState.currentPage == index) {
-                        Color(hostConfig.colors.accent.default)
+                        try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
                     } else {
                         Color.Gray.copy(alpha = 0.5f)
                     }

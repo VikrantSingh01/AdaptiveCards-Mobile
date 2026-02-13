@@ -1,6 +1,5 @@
 package com.microsoft.adaptivecards.sample
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,8 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.microsoft.adaptivecards.core.parsing.CardParser
+import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import kotlin.system.measureTimeMillis
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,19 +25,19 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState) {
     var showJson by remember { mutableStateOf(false) }
     var parseTime by remember { mutableStateOf(0L) }
     var renderTime by remember { mutableStateOf(0L) }
-    
-    val card = remember {
-        TestCardLoader.loadAllCards().find { it.filename == cardId }
-    }
+    var refreshKey by remember { mutableStateOf(0) }
 
-    LaunchedEffect(Unit) {
-        parseTime = measureTimeMillis {
-            // Simulate parsing
-            kotlinx.coroutines.delay(2)
-        }
-        renderTime = measureTimeMillis {
-            // Simulate rendering
-            kotlinx.coroutines.delay(5)
+    val context = LocalContext.current
+    val card = remember {
+        TestCardLoader.loadAllCards(context).find { it.filename == cardId }
+    }
+    val cardViewModel: CardViewModel = viewModel(key = "detail_${cardId}_$refreshKey")
+
+    LaunchedEffect(card, refreshKey) {
+        card?.let {
+            parseTime = measureTimeMillis {
+                CardParser.parse(it.jsonString)
+            }
         }
     }
 
@@ -48,8 +52,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState) {
                 },
                 actions = {
                     IconButton(onClick = {
-                        parseTime = 0
-                        renderTime = 0
+                        refreshKey++
                     }) {
                         Icon(Icons.Default.Refresh, "Reload")
                     }
@@ -65,9 +68,22 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Preview section
+            // Preview section - render the actual card
             Text("Preview", style = MaterialTheme.typography.titleMedium)
-            CardPreviewPlaceholder(card?.jsonString ?: "")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                val startTime = remember { System.currentTimeMillis() }
+                AdaptiveCardView(
+                    cardJson = card?.jsonString ?: "",
+                    modifier = Modifier.padding(12.dp),
+                    viewModel = cardViewModel
+                )
+                LaunchedEffect(Unit) {
+                    renderTime = System.currentTimeMillis() - startTime
+                }
+            }
 
             // Performance metrics
             Row(
@@ -124,66 +140,6 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState) {
                 actionLogState.actions.take(5).forEach { action ->
                     ActionRow(action)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun CardPreviewPlaceholder(json: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                "Adaptive Card Preview",
-                style = MaterialTheme.typography.titleLarge
-            )
-            Text(
-                "Card rendering would appear here",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            // Placeholder shapes
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(200.dp)
-                        .height(20.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                            MaterialTheme.shapes.small
-                        )
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(16.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            MaterialTheme.shapes.small
-                        )
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(16.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            MaterialTheme.shapes.small
-                        )
-                )
             }
         }
     }

@@ -102,5 +102,14 @@ private fun handleAction(
             }
             actionHandler.onToggleVisibility(action.targetElements.map { it.elementId })
         }
+        is ActionOpenUrlDialog -> {
+            actionHandler.onOpenUrl(action.url)
+        }
+        is ActionPopover -> {
+            // Popover actions handled externally
+        }
+        is ActionRunCommands -> {
+            // RunCommands actions handled externally
+        }
     }
 }

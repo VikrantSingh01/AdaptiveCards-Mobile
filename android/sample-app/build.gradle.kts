@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("android")
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -39,12 +40,14 @@ android {
         jvmTarget = "17"
     }
 
-    buildFeatures {
-        compose = true
+    sourceSets {
+        getByName("main") {
+            assets.srcDirs("src/main/assets", "../../shared/test-cards")
+        }
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+    buildFeatures {
+        compose = true
     }
 
     packaging {

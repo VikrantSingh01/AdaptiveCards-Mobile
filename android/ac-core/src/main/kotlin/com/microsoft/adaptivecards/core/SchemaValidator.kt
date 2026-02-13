@@ -1,5 +1,7 @@
 package com.microsoft.adaptivecards.core
 
+import kotlinx.serialization.json.*
+
 data class SchemaValidationError(
     val path: String,
     val message: String,
@@ -22,7 +24,7 @@ class SchemaValidator {
         val errors = mutableListOf<SchemaValidationError>()
         
         val jsonObject = try {
-            kotlinx.serialization.json.Json.parseToJsonElement(json).jsonObject
+            Json.parseToJsonElement(json) as? JsonObject ?: throw IllegalArgumentException("Expected JSON object")
         } catch (e: Exception) {
             errors.add(SchemaValidationError(
                 path = "$",
@@ -42,7 +44,7 @@ class SchemaValidator {
                 actual = "undefined"
             ))
         } else {
-            val type = jsonObject["type"]?.jsonPrimitive?.content
+            val type = (jsonObject["type"] as? JsonPrimitive)?.content
             if (type != "AdaptiveCard") {
                 errors.add(SchemaValidationError(
                     path = "$.type",
@@ -61,8 +63,8 @@ class SchemaValidator {
                 actual = "undefined"
             ))
         } else {
-            val version = jsonObject["version"]?.jsonPrimitive?.content
-            if (version != null && !version.matches(Regex("""^\d+\.\d+$"""))) {
+            val version = (jsonObject["version"] as? JsonPrimitive)?.content
+            if (version != null && !Regex("""^\d+\.\d+$""").matches(version)) {
                 errors.add(SchemaValidationError(
                     path = "$.version",
                     message = "Invalid version format",
@@ -74,12 +76,15 @@ class SchemaValidator {
         
         // Validate body array if present
         jsonObject["body"]?.let { body ->
-            try {
-                val bodyArray = body.jsonArray
+            val bodyArray = body as? JsonArray
+            if (bodyArray != null) {
                 bodyArray.forEachIndexed { index, element ->
-                    errors.addAll(validateElement(element.jsonObject, "$.body[$index]"))
+                    val elementObj = element as? JsonObject
+                    if (elementObj != null) {
+                        errors.addAll(validateElement(elementObj, "$.body[$index]"))
+                    }
                 }
-            } catch (e: Exception) {
+            } else {
                 errors.add(SchemaValidationError(
                     path = "$.body",
                     message = "Invalid type",
@@ -91,9 +96,7 @@ class SchemaValidator {
         
         // Validate actions array if present
         jsonObject["actions"]?.let { actions ->
-            try {
-                actions.jsonArray
-            } catch (e: Exception) {
+            if (actions !is JsonArray) {
                 errors.add(SchemaValidationError(
                     path = "$.actions",
                     message = "Invalid type",
@@ -107,11 +110,11 @@ class SchemaValidator {
     }
     
     private fun validateElement(
-        element: kotlinx.serialization.json.JsonObject,
+        element: JsonObject,
         path: String
     ): List<SchemaValidationError> {
         val errors = mutableListOf<SchemaValidationError>()
-        
+
         if (!element.containsKey("type")) {
             errors.add(SchemaValidationError(
                 path = "$path.type",
@@ -120,7 +123,7 @@ class SchemaValidator {
                 actual = "undefined"
             ))
         } else {
-            val type = element["type"]?.jsonPrimitive?.content
+            val type = (element["type"] as? JsonPrimitive)?.content
             
             if (type != null && type !in VALID_ELEMENT_TYPES) {
                 errors.add(SchemaValidationError(

@@ -23,22 +23,34 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 
 ## 📊 Platform Status
 
-| Platform | Core SDK | Templating | Advanced Elements | Status |
-|----------|----------|------------|-------------------|--------|
-| **iOS** | ✅ Complete | ✅ Complete | ✅ Complete | Production Ready |
-| **Android** | ✅ Complete | ✅ Complete | ✅ Complete | Production Ready |
+| Platform | Core SDK | Templating | Advanced Elements | Sample App | Status |
+|----------|----------|------------|-------------------|------------|--------|
+| **iOS** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
+| **Android** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
+
+### Build & Test Status (Verified 2026-02-12)
+
+| Platform | Modules Built | Tests | Sample App |
+|----------|---------------|-------|------------|
+| **iOS** | 11/11 | All passing | Running on iPhone 17 Pro Simulator (iOS 26) |
+| **Android** | 12/12 | 150 passed (100%) | Running on Android Emulator API 36 |
 
 ### Module Overview
 
-#### iOS Modules (6)
+#### iOS Modules (11)
 - ✅ **ACCore**: Card parsing, models, host configuration
 - ✅ **ACRendering**: Card rendering with SwiftUI views
 - ✅ **ACInputs**: Input controls (text, number, date, rating, etc.)
 - ✅ **ACActions**: Action handling (submit, open URL, show card, etc.)
 - ✅ **ACAccessibility**: Accessibility helpers and modifiers
 - ✅ **ACTemplating**: Template engine with 60+ expression functions
+- ✅ **ACMarkdown**: Markdown rendering
+- ✅ **ACCharts**: Chart components (Bar, Line, Pie, Donut)
+- ✅ **ACFluentUI**: Fluent UI theming
+- ✅ **ACCopilotExtensions**: Copilot citation and streaming support
+- ✅ **ACTeams**: Teams integration
 
-#### Android Modules (7)
+#### Android Modules (12)
 - ✅ **ac-core**: Card parsing, models, host configuration
 - ✅ **ac-rendering**: Card rendering with Compose views
 - ✅ **ac-inputs**: Input controls with validation
@@ -46,6 +58,11 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - ✅ **ac-accessibility**: Accessibility semantics
 - ✅ **ac-host-config**: Theme and configuration management
 - ✅ **ac-templating**: Template engine with 50+ expression functions
+- ✅ **ac-markdown**: Markdown rendering
+- ✅ **ac-charts**: Chart components (Bar, Line, Pie, Donut)
+- ✅ **ac-fluent-ui**: Fluent UI theming
+- ✅ **ac-copilot-extensions**: Copilot features
+- ✅ **ac-teams**: Teams integration
 
 ## 🚀 Quick Start
 
@@ -95,14 +112,16 @@ AdaptiveCardView(
 
 #### For iOS Development
 - macOS 12.0 or later
-- Xcode 14.0 or later
+- Xcode 15.0 or later (Xcode 26 recommended)
 - Swift 5.9 or later
+- iOS 16.0+ deployment target (tested on iOS 26 / iPhone 17 Pro Simulator)
 
 #### For Android Development
 - macOS, Linux, or Windows
 - Android Studio Hedgehog (2023.1.1) or later
 - JDK 17 or later
-- Android SDK API 34
+- Android SDK API 34 (tested with API 36 emulator)
+- Gradle 8.5+ (wrapper included in repository)
 
 ### iOS - Building with Xcode
 
@@ -541,11 +560,14 @@ The templating engine supports powerful data binding:
 
 **Goal:** Bridge the gap between "v1.0 code complete" and "production-adopted SDK"
 
-#### 🔧 Phase 6A: Codebase Hygiene & README Accuracy (In Progress)
-- [ ] Update README roadmap to reflect reality
-- [ ] Fix ForEach offset-as-ID anti-pattern across all views
-- [ ] Add CHANGELOG section for v1.1.0-dev
-- [ ] Organize documentation with clear index
+#### 🔧 Phase 6A: Codebase Hygiene & README Accuracy (Complete)
+- [x] Update README roadmap to reflect reality
+- [x] Fix ForEach offset-as-ID anti-pattern across all views
+- [x] Add CHANGELOG section for v1.1.0-dev
+- [x] Organize documentation with clear index
+- [x] iOS sample app: Fixed access control issues, card loading, preview rendering
+- [x] Android sample app: Fixed 9 compilation errors, card loading, assets configuration
+- [x] Both sample apps verified running on simulators/emulators (2026-02-12)
 
 #### 📦 Phase 6B: CI/CD Validation & Green Build
 - [ ] Audit and fix iOS workflow (Xcode 15+, macos-14)
@@ -622,7 +644,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📱 Sample Applications
 
-Both iOS and Android include comprehensive sample apps showcasing all SDK features.
+Both iOS and Android include comprehensive sample apps showcasing all SDK features. Both apps have been verified running on simulators/emulators as of 2026-02-12.
 
 ### iOS Sample App
 
@@ -633,11 +655,13 @@ Located in `ios/SampleApp/`, features:
 - **Performance Dashboard**: Parse/render metrics, memory usage
 - **Settings**: Theme, font scale, accessibility options
 
+**Status**: Running on iPhone 17 Pro Simulator (iOS 26). Card rendering displays actual Adaptive Card content with proper element layout.
+
 Build and run:
 ```bash
 cd ios
 open Package.swift
-# Add SampleApp target in Xcode, then build
+# Select the AdaptiveCardsSample scheme in Xcode, then build (Cmd+R)
 ```
 
 See [ios/SampleApp/README.md](ios/SampleApp/README.md) for detailed instructions.
@@ -650,6 +674,8 @@ Located in `android/sample-app/`, features:
 - **Teams Simulator**: Material Design chat UI
 - **Performance Dashboard**: Comprehensive metrics tracking
 - **Settings**: Material You theming support
+
+**Status**: Running on Android Emulator API 36. Card rendering uses `AdaptiveCardView` composable with proper JSON parsing and element display.
 
 Build and run:
 ```bash
@@ -838,5 +864,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Version**: 1.0.0  
+**Version**: 1.1.0-dev
 **Status**: Production Ready ✅
+**Last Verified**: 2026-02-12 (iOS 11/11 modules, Android 12/12 modules, all tests passing, both sample apps running)

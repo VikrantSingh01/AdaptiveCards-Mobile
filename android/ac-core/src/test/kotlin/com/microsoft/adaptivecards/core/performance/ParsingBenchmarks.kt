@@ -1,6 +1,6 @@
 package com.microsoft.adaptivecards.core.performance
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import kotlin.system.measureTimeMillis
 
 class ParsingBenchmarks {

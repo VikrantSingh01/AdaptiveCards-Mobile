@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import ACCore
 import ACAccessibility
 
@@ -34,7 +36,9 @@ struct TabSetView: View {
                             sizeCategory: sizeCategory
                         ) {
                             selectedTabId = tab.id
+                            #if canImport(UIKit)
                             UIAccessibility.post(notification: .announcement, argument: "\(tab.title) tab selected")
+                            #endif
                         }
                     }
                 }
@@ -65,7 +69,7 @@ struct TabSetView: View {
 }
 
 struct TabButton: View {
-    let tab: Tab
+    let tab: ACCore.Tab
     let isSelected: Bool
     let hostConfig: HostConfig
     let sizeCategory: ContentSizeCategory
@@ -103,8 +107,8 @@ struct TabButton: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(tab.title)
         .accessibilityHint(isSelected ? "Selected tab" : "Double tap to select this tab")
-        .accessibilityAddTraits([.isButton, .isTab])
-        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
     
     private var adaptiveIconSize: Font {
@@ -125,7 +129,7 @@ struct TabButton: View {
 }
 
 struct TabContentView: View {
-    let tab: Tab
+    let tab: ACCore.Tab
     let hostConfig: HostConfig
     
     @EnvironmentObject var viewModel: CardViewModel

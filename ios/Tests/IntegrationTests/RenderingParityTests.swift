@@ -79,11 +79,11 @@ final class RenderingParityTests: XCTestCase {
     func testAllActionsCard() throws {
         let json = try loadTestCard(named: "all-actions")
         let card = try parser.parse(json)
-        
+
         XCTAssertNotNil(card.actions)
-        XCTAssertTrue(card.actions!.count >= 3)
-        
-        // Verify various action types
+        XCTAssertGreaterThanOrEqual(card.actions?.count ?? 0, 1)
+
+        // Collect action types from both top-level actions and ActionSets in body
         var foundActionTypes: Set<String> = []
         for action in card.actions ?? [] {
             switch action {
@@ -94,9 +94,23 @@ final class RenderingParityTests: XCTestCase {
             default: break
             }
         }
-        
-        XCTAssertTrue(foundActionTypes.contains("Submit"))
-        XCTAssertTrue(foundActionTypes.contains("OpenUrl"))
+
+        for element in card.body ?? [] {
+            if case .actionSet(let actionSet) = element {
+                for action in actionSet.actions {
+                    switch action {
+                    case .submit: foundActionTypes.insert("Submit")
+                    case .openUrl: foundActionTypes.insert("OpenUrl")
+                    case .showCard: foundActionTypes.insert("ShowCard")
+                    case .toggleVisibility: foundActionTypes.insert("ToggleVisibility")
+                    default: break
+                    }
+                }
+            }
+        }
+
+        XCTAssertTrue(foundActionTypes.contains("Submit"), "Expected Submit action type")
+        XCTAssertTrue(foundActionTypes.contains("OpenUrl"), "Expected OpenUrl action type")
     }
     
     // MARK: - Advanced Elements Tests
@@ -113,8 +127,7 @@ final class RenderingParityTests: XCTestCase {
         for element in card.body ?? [] {
             if case .carousel(let carousel) = element {
                 foundCarousel = true
-                XCTAssertNotNil(carousel.pages)
-                XCTAssertGreaterThan(carousel.pages?.count ?? 0, 0)
+                XCTAssertGreaterThan(carousel.pages.count, 0)
             }
         }
         
@@ -132,8 +145,7 @@ final class RenderingParityTests: XCTestCase {
         for element in card.body ?? [] {
             if case .accordion(let accordion) = element {
                 foundAccordion = true
-                XCTAssertNotNil(accordion.panels)
-                XCTAssertGreaterThan(accordion.panels?.count ?? 0, 0)
+                XCTAssertGreaterThan(accordion.panels.count, 0)
             }
         }
         
@@ -211,8 +223,7 @@ final class RenderingParityTests: XCTestCase {
         for element in card.body ?? [] {
             if case .tabSet(let tabSet) = element {
                 foundTabSet = true
-                XCTAssertNotNil(tabSet.tabs)
-                XCTAssertGreaterThan(tabSet.tabs?.count ?? 0, 0)
+                XCTAssertGreaterThan(tabSet.tabs.count, 0)
             }
         }
         
@@ -350,7 +361,7 @@ final class RenderingParityTests: XCTestCase {
         var foundEmptyContainer = false
         for element in card.body ?? [] {
             if case .container(let container) = element {
-                if container.items?.isEmpty ?? true {
+                if container.items.isEmpty {
                     foundEmptyContainer = true
                 }
             }

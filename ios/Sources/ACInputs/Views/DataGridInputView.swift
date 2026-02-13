@@ -4,15 +4,15 @@ import ACCore
 public struct DataGridInputView: View {
     let input: DataGridInput
     @Binding var gridData: [[DataGridCellValue]]
-    
+
     @State private var sortColumn: String?
     @State private var sortAscending: Bool = true
     @State private var showDatePicker: Bool = false
     @State private var selectedDateCell: (row: Int, col: Int)?
     @State private var tempDate: Date = Date()
-    
+
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     public init(
         input: DataGridInput,
         gridData: Binding<[[DataGridCellValue]]>
@@ -20,7 +20,7 @@ public struct DataGridInputView: View {
         self.input = input
         self._gridData = gridData
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let label = input.label {
@@ -29,11 +29,11 @@ public struct DataGridInputView: View {
                     .foregroundColor(.secondary)
                     .accessibilityLabel("\(label)\(input.isRequired == true ? ", required" : "")")
             }
-            
+
             ScrollView(.horizontal, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
                     headerRow
-                    
+
                     ScrollView(.vertical, showsIndicators: true) {
                         VStack(spacing: 0) {
                             ForEach(0..<gridData.count, id: \.self) { rowIndex in
@@ -44,7 +44,7 @@ public struct DataGridInputView: View {
                     .frame(maxHeight: 400)
                 }
             }
-            
+
             HStack {
                 Button(action: addRow) {
                     HStack {
@@ -54,9 +54,9 @@ public struct DataGridInputView: View {
                 }
                 .disabled(isMaxRowsReached)
                 .frame(minHeight: 44)
-                
+
                 Spacer()
-                
+
                 Text("\(gridData.count)\(maxRowsText)")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -66,68 +66,72 @@ public struct DataGridInputView: View {
             datePickerSheet
         }
     }
-    
+
     private var headerRow: some View {
-        HStack(spacing: 1) {
-            ForEach(input.columns.indices, id: \.self) { colIndex in
-                let column = input.columns[colIndex]
-                
-                Button(action: {
-                    if column.isSortable ?? true {
-                        toggleSort(columnId: column.id)
-                    }
-                }) {
-                    HStack(spacing: 4) {
-                        Text(column.title)
-                            .font(.headline)
-                            .lineLimit(1)
-                        
-                        if column.isSortable ?? true {
-                            Image(systemName: sortIcon(for: column.id))
-                                .font(.caption)
-                        }
-                    }
-                    .padding(8)
-                    .frame(width: columnWidth(column), minHeight: 44)
-                }
-                .disabled(!(column.isSortable ?? true))
-                .background(Color.gray.opacity(0.2))
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("\(column.title) column header\(column.isSortable ?? true ? ", sortable" : "")")
-                .accessibilityHint(column.isSortable ?? true ? "Double tap to sort" : "")
+        let columnCount = input.columns.count
+        return HStack(spacing: 1) {
+            ForEach(0..<columnCount, id: \.self) { colIndex in
+                headerCell(column: input.columns[colIndex])
             }
-            
+
             // Delete column header
             Color.clear
-                .frame(width: 60, minHeight: 44)
+                .frame(width: 60, height: 44)
                 .background(Color.gray.opacity(0.2))
         }
     }
-    
+
+    private func headerCell(column: DataGridColumn) -> some View {
+        Button(action: {
+            if column.isSortable ?? true {
+                toggleSort(columnId: column.id)
+            }
+        }) {
+            HStack(spacing: 4) {
+                Text(column.title)
+                    .font(.headline)
+                    .lineLimit(1)
+
+                if column.isSortable ?? true {
+                    Image(systemName: sortIcon(for: column.id))
+                        .font(.caption)
+                }
+            }
+            .padding(8)
+            .frame(width: columnWidth(column), height: 44)
+        }
+        .disabled(!(column.isSortable ?? true))
+        .background(Color.gray.opacity(0.2))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(column.title) column header\(column.isSortable ?? true ? ", sortable" : "")")
+        .accessibilityHint(column.isSortable ?? true ? "Double tap to sort" : "")
+    }
+
     private func dataRow(rowIndex: Int) -> some View {
-        HStack(spacing: 1) {
-            ForEach(input.columns.indices, id: \.self) { colIndex in
+        let columnCount = input.columns.count
+        return HStack(spacing: 1) {
+            ForEach(0..<columnCount, id: \.self) { colIndex in
                 let column = input.columns[colIndex]
                 cellView(row: rowIndex, col: colIndex, column: column)
-                    .frame(width: columnWidth(column), minHeight: 44)
+                    .frame(width: columnWidth(column), height: 44)
                     .background(Color.white)
                     .border(Color.gray.opacity(0.3), width: 0.5)
             }
-            
+
             // Delete button
             Button(action: { deleteRow(at: rowIndex) }) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
-                    .frame(width: 60, minHeight: 44)
+                    .frame(width: 60, height: 44)
             }
             .accessibilityLabel("Delete row \(rowIndex + 1)")
         }
     }
-    
+
     private func cellView(row: Int, col: Int, column: DataGridColumn) -> some View {
         let isEditable = column.isEditable ?? true
         let cellValue = gridData[row][col]
-        
+
         return Group {
             switch column.type {
             case "text":
@@ -145,10 +149,10 @@ public struct DataGridInputView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Row \(row + 1), \(column.title): \(cellValueDescription(cellValue))")
     }
-    
+
     private func textCell(row: Int, col: Int, value: DataGridCellValue, isEditable: Bool) -> some View {
         let textValue = cellValueToString(value)
-        
+
         return TextField("", text: Binding(
             get: { textValue },
             set: { newValue in
@@ -160,11 +164,11 @@ public struct DataGridInputView: View {
         .padding(8)
         .frame(minHeight: 44)
     }
-    
+
     private func numberCell(row: Int, col: Int, value: DataGridCellValue, isEditable: Bool) -> some View {
         let numberValue = cellValueToString(value)
-        
-        return TextField("", text: Binding(
+
+        let textField = TextField("", text: Binding(
             get: { numberValue },
             set: { newValue in
                 if let doubleValue = Double(newValue) {
@@ -175,12 +179,17 @@ public struct DataGridInputView: View {
             }
         ))
         .disabled(!isEditable)
-        .keyboardType(.decimalPad)
         .textFieldStyle(.plain)
         .padding(8)
         .frame(minHeight: 44)
+
+        #if os(iOS)
+        return textField.keyboardType(.decimalPad)
+        #else
+        return textField
+        #endif
     }
-    
+
     private func dateCell(row: Int, col: Int, value: DataGridCellValue, isEditable: Bool) -> some View {
         Button(action: {
             if isEditable {
@@ -200,10 +209,10 @@ public struct DataGridInputView: View {
         }
         .disabled(!isEditable)
     }
-    
+
     private func toggleCell(row: Int, col: Int, value: DataGridCellValue, isEditable: Bool) -> some View {
         let boolValue = cellValueToBool(value)
-        
+
         return Toggle("", isOn: Binding(
             get: { boolValue },
             set: { newValue in
@@ -215,29 +224,33 @@ public struct DataGridInputView: View {
         .padding(8)
         .frame(minHeight: 44)
     }
-    
+
     private var datePickerSheet: some View {
         NavigationView {
             DatePicker("Select Date", selection: $tempDate, displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .padding()
-                .navigationBarItems(
-                    leading: Button("Cancel") {
-                        showDatePicker = false
-                    },
-                    trailing: Button("Done") {
-                        if let cell = selectedDateCell {
-                            let formatter = ISO8601DateFormatter()
-                            formatter.formatOptions = [.withFullDate]
-                            let dateString = formatter.string(from: tempDate)
-                            gridData[cell.row][cell.col] = .string(dateString)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showDatePicker = false
                         }
-                        showDatePicker = false
                     }
-                )
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            if let cell = selectedDateCell {
+                                let formatter = ISO8601DateFormatter()
+                                formatter.formatOptions = [.withFullDate]
+                                let dateString = formatter.string(from: tempDate)
+                                gridData[cell.row][cell.col] = .string(dateString)
+                            }
+                            showDatePicker = false
+                        }
+                    }
+                }
         }
     }
-    
+
     private func columnWidth(_ column: DataGridColumn) -> CGFloat {
         if let width = column.width {
             if width == "stretch" {
@@ -251,14 +264,14 @@ public struct DataGridInputView: View {
         }
         return 120
     }
-    
+
     private func sortIcon(for columnId: String) -> String {
         if sortColumn == columnId {
             return sortAscending ? "chevron.up" : "chevron.down"
         }
         return "chevron.up.chevron.down"
     }
-    
+
     private func toggleSort(columnId: String) {
         if sortColumn == columnId {
             sortAscending.toggle()
@@ -266,22 +279,22 @@ public struct DataGridInputView: View {
             sortColumn = columnId
             sortAscending = true
         }
-        
+
         if let colIndex = input.columns.firstIndex(where: { $0.id == columnId }) {
             sortData(by: colIndex, ascending: sortAscending)
         }
     }
-    
+
     private func sortData(by colIndex: Int, ascending: Bool) {
         gridData.sort { row1, row2 in
             let val1 = row1[colIndex]
             let val2 = row2[colIndex]
-            
+
             let comparison = compareCellValues(val1, val2)
             return ascending ? comparison : !comparison
         }
     }
-    
+
     private func compareCellValues(_ val1: DataGridCellValue, _ val2: DataGridCellValue) -> Bool {
         switch (val1, val2) {
         case (.string(let s1), .string(let s2)):
@@ -298,10 +311,10 @@ public struct DataGridInputView: View {
             return false
         }
     }
-    
+
     private func addRow() {
         guard !isMaxRowsReached else { return }
-        
+
         let newRow = input.columns.map { column -> DataGridCellValue in
             switch column.type {
             case "toggle":
@@ -314,25 +327,25 @@ public struct DataGridInputView: View {
         }
         gridData.append(newRow)
     }
-    
+
     private func deleteRow(at index: Int) {
         gridData.remove(at: index)
     }
-    
+
     private var isMaxRowsReached: Bool {
         if let maxRows = input.maxRows {
             return gridData.count >= maxRows
         }
         return false
     }
-    
+
     private var maxRowsText: String {
         if let maxRows = input.maxRows {
             return " / \(maxRows)"
         }
         return ""
     }
-    
+
     private func cellValueToString(_ value: DataGridCellValue) -> String {
         switch value {
         case .string(let str):
@@ -345,7 +358,7 @@ public struct DataGridInputView: View {
             return ""
         }
     }
-    
+
     private func cellValueToBool(_ value: DataGridCellValue) -> Bool {
         switch value {
         case .bool(let bool):
@@ -358,7 +371,7 @@ public struct DataGridInputView: View {
             return false
         }
     }
-    
+
     private func cellValueDescription(_ value: DataGridCellValue) -> String {
         switch value {
         case .string(let str):

@@ -3,6 +3,7 @@ package com.microsoft.adaptivecards.rendering.composables
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.models.ColumnSet
 import com.microsoft.adaptivecards.core.models.Column
 import com.microsoft.adaptivecards.rendering.modifiers.containerStyle

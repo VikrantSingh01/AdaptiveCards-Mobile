@@ -115,6 +115,46 @@ struct TestCard: Identifiable {
 }
 
 class TestCardLoader {
+    /// Directory path to shared test cards resolved at load time
+    private static let testCardsDirectory: String? = {
+        // Resolve the path to the shared/test-cards directory relative to the app bundle or source tree
+        // Strategy 1: Check if cards are bundled as app resources
+        if let bundlePath = Bundle.main.resourcePath {
+            let bundledDir = (bundlePath as NSString).appendingPathComponent("test-cards")
+            if FileManager.default.fileExists(atPath: bundledDir) {
+                return bundledDir
+            }
+        }
+
+        // Strategy 2: Walk up from the app bundle to find the repo root (development builds)
+        // The app binary lives somewhere under .../Build/Products/Debug-iphonesimulator/...
+        // or the source tree itself at .../ios/SampleApp
+        if let bundlePath = Bundle.main.bundlePath as NSString? {
+            var current = bundlePath as String
+            for _ in 0..<10 {
+                let candidate = (current as NSString).appendingPathComponent("shared/test-cards")
+                if FileManager.default.fileExists(atPath: candidate) {
+                    return candidate
+                }
+                current = (current as NSString).deletingLastPathComponent
+            }
+        }
+
+        // Strategy 3: Use the known relative path from the source file during development
+        // __FILE__ equivalent: #file resolves to the source location at compile time
+        let sourceFile = #file
+        var dir = (sourceFile as NSString).deletingLastPathComponent
+        for _ in 0..<10 {
+            let candidate = (dir as NSString).appendingPathComponent("shared/test-cards")
+            if FileManager.default.fileExists(atPath: candidate) {
+                return candidate
+            }
+            dir = (dir as NSString).deletingLastPathComponent
+        }
+
+        return nil
+    }()
+
     static func loadAllCards() -> [TestCard] {
         let cardDefinitions: [(String, String, CardCategory, Bool)] = [
             ("simple-text.json", "Simple Text", .basic, false),
@@ -152,10 +192,10 @@ class TestCardLoader {
             ("templating-nested.json", "Nested Templating", .templating, false),
             ("advanced-combined.json", "Advanced Combined", .advanced, true),
         ]
-        
+
         return cardDefinitions.compactMap { (filename, title, category, isAdvanced) in
             guard let jsonString = loadCardJSON(filename) else { return nil }
-            
+
             return TestCard(
                 title: title,
                 description: "Test card: \(title)",
@@ -166,23 +206,27 @@ class TestCardLoader {
             )
         }
     }
-    
+
     private static func loadCardJSON(_ filename: String) -> String? {
-        // In a real implementation, this would load from Bundle.main
-        // For now, return placeholder JSON
-        return """
-        {
-          "type": "AdaptiveCard",
-          "version": "1.5",
-          "body": [
-            {
-              "type": "TextBlock",
-              "text": "\(filename)",
-              "size": "large",
-              "weight": "bolder"
+        // Try to load the real card JSON from the shared test-cards directory
+        if let directory = testCardsDirectory {
+            let filePath = (directory as NSString).appendingPathComponent(filename)
+            if let data = FileManager.default.contents(atPath: filePath),
+               let jsonString = String(data: data, encoding: .utf8) {
+                return jsonString
             }
-          ]
         }
-        """
+
+        // Try loading from the app bundle directly (e.g. if cards were added as bundle resources)
+        if let url = Bundle.main.url(forResource: filename.replacingOccurrences(of: ".json", with: ""), withExtension: "json"),
+           let data = try? Data(contentsOf: url),
+           let jsonString = String(data: data, encoding: .utf8) {
+            return jsonString
+        }
+
+        // Fallback: return nil so the card is filtered out by compactMap
+        // This avoids showing identical placeholder cards
+        print("Warning: Could not load test card file: \(filename)")
+        return nil
     }
 }

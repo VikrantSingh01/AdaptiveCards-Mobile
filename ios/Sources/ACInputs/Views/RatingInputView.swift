@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import ACCore
 import ACAccessibility
 
@@ -36,7 +38,9 @@ public struct RatingInputView: View {
                 ForEach(1...maxStars, id: \.self) { starIndex in
                     Button(action: {
                         value = Double(starIndex)
+                        #if canImport(UIKit)
                         UIAccessibility.post(notification: .announcement, argument: "\(starIndex) stars selected")
+                        #endif
                     }) {
                         starImage(for: starIndex)
                             .foregroundColor(starIndex <= Int(value.rounded(.up)) ? .yellow : .gray)
@@ -58,9 +62,8 @@ public struct RatingInputView: View {
                     .accessibilityAddTraits(.isStaticText)
             }
         }
-        .spacing(input.spacing, hostConfig: hostConfig)
-        .separator(input.separator, hostConfig: hostConfig)
-        .accessibilityElement(children: .contain)
+        // TODO: Re-add spacing and separator modifiers if ACRendering is added as dependency
+        .accessibilityElement(children: .combine)
         .accessibilityLabel(input.label ?? "Rating input")
         .accessibilityValue("\(Int(value.rounded(.up))) out of \(maxStars) stars selected")
     }
@@ -81,15 +84,15 @@ public struct RatingInputView: View {
         }
     }
     
-    private func starImage(for index: Int) -> Image {
+    private func starImage(for index: Int) -> SwiftUI.Image {
         let starValue = Double(index)
-        
+
         if value >= starValue {
-            return Image(systemName: "star.fill")
+            return SwiftUI.Image(systemName: "star.fill")
         } else if value >= starValue - 0.5 {
-            return Image(systemName: "star.leadinghalf.filled")
+            return SwiftUI.Image(systemName: "star.leadinghalf.filled")
         } else {
-            return Image(systemName: "star")
+            return SwiftUI.Image(systemName: "star")
         }
     }
     

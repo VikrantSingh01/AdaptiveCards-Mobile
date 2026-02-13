@@ -42,9 +42,10 @@ android {
 
 dependencies {
     implementation(libs.kotlin.stdlib)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.compose.runtime)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.runtime)
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter.api)

@@ -33,12 +33,7 @@ public struct NumberInputView: View {
                     .foregroundColor(.secondary)
             }
             
-            TextField(input.placeholder ?? "Enter number", text: $textValue)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.decimalPad)
-                .onChange(of: textValue) { newValue in
-                    updateValue(from: newValue)
-                }
+            numberTextField
             
             if let error = validationState.getError(for: input.id) {
                 Text(error)
@@ -53,6 +48,20 @@ public struct NumberInputView: View {
         )
     }
     
+    @ViewBuilder
+    private var numberTextField: some View {
+        let field = TextField(input.placeholder ?? "Enter number", text: $textValue)
+            .textFieldStyle(.roundedBorder)
+            .onChange(of: textValue) { newValue in
+                updateValue(from: newValue)
+            }
+        #if os(iOS)
+        field.keyboardType(.decimalPad)
+        #else
+        field
+        #endif
+    }
+
     private func updateValue(from text: String) {
         if text.isEmpty {
             value = nil

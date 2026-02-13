@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "AdaptiveCards",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
@@ -58,7 +59,7 @@ let package = Package(
             dependencies: []),
         .target(
             name: "ACCharts",
-            dependencies: ["ACCore"]),
+            dependencies: ["ACCore", "ACFluentUI"]),
         .target(
             name: "ACFluentUI",
             dependencies: []),
@@ -70,7 +71,7 @@ let package = Package(
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
             name: "ACRendering",
-            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts"]),
+            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI"]),
         .target(
             name: "ACCopilotExtensions",
             dependencies: ["ACCore"]),

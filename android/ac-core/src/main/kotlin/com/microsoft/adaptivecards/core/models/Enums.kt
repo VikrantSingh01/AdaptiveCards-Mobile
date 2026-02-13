@@ -5,153 +5,153 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class HorizontalAlignment {
-    @SerialName("left") Left,
-    @SerialName("center") Center,
-    @SerialName("right") Right
+    @SerialName("Left") Left,
+    @SerialName("Center") Center,
+    @SerialName("Right") Right
 }
 
 @Serializable
 enum class VerticalAlignment {
-    @SerialName("top") Top,
-    @SerialName("center") Center,
-    @SerialName("bottom") Bottom
+    @SerialName("Top") Top,
+    @SerialName("Center") Center,
+    @SerialName("Bottom") Bottom
 }
 
 @Serializable
 enum class VerticalContentAlignment {
-    @SerialName("top") Top,
-    @SerialName("center") Center,
-    @SerialName("bottom") Bottom
+    @SerialName("Top") Top,
+    @SerialName("Center") Center,
+    @SerialName("Bottom") Bottom
 }
 
 @Serializable
 enum class Spacing {
-    @SerialName("none") None,
-    @SerialName("small") Small,
-    @SerialName("default") Default,
-    @SerialName("medium") Medium,
-    @SerialName("large") Large,
-    @SerialName("extraLarge") ExtraLarge,
-    @SerialName("padding") Padding
+    @SerialName("None") None,
+    @SerialName("Small") Small,
+    @SerialName("Default") Default,
+    @SerialName("Medium") Medium,
+    @SerialName("Large") Large,
+    @SerialName("ExtraLarge") ExtraLarge,
+    @SerialName("Padding") Padding
 }
 
 @Serializable
 enum class FontType {
-    @SerialName("default") Default,
-    @SerialName("monospace") Monospace
+    @SerialName("Default") Default,
+    @SerialName("Monospace") Monospace
 }
 
 @Serializable
 enum class FontSize {
-    @SerialName("small") Small,
-    @SerialName("default") Default,
-    @SerialName("medium") Medium,
-    @SerialName("large") Large,
-    @SerialName("extraLarge") ExtraLarge
+    @SerialName("Small") Small,
+    @SerialName("Default") Default,
+    @SerialName("Medium") Medium,
+    @SerialName("Large") Large,
+    @SerialName("ExtraLarge") ExtraLarge
 }
 
 @Serializable
 enum class FontWeight {
-    @SerialName("default") Default,
-    @SerialName("lighter") Lighter,
-    @SerialName("bolder") Bolder
+    @SerialName("Default") Default,
+    @SerialName("Lighter") Lighter,
+    @SerialName("Bolder") Bolder
 }
 
 @Serializable
 enum class Color {
-    @SerialName("default") Default,
-    @SerialName("dark") Dark,
-    @SerialName("light") Light,
-    @SerialName("accent") Accent,
-    @SerialName("good") Good,
-    @SerialName("warning") Warning,
-    @SerialName("attention") Attention
+    @SerialName("Default") Default,
+    @SerialName("Dark") Dark,
+    @SerialName("Light") Light,
+    @SerialName("Accent") Accent,
+    @SerialName("Good") Good,
+    @SerialName("Warning") Warning,
+    @SerialName("Attention") Attention
 }
 
 @Serializable
 enum class ImageSize {
-    @SerialName("auto") Auto,
-    @SerialName("stretch") Stretch,
-    @SerialName("small") Small,
-    @SerialName("medium") Medium,
-    @SerialName("large") Large
+    @SerialName("Auto") Auto,
+    @SerialName("Stretch") Stretch,
+    @SerialName("Small") Small,
+    @SerialName("Medium") Medium,
+    @SerialName("Large") Large
 }
 
 @Serializable
 enum class ImageStyle {
-    @SerialName("default") Default,
-    @SerialName("person") Person
+    @SerialName("Default") Default,
+    @SerialName("Person") Person
 }
 
 @Serializable
 enum class ContainerStyle {
-    @SerialName("default") Default,
-    @SerialName("emphasis") Emphasis,
-    @SerialName("good") Good,
-    @SerialName("attention") Attention,
-    @SerialName("warning") Warning,
-    @SerialName("accent") Accent
+    @SerialName("Default") Default,
+    @SerialName("Emphasis") Emphasis,
+    @SerialName("Good") Good,
+    @SerialName("Attention") Attention,
+    @SerialName("Warning") Warning,
+    @SerialName("Accent") Accent
 }
 
 @Serializable
 enum class ActionStyle {
-    @SerialName("default") Default,
-    @SerialName("positive") Positive,
-    @SerialName("destructive") Destructive
+    @SerialName("Default") Default,
+    @SerialName("Positive") Positive,
+    @SerialName("Destructive") Destructive
 }
 
 @Serializable
 enum class HeightType {
-    @SerialName("auto") Auto,
-    @SerialName("stretch") Stretch
+    @SerialName("Auto") Auto,
+    @SerialName("Stretch") Stretch
 }
 
 @Serializable
 enum class BlockElementHeight {
-    @SerialName("auto") Auto,
-    @SerialName("stretch") Stretch
+    @SerialName("Auto") Auto,
+    @SerialName("Stretch") Stretch
 }
 
 @Serializable
 enum class ChoiceInputStyle {
-    @SerialName("compact") Compact,
-    @SerialName("expanded") Expanded,
-    @SerialName("filtered") Filtered
+    @SerialName("Compact") Compact,
+    @SerialName("Expanded") Expanded,
+    @SerialName("Filtered") Filtered
 }
 
 @Serializable
 enum class TextInputStyle {
-    @SerialName("text") Text,
-    @SerialName("tel") Tel,
-    @SerialName("url") Url,
-    @SerialName("email") Email,
-    @SerialName("password") Password
+    @SerialName("Text") Text,
+    @SerialName("Tel") Tel,
+    @SerialName("Url") Url,
+    @SerialName("Email") Email,
+    @SerialName("Password") Password
 }
 
 @Serializable
 enum class AssociatedInputs {
-    @SerialName("auto") Auto,
-    @SerialName("none") None
+    @SerialName("Auto") Auto,
+    @SerialName("None") None
 }
 
 @Serializable
 enum class ActionMode {
-    @SerialName("primary") Primary,
-    @SerialName("secondary") Secondary
+    @SerialName("Primary") Primary,
+    @SerialName("Secondary") Secondary
 }
 
 @Serializable
 enum class ActionSetMode {
-    @SerialName("default") Default,
-    @SerialName("overflow") Overflow
+    @SerialName("Default") Default,
+    @SerialName("Overflow") Overflow
 }
 
 @Serializable
 enum class TargetWidth {
-    @SerialName("narrow") Narrow,
-    @SerialName("standard") Standard,
-    @SerialName("wide") Wide,
-    @SerialName("veryWide") VeryWide
+    @SerialName("Narrow") Narrow,
+    @SerialName("Standard") Standard,
+    @SerialName("Wide") Wide,
+    @SerialName("VeryWide") VeryWide
 }
 
 @Serializable

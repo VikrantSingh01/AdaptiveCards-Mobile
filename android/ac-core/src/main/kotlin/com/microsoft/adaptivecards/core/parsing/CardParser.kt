@@ -1,7 +1,12 @@
 package com.microsoft.adaptivecards.core.parsing
 
 import com.microsoft.adaptivecards.core.models.*
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -12,8 +17,10 @@ object CardParser {
         ignoreUnknownKeys = true
         isLenient = true
         prettyPrint = true
+        coerceInputValues = true
         serializersModule = SerializersModule {
             polymorphic(CardElement::class) {
+                defaultDeserializer { TextBlock.serializer() }
                 subclass(TextBlock::class)
                 subclass(Image::class)
                 subclass(Container::class)
@@ -39,13 +46,24 @@ object CardParser {
                 subclass(ProgressBar::class)
                 subclass(Spinner::class)
                 subclass(TabSet::class)
+                subclass(ListElement::class)
+                subclass(CompoundButton::class)
+                subclass(DonutChart::class)
+                subclass(BarChart::class)
+                subclass(LineChart::class)
+                subclass(PieChart::class)
+                subclass(InputDataGrid::class)
             }
             polymorphic(CardAction::class) {
+                defaultDeserializer { ActionSubmit.serializer() }
                 subclass(ActionSubmit::class)
                 subclass(ActionOpenUrl::class)
                 subclass(ActionShowCard::class)
                 subclass(ActionExecute::class)
                 subclass(ActionToggleVisibility::class)
+                subclass(ActionPopover::class)
+                subclass(ActionRunCommands::class)
+                subclass(ActionOpenUrlDialog::class)
             }
         }
     }

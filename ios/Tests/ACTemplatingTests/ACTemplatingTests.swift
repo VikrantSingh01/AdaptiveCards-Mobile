@@ -21,7 +21,7 @@ final class ACTemplatingTests: XCTestCase {
     
     func testMultipleExpressions() throws {
         let template = "${greeting}, ${name}! You are ${age} years old."
-        let data = ["greeting": "Hello", "name": "Alice", "age": 30]
+        let data: [String: Any] = ["greeting": "Hello", "name": "Alice", "age": 30]
         let result = try engine.expand(template: template, data: data)
         XCTAssertEqual(result, "Hello, Alice! You are 30 years old.")
     }
@@ -347,7 +347,7 @@ final class ACTemplatingTests: XCTestCase {
     
     func testComplexExpression() throws {
         let template = "${if(age >= 18 && status == 'active', 'Eligible', 'Not eligible')}"
-        let data = ["age": 25, "status": "active"]
+        let data: [String: Any] = ["age": 25, "status": "active"]
         let result = try engine.expand(template: template, data: data)
         XCTAssertEqual(result, "Eligible")
     }

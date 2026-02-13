@@ -114,6 +114,11 @@ struct ElementView: View {
             ListView(list: list, hostConfig: hostConfig)
         case .compoundButton(let button):
             CompoundButtonView(button: button, hostConfig: hostConfig)
+        case .donutChart, .barChart, .lineChart, .pieChart:
+            // Chart rendering not yet implemented
+            Text("Chart element")
+                .font(.caption)
+                .foregroundColor(.gray)
         case .unknown(let type):
             // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG

@@ -60,28 +60,28 @@ final class AdvancedElementsParserTests: XCTestCase {
     func testCarouselPageIdentifiable() throws {
         // Test that CarouselPage conforms to Identifiable
         let page1 = CarouselPage(items: [
-            .textBlock(TextBlock(text: "Page 1"))
+            .textBlock(TextBlock(id: "tb1", text: "Page 1"))
         ])
-        
+
         let page2 = CarouselPage(items: [
-            .textBlock(TextBlock(text: "Page 2"))
+            .textBlock(TextBlock(id: "tb2", text: "Page 2"))
         ])
-        
-        // IDs should be different for different content
+
+        // IDs should be different when inner elements have different IDs
         XCTAssertNotEqual(page1.id, page2.id)
     }
     
     func testCarouselPageIdentifiableStability() throws {
-        // Test that ID is stable for same content
+        // Test that ID is stable for same structure
         let page1 = CarouselPage(items: [
-            .textBlock(TextBlock(text: "Test"))
+            .textBlock(TextBlock(id: "tb1", text: "Test"))
         ])
-        
+
         let page2 = CarouselPage(items: [
-            .textBlock(TextBlock(text: "Test"))
+            .textBlock(TextBlock(id: "tb1", text: "Test"))
         ])
-        
-        // Same content should produce same ID
+
+        // Same structure should produce same ID
         XCTAssertEqual(page1.id, page2.id)
     }
     
@@ -98,7 +98,7 @@ final class AdvancedElementsParserTests: XCTestCase {
         // Test that selectAction affects ID
         let pageWithAction = CarouselPage(
             items: [.textBlock(TextBlock(text: "Test"))],
-            selectAction: .openUrl(ActionOpenUrl(url: "https://example.com"))
+            selectAction: .openUrl(OpenUrlAction(url: "https://example.com"))
         )
         
         let pageWithoutAction = CarouselPage(
@@ -111,13 +111,13 @@ final class AdvancedElementsParserTests: XCTestCase {
     }
     
     func testCarouselPageIdentifiableUniqueInArray() throws {
-        // Test that multiple pages can be distinguished in a collection
+        // Test that multiple pages can be distinguished in a collection when they have different element IDs
         let pages = [
-            CarouselPage(items: [.textBlock(TextBlock(text: "Page 1"))]),
-            CarouselPage(items: [.textBlock(TextBlock(text: "Page 2"))]),
-            CarouselPage(items: [.textBlock(TextBlock(text: "Page 3"))])
+            CarouselPage(items: [.textBlock(TextBlock(id: "p1", text: "Page 1"))]),
+            CarouselPage(items: [.textBlock(TextBlock(id: "p2", text: "Page 2"))]),
+            CarouselPage(items: [.textBlock(TextBlock(id: "p3", text: "Page 3"))])
         ]
-        
+
         // All IDs should be unique
         let ids = pages.map { $0.id }
         let uniqueIds = Set(ids)
@@ -617,13 +617,13 @@ final class AdvancedElementsParserTests: XCTestCase {
     
     func testAdvancedElementsWithoutIds() throws {
         let carousel = CardElement.carousel(Carousel(pages: []))
-        XCTAssertNil(carousel.id)
-        
+        XCTAssertNil(carousel.elementId)
+
         let accordion = CardElement.accordion(Accordion(panels: []))
-        XCTAssertNil(accordion.id)
-        
+        XCTAssertNil(accordion.elementId)
+
         let codeBlock = CardElement.codeBlock(CodeBlock(code: "test"))
-        XCTAssertNil(codeBlock.id)
+        XCTAssertNil(codeBlock.elementId)
     }
     
     // MARK: - List Tests
@@ -887,7 +887,7 @@ final class AdvancedElementsParserTests: XCTestCase {
             subtitle: "Test subtitle",
             icon: "star.fill",
             iconPosition: "leading",
-            action: CardAction.submit(ActionSubmit(title: "Submit")),
+            action: CardAction.submit(SubmitAction(title: "Submit")),
             style: "emphasis"
         )
         
@@ -924,7 +924,7 @@ final class AdvancedElementsParserTests: XCTestCase {
         XCTAssertEqual(button.id, "test123")
         
         let noIdButton = CardElement.compoundButton(CompoundButton(title: "Test"))
-        XCTAssertNil(noIdButton.id)
+        XCTAssertNil(noIdButton.elementId)
     }
     
     // MARK: - Helper Methods

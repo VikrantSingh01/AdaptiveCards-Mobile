@@ -2,6 +2,7 @@ package com.microsoft.adaptivecards.core.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
@@ -14,7 +15,7 @@ sealed interface CardInput : CardElement {
 @Serializable
 @SerialName("Input.Text")
 data class InputText(
-    override val type: String = "Input.Text",
+    @Transient override val type: String = "Input.Text",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -37,7 +38,7 @@ data class InputText(
 @Serializable
 @SerialName("Input.Number")
 data class InputNumber(
-    override val type: String = "Input.Number",
+    @Transient override val type: String = "Input.Number",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -57,7 +58,7 @@ data class InputNumber(
 @Serializable
 @SerialName("Input.Date")
 data class InputDate(
-    override val type: String = "Input.Date",
+    @Transient override val type: String = "Input.Date",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -77,7 +78,7 @@ data class InputDate(
 @Serializable
 @SerialName("Input.Time")
 data class InputTime(
-    override val type: String = "Input.Time",
+    @Transient override val type: String = "Input.Time",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -97,7 +98,7 @@ data class InputTime(
 @Serializable
 @SerialName("Input.Toggle")
 data class InputToggle(
-    override val type: String = "Input.Toggle",
+    @Transient override val type: String = "Input.Toggle",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -118,7 +119,7 @@ data class InputToggle(
 @Serializable
 @SerialName("Input.ChoiceSet")
 data class InputChoiceSet(
-    override val type: String = "Input.ChoiceSet",
+    @Transient override val type: String = "Input.ChoiceSet",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -146,7 +147,7 @@ data class Choice(
 @Serializable
 @SerialName("Input.DataGrid")
 data class InputDataGrid(
-    override val type: String = "Input.DataGrid",
+    @Transient override val type: String = "Input.DataGrid",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
