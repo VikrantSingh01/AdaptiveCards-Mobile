@@ -1,6 +1,17 @@
 # Adaptive Cards iOS SDK
 
-A modern, SwiftUI-based implementation of the Adaptive Cards SDK for iOS, designed for Microsoft Teams mobile integration and supporting Adaptive Cards schema v1.6.
+A modern, SwiftUI-based implementation of the Adaptive Cards SDK for iOS, designed for Microsoft Teams mobile integration and supporting **Adaptive Cards schema v1.6**.
+
+## 🎯 v1.6 Parity Status
+
+This SDK fully implements Adaptive Cards v1.6 with complete cross-platform parity. See [PARITY_MATRIX.md](../docs/architecture/PARITY_MATRIX.md) for detailed status.
+
+**Highlights**:
+- ✅ **41+ Element Types**: All v1.6 elements including Table, CompoundButton
+- ✅ **5 Action Types**: Including Action.Execute with v1.6 enhancements (verb, associatedInputs)
+- ✅ **60 Expression Functions**: Complete templating engine
+- ✅ **Schema Validation**: Built-in v1.6 schema validator with round-trip serialization tests
+- 🚧 **menuActions**: Tracked for future implementation with tests in place
 
 ## Features
 
