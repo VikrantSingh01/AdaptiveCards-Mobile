@@ -1,6 +1,6 @@
 # Adaptive Cards Mobile SDK
 
-> Next-generation Adaptive Cards SDK for iOS (SwiftUI) and Android (Jetpack Compose) with comprehensive templating engine and advanced elements support.
+> Adaptive Cards SDK for iOS (SwiftUI) and Android (Jetpack Compose) with comprehensive templating engine and advanced elements support.
 
 [![iOS Build](https://img.shields.io/badge/iOS-16%2B-blue.svg)](https://developer.apple.com/ios/)
 [![Android Build](https://img.shields.io/badge/Android-24%2B-green.svg)](https://developer.android.com/)
