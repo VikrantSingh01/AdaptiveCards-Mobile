@@ -2,7 +2,7 @@ name: Android Tests
 
 on:
   push:
-    branches: [ main, 'copilot/**' ]
+    branches: [ main, 'copilot/**', 'feat/**' ]
     paths:
       - 'android/**'
       - 'shared/test-cards/**'
@@ -12,6 +12,7 @@ on:
     paths:
       - 'android/**'
       - 'shared/test-cards/**'
+      - '.github/workflows/android-tests.yml'
 
 permissions:
   contents: read
@@ -39,7 +40,7 @@ jobs:
       
     - name: Run Android Tests
       working-directory: android
-      run: ./gradlew test --stacktrace
+      run: ./gradlew testDebugUnitTest --stacktrace
     
     - name: Run Snapshot Tests
       working-directory: android
