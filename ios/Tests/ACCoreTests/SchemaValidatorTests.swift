@@ -287,8 +287,8 @@ final class SchemaValidatorTests: XCTestCase {
         
         // Verify structure is preserved
         let reparsedCard = try parser.parse(serializedJSON)
-        XCTAssertEqual(card.body.count, reparsedCard.body.count)
-        XCTAssertEqual(card.actions.count, reparsedCard.actions.count)
+        XCTAssertEqual(card.body?.count, reparsedCard.body?.count)
+        XCTAssertEqual(card.actions?.count, reparsedCard.actions?.count)
     }
     
     func testRoundTripWithTable() throws {
