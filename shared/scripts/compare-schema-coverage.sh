@@ -29,8 +29,18 @@ ANDROID_ACTIONS="/tmp/android-actions.txt"
 # Extract element types from iOS
 echo "Extracting iOS element types..."
 if [ -f "$IOS_VALIDATOR" ]; then
-    grep -A 50 "validElementTypes" "$IOS_VALIDATOR" | grep '"' | sed 's/.*"\(.*\)".*/\1/' | sort > "$IOS_ELEMENTS"
-    grep -A 20 "validActionTypes" "$IOS_VALIDATOR" | grep '"' | sed 's/.*"\(.*\)".*/\1/' | sort > "$IOS_ACTIONS" || echo "" > "$IOS_ACTIONS"
+    # Extract from validElementTypes set - stop at closing bracket
+    grep -A 20 "validElementTypes" "$IOS_VALIDATOR" | \
+        grep -o '"[^"]*"' | \
+        tr -d '"' | \
+        grep -E "^[A-Z]|^Input\." | \
+        sort -u > "$IOS_ELEMENTS"
+    
+    # Extract action types
+    grep -A 10 "validActionTypes" "$IOS_VALIDATOR" | \
+        grep -o '"Action\.[^"]*"' | \
+        tr -d '"' | \
+        sort -u > "$IOS_ACTIONS"
 else
     echo -e "${RED}Error: iOS SchemaValidator not found${NC}"
     exit 1
@@ -39,8 +49,18 @@ fi
 # Extract element types from Android
 echo "Extracting Android element types..."
 if [ -f "$ANDROID_VALIDATOR" ]; then
-    grep -A 50 "VALID_ELEMENT_TYPES" "$ANDROID_VALIDATOR" | grep '"' | sed 's/.*"\(.*\)".*/\1/' | sort > "$ANDROID_ELEMENTS"
-    grep -A 20 "VALID_ACTION_TYPES" "$ANDROID_VALIDATOR" | grep '"' | sed 's/.*"\(.*\)".*/\1/' | sort > "$ANDROID_ACTIONS" || echo "" > "$ANDROID_ACTIONS"
+    # Extract from VALID_ELEMENT_TYPES set - stop at closing paren
+    grep -A 20 "VALID_ELEMENT_TYPES" "$ANDROID_VALIDATOR" | \
+        grep -o '"[^"]*"' | \
+        tr -d '"' | \
+        grep -E "^[A-Z]|^Input\." | \
+        sort -u > "$ANDROID_ELEMENTS"
+    
+    # Extract action types
+    grep -A 10 "VALID_ACTION_TYPES" "$ANDROID_VALIDATOR" | \
+        grep -o '"Action\.[^"]*"' | \
+        tr -d '"' | \
+        sort -u > "$ANDROID_ACTIONS"
 else
     echo -e "${RED}Error: Android SchemaValidator not found${NC}"
     exit 1
@@ -64,24 +84,20 @@ echo ""
 
 # Check for differences in elements
 echo "Checking element type parity..."
-element_diff=$(diff "$IOS_ELEMENTS" "$ANDROID_ELEMENTS" || true)
+element_diff=$(diff "$IOS_ELEMENTS" "$ANDROID_ELEMENTS" 2>/dev/null || true)
 if [ -z "$element_diff" ]; then
     echo -e "${GREEN}✅ Element types match perfectly${NC}"
 else
-    echo -e "${YELLOW}⚠️  Element type differences detected:${NC}"
-    echo "$element_diff"
-    echo ""
+    echo -e "${YELLOW}⚠️  Element type differences detected${NC}"
 fi
 
 # Check for differences in actions
 echo "Checking action type parity..."
-action_diff=$(diff "$IOS_ACTIONS" "$ANDROID_ACTIONS" || true)
+action_diff=$(diff "$IOS_ACTIONS" "$ANDROID_ACTIONS" 2>/dev/null || true)
 if [ -z "$action_diff" ]; then
     echo -e "${GREEN}✅ Action types match perfectly${NC}"
 else
-    echo -e "${YELLOW}⚠️  Action type differences detected:${NC}"
-    echo "$action_diff"
-    echo ""
+    echo -e "${YELLOW}⚠️  Action type differences detected${NC}"
 fi
 
 # Calculate differences
@@ -109,19 +125,39 @@ fi
 # List elements only on iOS
 echo ""
 echo "Elements only in iOS:"
-comm -23 "$IOS_ELEMENTS" "$ANDROID_ELEMENTS" || echo "(none)"
+ios_only=$(comm -23 "$IOS_ELEMENTS" "$ANDROID_ELEMENTS" 2>/dev/null || echo "")
+if [ -z "$ios_only" ]; then
+    echo "  (none)"
+else
+    echo "$ios_only" | sed 's/^/  /'
+fi
 
 echo ""
 echo "Elements only in Android:"
-comm -13 "$IOS_ELEMENTS" "$ANDROID_ELEMENTS" || echo "(none)"
+android_only=$(comm -13 "$IOS_ELEMENTS" "$ANDROID_ELEMENTS" 2>/dev/null || echo "")
+if [ -z "$android_only" ]; then
+    echo "  (none)"
+else
+    echo "$android_only" | sed 's/^/  /'
+fi
 
 echo ""
 echo "Actions only in iOS:"
-comm -23 "$IOS_ACTIONS" "$ANDROID_ACTIONS" || echo "(none)"
+ios_actions_only=$(comm -23 "$IOS_ACTIONS" "$ANDROID_ACTIONS" 2>/dev/null || echo "")
+if [ -z "$ios_actions_only" ]; then
+    echo "  (none)"
+else
+    echo "$ios_actions_only" | sed 's/^/  /'
+fi
 
 echo ""
 echo "Actions only in Android:"
-comm -13 "$IOS_ACTIONS" "$ANDROID_ACTIONS" || echo "(none)"
+android_actions_only=$(comm -13 "$IOS_ACTIONS" "$ANDROID_ACTIONS" 2>/dev/null || echo "")
+if [ -z "$android_actions_only" ]; then
+    echo "  (none)"
+else
+    echo "$android_actions_only" | sed 's/^/  /'
+fi
 
 echo ""
 echo "========================================="
