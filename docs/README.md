@@ -2,6 +2,21 @@
 
 This directory contains all documentation for the AdaptiveCards-Mobile SDK project, organized by category for easy navigation.
 
+## 🎯 Adaptive Cards v1.6 Parity ⭐
+
+**NEW**: Comprehensive v1.6 parity documentation and enforcement
+
+- **[PARITY_TARGET.md](architecture/PARITY_TARGET.md)** - Target schema (v1.6), Teams host constraints, supported/unsupported features policy
+- **[PARITY_MATRIX.md](architecture/PARITY_MATRIX.md)** - Feature-by-feature matrix (elements, inputs, actions, layout, host config, templating, markdown) with iOS/Android status, tests, and notes
+
+**Key Highlights**:
+- ✅ 41+ element types with full cross-platform parity
+- ✅ All v1.6 actions (Submit, OpenUrl, ShowCard, ToggleVisibility, Execute)
+- ✅ 60 expression functions for templating
+- ✅ Table element, CompoundButton, enhanced validation
+- 🚧 menuActions (overflow menu) - tracked with tests
+- ✅ Automated CI parity gate
+
 ## Architecture & Design
 
 High-level architecture documents, implementation plans, and cross-platform alignment strategies.

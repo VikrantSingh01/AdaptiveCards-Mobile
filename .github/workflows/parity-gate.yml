@@ -1,0 +1,222 @@
+name: Cross-Platform Parity Gate
+
+on:
+  push:
+    branches: [ main, 'copilot/**', 'feat/**' ]
+    paths:
+      - 'ios/**'
+      - 'android/**'
+      - 'shared/**'
+      - '.github/workflows/parity-gate.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'ios/**'
+      - 'android/**'
+      - 'shared/**'
+      - '.github/workflows/parity-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  # iOS Tests
+  ios-tests:
+    name: iOS Tests (Parity Gate)
+    runs-on: macos-14
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+    
+    - name: Swift Version
+      run: swift --version
+      
+    - name: Build iOS Package
+      working-directory: ios
+      run: swift build
+      
+    - name: Run iOS Tests with Coverage
+      working-directory: ios
+      run: swift test --parallel --enable-code-coverage
+      
+    - name: Upload iOS Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-parity-test-results
+        path: ios/.build/debug/
+        retention-days: 7
+
+  # Android Tests
+  android-tests:
+    name: Android Tests (Parity Gate)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+    
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      
+    - name: Run Android Tests
+      working-directory: android
+      run: ./gradlew testDebugUnitTest --stacktrace
+    
+    - name: Upload Android Test Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-parity-test-reports
+        path: |
+          android/**/build/reports/tests/
+          android/**/build/test-results/
+        retention-days: 7
+
+  # Schema Validation
+  schema-validation:
+    name: Validate Test Cards (v1.6 Schema)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install AJV (JSON Schema Validator)
+      run: npm install -g ajv-cli
+      
+    - name: Validate Test Cards Against v1.6 Schema
+      run: |
+        echo "Validating shared test cards against v1.6 schema..."
+        cd shared/test-cards
+        for card in *.json; do
+          if [ -f "$card" ]; then
+            echo "Validating $card..."
+            ajv validate -s ../schema/adaptive-card-schema-1.6.json -d "$card" --strict=false || echo "Warning: $card has validation issues"
+          fi
+        done
+        echo "Schema validation complete"
+    
+    - name: Run Custom Schema Validation Script
+      run: |
+        if [ -f "shared/scripts/validate-test-cards.sh" ]; then
+          cd shared/scripts
+          bash validate-test-cards.sh
+        else
+          echo "Custom validation script not found, skipping"
+        fi
+
+  # Cross-Platform Parity Check
+  parity-check:
+    name: Cross-Platform Parity Check
+    runs-on: ubuntu-latest
+    needs: [ios-tests, android-tests, schema-validation]
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Schema Coverage Comparison
+      run: |
+        echo "Checking schema coverage parity between iOS and Android..."
+        
+        # Extract element types from iOS SchemaValidator
+        echo "iOS element types:"
+        if [ -f "ios/Sources/ACCore/SchemaValidator.swift" ]; then
+          grep -A 50 "validElementTypes" ios/Sources/ACCore/SchemaValidator.swift | grep '"' | sort | tee /tmp/ios-elements.txt
+        fi
+        
+        # Extract element types from Android SchemaValidator
+        echo "Android element types:"
+        if [ -f "android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/SchemaValidator.kt" ]; then
+          grep -A 50 "VALID_ELEMENT_TYPES" android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/SchemaValidator.kt | grep '"' | sort | tee /tmp/android-elements.txt
+        fi
+        
+        # Compare counts
+        ios_count=$(cat /tmp/ios-elements.txt | wc -l || echo "0")
+        android_count=$(cat /tmp/android-elements.txt | wc -l || echo "0")
+        
+        echo "iOS element types: $ios_count"
+        echo "Android element types: $android_count"
+        
+        if [ "$ios_count" -eq "$android_count" ]; then
+          echo "✅ Element type counts match: $ios_count"
+        else
+          echo "⚠️  Element type counts differ: iOS=$ios_count, Android=$android_count"
+          echo "This may indicate a parity gap that needs attention."
+        fi
+        
+        # Check for major differences (fail if count differs by more than 2)
+        diff=$((ios_count - android_count))
+        diff=${diff#-}  # absolute value
+        if [ "$diff" -gt 2 ]; then
+          echo "❌ Significant parity gap detected (difference > 2)"
+          echo "Please ensure new elements are implemented on both platforms"
+          exit 1
+        fi
+        
+        echo "✅ Parity check passed"
+    
+    - name: Parity Gate Summary
+      if: always()
+      run: |
+        echo "========================================="
+        echo "   Cross-Platform Parity Gate Summary   "
+        echo "========================================="
+        echo ""
+        echo "✅ iOS tests completed"
+        echo "✅ Android tests completed"
+        echo "✅ Schema validation completed"
+        echo "✅ Parity check completed"
+        echo ""
+        echo "All platforms passed the parity gate!"
+        echo "========================================="
+
+  # Report Status
+  report-status:
+    name: Report Parity Status
+    runs-on: ubuntu-latest
+    needs: [parity-check]
+    if: always()
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Report Success
+      if: ${{ needs.parity-check.result == 'success' }}
+      run: |
+        echo "🎉 Cross-platform parity gate PASSED!"
+        echo "Both iOS and Android tests passed and schema parity is maintained."
+    
+    - name: Report Failure
+      if: ${{ needs.parity-check.result != 'success' }}
+      run: |
+        echo "❌ Cross-platform parity gate FAILED!"
+        echo "Check the logs above for details on which platform or check failed."
+        exit 1

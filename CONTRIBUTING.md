@@ -7,6 +7,7 @@ Thank you for your interest in contributing to the Adaptive Cards Mobile SDK! Th
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
+- [Cross-Platform Parity Requirements](#cross-platform-parity-requirements)
 - [Making Changes](#making-changes)
 - [Testing](#testing)
 - [Submitting Changes](#submitting-changes)
@@ -89,6 +90,81 @@ This project follows the [Microsoft Open Source Code of Conduct](https://opensou
    ```bash
    ./gradlew test
    ```
+
+## Cross-Platform Parity Requirements
+
+**The Adaptive Cards Mobile SDK maintains strict cross-platform parity.** All features must work identically on both iOS and Android.
+
+### Key Principles
+
+1. **Simultaneous Implementation**: New elements, actions, or features must be implemented on **both platforms** in the same PR or coordinated PRs.
+
+2. **Schema Compliance**: All changes must comply with [Adaptive Cards v1.6 specification](https://adaptivecards.io/). See `docs/architecture/PARITY_TARGET.md` for details.
+
+3. **Shared Test Cards**: Use test cards from `shared/test-cards/` to ensure consistent testing across platforms.
+
+4. **Documentation**: Update `docs/architecture/PARITY_MATRIX.md` to track implementation status.
+
+### Adding New Elements or Actions
+
+When adding a new card element or action:
+
+1. **iOS Implementation**:
+   - Add model to `ios/Sources/ACCore/Models/`
+   - Add view to `ios/Sources/ACRendering/Views/`
+   - Update `SchemaValidator.swift` to include new type
+   - Add tests to `ios/Tests/`
+
+2. **Android Implementation**:
+   - Add model to `android/ac-core/src/main/kotlin/.../models/`
+   - Add composable to `android/ac-rendering/src/main/kotlin/.../composables/`
+   - Update `SchemaValidator.kt` to include new type
+   - Add tests to `android/ac-core/src/test/` and `android/ac-rendering/src/test/`
+
+3. **Shared Test Card**:
+   - Create JSON test card in `shared/test-cards/`
+   - Validate with `shared/scripts/validate-test-cards.sh`
+
+4. **Schema Update**:
+   - Update `shared/schema/adaptive-card-schema-1.6.json` (if v1.6 feature)
+   - Add round-trip serialization tests on both platforms
+
+5. **Documentation**:
+   - Update `docs/architecture/PARITY_MATRIX.md`
+   - Update `shared/RENDERING_PARITY_CHECKLIST.md`
+   - Add implementation notes
+
+### Parity Validation
+
+Before submitting a PR:
+
+```bash
+# Run schema coverage comparison
+bash shared/scripts/compare-schema-coverage.sh
+
+# This script checks:
+# - Element types match between iOS and Android
+# - Action types match between iOS and Android
+# - No significant parity gaps (difference > 2)
+```
+
+### CI Parity Gate
+
+The CI pipeline includes a parity gate that:
+- Runs iOS tests
+- Runs Android tests
+- Validates test cards against v1.6 schema
+- Compares schema coverage between platforms
+- **Fails if either platform fails or significant gaps exist**
+
+See `.github/workflows/parity-gate.yml` for details.
+
+### Exceptions
+
+In rare cases, platform-specific limitations may prevent exact parity:
+- Document in `docs/architecture/PARITY_MATRIX.md`
+- Add tests that demonstrate the limitation
+- Mark status as ⚠️ Partial with notes
 
 ## Making Changes
 
@@ -222,13 +298,41 @@ cd android
    - Select `develop` as base branch
    - Fill out PR template completely
 
-4. **PR Requirements**:
-   - [ ] All tests pass
-   - [ ] Code follows style guidelines
+### PR Requirements
+
+1. **Cross-Platform Parity** (for schema/rendering changes):
+   - [ ] Changes implemented on both iOS and Android
+   - [ ] Tests added for both platforms
+   - [ ] SchemaValidator updated on both platforms (if new elements/actions)
+   - [ ] PARITY_MATRIX.md updated to reflect current status
+   - [ ] Shared test card added/updated in `shared/test-cards/` (if applicable)
+   
+2. **Code Quality**:
+   - [ ] All tests pass (iOS: `swift test`, Android: `./gradlew test`)
+   - [ ] Code follows style guidelines (see below)
+   - [ ] No compiler warnings
+   - [ ] Code review feedback addressed
+   
+3. **Documentation**:
    - [ ] Documentation is updated
    - [ ] CHANGELOG.md is updated (for significant changes)
+   - [ ] Code comments added for complex logic
+   
+4. **CI Checks**:
+   - [ ] Parity gate passes (both iOS and Android tests)
+   - [ ] Lint checks pass
    - [ ] No merge conflicts
-   - [ ] Signed commits (optional but recommended)
+   
+5. **Schema Compliance** (if adding new elements/actions):
+   - [ ] Complies with Adaptive Cards v1.6 specification
+   - [ ] Schema file updated (`shared/schema/adaptive-card-schema-1.6.json`)
+   - [ ] Round-trip serialization tests pass
+   - [ ] Unknown elements handled gracefully
+   
+6. **Optional but Recommended**:
+   - [ ] Signed commits
+   - [ ] Performance tested with large cards
+   - [ ] Accessibility verified (VoiceOver/TalkBack)
 
 ### PR Template
 
