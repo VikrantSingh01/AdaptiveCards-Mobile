@@ -32,15 +32,15 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
     case lineChart(LineChart)
     case pieChart(PieChart)
     case unknown(type: String)
-    
+
     enum CodingKeys: String, CodingKey {
         case type
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-        
+
         switch type {
         case "TextBlock":
             self = .textBlock(try TextBlock(from: decoder))
@@ -107,7 +107,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             self = .unknown(type: type)
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         switch self {
         case .textBlock(let element):
@@ -175,7 +175,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             try container.encode(type, forKey: .type)
         }
     }
-    
+
     /// The optional ID from the card element JSON
     public var elementId: String? {
         switch self {
@@ -212,17 +212,21 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .unknown: return nil
         }
     }
-    
-    /// Stable identifier conforming to Identifiable protocol
-    /// Uses the element's ID if available, otherwise generates a deterministic identifier
+
+    /// Stable identifier conforming to Identifiable protocol.
+    /// Uses the element's explicit ID if available, otherwise generates
+    /// a deterministic identifier based on the element's description
+    /// so SwiftUI view diffing works correctly.
     public var id: String {
         if let elementId = self.elementId {
             return elementId
         }
-        // Generate a deterministic identifier based on type and UUID
-        return "\(typeString)_\(UUID().uuidString)"
+        // Deterministic: same content always produces the same ID.
+        // Use a hash of the element's string description.
+        let description = String(describing: self)
+        return "\(typeString)_\(abs(description.hashValue))"
     }
-    
+
     public var isVisible: Bool {
         switch self {
         case .textBlock(let element): return element.isVisible ?? true
@@ -258,7 +262,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .unknown: return false
         }
     }
-    
+
     /// Returns the type string for this element
     public var typeString: String {
         switch self {

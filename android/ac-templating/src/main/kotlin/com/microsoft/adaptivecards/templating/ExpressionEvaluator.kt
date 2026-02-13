@@ -15,17 +15,26 @@ interface ExpressionFunction {
 class ExpressionEvaluator(private val context: DataContext) {
     private val functions: Map<String, ExpressionFunction>
 
+    companion object {
+        /**
+         * Shared function registry built once and reused across all evaluator instances
+         */
+        private val sharedFunctions: Map<String, ExpressionFunction> by lazy {
+            val functionsMap = mutableMapOf<String, ExpressionFunction>()
+
+            // Register all built-in functions
+            StringFunctions.register(functionsMap)
+            DateFunctions.register(functionsMap)
+            CollectionFunctions.register(functionsMap)
+            LogicFunctions.register(functionsMap)
+            MathFunctions.register(functionsMap)
+
+            functionsMap.toMap()
+        }
+    }
+
     init {
-        val functionsMap = mutableMapOf<String, ExpressionFunction>()
-
-        // Register all built-in functions
-        StringFunctions.register(functionsMap)
-        DateFunctions.register(functionsMap)
-        CollectionFunctions.register(functionsMap)
-        LogicFunctions.register(functionsMap)
-        MathFunctions.register(functionsMap)
-
-        functions = functionsMap
+        functions = sharedFunctions
     }
 
     /**

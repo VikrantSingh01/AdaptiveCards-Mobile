@@ -14,19 +14,19 @@ private struct DynamicTypeSizeModifier: ViewModifier {
     let fontSize: FontSize
     let hostConfig: HostConfig
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     func body(content: Content) -> some View {
         content.font(scaledFont())
     }
-    
+
     private func scaledFont() -> Font {
         let baseSize = baseFontSize()
         let scaleFactor = scaleFactor(for: sizeCategory)
         let scaledSize = CGFloat(baseSize) * scaleFactor
-        
+
         return .system(size: scaledSize)
     }
-    
+
     private func baseFontSize() -> Int {
         switch fontSize {
         case .small:
@@ -41,7 +41,7 @@ private struct DynamicTypeSizeModifier: ViewModifier {
             return hostConfig.fontSizes.extraLarge
         }
     }
-    
+
     private func scaleFactor(for sizeCategory: ContentSizeCategory) -> CGFloat {
         switch sizeCategory {
         case .extraSmall:
@@ -81,7 +81,7 @@ public extension View {
         let weight = weight(for: fontWeight, hostConfig: hostConfig)
         return self.fontWeight(weight)
     }
-    
+
     private func weight(for fontWeight: FontWeight, hostConfig: HostConfig) -> Font.Weight {
         let weightValue = switch fontWeight {
         case .lighter:
@@ -91,7 +91,7 @@ public extension View {
         case .bolder:
             hostConfig.fontWeights.bolder
         }
-        
+
         switch weightValue {
         case 100...299:
             return .light

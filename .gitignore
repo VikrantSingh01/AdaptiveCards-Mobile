@@ -37,3 +37,18 @@ local.properties
 
 # Misc
 *.log
+
+# Session artifacts (generated documentation, not source of truth)
+docs/session-artifacts/
+
+# Additional Android artifacts
+.cxx/
+*.hprof
+
+# Additional iOS artifacts
+*.app
+Pods/
+
+# Environment files
+.env
+.env.*

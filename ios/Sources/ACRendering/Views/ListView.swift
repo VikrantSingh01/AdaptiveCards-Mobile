@@ -5,9 +5,9 @@ import ACAccessibility
 struct ListView: View {
     let list: ListElement
     let hostConfig: HostConfig
-    
+
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     // Layout constants for consistency
     private enum Layout {
         static let bulletWidth: CGFloat = 20
@@ -16,11 +16,11 @@ struct ListView: View {
         static let minTouchTarget: CGFloat = 44
         static let itemVerticalPadding: CGFloat = 4
     }
-    
+
     var body: some View {
         let maxHeightValue = parseMaxHeight(list.maxHeight)
         let listStyle = list.style ?? "default"
-        
+
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(list.items.enumerated()), id: \.element.id) { index, item in
@@ -39,7 +39,7 @@ struct ListView: View {
                                 .frame(width: Layout.numberWidth, alignment: .leading)
                                 .accessibilityHidden(true)
                         }
-                        
+
                         // Render item content
                         ElementView(element: item, hostConfig: hostConfig)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -54,19 +54,19 @@ struct ListView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("List with \(list.items.count) items")
     }
-    
+
     /// Parse maxHeight string (e.g., "200px") to CGFloat
     private func parseMaxHeight(_ maxHeight: String?) -> CGFloat? {
         guard let maxHeight = maxHeight else { return nil }
-        
+
         // Remove "px" suffix and convert to number
         let numberString = maxHeight.replacingOccurrences(of: "px", with: "")
             .trimmingCharacters(in: .whitespaces)
-        
+
         if let value = Double(numberString), value > 0 {
             return CGFloat(value)
         }
-        
+
         return nil
     }
 }

@@ -1,0 +1,59 @@
+excluded:
+  - .build
+  - .swiftpm
+  - SampleApp
+
+disabled_rules:
+  - todo
+  - trailing_whitespace
+  - trailing_newline
+  - trailing_comma
+  - multiple_closures_with_trailing_closure
+  - for_where
+  - redundant_discardable_let
+  - non_optional_string_data_conversion
+  - void_return
+  - duplicate_imports
+  - unused_closure_parameter
+  - large_tuple
+  - implicit_optional_initialization
+
+line_length:
+  warning: 250
+  error: 350
+  ignores_comments: true
+  ignores_urls: true
+  ignores_function_declarations: true
+
+file_length:
+  warning: 1000
+  error: 1500
+
+type_body_length:
+  warning: 750
+  error: 1000
+
+function_body_length:
+  warning: 300
+  error: 500
+
+cyclomatic_complexity:
+  warning: 40
+  error: 60
+
+identifier_name:
+  min_length:
+    warning: 1
+  max_length:
+    warning: 60
+  excluded:
+    - id
+    - op
+    - dx
+    - dy
+
+type_name:
+  min_length:
+    warning: 2
+  max_length:
+    warning: 50

@@ -5,9 +5,9 @@ import ACAccessibility
 struct RatingDisplayView: View {
     let rating: RatingDisplay
     let hostConfig: HostConfig
-    
+
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     var body: some View {
         HStack(spacing: 4) {
             // Star icons
@@ -19,13 +19,13 @@ struct RatingDisplayView: View {
                         .accessibilityHidden(true)
                 }
             }
-            
+
             // Value text
             Text(String(format: "%.1f", rating.value))
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .accessibilityHidden(true)
-            
+
             // Count if provided
             if let count = rating.count {
                 Text("(\(count))")
@@ -40,11 +40,11 @@ struct RatingDisplayView: View {
         .accessibilityLabel(accessibilityDescription)
         .accessibilityAddTraits(.isStaticText)
     }
-    
+
     private var maxStars: Int {
         return rating.max ?? 5
     }
-    
+
     private var starSize: Font {
         let baseSize: Font
         switch rating.size {
@@ -55,14 +55,14 @@ struct RatingDisplayView: View {
         default:
             baseSize = .body
         }
-        
+
         // Scale for accessibility
         if sizeCategory.isAccessibilityCategory {
             return .title3
         }
         return baseSize
     }
-    
+
     private func starImage(for index: Int) -> SwiftUI.Image {
         let starValue = Double(index + 1)
 
@@ -74,7 +74,7 @@ struct RatingDisplayView: View {
             return SwiftUI.Image(systemName: "star")
         }
     }
-    
+
     private var accessibilityDescription: String {
         var description = "Rating: \(String(format: "%.1f", rating.value)) out of \(maxStars) stars"
         if let count = rating.count {

@@ -5,7 +5,7 @@ import ACAccessibility
 struct CarouselView: View {
     let carousel: Carousel
     let hostConfig: HostConfig
-    
+
     @State private var currentPage: Int
     @State private var timer: Timer?
     @EnvironmentObject var viewModel: CardViewModel
@@ -14,13 +14,13 @@ struct CarouselView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     init(carousel: Carousel, hostConfig: HostConfig) {
         self.carousel = carousel
         self.hostConfig = hostConfig
         _currentPage = State(initialValue: carousel.initialPage ?? 0)
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
@@ -63,7 +63,7 @@ struct CarouselView: View {
             timer?.invalidate()
         }
     }
-    
+
     private var adaptiveMinHeight: CGFloat {
         let baseHeight: CGFloat
         if horizontalSizeClass == .regular && verticalSizeClass == .regular {
@@ -73,22 +73,22 @@ struct CarouselView: View {
             // iPhone
             baseHeight = 200
         }
-        
+
         // Increase for accessibility text sizes
         if sizeCategory.isAccessibilityCategory {
             return baseHeight * 1.3
         }
         return baseHeight
     }
-    
+
     private func setupAutoAdvance() {
         guard let timerInterval = carousel.timer, timerInterval > 0 else {
             return
         }
-        
+
         // Invalidate existing timer to prevent leaks
         timer?.invalidate()
-        
+
         timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(timerInterval) / 1000.0, repeats: true) { _ in
             withAnimation {
                 currentPage = (currentPage + 1) % carousel.pages.count
@@ -100,11 +100,11 @@ struct CarouselView: View {
 struct CarouselPageView: View {
     let page: CarouselPage
     let hostConfig: HostConfig
-    
+
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ForEach(page.items) { element in

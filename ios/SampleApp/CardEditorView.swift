@@ -6,7 +6,7 @@ struct CardEditorView: View {
     @State private var errorMessage: String = ""
     @State private var splitView: Bool = true
     @EnvironmentObject var actionLog: ActionLogStore
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -29,7 +29,7 @@ struct CardEditorView: View {
                                 }
                                 .padding(.horizontal)
                                 .padding(.top, 8)
-                                
+
                                 TextEditor(text: $jsonText)
                                     .font(.system(.body, design: .monospaced))
                                     .autocapitalization(.none)
@@ -40,16 +40,16 @@ struct CardEditorView: View {
                             }
                             .frame(width: geometry.size.width / 2)
                             .background(Color.gray.opacity(0.05))
-                            
+
                             Divider()
-                            
+
                             // Preview pane
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Live Preview")
                                     .font(.headline)
                                     .padding(.horizontal)
                                     .padding(.top, 8)
-                                
+
                                 ScrollView {
                                     if isValid {
                                         CardPreviewPlaceholder(json: jsonText)
@@ -88,7 +88,7 @@ struct CardEditorView: View {
                         .tabItem {
                             Label("Editor", systemImage: "pencil")
                         }
-                        
+
                         ScrollView {
                             if isValid {
                                 CardPreviewPlaceholder(json: jsonText)
@@ -119,7 +119,7 @@ struct CardEditorView: View {
                     Button(action: { splitView.toggle() }) {
                         Image(systemName: splitView ? "rectangle.split.1x2" : "rectangle.split.2x1")
                     }
-                    
+
                     Menu {
                         Button("Load Sample...") {
                             loadSample()
@@ -140,7 +140,7 @@ struct CardEditorView: View {
             validateJSON()
         }
     }
-    
+
     private func validateJSON() {
         do {
             _ = try JSONSerialization.jsonObject(with: jsonText.data(using: .utf8) ?? Data(), options: [])
@@ -151,7 +151,7 @@ struct CardEditorView: View {
             errorMessage = error.localizedDescription
         }
     }
-    
+
     private func formatJSON() {
         guard let data = jsonText.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data, options: []),
@@ -161,7 +161,7 @@ struct CardEditorView: View {
         }
         jsonText = formattedString
     }
-    
+
     private func loadSample() {
         // Load a sample card
         jsonText = Self.defaultCardJSON
