@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0-dev] - Unreleased
 
+### 🔧 Sample App Rendering Fixes & Build Verification (2026-02-12)
+
+#### Fixed
+- **iOS card rendering placeholder bug**: Cards in the iOS sample app were displaying static placeholder text ("TextBlock element", "Image element") instead of actual Adaptive Card content. Fixed the `ElementView`, `ImageView`, `CompoundButtonView`, `ProgressIndicatorViews`, `RatingDisplayView`, `TabSetView`, and `TableView` to render real card data from parsed JSON. Card previews in the gallery and editor now display properly rendered Adaptive Card elements.
+- **iOS access control issues**: Fixed `public` access modifiers across multiple modules (`ACActions`, `ACCore`, `ACRendering`, `ACMarkdown`, `ACCharts`, `ACFluentUI`, `ACInputs`, `ACAccessibility`) so that types, initializers, and methods are accessible to the sample app target. Resolved issues in `ActionButton`, `OpenUrlActionHandler`, `OpenUrlDialogActionHandler`, `PopoverActionHandler`, `RunCommandsActionHandler`, `CardElement`, `FluentColorTokens`, `RatingInputView`, `TextInputView`, `MarkdownRenderer`, `SeparatorModifier`, `ActionHandler`, `CardViewModel`, and `RTLSupport`.
+- **iOS sample app Xcode project creation**: Created a working Xcode project for the sample app, linked all 11 SDK modules, and configured the build to run on iPhone 17 Pro Simulator (iOS 26).
+- **Android sample app 9 compilation errors**: Fixed type mismatches, missing imports, incorrect API usage, and parameter errors across `CardDetailScreen.kt`, `CardEditorScreen.kt`, `CardGalleryScreen.kt`, `TeamsSimulatorScreen.kt`, and `MainActivity.kt`. The app now builds and runs without errors.
+- **Android card rendering placeholder bug**: Replaced placeholder `Text()` composables with actual `AdaptiveCardView` rendering in `CardDetailScreen` and `CardEditorScreen`. Cards now display real parsed content using the SDK's rendering engine.
+- **Android assets configuration**: Added proper `assets` source directory configuration in `sample-app/build.gradle.kts` so that test card JSON files are correctly bundled and loadable at runtime.
+- **Android SchemaValidator**: Updated `SchemaValidator.kt` for compatibility fixes.
+- **Android Markdown build config**: Updated `ac-markdown/build.gradle.kts` and `gradle/libs.versions.toml` for dependency alignment.
+
+#### Verified
+- **iOS build**: All 11 modules build successfully (`swift build` passes)
+- **iOS tests**: All tests pass (`swift test` passes)
+- **iOS sample app**: Running on iPhone 17 Pro Simulator with actual card rendering
+- **Android build**: All 12 modules build successfully (`./gradlew build` passes)
+- **Android tests**: 150 tests passed with 100% pass rate (`./gradlew test`)
+- **Android sample app**: Running on Android Emulator API 36 with actual card rendering
+
+---
+
 ### ✅ Phase 1: Android Templating Engine Complete
 
 #### Added
