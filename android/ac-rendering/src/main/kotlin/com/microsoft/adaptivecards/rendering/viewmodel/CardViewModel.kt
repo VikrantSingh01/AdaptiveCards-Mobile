@@ -133,23 +133,6 @@ class CardViewModel : ViewModel() {
         // Check for input elements without IDs
         val inputsWithoutIds = mutableListOf<String>()
 
-        fun validateAction(action: CardAction?) {
-            action ?: return
-            when (action) {
-                is ActionShowCard -> {
-                    // Validate the nested card's body
-                    action.card.body?.forEach { validateElement(it) }
-                }
-                is ActionPopover -> {
-                    // Validate the popover body elements
-                    action.popoverBody.forEach { validateElement(it) }
-                }
-                else -> {
-                    // No nested elements to validate
-                }
-            }
-        }
-
         fun validateElement(element: CardElement) {
             // Validate element type and check for inputs without IDs
             when (element) {
@@ -164,25 +147,22 @@ class CardViewModel : ViewModel() {
                         Log.w(TAG, "Input element of type '${element.type}' is missing required 'id' property")
                     }
                 }
+                else -> { /* No special validation for other types */ }
             }
-            
-            // Recursively validate children in container elements and validate actions
+
+            // Recursively validate children in container elements and actions
             when (element) {
                 is Container -> {
                     element.items?.forEach { validateElement(it) }
-                    validateAction(element.selectAction)
                 }
                 is ColumnSet -> {
                     element.columns?.forEach { column ->
                         column.items?.forEach { validateElement(it) }
-                        validateAction(column.selectAction)
                     }
-                    validateAction(element.selectAction)
                 }
                 is Carousel -> {
                     element.pages.forEach { page ->
                         page.items.forEach { validateElement(it) }
-                        validateAction(page.selectAction)
                     }
                 }
                 is Accordion -> {
@@ -202,24 +182,19 @@ class CardViewModel : ViewModel() {
                     element.rows.forEach { row ->
                         row.cells.forEach { cell ->
                             cell.items?.forEach { validateElement(it) }
-                            validateAction(cell.selectAction)
                         }
                     }
                 }
                 is ActionSet -> {
-                    element.actions.forEach { validateAction(it) }
-                }
-                is Image -> {
-                    validateAction(element.selectAction)
-                }
-                is RichTextBlock -> {
-                    element.inlines.forEach { textRun ->
-                        validateAction(textRun.selectAction)
+                    element.actions.forEach { action ->
+                        when (action) {
+                            is ActionShowCard -> action.card.body?.forEach { validateElement(it) }
+                            is ActionPopover -> action.popoverBody.forEach { validateElement(it) }
+                            else -> {}
+                        }
                     }
                 }
-                else -> {
-                    // No children to validate
-                }
+                else -> { /* No children to validate */ }
             }
         }
 
