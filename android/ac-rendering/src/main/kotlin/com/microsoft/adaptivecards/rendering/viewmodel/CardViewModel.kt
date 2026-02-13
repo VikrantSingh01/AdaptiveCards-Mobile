@@ -3,7 +3,9 @@ package com.microsoft.adaptivecards.rendering.viewmodel
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.microsoft.adaptivecards.core.models.AdaptiveCard
 import com.microsoft.adaptivecards.core.models.CardElement
 import com.microsoft.adaptivecards.core.models.CardInput
@@ -15,9 +17,48 @@ import com.microsoft.adaptivecards.core.parsing.CardParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 /**
- * ViewModel for managing Adaptive Card state with optimized state management
+ * ViewModel for managing Adaptive Card state with dual API support for backward compatibility.
+ * 
+ * ## State Management APIs
+ * 
+ * This ViewModel provides two APIs for state management:
+ * 
+ * ### 1. SnapshotStateMap API (Recommended for Compose)
+ * Direct access to mutable state maps that integrate with Compose's snapshot system.
+ * - **Performance**: O(1) updates, no map copying overhead
+ * - **Usage**: Direct property access in Compose (e.g., `viewModel.inputValues[id]`)
+ * - **Properties**: `inputValues`, `visibilityState`, `showCardState`, `validationErrors`
+ * 
+ * ### 2. StateFlow API (Backward Compatible)
+ * Observable StateFlow versions for compatibility with existing code.
+ * - **Usage**: Flow collection (e.g., `viewModel.inputValuesFlow.collectAsState()`)
+ * - **Properties**: `inputValuesFlow`, `visibilityStateFlow`, `showCardStateFlow`, `validationErrorsFlow`
+ * - **Note**: These are read-only views; updates must use the ViewModel methods
+ * 
+ * ## Migration Guide
+ * 
+ * If you were using the old StateFlow<Map> API:
+ * 
+ * **Before:**
+ * ```kotlin
+ * val inputs by viewModel.inputValues.collectAsState()
+ * val value = inputs["myInput"]
+ * ```
+ * 
+ * **After (Option 1 - StateFlow for compatibility):**
+ * ```kotlin
+ * val inputs by viewModel.inputValuesFlow.collectAsState()
+ * val value = inputs["myInput"]
+ * ```
+ * 
+ * **After (Option 2 - Direct SnapshotStateMap for better performance):**
+ * ```kotlin
+ * val value = viewModel.inputValues["myInput"]
+ * ```
  */
 class CardViewModel : ViewModel() {
 
@@ -31,11 +72,28 @@ class CardViewModel : ViewModel() {
     private val _parseError = MutableStateFlow<String?>(null)
     val parseError: StateFlow<String?> = _parseError.asStateFlow()
 
-    // Use SnapshotStateMap for O(1) updates instead of O(n) map copying
+    // SnapshotStateMap API - Direct mutable access for Compose with O(1) performance
     val inputValues: SnapshotStateMap<String, Any> = mutableStateMapOf()
     val visibilityState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
     val showCardState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
     val validationErrors: SnapshotStateMap<String, String> = mutableStateMapOf()
+    
+    // StateFlow API - Read-only reactive views for backward compatibility
+    val inputValuesFlow: StateFlow<Map<String, Any>> = snapshotFlow { 
+        inputValues.toMap() 
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    
+    val visibilityStateFlow: StateFlow<Map<String, Boolean>> = snapshotFlow { 
+        visibilityState.toMap() 
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    
+    val showCardStateFlow: StateFlow<Map<String, Boolean>> = snapshotFlow { 
+        showCardState.toMap() 
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    
+    val validationErrorsFlow: StateFlow<Map<String, String>> = snapshotFlow { 
+        validationErrors.toMap() 
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
     
     /**
      * Parse and set the card from JSON
