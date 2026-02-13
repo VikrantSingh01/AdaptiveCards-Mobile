@@ -17,6 +17,24 @@ sealed interface CardElement {
     val fallback: JsonElement?
 }
 
+/**
+ * Represents an unknown or unsupported element type
+ * Used for forward compatibility with future element types
+ */
+@Serializable
+@SerialName("Unknown")
+data class UnknownElement(
+    @Transient override val type: String = "Unknown",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val unknownType: String? = null  // Store the actual type for debugging
+) : CardElement
+
 @Serializable
 @SerialName("TextBlock")
 data class TextBlock(

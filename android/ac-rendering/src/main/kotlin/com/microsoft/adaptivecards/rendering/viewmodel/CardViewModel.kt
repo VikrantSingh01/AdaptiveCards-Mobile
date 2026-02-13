@@ -1,31 +1,41 @@
 package com.microsoft.adaptivecards.rendering.viewmodel
 
+import android.util.Log
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
 import com.microsoft.adaptivecards.core.models.AdaptiveCard
+import com.microsoft.adaptivecards.core.models.CardElement
+import com.microsoft.adaptivecards.core.models.CardInput
+import com.microsoft.adaptivecards.core.models.Container
+import com.microsoft.adaptivecards.core.models.ColumnSet
+import com.microsoft.adaptivecards.core.models.Column
+import com.microsoft.adaptivecards.core.models.UnknownElement
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * ViewModel for managing Adaptive Card state
+ * ViewModel for managing Adaptive Card state with optimized state management
  */
 class CardViewModel : ViewModel() {
-    
+
+    companion object {
+        private const val TAG = "CardViewModel"
+    }
+
     private val _card = MutableStateFlow<AdaptiveCard?>(null)
     val card: StateFlow<AdaptiveCard?> = _card.asStateFlow()
-    
-    private val _inputValues = MutableStateFlow<Map<String, Any>>(emptyMap())
-    val inputValues: StateFlow<Map<String, Any>> = _inputValues.asStateFlow()
-    
-    private val _visibilityState = MutableStateFlow<Map<String, Boolean>>(emptyMap())
-    val visibilityState: StateFlow<Map<String, Boolean>> = _visibilityState.asStateFlow()
-    
-    private val _showCardState = MutableStateFlow<Map<String, Boolean>>(emptyMap())
-    val showCardState: StateFlow<Map<String, Boolean>> = _showCardState.asStateFlow()
-    
-    private val _validationErrors = MutableStateFlow<Map<String, String>>(emptyMap())
-    val validationErrors: StateFlow<Map<String, String>> = _validationErrors.asStateFlow()
+
+    private val _parseError = MutableStateFlow<String?>(null)
+    val parseError: StateFlow<String?> = _parseError.asStateFlow()
+
+    // Use SnapshotStateMap for O(1) updates instead of O(n) map copying
+    val inputValues: SnapshotStateMap<String, Any> = mutableStateMapOf()
+    val visibilityState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
+    val showCardState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
+    val validationErrors: SnapshotStateMap<String, String> = mutableStateMapOf()
     
     /**
      * Parse and set the card from JSON
@@ -34,10 +44,56 @@ class CardViewModel : ViewModel() {
         try {
             val parsedCard = CardParser.parse(jsonString)
             _card.value = parsedCard
+            _parseError.value = null
+            validateCardStructure(parsedCard)
             initializeVisibilityState(parsedCard)
         } catch (e: Exception) {
-            // Handle parsing error
             _card.value = null
+            _parseError.value = e.message ?: "Unknown parsing error"
+            Log.e(TAG, "Failed to parse card", e)
+        }
+    }
+
+    /**
+     * Validate card structure and log warnings for potential issues
+     */
+    private fun validateCardStructure(card: AdaptiveCard) {
+        // Check for unknown elements
+        val unknownElements = mutableListOf<String>()
+        // Check for input elements without IDs
+        val inputsWithoutIds = mutableListOf<String>()
+
+        fun validateElement(element: CardElement) {
+            when (element) {
+                is UnknownElement -> {
+                    val typeName = element.unknownType ?: "Unknown"
+                    unknownElements.add(typeName)
+                    Log.w(TAG, "Unknown element type encountered: $typeName")
+                }
+                is CardInput -> {
+                    if (element.id.isNullOrBlank()) {
+                        inputsWithoutIds.add(element.type)
+                        Log.w(TAG, "Input element of type '${element.type}' is missing required 'id' property")
+                    }
+                }
+                is Container -> {
+                    element.items?.forEach { validateElement(it) }
+                }
+                is ColumnSet -> {
+                    element.columns?.forEach { column ->
+                        column.items?.forEach { validateElement(it) }
+                    }
+                }
+            }
+        }
+
+        card.body?.forEach { validateElement(it) }
+
+        if (unknownElements.isNotEmpty()) {
+            Log.w(TAG, "Card contains ${unknownElements.size} unknown element type(s): ${unknownElements.distinct()}")
+        }
+        if (inputsWithoutIds.isNotEmpty()) {
+            Log.w(TAG, "Card contains ${inputsWithoutIds.size} input element(s) without IDs. Input data cannot be collected from these elements.")
         }
     }
     
@@ -50,88 +106,80 @@ class CardViewModel : ViewModel() {
     }
     
     /**
-     * Update input value
+     * Update input value - O(1) operation with SnapshotStateMap
      */
     fun updateInputValue(id: String, value: Any) {
-        _inputValues.value = _inputValues.value.toMutableMap().apply {
-            put(id, value)
-        }
+        inputValues[id] = value
     }
-    
+
     /**
      * Get input value by ID
      */
     fun getInputValue(id: String): Any? {
-        return _inputValues.value[id]
+        return inputValues[id]
     }
-    
+
     /**
-     * Get all input values
+     * Get all input values as a snapshot
      */
     fun getAllInputValues(): Map<String, Any> {
-        return _inputValues.value
+        return inputValues.toMap()
     }
     
     /**
-     * Toggle visibility of an element
+     * Toggle visibility of an element - O(1) operation with SnapshotStateMap
      */
     fun toggleVisibility(elementId: String, isVisible: Boolean? = null) {
-        _visibilityState.value = _visibilityState.value.toMutableMap().apply {
-            put(elementId, isVisible ?: !(_visibilityState.value[elementId] ?: true))
-        }
+        visibilityState[elementId] = isVisible ?: !(visibilityState[elementId] ?: true)
     }
-    
+
     /**
      * Check if element is visible
      */
     fun isElementVisible(elementId: String): Boolean {
-        return _visibilityState.value[elementId] ?: true
+        return visibilityState[elementId] ?: true
     }
     
     /**
-     * Toggle ShowCard state
+     * Toggle ShowCard state - O(1) operation with SnapshotStateMap
      */
     fun toggleShowCard(actionId: String) {
-        _showCardState.value = _showCardState.value.toMutableMap().apply {
-            val currentState = get(actionId) ?: false
-            put(actionId, !currentState)
-        }
+        val currentState = showCardState[actionId] ?: false
+        showCardState[actionId] = !currentState
     }
-    
+
     /**
      * Check if ShowCard is expanded
      */
     fun isShowCardExpanded(actionId: String): Boolean {
-        return _showCardState.value[actionId] ?: false
+        return showCardState[actionId] ?: false
     }
     
     /**
-     * Set validation error for an input
+     * Set validation error for an input - O(1) operation with SnapshotStateMap
      */
     fun setValidationError(id: String, error: String?) {
-        _validationErrors.value = _validationErrors.value.toMutableMap().apply {
-            if (error != null) {
-                put(id, error)
-            } else {
-                remove(id)
-            }
+        if (error != null) {
+            validationErrors[id] = error
+        } else {
+            validationErrors.remove(id)
         }
     }
-    
+
     /**
      * Get validation error for an input
      */
     fun getValidationError(id: String): String? {
-        return _validationErrors.value[id]
+        return validationErrors[id]
     }
-    
+
     /**
      * Clear all validation errors
      */
     fun clearValidationErrors() {
-        _validationErrors.value = emptyMap()
+        validationErrors.clear()
     }
-    
+
     /**
      * Validate all inputs
      */
@@ -139,7 +187,7 @@ class CardViewModel : ViewModel() {
         clearValidationErrors()
         // Validation logic would be implemented here
         // For now, return true
-        return _validationErrors.value.isEmpty()
+        return validationErrors.isEmpty()
     }
     
     /**
@@ -147,16 +195,16 @@ class CardViewModel : ViewModel() {
      */
     fun reset() {
         _card.value = null
-        _inputValues.value = emptyMap()
-        _visibilityState.value = emptyMap()
-        _showCardState.value = emptyMap()
-        _validationErrors.value = emptyMap()
+        inputValues.clear()
+        visibilityState.clear()
+        showCardState.clear()
+        validationErrors.clear()
     }
-    
+
     private fun initializeVisibilityState(card: AdaptiveCard) {
-        val initialState = mutableMapOf<String, Boolean>()
+        // Clear existing state
+        visibilityState.clear()
         // Initialize visibility state for all elements
         // This would be enhanced to walk the card tree
-        _visibilityState.value = initialState
     }
 }

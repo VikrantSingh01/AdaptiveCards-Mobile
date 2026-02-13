@@ -245,6 +245,38 @@ final class CardParserTests: XCTestCase {
         XCTAssertFalse(unknownElement?.isVisible ?? true)
     }
     
+    func testCardElementIdIsStable() {
+        // Test that accessing .id multiple times returns the same value
+        let textBlock = TextBlock(text: "Hello World")
+        let element = CardElement.textBlock(textBlock)
+
+        let id1 = element.id
+        let id2 = element.id
+        let id3 = element.id
+
+        XCTAssertEqual(id1, id2, "CardElement.id must be stable across multiple accesses")
+        XCTAssertEqual(id2, id3, "CardElement.id must be stable across multiple accesses")
+    }
+
+    func testCardElementIdIsUnique() {
+        // Test that different elements have different IDs
+        let textBlock1 = TextBlock(text: "First")
+        let textBlock2 = TextBlock(text: "Second")
+
+        let element1 = CardElement.textBlock(textBlock1)
+        let element2 = CardElement.textBlock(textBlock2)
+
+        XCTAssertNotEqual(element1.id, element2.id, "Different elements must have different IDs")
+    }
+
+    func testCardElementIdUsesExplicitId() {
+        // Test that explicit IDs are used when available
+        let textInput = TextInput(id: "myCustomId", isRequired: false)
+        let element = CardElement.textInput(textInput)
+
+        XCTAssertEqual(element.id, "myCustomId", "Explicit element ID should be used")
+    }
+
     // MARK: - Helper Methods
     
     private func loadTestCard(named name: String) throws -> String {

@@ -20,7 +20,8 @@ object CardParser {
         coerceInputValues = true
         serializersModule = SerializersModule {
             polymorphic(CardElement::class) {
-                defaultDeserializer { TextBlock.serializer() }
+                defaultDeserializer { UnknownElement.serializer() }
+                subclass(UnknownElement::class)
                 subclass(TextBlock::class)
                 subclass(Image::class)
                 subclass(Container::class)
