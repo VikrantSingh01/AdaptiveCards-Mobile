@@ -2,23 +2,27 @@ import Foundation
 // MARK: - Charts
 
 public struct ChartDataPoint: Codable, Equatable, Identifiable {
+    public let id: String
     public var label: String
     public var value: Double
     public var color: String?
     
-    // Use label as stable ID (with value to make it unique if needed)
-    public var id: String {
-        "\(label)_\(value)"
-    }
-    
     public init(
         label: String,
         value: Double,
-        color: String? = nil
+        color: String? = nil,
+        id: String = UUID().uuidString
     ) {
+        self.id = id
         self.label = label
         self.value = value
         self.color = color
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case label
+        case value
+        case color
     }
 }
 
