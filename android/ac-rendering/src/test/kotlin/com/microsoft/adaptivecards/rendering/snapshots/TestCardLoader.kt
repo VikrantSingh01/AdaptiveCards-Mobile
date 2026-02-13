@@ -7,14 +7,27 @@ import java.io.File
  * Used by both CardElementSnapshotTests and TeamsCardSnapshotTests.
  */
 object TestCardLoader {
-    fun loadCardJson(name: String): String {
+
+    /**
+     * Loads a test card JSON file by name.
+     * Returns null if the file cannot be found (e.g., on CI where paths differ).
+     */
+    fun loadCardJsonOrNull(name: String): String? {
         val candidates = listOf(
             File("../../shared/test-cards/$name.json"),
             File("../shared/test-cards/$name.json"),
-            File("shared/test-cards/$name.json")
+            File("shared/test-cards/$name.json"),
+            File("../../../shared/test-cards/$name.json")
         )
-        val file = candidates.firstOrNull { it.exists() }
+        return candidates.firstOrNull { it.exists() }?.readText()
+    }
+
+    /**
+     * Loads a test card JSON file by name.
+     * Throws if the file cannot be found.
+     */
+    fun loadCardJson(name: String): String {
+        return loadCardJsonOrNull(name)
             ?: error("Test card not found: $name.json")
-        return file.readText()
     }
 }

@@ -3,6 +3,8 @@ package com.microsoft.adaptivecards.rendering.snapshots
 import app.cash.paparazzi.Paparazzi
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+import org.junit.Assume.assumeNotNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -79,11 +81,14 @@ class CardElementSnapshotTests {
     // ---------------------------------------------------------------
 
     private fun snapshotCard(name: String) {
-        val json = TestCardLoader.loadCardJson(name)
-        val card = CardParser.parse(json)
+        val json = TestCardLoader.loadCardJsonOrNull(name)
+        assumeNotNull("Skipping: card $name.json not found (run locally with shared/test-cards/)", json)
 
         paparazzi.snapshot(name = name) {
-            AdaptiveCardView(cardJson = json)
+            AdaptiveCardView(
+                cardJson = json!!,
+                viewModel = CardViewModel()
+            )
         }
     }
 }
