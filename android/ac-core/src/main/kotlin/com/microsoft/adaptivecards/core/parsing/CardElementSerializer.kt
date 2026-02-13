@@ -16,6 +16,13 @@ object CardElementSerializer : JsonContentPolymorphicSerializer<CardElement>(Car
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<CardElement> {
         val type = element.jsonObject["type"]?.jsonPrimitive?.content
         
+        // If type is null or empty, treat as unknown and log warning
+        if (type.isNullOrEmpty()) {
+            // Note: Consider adding proper logging here for production use
+            // For now, we silently handle as unknown element
+            return UnknownElementWithTypeSerializer(null)
+        }
+        
         return when (type) {
             "TextBlock" -> TextBlock.serializer()
             "Image" -> Image.serializer()
@@ -55,8 +62,9 @@ object CardElementSerializer : JsonContentPolymorphicSerializer<CardElement>(Car
 
 /**
  * Custom deserializer that creates UnknownElement with the captured type
+ * Private to encapsulate implementation details
  */
-class UnknownElementWithTypeSerializer(private val originalType: String?) : 
+private class UnknownElementWithTypeSerializer(private val originalType: String?) : 
     DeserializationStrategy<UnknownElement> {
     override val descriptor: SerialDescriptor = UnknownElement.serializer().descriptor
 
