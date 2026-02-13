@@ -1,11 +1,12 @@
 package com.microsoft.adaptivecards.core.models
 
+import com.microsoft.adaptivecards.core.parsing.CardElementSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
-@Serializable
+@Serializable(with = CardElementSerializer::class)
 sealed interface CardElement {
     val type: String
     val id: String?
