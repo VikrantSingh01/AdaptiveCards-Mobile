@@ -29,9 +29,16 @@ fun ColumnSetView(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         columns.forEach { column ->
+            val columnModifier = when {
+                column.width == "auto" -> Modifier // auto columns use intrinsic width (no weight)
+                else -> {
+                    val weight = getColumnWeight(column.width)
+                    if (weight > 0f) Modifier.weight(weight) else Modifier
+                }
+            }
             ColumnView(
                 column = column,
-                modifier = Modifier.weight(getColumnWeight(column.width)),
+                modifier = columnModifier,
                 viewModel = viewModel,
                 actionHandler = actionHandler
             )

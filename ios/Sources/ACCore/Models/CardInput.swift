@@ -110,7 +110,9 @@ public struct TextInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+    public var inlineAction: CardAction?
+    public var fallback: CardElement?
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -125,7 +127,9 @@ public struct TextInput: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
-        isVisible: Bool? = nil
+        isVisible: Bool? = nil,
+        inlineAction: CardAction? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.isRequired = isRequired
@@ -141,6 +145,8 @@ public struct TextInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+        self.inlineAction = inlineAction
+        self.fallback = fallback
     }
 }
 
@@ -160,7 +166,8 @@ public struct NumberInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -173,7 +180,8 @@ public struct NumberInput: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
-        isVisible: Bool? = nil
+        isVisible: Bool? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.isRequired = isRequired
@@ -187,6 +195,7 @@ public struct NumberInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+        self.fallback = fallback
     }
 }
 
@@ -206,7 +215,8 @@ public struct DateInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -219,7 +229,8 @@ public struct DateInput: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
-        isVisible: Bool? = nil
+        isVisible: Bool? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.isRequired = isRequired
@@ -233,6 +244,7 @@ public struct DateInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+        self.fallback = fallback
     }
 }
 
@@ -252,7 +264,8 @@ public struct TimeInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -265,7 +278,8 @@ public struct TimeInput: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
-        isVisible: Bool? = nil
+        isVisible: Bool? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.isRequired = isRequired
@@ -279,6 +293,7 @@ public struct TimeInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+        self.fallback = fallback
     }
 }
 
@@ -298,7 +313,8 @@ public struct ToggleInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String,
         title: String,
@@ -311,7 +327,8 @@ public struct ToggleInput: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
-        isVisible: Bool? = nil
+        isVisible: Bool? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.title = title
@@ -325,6 +342,7 @@ public struct ToggleInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+        self.fallback = fallback
     }
 }
 
@@ -346,7 +364,8 @@ public struct ChoiceSetInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -361,7 +380,8 @@ public struct ChoiceSetInput: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
-        isVisible: Bool? = nil
+        isVisible: Bool? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.isRequired = isRequired
@@ -377,6 +397,7 @@ public struct ChoiceSetInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+        self.fallback = fallback
     }
     
     public struct Choice: Codable, Equatable {

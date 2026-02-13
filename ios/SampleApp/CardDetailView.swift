@@ -44,7 +44,7 @@ struct CardDetailView: View {
                                     .font(.caption)
                             }
                         }
-                        
+
                         ScrollView(.horizontal, showsIndicators: true) {
                             Text(card.jsonString)
                                 .font(.system(.caption, design: .monospaced))
@@ -53,6 +53,23 @@ struct CardDetailView: View {
                         }
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
+
+                        if let dataJson = card.dataJsonString {
+                            HStack {
+                                Text("Data JSON")
+                                    .font(.headline)
+                                Spacer()
+                            }
+
+                            ScrollView(.horizontal, showsIndicators: true) {
+                                Text(dataJson)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(8)
+                        }
                     }
                 }
                 

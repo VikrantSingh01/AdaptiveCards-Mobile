@@ -1,0 +1,7 @@
+# Snapshot test artifacts
+# Baselines are tracked in version control
+# Failures and diffs are transient test output
+
+Failures/*.png
+Diffs/*.png
+Reports/

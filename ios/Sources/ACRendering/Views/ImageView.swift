@@ -1,16 +1,17 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct ImageView: View {
     let image: ACCore.Image
     let hostConfig: HostConfig
-    
+
     @Environment(\.layoutDirection) var layoutDirection
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     var body: some View {
         AsyncImage(url: URL(string: image.url)) { phase in
             switch phase {
@@ -31,6 +32,7 @@ struct ImageView: View {
                 EmptyView()
             }
         }
+        .background(backgroundColorValue)
         .frame(maxWidth: .infinity, alignment: frameAlignment)
         .spacing(image.spacing, hostConfig: hostConfig)
         .separator(image.separator, hostConfig: hostConfig)
@@ -38,6 +40,13 @@ struct ImageView: View {
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
         .accessibilityElement(label: image.altText ?? "Image")
+    }
+
+    private var backgroundColorValue: Color {
+        if let bgColor = image.backgroundColor, !bgColor.isEmpty {
+            return Color(hex: bgColor)
+        }
+        return .clear
     }
     
     private var imageWidth: CGFloat? {

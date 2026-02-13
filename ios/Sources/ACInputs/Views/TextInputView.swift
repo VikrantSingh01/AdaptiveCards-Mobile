@@ -11,19 +11,22 @@ public struct TextInputView: View {
     @Binding var value: String
     @ObservedObject var validationState: ValidationState
     @Environment(\.layoutDirection) var layoutDirection
-    
+    var onInlineAction: ((CardAction) -> Void)?
+
     public init(
         input: TextInput,
         hostConfig: HostConfig,
         value: Binding<String>,
-        validationState: ValidationState
+        validationState: ValidationState,
+        onInlineAction: ((CardAction) -> Void)? = nil
     ) {
         self.input = input
         self.hostConfig = hostConfig
         self._value = value
         self.validationState = validationState
+        self.onInlineAction = onInlineAction
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let label = input.label {
@@ -31,7 +34,7 @@ public struct TextInputView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             if input.isMultiline == true {
                 TextEditor(text: $value)
                     .frame(minHeight: 80)
@@ -44,24 +47,30 @@ public struct TextInputView: View {
                         validateIfNeeded()
                     }
             } else {
-                #if os(iOS)
-                TextField(input.placeholder ?? "", text: $value)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(keyboardType)
-                    .textContentType(textContentType)
-                    .autocapitalization(autocapitalization)
-                    .onChange(of: value) { _ in
-                        validateIfNeeded()
+                HStack(spacing: 4) {
+                    #if os(iOS)
+                    TextField(input.placeholder ?? "", text: $value)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(keyboardType)
+                        .textContentType(textContentType)
+                        .autocapitalization(autocapitalization)
+                        .onChange(of: value) { _ in
+                            validateIfNeeded()
+                        }
+                    #else
+                    TextField(input.placeholder ?? "", text: $value)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: value) { _ in
+                            validateIfNeeded()
+                        }
+                    #endif
+
+                    if let inlineAction = input.inlineAction {
+                        inlineActionButton(for: inlineAction)
                     }
-                #else
-                TextField(input.placeholder ?? "", text: $value)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: value) { _ in
-                        validateIfNeeded()
-                    }
-                #endif
+                }
             }
-            
+
             if let error = validationState.getError(for: input.id) {
                 Text(error)
                     .font(.caption)
@@ -73,6 +82,28 @@ public struct TextInputView: View {
             value: value,
             isRequired: input.isRequired ?? false
         )
+    }
+
+    @ViewBuilder
+    private func inlineActionButton(for action: CardAction) -> some View {
+        Button {
+            onInlineAction?(action)
+        } label: {
+            if let iconUrl = action.iconUrl, let url = URL(string: iconUrl) {
+                AsyncImage(url: url) { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Image(systemName: "arrow.right.circle.fill")
+                }
+                .frame(width: 24, height: 24)
+            } else {
+                Text(action.title ?? "Go")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            }
+        }
+        .buttonStyle(.bordered)
+        .accessibilityLabel(action.title ?? "Inline action")
     }
     
     private var borderColor: Color {
