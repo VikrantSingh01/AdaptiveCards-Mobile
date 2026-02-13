@@ -33,7 +33,7 @@ sealed class Token {
 }
 
 /**
- * Parses template expressions into an AST
+ * Parses template expressions into an AST with thread-safe parsing
  */
 class ExpressionParser {
     private var tokens: List<Token> = emptyList()
@@ -41,10 +41,12 @@ class ExpressionParser {
 
     /**
      * Parse an expression string into an AST
+     * Thread-safe: uses synchronized access to prevent data races
      * @param expression The expression string
      * @return The parsed expression
      * @throws ParsingException if the expression is invalid
      */
+    @Synchronized
     fun parse(expression: String): Expression {
         tokens = tokenize(expression)
         position = 0

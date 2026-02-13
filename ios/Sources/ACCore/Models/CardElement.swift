@@ -213,14 +213,18 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         }
     }
     
-    /// Stable identifier conforming to Identifiable protocol
-    /// Uses the element's ID if available, otherwise generates a deterministic identifier
+    /// Stable identifier conforming to Identifiable protocol.
+    /// Uses the element's explicit ID if available, otherwise generates
+    /// a deterministic identifier based on the element's description
+    /// so SwiftUI view diffing works correctly.
     public var id: String {
         if let elementId = self.elementId {
             return elementId
         }
-        // Generate a deterministic identifier based on type and UUID
-        return "\(typeString)_\(UUID().uuidString)"
+        // Deterministic: same content always produces the same ID.
+        // Use a hash of the element's string description.
+        let description = String(describing: self)
+        return "\(typeString)_\(abs(description.hashValue))"
     }
     
     public var isVisible: Bool {

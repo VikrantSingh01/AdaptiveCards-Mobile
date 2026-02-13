@@ -204,6 +204,6 @@ public struct LogicFunctions {
             return l == r
         }
         
-        return String(describing: left!) == String(describing: right!)
+        return String(describing: left ?? "nil") == String(describing: right ?? "nil")
     }
 }

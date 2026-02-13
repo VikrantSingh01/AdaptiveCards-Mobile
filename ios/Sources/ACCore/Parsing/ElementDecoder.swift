@@ -16,11 +16,10 @@ public class ElementDecoder {
         from container: KeyedDecodingContainer<DynamicCodingKeys>
     ) throws -> String {
         guard let typeKey = DynamicCodingKeys(stringValue: "type") else {
-            throw DecodingError.keyNotFound(
-                DynamicCodingKeys(stringValue: "type")!,
+            throw DecodingError.dataCorrupted(
                 DecodingError.Context(
                     codingPath: container.codingPath,
-                    debugDescription: "Type key not found"
+                    debugDescription: "Unable to create coding key for 'type'"
                 )
             )
         }

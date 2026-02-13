@@ -4,29 +4,32 @@ import Foundation
 public final class ExpressionEvaluator {
     private let context: DataContext
     private let functions: [String: ExpressionFunction]
-    
-    public init(context: DataContext) {
-        self.context = context
-        
-        // Register all built-in functions
+
+    /// Shared function registry built once and reused across all evaluator instances
+    private static let sharedFunctions: [String: ExpressionFunction] = {
         var functions: [String: ExpressionFunction] = [:]
-        
+
         // String functions
         StringFunctions.register(into: &functions)
-        
+
         // Date functions
         DateFunctions.register(into: &functions)
-        
+
         // Collection functions
         CollectionFunctions.register(into: &functions)
-        
+
         // Logic functions
         LogicFunctions.register(into: &functions)
-        
+
         // Math functions
         MathFunctions.register(into: &functions)
-        
-        self.functions = functions
+
+        return functions
+    }()
+
+    public init(context: DataContext) {
+        self.context = context
+        self.functions = Self.sharedFunctions
     }
     
     /// Evaluate an expression
@@ -230,7 +233,7 @@ public final class ExpressionEvaluator {
         }
         
         // Fallback to string representation
-        return String(describing: left!) == String(describing: right!)
+        return String(describing: left ?? "nil") == String(describing: right ?? "nil")
     }
 }
 

@@ -47,18 +47,22 @@ public enum Token: Equatable {
     case eof
 }
 
-/// Parses template expressions into an AST
+/// Parses template expressions into an AST with thread-safe parsing
 public final class ExpressionParser {
     private var tokens: [Token] = []
     private var position = 0
-    
+    private let lock = NSLock()
+
     public init() {}
-    
+
     /// Parse an expression string into an AST
     /// - Parameter expression: The expression string
     /// - Returns: The parsed expression
     /// - Throws: ParsingError if the expression is invalid
     public func parse(_ expression: String) throws -> Expression {
+        lock.lock()
+        defer { lock.unlock() }
+
         tokens = try tokenize(expression)
         position = 0
         return try parseExpression()
