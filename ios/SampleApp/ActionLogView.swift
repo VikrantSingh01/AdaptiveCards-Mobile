@@ -4,17 +4,17 @@ struct ActionLogView: View {
     @EnvironmentObject var actionLog: ActionLogStore
     @State private var filterText: String = ""
     @State private var selectedAction: ActionLogEntry?
-    
+
     var filteredActions: [ActionLogEntry] {
         if filterText.isEmpty {
             return actionLog.actions
         } else {
-            return actionLog.actions.filter { 
+            return actionLog.actions.filter {
                 $0.actionType.localizedCaseInsensitiveContains(filterText)
             }
         }
     }
-    
+
     var body: some View {
         List {
             if actionLog.actions.isEmpty {
@@ -53,7 +53,7 @@ struct ActionLogView: View {
                     }) {
                         Label("Clear All", systemImage: "trash")
                     }
-                    
+
                     Button(action: {
                         exportLog()
                     }) {
@@ -68,7 +68,7 @@ struct ActionLogView: View {
             ActionDetailView(action: action)
         }
     }
-    
+
     private func exportLog() {
         // Export functionality would be implemented here
         print("Exporting action log...")
@@ -77,26 +77,26 @@ struct ActionLogView: View {
 
 struct ActionListRow: View {
     let action: ActionLogEntry
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(action.actionType)
                         .font(.headline)
-                    
+
                     Text(formatTime(action.timestamp))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             if !action.data.isEmpty {
                 HStack(spacing: 4) {
                     Image(systemName: "cube.box")
@@ -111,7 +111,7 @@ struct ActionListRow: View {
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
     }
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
@@ -123,7 +123,7 @@ struct ActionListRow: View {
 struct ActionDetailView: View {
     let action: ActionLogEntry
     @Environment(\.dismiss) var dismiss
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -131,11 +131,11 @@ struct ActionDetailView: View {
                     Text(action.actionType)
                         .font(.headline)
                 }
-                
+
                 Section("Timestamp") {
                     Text(formatTime(action.timestamp))
                 }
-                
+
                 if !action.data.isEmpty {
                     Section("Data") {
                         ForEach(Array(action.data.keys.sorted()), id: \.self) { key in
@@ -149,7 +149,7 @@ struct ActionDetailView: View {
                         }
                     }
                 }
-                
+
                 Section {
                     Button("Copy JSON") {
                         copyJSON()
@@ -167,14 +167,14 @@ struct ActionDetailView: View {
             }
         }
     }
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .medium
         return formatter.string(from: date)
     }
-    
+
     private func copyJSON() {
         if let jsonData = try? JSONSerialization.data(withJSONObject: action.data, options: .prettyPrinted),
            let jsonString = String(data: jsonData, encoding: .utf8) {

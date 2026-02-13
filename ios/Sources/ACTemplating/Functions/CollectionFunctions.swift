@@ -12,15 +12,15 @@ public struct CollectionFunctions {
         functions["union"] = Union()
         functions["intersection"] = Intersection()
     }
-    
+
     // MARK: - Function Implementations
-    
+
     struct Count: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 1 else {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
-            
+
             if let array = arguments[0] as? [Any] {
                 return array.count
             } else if let dict = arguments[0] as? [String: Any] {
@@ -31,43 +31,43 @@ public struct CollectionFunctions {
             return 0
         }
     }
-    
+
     struct First: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 1 else {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
-            
+
             if let array = arguments[0] as? [Any], !array.isEmpty {
                 return array.first
             }
             return nil
         }
     }
-    
+
     struct Last: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 1 else {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
-            
+
             if let array = arguments[0] as? [Any], !array.isEmpty {
                 return array.last
             }
             return nil
         }
     }
-    
+
     struct Filter: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count >= 1 else {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
-            
+
             guard let array = arguments[0] as? [Any] else {
                 return []
             }
-            
+
             // Simple filter: keep non-nil, non-empty elements
             return array.filter { element in
                 if element == nil {
@@ -80,17 +80,17 @@ public struct CollectionFunctions {
             }
         }
     }
-    
+
     struct Sort: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 1 else {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
-            
+
             guard let array = arguments[0] as? [Any] else {
                 return []
             }
-            
+
             return array.sorted { left, right in
                 if let l = left as? Double, let r = right as? Double {
                     return l < r
@@ -103,17 +103,17 @@ public struct CollectionFunctions {
             }
         }
     }
-    
+
     struct Flatten: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 1 else {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
-            
+
             guard let array = arguments[0] as? [Any] else {
                 return []
             }
-            
+
             var result: [Any] = []
             for element in array {
                 if let nested = element as? [Any] {
@@ -122,22 +122,22 @@ public struct CollectionFunctions {
                     result.append(element)
                 }
             }
-            
+
             return result
         }
     }
-    
+
     struct Union: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 2 else {
                 throw EvaluationError.invalidArgumentCount(expected: 2, actual: arguments.count)
             }
-            
+
             guard let array1 = arguments[0] as? [Any],
                   let array2 = arguments[1] as? [Any] else {
                 return []
             }
-            
+
             var result = array1
             for element in array2 {
                 let elementStr = String(describing: element)
@@ -145,22 +145,22 @@ public struct CollectionFunctions {
                     result.append(element)
                 }
             }
-            
+
             return result
         }
     }
-    
+
     struct Intersection: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count == 2 else {
                 throw EvaluationError.invalidArgumentCount(expected: 2, actual: arguments.count)
             }
-            
+
             guard let array1 = arguments[0] as? [Any],
                   let array2 = arguments[1] as? [Any] else {
                 return []
             }
-            
+
             let array2Strings = array2.map { String(describing: $0) }
             return array1.filter { element in
                 let elementStr = String(describing: element)

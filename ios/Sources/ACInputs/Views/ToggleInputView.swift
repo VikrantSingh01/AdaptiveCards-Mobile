@@ -6,7 +6,7 @@ public struct ToggleInputView: View {
     let input: ToggleInput
     let hostConfig: HostConfig
     @Binding var value: Bool
-    
+
     public init(
         input: ToggleInput,
         hostConfig: HostConfig,
@@ -16,7 +16,7 @@ public struct ToggleInputView: View {
         self.hostConfig = hostConfig
         self._value = value
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let label = input.label {
@@ -24,7 +24,7 @@ public struct ToggleInputView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Toggle(input.title, isOn: $value)
                 .toggleStyle(SwitchToggleStyle(tint: .blue))
         }

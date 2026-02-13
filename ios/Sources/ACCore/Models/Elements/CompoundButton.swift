@@ -15,7 +15,7 @@ public struct CompoundButton: Codable, Equatable {
     public var spacing: Spacing?
     public var height: BlockElementHeight?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         title: String,

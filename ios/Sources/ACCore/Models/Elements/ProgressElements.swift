@@ -12,7 +12,7 @@ public struct ProgressBar: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         value: Double,
@@ -48,7 +48,7 @@ public struct Spinner: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         size: SpinnerSize? = nil,

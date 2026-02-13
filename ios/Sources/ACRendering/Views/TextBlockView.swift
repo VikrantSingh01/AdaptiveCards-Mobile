@@ -6,9 +6,9 @@ import ACMarkdown
 struct TextBlockView: View {
     let textBlock: TextBlock
     let hostConfig: HostConfig
-    
+
     @Environment(\.layoutDirection) var layoutDirection
-    
+
     var body: some View {
         if textBlock.text.containsMarkdown {
             // Render with markdown support
@@ -18,7 +18,7 @@ struct TextBlockView: View {
                 font: font,
                 color: foregroundColor
             )
-            
+
             Text(attributedString)
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(textBlock.maxLines)
@@ -39,18 +39,18 @@ struct TextBlockView: View {
                 .accessibilityElement(label: textBlock.text)
         }
     }
-    
+
     private var font: Font {
         let size = fontSize
         let weight = fontWeight
-        
+
         if textBlock.fontType == .monospace {
             return .system(size: CGFloat(size), weight: weight, design: .monospaced)
         } else {
             return .system(size: CGFloat(size), weight: weight)
         }
     }
-    
+
     private var fontSize: Int {
         let fontSizeEnum = textBlock.size ?? .default
         switch fontSizeEnum {
@@ -66,11 +66,11 @@ struct TextBlockView: View {
             return hostConfig.fontSizes.extraLarge
         }
     }
-    
+
     private var fontWeight: Font.Weight {
         let fontWeightEnum = textBlock.weight ?? .default
         let weightValue: Int
-        
+
         switch fontWeightEnum {
         case .lighter:
             weightValue = hostConfig.fontWeights.lighter
@@ -79,7 +79,7 @@ struct TextBlockView: View {
         case .bolder:
             weightValue = hostConfig.fontWeights.bolder
         }
-        
+
         switch weightValue {
         case 100...299:
             return .light
@@ -93,13 +93,13 @@ struct TextBlockView: View {
             return .bold
         }
     }
-    
+
     private var foregroundColor: Color {
         let color = textBlock.color ?? .default
         let containerStyle = ContainerStyle.default
         let styleConfig = hostConfig.containerStyles.default
         let colorConfig: ColorConfig
-        
+
         switch color {
         case .default:
             colorConfig = styleConfig.foregroundColors.default
@@ -116,15 +116,15 @@ struct TextBlockView: View {
         case .attention:
             colorConfig = styleConfig.foregroundColors.attention
         }
-        
+
         let hex = textBlock.isSubtle == true ? colorConfig.subtle : colorConfig.default
         return Color(hex: hex)
     }
-    
+
     private var textAlignment: TextAlignment {
         .from(textBlock.horizontalAlignment)
     }
-    
+
     private var frameAlignment: Alignment {
         .from(
             horizontal: textBlock.horizontalAlignment,

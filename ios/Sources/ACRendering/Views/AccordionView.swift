@@ -5,15 +5,15 @@ import ACAccessibility
 struct AccordionView: View {
     let accordion: Accordion
     let hostConfig: HostConfig
-    
+
     @State private var expandedPanels: Set<Int>
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     init(accordion: Accordion, hostConfig: HostConfig) {
         self.accordion = accordion
         self.hostConfig = hostConfig
-        
+
         // Initialize expanded panels based on isExpanded property
         var initialExpanded = Set<Int>()
         for (index, panel) in accordion.panels.enumerated() {
@@ -23,7 +23,7 @@ struct AccordionView: View {
         }
         _expandedPanels = State(initialValue: initialExpanded)
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ForEach(Array(accordion.panels.enumerated()), id: \.offset) { index, panel in
@@ -44,10 +44,10 @@ struct AccordionView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Accordion with \(accordion.panels.count) panels")
     }
-    
+
     private func togglePanel(at index: Int) {
         let expandMode = accordion.expandMode ?? .single
-        
+
         withAnimation {
             if expandedPanels.contains(index) {
                 expandedPanels.remove(index)
@@ -68,10 +68,10 @@ struct AccordionPanelView: View {
     let totalPanels: Int
     let hostConfig: HostConfig
     let onToggle: () -> Void
-    
+
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: onToggle) {
@@ -82,7 +82,7 @@ struct AccordionPanelView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
-                    
+
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .foregroundColor(.secondary)
                         .imageScale(.medium)
@@ -97,7 +97,7 @@ struct AccordionPanelView: View {
             .accessibilityLabel("\(panel.title), panel \(panelNumber) of \(totalPanels)")
             .accessibilityHint(isExpanded ? "Expanded. Double tap to collapse" : "Collapsed. Double tap to expand")
             .accessibilityAddTraits(.isButton)
-            
+
             if isExpanded {
                 VStack(spacing: 0) {
                     ForEach(panel.content) { element in
@@ -117,11 +117,11 @@ struct AccordionPanelView: View {
             alignment: .bottom
         )
     }
-    
+
     private var adaptiveSpacing: CGFloat {
         sizeCategory.isAccessibilityCategory ? 12 : 8
     }
-    
+
     private var adaptivePadding: CGFloat {
         sizeCategory.isAccessibilityCategory ? CGFloat(hostConfig.spacing.padding) * 1.5 : CGFloat(hostConfig.spacing.padding)
     }

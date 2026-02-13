@@ -48,12 +48,12 @@ struct ImageView: View {
         }
         return .clear
     }
-    
+
     private var imageWidth: CGFloat? {
         if let width = image.width {
             return CGFloat(Int(width) ?? 0)
         }
-        
+
         if let size = image.size {
             switch size {
             case .auto:
@@ -68,24 +68,24 @@ struct ImageView: View {
                 return CGFloat(hostConfig.imageSizes.large)
             }
         }
-        
+
         return nil
     }
-    
+
     private var imageHeight: CGFloat? {
         if let height = image.height {
             return CGFloat(Int(height) ?? 0)
         }
         return nil
     }
-    
+
     private var aspectRatio: ContentMode {
         if let size = image.size {
             return size == .stretch ? .fill : .fit
         }
         return .fit
     }
-    
+
     private var imageShape: AnyShape {
         if image.style == .person {
             return AnyShape(Circle())
@@ -93,7 +93,7 @@ struct ImageView: View {
             return AnyShape(Rectangle())
         }
     }
-    
+
     private var frameAlignment: Alignment {
         .from(
             horizontal: image.horizontalAlignment,

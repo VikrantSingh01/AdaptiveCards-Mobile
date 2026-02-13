@@ -13,7 +13,7 @@ public struct RatingDisplay: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         value: Double,
@@ -53,7 +53,7 @@ public struct RatingInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+
     public init(
         id: String,
         max: Int? = nil,

@@ -11,7 +11,7 @@ public extension View {
     ) -> some View {
         self.modifier(AccessibilityElementModifier(label: label, hint: hint, traits: traits))
     }
-    
+
     /// Adds accessibility for input fields
     func accessibilityInput(
         label: String?,
@@ -20,7 +20,7 @@ public extension View {
     ) -> some View {
         self.modifier(AccessibilityInputModifier(label: label, value: value, isRequired: isRequired))
     }
-    
+
     /// Adds accessibility for action buttons
     func accessibilityAction(
         label: String?,
@@ -34,7 +34,7 @@ private struct AccessibilityElementModifier: ViewModifier {
     let label: String?
     let hint: String?
     let traits: AccessibilityTraits
-    
+
     func body(content: Content) -> some View {
         if let label = label {
             content
@@ -51,7 +51,7 @@ private struct AccessibilityInputModifier: ViewModifier {
     let label: String?
     let value: String?
     let isRequired: Bool
-    
+
     func body(content: Content) -> some View {
         var accessibilityLabel = label ?? "Input field"
         if isRequired {
@@ -60,7 +60,7 @@ private struct AccessibilityInputModifier: ViewModifier {
         if let value = value, !value.isEmpty {
             accessibilityLabel += ", current value: \(value)"
         }
-        
+
         return content
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(.isButton)
@@ -70,7 +70,7 @@ private struct AccessibilityInputModifier: ViewModifier {
 private struct AccessibilityActionModifier: ViewModifier {
     let label: String?
     let hint: String?
-    
+
     func body(content: Content) -> some View {
         content
             .accessibilityLabel(label ?? "Action")

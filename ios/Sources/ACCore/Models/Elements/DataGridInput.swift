@@ -14,7 +14,7 @@ public struct DataGridInput: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var isVisible: Bool?
-    
+
     public init(
         id: String,
         label: String? = nil,
@@ -49,7 +49,7 @@ public struct DataGridColumn: Codable, Equatable {
     public var width: String?
     public var isEditable: Bool?
     public var isSortable: Bool?
-    
+
     public init(
         id: String,
         title: String,
@@ -72,10 +72,10 @@ public enum DataGridCellValue: Codable, Equatable {
     case number(Double)
     case bool(Bool)
     case null
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if container.decodeNil() {
             self = .null
         } else if let boolValue = try? container.decode(Bool.self) {
@@ -88,7 +88,7 @@ public enum DataGridCellValue: Codable, Equatable {
             self = .null
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {

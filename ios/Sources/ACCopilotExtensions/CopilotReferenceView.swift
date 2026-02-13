@@ -2,11 +2,11 @@ import SwiftUI
 
 public struct CopilotReferenceView: View {
     public let reference: Reference
-    
+
     public init(reference: Reference) {
         self.reference = reference
     }
-    
+
     public var body: some View {
         HStack(spacing: 12) {
             if let iconUrl = reference.iconUrl {
@@ -23,19 +23,19 @@ public struct CopilotReferenceView: View {
                     .foregroundColor(.secondary)
                     .frame(width: 24, height: 24)
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(reference.title)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                
+
                 if let snippet = reference.snippet {
                     Text(snippet)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
-                
+
                 if let url = reference.url {
                     Text(url)
                         .font(.caption2)
@@ -43,14 +43,14 @@ public struct CopilotReferenceView: View {
                         .lineLimit(1)
                 }
             }
-            
+
             Spacer()
         }
         .padding(12)
         .background(Color.secondary.opacity(0.1))
         .cornerRadius(8)
     }
-    
+
     private var iconName: String {
         switch reference.type {
         case .file:

@@ -3,7 +3,7 @@ import XCTest
 @testable import ACCharts
 
 final class ChartsTests: XCTestCase {
-    
+
     func testDonutChartDecoding() throws {
         let json = """
         {
@@ -19,11 +19,11 @@ final class ChartsTests: XCTestCase {
             ]
         }
         """
-        
+
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
         let element = try decoder.decode(CardElement.self, from: data)
-        
+
         if case .donutChart(let chart) = element {
             XCTAssertEqual(chart.id, "chart1")
             XCTAssertEqual(chart.title, "Sales")
@@ -37,7 +37,7 @@ final class ChartsTests: XCTestCase {
             XCTFail("Failed to decode DonutChart")
         }
     }
-    
+
     func testBarChartDecoding() throws {
         let json = """
         {
@@ -52,11 +52,11 @@ final class ChartsTests: XCTestCase {
             ]
         }
         """
-        
+
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
         let element = try decoder.decode(CardElement.self, from: data)
-        
+
         if case .barChart(let chart) = element {
             XCTAssertEqual(chart.id, "chart2")
             XCTAssertEqual(chart.title, "Revenue")
@@ -67,7 +67,7 @@ final class ChartsTests: XCTestCase {
             XCTFail("Failed to decode BarChart")
         }
     }
-    
+
     func testLineChartDecoding() throws {
         let json = """
         {
@@ -81,11 +81,11 @@ final class ChartsTests: XCTestCase {
             ]
         }
         """
-        
+
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
         let element = try decoder.decode(CardElement.self, from: data)
-        
+
         if case .lineChart(let chart) = element {
             XCTAssertEqual(chart.id, "chart3")
             XCTAssertEqual(chart.smooth, true)
@@ -95,7 +95,7 @@ final class ChartsTests: XCTestCase {
             XCTFail("Failed to decode LineChart")
         }
     }
-    
+
     func testPieChartDecoding() throws {
         let json = """
         {
@@ -108,11 +108,11 @@ final class ChartsTests: XCTestCase {
             ]
         }
         """
-        
+
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
         let element = try decoder.decode(CardElement.self, from: data)
-        
+
         if case .pieChart(let chart) = element {
             XCTAssertEqual(chart.id, "chart4")
             XCTAssertEqual(chart.showPercentages, true)
@@ -121,7 +121,7 @@ final class ChartsTests: XCTestCase {
             XCTFail("Failed to decode PieChart")
         }
     }
-    
+
     func testChartWithCustomColors() throws {
         let json = """
         {
@@ -134,11 +134,11 @@ final class ChartsTests: XCTestCase {
             ]
         }
         """
-        
+
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
         let element = try decoder.decode(CardElement.self, from: data)
-        
+
         if case .donutChart(let chart) = element {
             XCTAssertEqual(chart.colors?.count, 3)
             XCTAssertEqual(chart.colors?[0], "#FF0000")

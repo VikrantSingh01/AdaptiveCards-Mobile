@@ -11,14 +11,14 @@ public extension View {
 struct SpacingModifier: ViewModifier {
     let spacing: Spacing?
     let hostConfig: HostConfig
-    
+
     func body(content: Content) -> some View {
         content.padding(.top, CGFloat(spacingValue))
     }
-    
+
     private var spacingValue: Int {
         guard let spacing = spacing else { return 0 }
-        
+
         switch spacing {
         case .none:
             return 0

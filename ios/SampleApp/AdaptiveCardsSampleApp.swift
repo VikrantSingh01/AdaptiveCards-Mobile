@@ -4,7 +4,7 @@ import SwiftUI
 struct AdaptiveCardsSampleApp: App {
     @StateObject private var actionLog = ActionLogStore()
     @StateObject private var settings = AppSettings()
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -16,7 +16,7 @@ struct AdaptiveCardsSampleApp: App {
 
 class ActionLogStore: ObservableObject {
     @Published var actions: [ActionLogEntry] = []
-    
+
     func log(_ actionType: String, data: [String: Any]) {
         let entry = ActionLogEntry(
             timestamp: Date(),
@@ -27,7 +27,7 @@ class ActionLogStore: ObservableObject {
             self.actions.insert(entry, at: 0)
         }
     }
-    
+
     func clear() {
         actions.removeAll()
     }
@@ -45,7 +45,7 @@ class AppSettings: ObservableObject {
     @Published var fontScale: Double = 1.0
     @Published var enableAccessibility: Bool = true
     @Published var enablePerformanceMetrics: Bool = false
-    
+
     enum Theme: String, CaseIterable {
         case light = "Light"
         case dark = "Dark"

@@ -5,7 +5,7 @@ public struct FluentTheme: Equatable {
     public var typography: FluentTypography
     public var spacing: FluentSpacing
     public var cornerRadii: FluentCornerRadii
-    
+
     public init(
         colors: FluentColorTokens = FluentColorTokens(),
         typography: FluentTypography = FluentTypography(),
@@ -17,7 +17,7 @@ public struct FluentTheme: Equatable {
         self.spacing = spacing
         self.cornerRadii = cornerRadii
     }
-    
+
     public static let `default` = FluentTheme()
 }
 
