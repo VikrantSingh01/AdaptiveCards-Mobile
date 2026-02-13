@@ -12,9 +12,11 @@ struct ContainerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(container.items) { element in
-                if viewModel.isElementVisible(elementId: element.elementId) {
-                    ElementView(element: element, hostConfig: hostConfig)
+            if let items = container.items {
+                ForEach(items) { element in
+                    if viewModel.isElementVisible(elementId: element.elementId) {
+                        ElementView(element: element, hostConfig: hostConfig)
+                    }
                 }
             }
         }

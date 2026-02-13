@@ -36,7 +36,7 @@ public struct AdaptiveCard: Codable, Equatable {
         case metadata
         case rtl
     }
-    
+
     public init(
         version: String = "1.6",
         schema: String? = nil,
@@ -69,5 +69,27 @@ public struct AdaptiveCard: Codable, Equatable {
         self.authentication = authentication
         self.metadata = metadata
         self.rtl = rtl
+    }
+
+    // Custom decoder to allow missing version in sub-cards (Action.ShowCard)
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // version is optional in sub-cards, defaults to "1.6"
+        self.version = try container.decodeIfPresent(String.self, forKey: .version) ?? "1.6"
+        self.schema = try container.decodeIfPresent(String.self, forKey: .schema)
+        self.body = try container.decodeIfPresent([CardElement].self, forKey: .body)
+        self.actions = try container.decodeIfPresent([CardAction].self, forKey: .actions)
+        self.selectAction = try container.decodeIfPresent(CardAction.self, forKey: .selectAction)
+        self.fallbackText = try container.decodeIfPresent(String.self, forKey: .fallbackText)
+        self.backgroundImage = try container.decodeIfPresent(BackgroundImage.self, forKey: .backgroundImage)
+        self.minHeight = try container.decodeIfPresent(String.self, forKey: .minHeight)
+        self.speak = try container.decodeIfPresent(String.self, forKey: .speak)
+        self.lang = try container.decodeIfPresent(String.self, forKey: .lang)
+        self.verticalContentAlignment = try container.decodeIfPresent(VerticalAlignment.self, forKey: .verticalContentAlignment)
+        self.refresh = try container.decodeIfPresent(Refresh.self, forKey: .refresh)
+        self.authentication = try container.decodeIfPresent(Authentication.self, forKey: .authentication)
+        self.metadata = try container.decodeIfPresent([String: AnyCodable].self, forKey: .metadata)
+        self.rtl = try container.decodeIfPresent(Bool.self, forKey: .rtl)
     }
 }

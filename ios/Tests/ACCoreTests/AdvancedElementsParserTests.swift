@@ -297,7 +297,7 @@ final class AdvancedElementsParserTests: XCTestCase {
                 case .spinner:
                     spinnerCount += 1
                 case .container(let container):
-                    countElements(container.items)
+                    countElements(container.items ?? [])
                 default:
                     break
                 }

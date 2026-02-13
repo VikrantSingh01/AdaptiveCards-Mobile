@@ -25,8 +25,16 @@ public class SubmitActionHandler {
         
         // Add action data
         if let actionData = action.data {
-            let convertedData = actionData.mapValues { $0.value }
-            submitData.merge(convertedData) { _, new in new }
+            if let dataDict = actionData.value as? [String: Any] {
+                // Data is a dictionary
+                submitData.merge(dataDict) { _, new in new }
+            } else if let dataString = actionData.value as? String {
+                // Data is a string - add as a single value
+                submitData["data"] = dataString
+            } else {
+                // Data is some other type - add as-is
+                submitData["data"] = actionData.value
+            }
         }
         
         delegate?.onSubmit(data: submitData, actionId: action.id)

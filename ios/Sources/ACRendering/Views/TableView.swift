@@ -44,10 +44,16 @@ struct TableCellView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(cell.items) { element in
-                if viewModel.isElementVisible(elementId: element.elementId) {
-                    ElementView(element: element, hostConfig: hostConfig)
+            if let items = cell.items {
+                ForEach(items) { element in
+                    if viewModel.isElementVisible(elementId: element.elementId) {
+                        ElementView(element: element, hostConfig: hostConfig)
+                    }
                 }
+            } else {
+                // Empty cell - render as blank space
+                Text("")
+                    .frame(minHeight: 20)
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)

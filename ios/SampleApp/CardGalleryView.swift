@@ -3,71 +3,170 @@ import SwiftUI
 struct CardGalleryView: View {
     @State private var searchText = ""
     @State private var selectedCategory: CardCategory = .all
-    
+    @State private var showGrouped = true
+
     private let cards: [TestCard] = TestCardLoader.loadAllCards()
-    
+
     var filteredCards: [TestCard] {
         var result = cards
-        
+
         if selectedCategory != .all {
             result = result.filter { $0.category == selectedCategory }
         }
-        
+
         if !searchText.isEmpty {
-            result = result.filter { 
+            result = result.filter {
                 $0.title.localizedCaseInsensitiveContains(searchText) ||
                 $0.description.localizedCaseInsensitiveContains(searchText)
             }
         }
-        
+
         return result
     }
-    
+
+    /// Groups cards by their section for sectioned display
+    private var groupedCards: [(section: CardSection, cards: [TestCard])] {
+        let sections = CardSection.allCases
+        return sections.compactMap { section in
+            let sectionCards = filteredCards.filter { section.matches($0.category) }
+            if sectionCards.isEmpty { return nil }
+            return (section: section, cards: sectionCards)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(filteredCards) { card in
-                    NavigationLink(destination: CardDetailView(card: card)) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(card.title)
-                                .font(.headline)
-                            Text(card.description)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            HStack {
-                                categoryBadge(card.category)
-                                if card.isAdvanced {
-                                    Text("Advanced")
-                                        .font(.caption2)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Color.purple.opacity(0.2))
-                                        .cornerRadius(4)
-                                }
+                // Summary header
+                if searchText.isEmpty && selectedCategory == .all {
+                    Section {
+                        cardCountSummaryView
+                    }
+                }
+
+                if showGrouped {
+                    ForEach(groupedCards, id: \.section) { group in
+                        Section {
+                            ForEach(group.cards) { card in
+                                cardRow(card)
                             }
+                        } header: {
+                            sectionHeader(group.section, count: group.cards.count)
                         }
-                        .padding(.vertical, 4)
+                    }
+                } else {
+                    ForEach(filteredCards) { card in
+                        cardRow(card)
                     }
                 }
             }
             .navigationTitle("Card Gallery")
-            .searchable(text: $searchText, prompt: "Search cards...")
+            .searchable(text: $searchText, prompt: "Search \(cards.count) cards...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Picker("Category", selection: $selectedCategory) {
-                            ForEach(CardCategory.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
+                    HStack(spacing: 12) {
+                        Button(action: { showGrouped.toggle() }) {
+                            Image(systemName: showGrouped ? "list.bullet.indent" : "list.bullet")
                         }
-                    } label: {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        Menu {
+                            Picker("Category", selection: $selectedCategory) {
+                                ForEach(CardCategory.allCases) { category in
+                                    HStack {
+                                        Text(category.rawValue)
+                                        Spacer()
+                                        Text("(\(cards.filter { $0.category == category || category == .all }.count))")
+                                    }.tag(category)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                        }
                     }
                 }
             }
         }
     }
-    
+
+    // MARK: - Subviews
+
+    private func cardRow(_ card: TestCard) -> some View {
+        NavigationLink(destination: CardDetailView(card: card)) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(card.title)
+                    .font(.headline)
+                Text(card.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    categoryBadge(card.category)
+                    if card.isAdvanced {
+                        Text("Advanced")
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.purple.opacity(0.2))
+                            .cornerRadius(4)
+                    }
+                    if card.dataJsonString != nil {
+                        Text("Templated")
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.teal.opacity(0.2))
+                            .cornerRadius(4)
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    private var cardCountSummaryView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("\(cards.count) Total Cards")
+                .font(.title2)
+                .fontWeight(.bold)
+            HStack(spacing: 12) {
+                summaryPill("Built-in", count: cards.filter { [.basic, .inputs, .actions, .containers, .advanced, .teams, .templating].contains($0.category) }.count, color: .blue)
+                summaryPill("Official", count: cards.filter { $0.category == .officialSamples }.count, color: .mint)
+                summaryPill("Elements", count: cards.filter { $0.category == .elementSamples }.count, color: .cyan)
+                summaryPill("Teams", count: cards.filter { $0.category == .teamsSamples }.count, color: .pink)
+                summaryPill("Edge", count: cards.filter { $0.category == .edgeCases }.count, color: .orange)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func summaryPill(_ title: String, count: Int, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text("\(count)")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(color)
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func sectionHeader(_ section: CardSection, count: Int) -> some View {
+        HStack {
+            Image(systemName: section.icon)
+                .foregroundColor(section.color)
+            Text(section.title)
+                .font(.headline)
+            Spacer()
+            Text("\(count)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(Color.gray.opacity(0.15))
+                .cornerRadius(8)
+        }
+    }
+
     private func categoryBadge(_ category: CardCategory) -> some View {
         Text(category.rawValue)
             .font(.caption2)
@@ -75,6 +174,53 @@ struct CardGalleryView: View {
             .padding(.vertical, 2)
             .background(category.color.opacity(0.2))
             .cornerRadius(4)
+    }
+}
+
+// MARK: - Card Sections for Grouped Display
+
+enum CardSection: String, CaseIterable, Hashable {
+    case builtIn = "Built-in Samples"
+    case officialSamples = "Official Samples"
+    case elementSamples = "Element Samples"
+    case teamsSamples = "Teams Templated Samples"
+    case edgeCases = "Edge Cases"
+
+    var title: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .builtIn: return "square.grid.2x2"
+        case .officialSamples: return "star.fill"
+        case .elementSamples: return "cube"
+        case .teamsSamples: return "person.2.fill"
+        case .edgeCases: return "exclamationmark.triangle"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .builtIn: return .blue
+        case .officialSamples: return .mint
+        case .elementSamples: return .cyan
+        case .teamsSamples: return .pink
+        case .edgeCases: return .orange
+        }
+    }
+
+    func matches(_ category: CardCategory) -> Bool {
+        switch self {
+        case .builtIn:
+            return [.basic, .inputs, .actions, .containers, .advanced, .teams, .templating].contains(category)
+        case .officialSamples:
+            return category == .officialSamples
+        case .elementSamples:
+            return category == .elementSamples
+        case .teamsSamples:
+            return category == .teamsSamples
+        case .edgeCases:
+            return category == .edgeCases
+        }
     }
 }
 
@@ -90,6 +236,7 @@ enum CardCategory: String, CaseIterable, Identifiable {
     case officialSamples = "Official"
     case elementSamples = "Elements"
     case teamsSamples = "Teams Templated"
+    case edgeCases = "Edge Cases"
 
     var id: String { rawValue }
 
@@ -106,6 +253,7 @@ enum CardCategory: String, CaseIterable, Identifiable {
         case .officialSamples: return .mint
         case .elementSamples: return .cyan
         case .teamsSamples: return .pink
+        case .edgeCases: return .orange
         }
     }
 }
@@ -209,6 +357,17 @@ class TestCardLoader {
             ("templating-expressions.json", "Expression Templating", .templating, false),
             ("templating-nested.json", "Nested Templating", .templating, false),
             ("advanced-combined.json", "Advanced Combined", .advanced, true),
+            // Edge case cards
+            ("edge-all-unknown-types.json", "Edge: Unknown Types", .edgeCases, false),
+            ("edge-deeply-nested.json", "Edge: Deeply Nested", .edgeCases, false),
+            ("edge-empty-card.json", "Edge: Empty Card", .edgeCases, false),
+            ("edge-empty-containers.json", "Edge: Empty Containers", .edgeCases, false),
+            ("edge-long-text.json", "Edge: Long Text", .edgeCases, false),
+            ("edge-max-actions.json", "Edge: Max Actions", .edgeCases, false),
+            ("edge-mixed-inputs.json", "Edge: Mixed Inputs", .edgeCases, false),
+            ("edge-rtl-content.json", "Edge: RTL Content", .edgeCases, false),
+            // Additional catalog/metadata cards
+            ("sample-catalog.json", "Sample Catalog", .basic, false),
         ]
 
         var cards = cardDefinitions.compactMap { (filename, title, category, isAdvanced) -> TestCard? in

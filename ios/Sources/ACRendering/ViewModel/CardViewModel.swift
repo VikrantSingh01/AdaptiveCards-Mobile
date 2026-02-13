@@ -96,7 +96,7 @@ public class CardViewModel: ObservableObject {
     private func initializeVisibilityForElement(_ element: CardElement) {
         switch element {
         case .container(let container):
-            for item in container.items {
+            for item in container.items ?? [] {
                 if let id = item.elementId {
                     visibility[id] = item.isVisible
                 }
@@ -104,7 +104,7 @@ public class CardViewModel: ObservableObject {
             }
         case .columnSet(let columnSet):
             for column in columnSet.columns {
-                for item in column.items {
+                for item in column.items ?? [] {
                     if let id = item.elementId {
                         visibility[id] = item.isVisible
                     }
@@ -152,12 +152,12 @@ public class CardViewModel: ObservableObject {
                 inputValues[input.id] = value
             }
         case .container(let container):
-            for item in container.items {
+            for item in container.items ?? [] {
                 initializeInputValue(for: item)
             }
         case .columnSet(let columnSet):
             for column in columnSet.columns {
-                for item in column.items {
+                for item in column.items ?? [] {
                     initializeInputValue(for: item)
                 }
             }
