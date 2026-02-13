@@ -42,14 +42,14 @@ jobs:
       working-directory: android
       run: ./gradlew testDebugUnitTest --stacktrace
     
-    - name: Run Snapshot Tests
+    - name: Verify Paparazzi Snapshots
       working-directory: android
-      run: ./gradlew :ac-rendering:testDebugUnitTest --tests "*SnapshotTests" || echo "Snapshot tests not configured"
-      
+      run: ./gradlew :ac-rendering:verifyPaparazziDebug || echo "Snapshot verification failed - check diff artifacts"
+
     - name: Run Android Lint
       working-directory: android
       run: ./gradlew lint || echo "Lint not configured"
-        
+
     - name: Upload Test Reports
       if: always()
       uses: actions/upload-artifact@v4
@@ -58,4 +58,12 @@ jobs:
         path: |
           android/**/build/reports/tests/
           android/**/build/test-results/
+        retention-days: 7
+
+    - name: Upload Snapshot Diffs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: snapshot-diffs
+        path: android/ac-rendering/out/failures/
         retention-days: 7
