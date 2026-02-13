@@ -351,10 +351,10 @@ final class OfficialSamplesParserTests: XCTestCase {
                 case .columnSet(let cs):
                     columnSetCount += 1
                     for col in cs.columns {
-                        countColumnSets(col.items)
+                        countColumnSets(col.items ?? [])
                     }
                 case .container(let c):
-                    countColumnSets(c.items)
+                    countColumnSets(c.items ?? [])
                 default:
                     break
                 }
