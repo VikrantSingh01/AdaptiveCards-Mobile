@@ -53,7 +53,7 @@ final class CardParserTests: XCTestCase {
         // Verify container
         if case .container(let container) = card.body?[0] {
             XCTAssertEqual(container.style, .emphasis)
-            XCTAssertEqual(container.items.count, 2)
+            XCTAssertEqual(container.items?.count, 2)
         } else {
             XCTFail("Expected Container as first element")
         }

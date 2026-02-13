@@ -25,8 +25,16 @@ public class ExecuteActionHandler {
         
         // Add action data
         if let actionData = action.data {
-            let convertedData = actionData.mapValues { $0.value }
-            executeData.merge(convertedData) { _, new in new }
+            if let dataDict = actionData.value as? [String: Any] {
+                // Data is a dictionary
+                executeData.merge(dataDict) { _, new in new }
+            } else if let dataString = actionData.value as? String {
+                // Data is a string - add as a single value
+                executeData["data"] = dataString
+            } else {
+                // Data is some other type - add as-is
+                executeData["data"] = actionData.value
+            }
         }
         
         delegate?.onExecute(verb: action.verb, data: executeData, actionId: action.id)

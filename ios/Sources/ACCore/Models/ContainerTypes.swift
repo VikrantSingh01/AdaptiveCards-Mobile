@@ -5,7 +5,7 @@ import Foundation
 public struct Container: Codable, Equatable {
     public let type: String = "Container"
     public var id: String?
-    public var items: [CardElement]
+    public var items: [CardElement]?  // Optional to support empty containers
     public var selectAction: CardAction?
     public var style: ContainerStyle?
     public var verticalContentAlignment: VerticalAlignment?
@@ -22,7 +22,7 @@ public struct Container: Codable, Equatable {
 
     public init(
         id: String? = nil,
-        items: [CardElement],
+        items: [CardElement]? = nil,
         selectAction: CardAction? = nil,
         style: ContainerStyle? = nil,
         verticalContentAlignment: VerticalAlignment? = nil,
@@ -109,7 +109,7 @@ public struct ColumnSet: Codable, Equatable {
 public struct Column: Codable, Equatable, Identifiable {
     public let type: String = "Column"
     public var id: String?
-    public var items: [CardElement]
+    public var items: [CardElement]?  // Optional to support empty columns
     public var width: ColumnWidth?
     public var style: ContainerStyle?
     public var verticalContentAlignment: VerticalAlignment?
@@ -121,19 +121,22 @@ public struct Column: Codable, Equatable, Identifiable {
     public var selectAction: CardAction?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+
     // Stable identifier using id property or combined items IDs as fallback
     public var stableId: String {
         if let id = id, !id.isEmpty {
             return id
         }
+        guard let items = items else {
+            return "column_empty_\(type)"
+        }
         let itemsId = items.map { $0.id }.joined(separator: "_")
         return itemsId.isEmpty ? "column_empty_\(type)" : itemsId
     }
-    
+
     public init(
         id: String? = nil,
-        items: [CardElement],
+        items: [CardElement]? = nil,
         width: ColumnWidth? = nil,
         style: ContainerStyle? = nil,
         verticalContentAlignment: VerticalAlignment? = nil,
@@ -384,7 +387,11 @@ public struct TableRow: Codable, Equatable, Identifiable {
     // Generate stable ID from cells' items IDs
     public var id: String {
         let cellIds = cells.map { cell in
-            cell.items.map { $0.id }.joined(separator: "_")
+            if let items = cell.items {
+                return items.map { $0.id }.joined(separator: "_")
+            } else {
+                return "empty"
+            }
         }.joined(separator: "|")
         return cellIds.isEmpty ? "row_empty" : cellIds
     }
@@ -404,22 +411,23 @@ public struct TableRow: Codable, Equatable, Identifiable {
 
 public struct TableCell: Codable, Equatable, Identifiable {
     public let type: String = "TableCell"
-    public var items: [CardElement]
+    public var items: [CardElement]?  // Optional to support cells with inline text
     public var style: ContainerStyle?
     public var verticalContentAlignment: VerticalAlignment?
     public var bleed: Bool?
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
     public var selectAction: CardAction?
-    
+
     // Generate stable ID from items IDs
     public var id: String {
+        guard let items = items else { return "cell_empty" }
         let itemsId = items.map { $0.id }.joined(separator: "_")
         return itemsId.isEmpty ? "cell_empty" : itemsId
     }
-    
+
     public init(
-        items: [CardElement],
+        items: [CardElement]? = nil,
         style: ContainerStyle? = nil,
         verticalContentAlignment: VerticalAlignment? = nil,
         bleed: Bool? = nil,
@@ -460,7 +468,14 @@ public struct BackgroundImage: Codable, Equatable {
     public var fillMode: FillMode?
     public var horizontalAlignment: HorizontalAlignment?
     public var verticalAlignment: VerticalAlignment?
-    
+
+    enum CodingKeys: String, CodingKey {
+        case url
+        case fillMode
+        case horizontalAlignment
+        case verticalAlignment
+    }
+
     public init(
         url: String,
         fillMode: FillMode? = nil,
@@ -472,12 +487,53 @@ public struct BackgroundImage: Codable, Equatable {
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
     }
-    
+
+    // Custom decoder to support both string URL and object form
+    public init(from decoder: Decoder) throws {
+        // Try decoding as a string first (shorthand form)
+        if let container = try? decoder.singleValueContainer(),
+           let urlString = try? container.decode(String.self) {
+            self.url = urlString
+            self.fillMode = nil
+            self.horizontalAlignment = nil
+            self.verticalAlignment = nil
+        } else {
+            // Fall back to object form
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.url = try container.decode(String.self, forKey: .url)
+            self.fillMode = try container.decodeIfPresent(FillMode.self, forKey: .fillMode)
+            self.horizontalAlignment = try container.decodeIfPresent(HorizontalAlignment.self, forKey: .horizontalAlignment)
+            self.verticalAlignment = try container.decodeIfPresent(VerticalAlignment.self, forKey: .verticalAlignment)
+        }
+    }
+
     public enum FillMode: String, Codable {
-        case cover = "Cover"
-        case repeatHorizontally = "RepeatHorizontally"
-        case repeatVertically = "RepeatVertically"
-        case `repeat` = "Repeat"
+        case cover = "cover"
+        case repeatHorizontally = "repeatHorizontally"
+        case repeatVertically = "repeatVertically"
+        case `repeat` = "repeat"
+
+        // Support legacy PascalCase values for backward compatibility
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let value = try container.decode(String.self)
+
+            switch value.lowercased() {
+            case "cover":
+                self = .cover
+            case "repeathorizontally":
+                self = .repeatHorizontally
+            case "repeatvertically":
+                self = .repeatVertically
+            case "repeat":
+                self = .repeat
+            default:
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Unknown fill mode: \(value)"
+                )
+            }
+        }
     }
 }
 

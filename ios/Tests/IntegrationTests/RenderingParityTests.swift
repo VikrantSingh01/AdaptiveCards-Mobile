@@ -361,12 +361,12 @@ final class RenderingParityTests: XCTestCase {
         var foundEmptyContainer = false
         for element in card.body ?? [] {
             if case .container(let container) = element {
-                if container.items.isEmpty {
+                if container.items?.isEmpty ?? true {
                     foundEmptyContainer = true
                 }
             }
         }
-        
+
         XCTAssertTrue(foundEmptyContainer, "Should have at least one empty container")
     }
     
