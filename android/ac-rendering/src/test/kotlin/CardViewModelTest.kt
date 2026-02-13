@@ -85,12 +85,14 @@ class CardViewModelTest {
     fun `test StateFlow API for showCardState`() = runTest {
         // Initial state
         assertEquals(emptyMap<String, Boolean>(), viewModel.showCardStateFlow.value)
-        
+
         // Update via ViewModel method which uses SnapshotStateMap
-        viewModel.toggleShowCard("action1")
-        
+        Snapshot.withMutableSnapshot {
+            viewModel.toggleShowCard("action1")
+        }
+
         testDispatcher.scheduler.advanceUntilIdle()
-        
+
         // Verify both APIs reflect the change
         assertTrue(viewModel.showCardState["action1"] == true)
         assertTrue(viewModel.showCardStateFlow.value["action1"] == true)
@@ -100,12 +102,14 @@ class CardViewModelTest {
     fun `test StateFlow API for validationErrors`() = runTest {
         // Initial state
         assertEquals(emptyMap<String, String>(), viewModel.validationErrorsFlow.value)
-        
+
         // Update via ViewModel method
-        viewModel.setValidationError("input1", "Required field")
-        
+        Snapshot.withMutableSnapshot {
+            viewModel.setValidationError("input1", "Required field")
+        }
+
         testDispatcher.scheduler.advanceUntilIdle()
-        
+
         // Verify both APIs
         assertEquals("Required field", viewModel.validationErrors["input1"])
         assertEquals("Required field", viewModel.validationErrorsFlow.value["input1"])

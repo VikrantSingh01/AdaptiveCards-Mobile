@@ -14,6 +14,9 @@ object CardParser {
         prettyPrint = true
         coerceInputValues = true
         serializersModule = SerializersModule {
+            polymorphic(CardElement::class) {
+                defaultDeserializer { CardElementSerializer }
+            }
             polymorphic(CardAction::class) {
                 defaultDeserializer { ActionSubmit.serializer() }
                 subclass(ActionSubmit::class)

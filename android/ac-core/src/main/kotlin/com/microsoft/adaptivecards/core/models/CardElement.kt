@@ -1,5 +1,6 @@
 package com.microsoft.adaptivecards.core.models
 
+import com.microsoft.adaptivecards.core.parsing.BackgroundImageSerializer
 import com.microsoft.adaptivecards.core.parsing.CardElementSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -105,7 +106,7 @@ data class Container(
     val rtl: Boolean? = null
 ) : CardElement
 
-@Serializable
+@Serializable(with = BackgroundImageSerializer::class)
 data class BackgroundImage(
     val url: String,
     val fillMode: String? = null,

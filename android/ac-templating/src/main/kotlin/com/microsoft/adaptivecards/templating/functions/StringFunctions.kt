@@ -21,6 +21,8 @@ object StringFunctions {
         functions["endsWith"] = EndsWith()
         functions["contains"] = Contains()
         functions["format"] = Format()
+        functions["concat"] = Concat()
+        functions["string"] = ToString()
     }
 
     // MARK: - Function Implementations
@@ -208,6 +210,28 @@ object StringFunctions {
             }
 
             return result
+        }
+    }
+
+    class Concat : ExpressionFunction {
+        override fun call(arguments: List<Any?>): Any? {
+            if (arguments.isEmpty()) {
+                throw EvaluationException("concat expects at least 1 argument")
+            }
+            return arguments.joinToString("") { it?.toString() ?: "" }
+        }
+    }
+
+    class ToString : ExpressionFunction {
+        override fun call(arguments: List<Any?>): Any? {
+            if (arguments.size != 1) {
+                throw EvaluationException("string expects 1 argument, got ${arguments.size}")
+            }
+            val value = arguments[0] ?: return ""
+            return when (value) {
+                is Double -> if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
+                else -> value.toString()
+            }
         }
     }
 
