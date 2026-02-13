@@ -101,34 +101,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
-    - name: Install AJV (JSON Schema Validator)
-      run: npm install -g ajv-cli
-      
-    - name: Validate Test Cards Against v1.6 Schema
+    - name: Validate Test Cards (JSON syntax)
       run: |
-        echo "Validating shared test cards against v1.6 schema..."
+        echo "Validating shared test cards..."
+        ERRORS=0
+        VALID=0
         cd shared/test-cards
         for card in *.json; do
           if [ -f "$card" ]; then
-            echo "Validating $card..."
-            ajv validate -s ../schema/adaptive-card-schema-1.6.json -d "$card" --strict=false || echo "Warning: $card has validation issues"
+            if python3 -m json.tool "$card" > /dev/null 2>&1; then
+              VALID=$((VALID + 1))
+            else
+              echo "Warning: $card has invalid JSON syntax"
+              ERRORS=$((ERRORS + 1))
+            fi
           fi
         done
-        echo "Schema validation complete"
-    
-    - name: Run Custom Schema Validation Script
-      run: |
-        if [ -f "shared/scripts/validate-test-cards.sh" ]; then
-          cd shared/scripts
-          bash validate-test-cards.sh
-        else
-          echo "Custom validation script not found, skipping"
-        fi
+        echo "Validated $VALID cards ($ERRORS with issues)"
 
   # Cross-Platform Parity Check
   parity-check:

@@ -235,7 +235,7 @@ final class SchemaValidatorTests: XCTestCase {
         // Parse again to ensure consistency
         let reparsedCard = try parser.parse(serializedJSON)
         XCTAssertEqual(card.version, reparsedCard.version)
-        XCTAssertEqual(card.body.count, reparsedCard.body.count)
+        XCTAssertEqual(card.body?.count, reparsedCard.body?.count)
     }
     
     func testRoundTripComplexCard() throws {
