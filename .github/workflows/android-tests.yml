@@ -44,7 +44,7 @@ jobs:
     
     - name: Run Snapshot Tests
       working-directory: android
-      run: ./gradlew :ac-rendering:test --tests "*SnapshotTests" || echo "Snapshot tests not configured"
+      run: ./gradlew :ac-rendering:testDebugUnitTest --tests "*SnapshotTests" || echo "Snapshot tests not configured"
       
     - name: Run Android Lint
       working-directory: android
