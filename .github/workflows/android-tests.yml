@@ -44,7 +44,8 @@ jobs:
     
     - name: Verify Paparazzi Snapshots
       working-directory: android
-      run: ./gradlew :ac-rendering:verifyPaparazziDebug || echo "Snapshot verification failed - check diff artifacts"
+      continue-on-error: true
+      run: ./gradlew :ac-rendering:verifyPaparazziDebug
 
     - name: Run Android Lint
       working-directory: android

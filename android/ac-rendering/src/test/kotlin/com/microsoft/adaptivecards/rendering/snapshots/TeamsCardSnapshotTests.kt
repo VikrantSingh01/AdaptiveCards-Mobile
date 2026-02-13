@@ -45,7 +45,7 @@ class TeamsCardSnapshotTests {
     // MARK: - Helper
 
     private fun snapshotTeamsCard(name: String) {
-        val json = CardElementSnapshotTests.loadCardJson(name)
+        val json = TestCardLoader.loadCardJson(name)
 
         paparazzi.snapshot(name = "teams_$name") {
             HostConfigProvider(hostConfig = TeamsHostConfig.create()) {

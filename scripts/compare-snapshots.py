@@ -47,7 +47,6 @@ def generate_html_report(ios_snapshots: dict, android_snapshots: dict,
     """Generate HTML report with side-by-side comparison."""
     all_cards = sorted(set(list(ios_snapshots.keys()) + list(android_snapshots.keys())))
 
-    matched = 0
     ios_only = 0
     android_only = 0
     both = 0
@@ -81,6 +80,9 @@ def generate_html_report(ios_snapshots: dict, android_snapshots: dict,
 <html>
 <head>
 <title>Cross-Platform Parity Report</title>
+<meta charset="utf-8">
+<!-- NOTE: Image paths are local filesystem references. Open this report
+     on the same machine where snapshots were recorded. -->
 <style>
 body {{ font-family: -apple-system, system-ui, sans-serif; margin: 20px; background: #f5f5f5; }}
 h1 {{ color: #333; }}
@@ -131,8 +133,13 @@ h1 {{ color: #333; }}
 </body>
 </html>"""
 
-    with open(output_path, "w") as f:
-        f.write(html)
+    try:
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(html, encoding="utf-8")
+    except OSError as e:
+        print(f"Error writing report to {output_path}: {e}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Report generated: {output_path}")
     print(f"  Both platforms: {both}")

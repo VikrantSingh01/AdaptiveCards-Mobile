@@ -151,6 +151,8 @@ class InteractionTests {
     }
 
     // MARK: - Submit Action Input Gathering
+    // Note: Android uses getAllInputValues() while iOS uses gatherInputValues().
+    // Both return an immutable snapshot of all collected input values for Action.Submit.
 
     @Test
     fun `gather inputs for submit returns all values`() {

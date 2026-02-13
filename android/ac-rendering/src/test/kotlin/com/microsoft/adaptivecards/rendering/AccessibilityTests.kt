@@ -90,10 +90,10 @@ class AccessibilityTests {
 
         val inputs = card.body?.filterIsInstance<CardInput>() ?: emptyList()
         assertEquals(6, inputs.size)
-        inputs.forEach { input ->
-            assertNotNull(input.id, "${input.type} should have an ID")
-            assertFalse(input.id.isNullOrBlank(), "${input.type} ID should not be blank")
-        }
+
+        val expectedIds = listOf("t1", "n1", "d1", "tm1", "tg1", "cs1")
+        val actualIds = inputs.map { it.id }
+        assertEquals(expectedIds, actualIds, "Input IDs should match JSON specifications")
     }
 
     // MARK: - Action Accessibility

@@ -5,7 +5,6 @@ import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 /**
  * Paparazzi-based snapshot tests for Adaptive Card rendering.
@@ -43,17 +42,6 @@ class CardElementSnapshotTests {
             "rich-text",
             "markdown"
         )
-
-        fun loadCardJson(name: String): String {
-            val candidates = listOf(
-                File("../../shared/test-cards/$name.json"),
-                File("../shared/test-cards/$name.json"),
-                File("shared/test-cards/$name.json")
-            )
-            val file = candidates.firstOrNull { it.exists() }
-                ?: error("Test card not found: $name.json")
-            return file.readText()
-        }
     }
 
     // ---------------------------------------------------------------
@@ -91,7 +79,7 @@ class CardElementSnapshotTests {
     // ---------------------------------------------------------------
 
     private fun snapshotCard(name: String) {
-        val json = loadCardJson(name)
+        val json = TestCardLoader.loadCardJson(name)
         val card = CardParser.parse(json)
 
         paparazzi.snapshot(name = name) {
