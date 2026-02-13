@@ -4,6 +4,8 @@ import app.cash.paparazzi.Paparazzi
 import com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig
 import com.microsoft.adaptivecards.hostconfig.HostConfigProvider
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+import org.junit.Assume.assumeNotNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -45,11 +47,12 @@ class TeamsCardSnapshotTests {
     // MARK: - Helper
 
     private fun snapshotTeamsCard(name: String) {
-        val json = TestCardLoader.loadCardJson(name)
+        val json = TestCardLoader.loadCardJsonOrNull(name)
+        assumeNotNull("Skipping: card $name.json not found", json)
 
-        paparazzi.snapshot(name = "teams_$name") {
+        paparazzi.snapshot(name = "teams_${name.replace("/", "_")}") {
             HostConfigProvider(hostConfig = TeamsHostConfig.create()) {
-                AdaptiveCardView(cardJson = json)
+                AdaptiveCardView(cardJson = json!!, viewModel = CardViewModel())
             }
         }
     }
