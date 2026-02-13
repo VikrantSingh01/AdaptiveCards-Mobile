@@ -170,10 +170,10 @@ public enum ColumnWidth: Codable, Equatable {
     case stretch
     case weighted(Double)
     case pixels(String)
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let stringValue = try? container.decode(String.self) {
             switch stringValue.lowercased() {
             case "auto":
@@ -189,7 +189,7 @@ public enum ColumnWidth: Codable, Equatable {
             self = .auto
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
@@ -274,13 +274,13 @@ public struct FactSet: Codable, Equatable {
         self.requires = requires
         self.fallback = fallback
     }
-    
+
     public struct Fact: Codable, Equatable, Identifiable {
         public var title: String
         public var value: String
-        
+
         public var id: String { title }
-        
+
         public init(title: String, value: String) {
             self.title = title
             self.value = value
@@ -383,7 +383,7 @@ public struct TableRow: Codable, Equatable, Identifiable {
     public var style: ContainerStyle?
     public var horizontalCellContentAlignment: HorizontalAlignment?
     public var verticalCellContentAlignment: VerticalAlignment?
-    
+
     // Generate stable ID from cells' items IDs
     public var id: String {
         let cellIds = cells.map { cell in
@@ -395,7 +395,7 @@ public struct TableRow: Codable, Equatable, Identifiable {
         }.joined(separator: "|")
         return cellIds.isEmpty ? "row_empty" : cellIds
     }
-    
+
     public init(
         cells: [TableCell],
         style: ContainerStyle? = nil,
@@ -449,7 +449,7 @@ public struct TableColumnDefinition: Codable, Equatable {
     public var width: ColumnWidth?
     public var horizontalCellContentAlignment: HorizontalAlignment?
     public var verticalCellContentAlignment: VerticalAlignment?
-    
+
     public init(
         width: ColumnWidth? = nil,
         horizontalCellContentAlignment: HorizontalAlignment? = nil,

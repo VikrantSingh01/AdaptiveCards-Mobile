@@ -12,7 +12,7 @@ public struct ListElement: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         items: [CardElement],

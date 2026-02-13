@@ -5,11 +5,11 @@ import ACAccessibility
 struct ColumnSetView: View {
     let columnSet: ColumnSet
     let hostConfig: HostConfig
-    
+
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: CGFloat(hostConfig.spacing.default)) {
             ForEach(columnSet.columns, id: \.stableId) { column in
@@ -27,10 +27,10 @@ struct ColumnSetView: View {
         }
         .accessibilityContainer(label: "Column Set")
     }
-    
+
     private func columnWidth(for column: Column) -> CGFloat? {
         guard let width = column.width else { return nil }
-        
+
         switch width {
         case .auto:
             return nil
@@ -44,7 +44,7 @@ struct ColumnSetView: View {
             return CGFloat(Int(value.replacingOccurrences(of: "px", with: "")) ?? 0)
         }
     }
-    
+
     private var minHeight: CGFloat? {
         guard let minHeightStr = columnSet.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)

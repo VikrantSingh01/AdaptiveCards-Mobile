@@ -11,16 +11,16 @@ public extension View {
 struct ContainerStyleModifier: ViewModifier {
     let style: ContainerStyle?
     let hostConfig: HostConfig
-    
+
     func body(content: Content) -> some View {
         content
             .background(backgroundColor)
     }
-    
+
     private var backgroundColor: Color {
         let containerStyle = style ?? .default
         let styleConfig: ContainerStyleConfig
-        
+
         switch containerStyle {
         case .default:
             styleConfig = hostConfig.containerStyles.default
@@ -35,7 +35,7 @@ struct ContainerStyleModifier: ViewModifier {
         case .accent:
             styleConfig = hostConfig.containerStyles.accent
         }
-        
+
         return Color(hex: styleConfig.backgroundColor)
     }
 }

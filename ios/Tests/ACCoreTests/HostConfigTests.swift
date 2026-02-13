@@ -2,18 +2,18 @@ import XCTest
 @testable import ACCore
 
 final class HostConfigTests: XCTestCase {
-    
+
     func testDefaultHostConfig() {
         let config = HostConfig()
-        
+
         XCTAssertEqual(config.spacing.default, 8)
         XCTAssertEqual(config.fontSizes.default, 14)
         XCTAssertEqual(config.separator.lineThickness, 1)
     }
-    
+
     func testTeamsHostConfig() {
         let config = TeamsHostConfig.create()
-        
+
         XCTAssertEqual(config.spacing.default, 8)
         XCTAssertEqual(config.fontSizes.default, 14)
         XCTAssertEqual(config.separator.lineColor, "#E1DFDD")
@@ -21,7 +21,7 @@ final class HostConfigTests: XCTestCase {
         XCTAssertEqual(config.imageSizes.medium, 80)
         XCTAssertEqual(config.imageSizes.large, 160)
     }
-    
+
     func testHostConfigParser() throws {
         let json = """
         {
@@ -291,10 +291,10 @@ final class HostConfigTests: XCTestCase {
             }
         }
         """
-        
+
         let parser = HostConfigParser()
         let config = try parser.parse(json)
-        
+
         XCTAssertEqual(config.spacing.small, 4)
         XCTAssertEqual(config.fontSizes.default, 14)
         XCTAssertEqual(config.separator.lineColor, "#E0E0E0")

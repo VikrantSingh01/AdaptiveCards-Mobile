@@ -6,7 +6,7 @@ struct CardDetailView: View {
     @State private var parseTime: TimeInterval = 0
     @State private var renderTime: TimeInterval = 0
     @EnvironmentObject var actionLog: ActionLogStore
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -14,12 +14,12 @@ struct CardDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Preview")
                         .font(.headline)
-                    
+
                     CardPreviewPlaceholder(json: card.jsonString)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(12)
                 }
-                
+
                 // Performance Metrics
                 HStack(spacing: 20) {
                     MetricView(title: "Parse", value: String(format: "%.2fms", parseTime * 1000))
@@ -28,11 +28,11 @@ struct CardDetailView: View {
                 .padding()
                 .background(Color.blue.opacity(0.1))
                 .cornerRadius(12)
-                
+
                 // JSON Toggle
                 Toggle("Show JSON", isOn: $showJSON)
                     .padding(.horizontal)
-                
+
                 if showJSON {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -72,12 +72,12 @@ struct CardDetailView: View {
                         }
                     }
                 }
-                
+
                 // Recent Actions
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Recent Actions")
                         .font(.headline)
-                    
+
                     if actionLog.actions.isEmpty {
                         Text("No actions yet")
                             .foregroundColor(.secondary)
@@ -104,7 +104,7 @@ struct CardDetailView: View {
             measurePerformance()
         }
     }
-    
+
     private func measurePerformance() {
         let start = CFAbsoluteTimeGetCurrent()
         // Actual JSON parsing
@@ -118,11 +118,11 @@ struct CardDetailView: View {
         }
         renderTime = CFAbsoluteTimeGetCurrent() - renderStart
     }
-    
+
     private func reloadCard() {
         measurePerformance()
     }
-    
+
     private func copyJSON() {
         #if os(iOS)
         UIPasteboard.general.string = card.jsonString
@@ -893,7 +893,7 @@ struct AnyShape: Shape {
 struct MetricView: View {
     let title: String
     let value: String
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text(title)
@@ -908,7 +908,7 @@ struct MetricView: View {
 
 struct ActionRowView: View {
     let action: ActionLogEntry
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -930,13 +930,13 @@ struct ActionRowView: View {
         .background(Color.gray.opacity(0.1))
         .cornerRadius(8)
     }
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .medium
         return formatter.string(from: date)
     }
-    
+
     private func formatData(_ data: [String: Any]) -> String {
         data.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
     }

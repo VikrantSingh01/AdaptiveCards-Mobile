@@ -3,9 +3,9 @@ import Foundation
 /// Template engine for expanding Adaptive Card templates with data binding
 public final class TemplateEngine {
     private let parser = ExpressionParser()
-    
+
     public init() {}
-    
+
     /// Expand a template string with data binding
     /// - Parameters:
     ///   - template: Template string containing ${...} expressions
@@ -16,7 +16,7 @@ public final class TemplateEngine {
         let context = DataContext(data: data)
         return try expandString(template, context: context)
     }
-    
+
     /// Expand a template JSON object with data binding
     /// - Parameters:
     ///   - template: Template JSON dictionary
@@ -27,23 +27,23 @@ public final class TemplateEngine {
         let context = DataContext(data: data)
         return try expandDictionary(template, context: context)
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func expandString(_ string: String, context: DataContext) throws -> String {
         var result = string
         var searchIndex = result.startIndex
-        
+
         while searchIndex < result.endIndex {
             // Find next ${
             guard let startRange = result.range(of: "${", range: searchIndex..<result.endIndex) else {
                 break
             }
-            
+
             // Find matching }
             var braceCount = 1
             var endIndex = result.index(after: startRange.upperBound)
-            
+
             while endIndex < result.endIndex && braceCount > 0 {
                 let char = result[endIndex]
                 if char == "{" {
@@ -51,40 +51,40 @@ public final class TemplateEngine {
                 } else if char == "}" {
                     braceCount -= 1
                 }
-                
+
                 if braceCount > 0 {
                     endIndex = result.index(after: endIndex)
                 }
             }
-            
+
             guard braceCount == 0 else {
                 throw TemplatingError.unmatchedBrace
             }
-            
+
             // Extract expression
             let expressionStart = startRange.upperBound
             let expression = String(result[expressionStart..<endIndex])
-            
+
             // Evaluate expression
             let parsedExpression = try parser.parse(expression)
             let evaluator = ExpressionEvaluator(context: context)
             let value = try evaluator.evaluate(parsedExpression)
-            
+
             // Replace ${expression} with value
             let replacement = stringValue(value)
             let replacementRange = startRange.lowerBound..<result.index(after: endIndex)
             result.replaceSubrange(replacementRange, with: replacement)
-            
+
             // Update search position
             searchIndex = result.index(startRange.lowerBound, offsetBy: replacement.count)
         }
-        
+
         return result
     }
-    
+
     private func expandDictionary(_ dict: [String: Any], context: DataContext) throws -> [String: Any] {
         var result: [String: Any] = [:]
-        
+
         for (key, value) in dict {
             // Handle $when condition
             if key == "$when" {
@@ -101,17 +101,17 @@ public final class TemplateEngine {
                 }
                 continue // Don't include $when in output
             }
-            
+
             // Expand value
             result[key] = try expandValue(value, context: context)
         }
-        
+
         return result
     }
-    
+
     private func expandArray(_ array: [Any], context: DataContext) throws -> [Any] {
         var result: [Any] = []
-        
+
         for item in array {
             if let dict = item as? [String: Any] {
                 // Check for $data iteration
@@ -120,18 +120,18 @@ public final class TemplateEngine {
                     let parsedExpression = try parser.parse(expressionStr)
                     let evaluator = ExpressionEvaluator(context: context)
                     let dataValue = try evaluator.evaluate(parsedExpression)
-                    
+
                     if let dataArray = dataValue as? [Any] {
                         // Iterate over data array
                         for (index, dataItem) in dataArray.enumerated() {
                             let childContext = context.createChild(data: dataItem, index: index)
-                            
+
                             // Expand the template for this item (excluding $data key)
                             var itemTemplate = dict
                             itemTemplate.removeValue(forKey: "$data")
-                            
+
                             let expandedItem = try expandDictionary(itemTemplate, context: childContext)
-                            
+
                             // Only add if not empty (could be filtered by $when)
                             if !expandedItem.isEmpty {
                                 result.append(expandedItem)
@@ -140,7 +140,7 @@ public final class TemplateEngine {
                         continue
                     }
                 }
-                
+
                 // Regular dictionary expansion
                 let expandedDict = try expandDictionary(dict, context: context)
                 if !expandedDict.isEmpty {
@@ -150,10 +150,10 @@ public final class TemplateEngine {
                 result.append(try expandValue(item, context: context))
             }
         }
-        
+
         return result
     }
-    
+
     private func expandValue(_ value: Any, context: DataContext) throws -> Any {
         if let string = value as? String {
             return try expandString(string, context: context)
@@ -165,7 +165,7 @@ public final class TemplateEngine {
             return value
         }
     }
-    
+
     // MARK: - Helpers
 
     /// Extracts a raw expression from a template string.
@@ -197,7 +197,7 @@ public final class TemplateEngine {
             return String(describing: value!)
         }
     }
-    
+
     private func toBool(_ value: Any?) -> Bool {
         if let bool = value as? Bool {
             return bool
@@ -224,7 +224,7 @@ public enum TemplatingError: Error, LocalizedError {
     case unmatchedBrace
     case invalidExpression(String)
     case evaluationFailed(String)
-    
+
     public var errorDescription: String? {
         switch self {
         case .unmatchedBrace:

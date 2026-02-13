@@ -8,12 +8,12 @@ public struct SchemaValidator {
         "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
         "TabSet", "List", "CompoundButton", "DonutChart", "BarChart", "LineChart", "PieChart"
     ]
-    
+
     public init() {}
-    
+
     public func validate(json: String) -> [SchemaValidationError] {
         var errors: [SchemaValidationError] = []
-        
+
         guard let data = json.data(using: .utf8) else {
             errors.append(SchemaValidationError(
                 path: "$",
@@ -23,7 +23,7 @@ public struct SchemaValidator {
             ))
             return errors
         }
-        
+
         guard let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             errors.append(SchemaValidationError(
                 path: "$",
@@ -33,7 +33,7 @@ public struct SchemaValidator {
             ))
             return errors
         }
-        
+
         // Validate required fields
         if jsonObject["type"] == nil {
             errors.append(SchemaValidationError(
@@ -50,7 +50,7 @@ public struct SchemaValidator {
                 actual: type
             ))
         }
-        
+
         if jsonObject["version"] == nil {
             errors.append(SchemaValidationError(
                 path: "$.version",
@@ -68,7 +68,7 @@ public struct SchemaValidator {
                 ))
             }
         }
-        
+
         // Validate body array if present
         if let body = jsonObject["body"] {
             if body is [Any] {
@@ -86,7 +86,7 @@ public struct SchemaValidator {
                 ))
             }
         }
-        
+
         // Validate actions array if present
         if let actions = jsonObject["actions"] {
             if !(actions is [Any]) {
@@ -98,13 +98,13 @@ public struct SchemaValidator {
                 ))
             }
         }
-        
+
         return errors
     }
-    
+
     private func validateElement(_ element: [String: Any], path: String) -> [SchemaValidationError] {
         var errors: [SchemaValidationError] = []
-        
+
         if element["type"] == nil {
             errors.append(SchemaValidationError(
                 path: "\(path).type",
@@ -122,7 +122,7 @@ public struct SchemaValidator {
                 ))
             }
         }
-        
+
         return errors
     }
 }
@@ -132,7 +132,7 @@ public struct SchemaValidationError: Codable, Equatable {
     public var message: String
     public var expected: String?
     public var actual: String?
-    
+
     public init(path: String, message: String, expected: String?, actual: String?) {
         self.path = path
         self.message = message

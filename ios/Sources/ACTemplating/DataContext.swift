@@ -4,16 +4,16 @@ import Foundation
 public final class DataContext {
     /// The current data value
     public let data: Any?
-    
+
     /// The root data value (top-level context)
     public let root: Any?
-    
+
     /// The current index when iterating over arrays
     public let index: Int?
-    
+
     /// Parent context for nested scopes
     public weak var parent: DataContext?
-    
+
     /// Initialize a root data context
     /// - Parameter data: The root data object
     public init(data: Any?) {
@@ -22,7 +22,7 @@ public final class DataContext {
         self.index = nil
         self.parent = nil
     }
-    
+
     /// Initialize a nested data context
     /// - Parameters:
     ///   - data: The current scope data
@@ -35,7 +35,7 @@ public final class DataContext {
         self.index = index
         self.parent = parent
     }
-    
+
     /// Resolve a property path in the current context
     /// - Parameter path: Property path (e.g., "user.name", "$root.title", "$index")
     /// - Returns: The resolved value or nil if not found
@@ -48,23 +48,23 @@ public final class DataContext {
         } else if path == "$index" {
             return index
         }
-        
+
         // Handle path starting with $root
         if path.hasPrefix("$root.") {
             let remainingPath = String(path.dropFirst(6)) // Remove "$root."
             return resolvePath(remainingPath, in: root)
         }
-        
+
         // Handle path starting with $data
         if path.hasPrefix("$data.") {
             let remainingPath = String(path.dropFirst(6)) // Remove "$data."
             return resolvePath(remainingPath, in: data)
         }
-        
+
         // Regular property path - resolve from current data
         return resolvePath(path, in: data)
     }
-    
+
     /// Resolve a property path in a given object
     /// - Parameters:
     ///   - path: Property path (e.g., "user.name")
@@ -72,13 +72,13 @@ public final class DataContext {
     /// - Returns: The resolved value or nil
     private func resolvePath(_ path: String, in object: Any?) -> Any? {
         guard let object = object else { return nil }
-        
+
         let components = path.split(separator: ".").map(String.init)
         var current: Any? = object
-        
+
         for component in components {
             guard let currentValue = current else { return nil }
-            
+
             if let dict = currentValue as? [String: Any] {
                 current = dict[component]
             } else if let array = currentValue as? [Any], let index = Int(component) {
@@ -90,10 +90,10 @@ public final class DataContext {
                 current = mirror.children.first { $0.label == component }?.value
             }
         }
-        
+
         return current
     }
-    
+
     /// Create a child context for iteration
     /// - Parameters:
     ///   - data: The item data

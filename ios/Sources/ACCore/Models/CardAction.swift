@@ -9,15 +9,15 @@ public indirect enum CardAction: Codable, Equatable {
     case popover(PopoverAction)
     case runCommands(RunCommandsAction)
     case openUrlDialog(OpenUrlDialogAction)
-    
+
     enum CodingKeys: String, CodingKey {
         case type
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-        
+
         switch type {
         case "Action.Submit":
             self = .submit(try SubmitAction(from: decoder))
@@ -43,7 +43,7 @@ public indirect enum CardAction: Codable, Equatable {
             )
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         switch self {
         case .submit(let action):
@@ -127,7 +127,7 @@ public struct OpenUrlAction: BaseAction {
     public var isEnabled: Bool?
     public var mode: ActionMode?
     public var url: String
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -161,7 +161,7 @@ public struct ShowCardAction: BaseAction {
     public var isEnabled: Bool?
     public var mode: ActionMode?
     public var card: AdaptiveCard
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -235,7 +235,7 @@ public struct ToggleVisibilityAction: BaseAction {
     public var isEnabled: Bool?
     public var mode: ActionMode?
     public var targetElements: [TargetElement]
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -255,11 +255,11 @@ public struct ToggleVisibilityAction: BaseAction {
         self.mode = mode
         self.targetElements = targetElements
     }
-    
+
     public struct TargetElement: Codable, Equatable {
         public var elementId: String
         public var isVisible: Bool?
-        
+
         public init(elementId: String, isVisible: Bool? = nil) {
             self.elementId = elementId
             self.isVisible = isVisible
@@ -281,7 +281,7 @@ public struct PopoverAction: BaseAction {
     public var popoverTitle: String?
     public var popoverBody: [CardElement]
     public var dismissBehavior: String?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -319,7 +319,7 @@ public struct RunCommandsAction: BaseAction {
     public var isEnabled: Bool?
     public var mode: ActionMode?
     public var commands: [Command]
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -339,12 +339,12 @@ public struct RunCommandsAction: BaseAction {
         self.mode = mode
         self.commands = commands
     }
-    
+
     public struct Command: Codable, Equatable {
         public var type: String
         public var id: String
         public var data: [String: AnyCodable]?
-        
+
         public init(type: String, id: String, data: [String: AnyCodable]? = nil) {
             self.type = type
             self.id = id
@@ -366,7 +366,7 @@ public struct OpenUrlDialogAction: BaseAction {
     public var mode: ActionMode?
     public var url: String
     public var dialogTitle: String?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -394,14 +394,14 @@ public struct OpenUrlDialogAction: BaseAction {
 
 public struct AnyCodable: Codable, Equatable {
     public let value: Any
-    
+
     public init(_ value: Any) {
         self.value = value
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let bool = try? container.decode(Bool.self) {
             value = bool
         } else if let int = try? container.decode(Int.self) {
@@ -418,10 +418,10 @@ public struct AnyCodable: Codable, Equatable {
             value = NSNull()
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        
+
         switch value {
         case let bool as Bool:
             try container.encode(bool)
@@ -439,7 +439,7 @@ public struct AnyCodable: Codable, Equatable {
             try container.encodeNil()
         }
     }
-    
+
     public static func == (lhs: AnyCodable, rhs: AnyCodable) -> Bool {
         switch (lhs.value, rhs.value) {
         case (let l as Bool, let r as Bool): return l == r
@@ -491,7 +491,7 @@ extension CardAction: Identifiable {
     public var id: String {
         let actionId: String?
         let actionTitle: String?
-        
+
         switch self {
         case .submit(let action):
             actionId = action.id
@@ -518,7 +518,7 @@ extension CardAction: Identifiable {
             actionId = action.id
             actionTitle = action.title
         }
-        
+
         if let actionId = actionId, !actionId.isEmpty {
             return actionId
         }
@@ -527,7 +527,7 @@ extension CardAction: Identifiable {
         let title = actionTitle?.isEmpty == false ? actionTitle! : "action"
         return "\(typeString)_\(title)"
     }
-    
+
     private var typeString: String {
         switch self {
         case .submit: return "submit"

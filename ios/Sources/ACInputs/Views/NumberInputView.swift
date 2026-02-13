@@ -8,7 +8,7 @@ public struct NumberInputView: View {
     @Binding var value: Double?
     @ObservedObject var validationState: ValidationState
     @State private var textValue: String = ""
-    
+
     public init(
         input: NumberInput,
         hostConfig: HostConfig,
@@ -19,12 +19,12 @@ public struct NumberInputView: View {
         self.hostConfig = hostConfig
         self._value = value
         self.validationState = validationState
-        
+
         if let value = value.wrappedValue {
             _textValue = State(initialValue: String(value))
         }
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let label = input.label {
@@ -32,9 +32,9 @@ public struct NumberInputView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             numberTextField
-            
+
             if let error = validationState.getError(for: input.id) {
                 Text(error)
                     .font(.caption)
@@ -47,7 +47,7 @@ public struct NumberInputView: View {
             isRequired: input.isRequired ?? false
         )
     }
-    
+
     @ViewBuilder
     private var numberTextField: some View {
         let field = TextField(input.placeholder ?? "Enter number", text: $textValue)
@@ -68,7 +68,7 @@ public struct NumberInputView: View {
         } else if let doubleValue = Double(text) {
             value = doubleValue
         }
-        
+
         let error = InputValidator.validateNumber(value: value, input: input)
         validationState.setError(for: input.id, message: error)
     }

@@ -11,7 +11,7 @@ public struct FluentSpacing: Equatable {
     public var xl: CGFloat
     public var xxl: CGFloat
     public var xxxl: CGFloat
-    
+
     public init(
         xxs: CGFloat = 2,
         xs: CGFloat = 4,

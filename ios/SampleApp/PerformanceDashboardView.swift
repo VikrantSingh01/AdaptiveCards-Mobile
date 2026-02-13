@@ -3,7 +3,7 @@ import SwiftUI
 struct PerformanceDashboardView: View {
     @State private var metrics: PerformanceMetrics = .sample
     @State private var isRecording: Bool = false
-    
+
     var body: some View {
         List {
             Section("Parse Performance") {
@@ -12,25 +12,25 @@ struct PerformanceDashboardView: View {
                 MetricRow(title: "Max Parse Time", value: String(format: "%.2fms", metrics.maxParseTime * 1000), trend: .up)
                 MetricRow(title: "Cards Parsed", value: "\(metrics.cardsParsed)", trend: .stable)
             }
-            
+
             Section("Render Performance") {
                 MetricRow(title: "Average Render Time", value: String(format: "%.2fms", metrics.avgRenderTime * 1000), trend: .stable)
                 MetricRow(title: "Min Render Time", value: String(format: "%.2fms", metrics.minRenderTime * 1000), trend: .down)
                 MetricRow(title: "Max Render Time", value: String(format: "%.2fms", metrics.maxRenderTime * 1000), trend: .up)
                 MetricRow(title: "Cards Rendered", value: "\(metrics.cardsRendered)", trend: .stable)
             }
-            
+
             Section("Memory Usage") {
                 MetricRow(title: "Current Usage", value: String(format: "%.1f MB", metrics.currentMemoryMB), trend: .stable)
                 MetricRow(title: "Peak Usage", value: String(format: "%.1f MB", metrics.peakMemoryMB), trend: .up)
                 MetricRow(title: "Average Usage", value: String(format: "%.1f MB", metrics.avgMemoryMB), trend: .stable)
             }
-            
+
             Section("Actions") {
                 MetricRow(title: "Total Actions", value: "\(metrics.totalActions)", trend: .up)
                 MetricRow(title: "Action Success Rate", value: String(format: "%.1f%%", metrics.actionSuccessRate * 100), trend: .stable)
             }
-            
+
             Section {
                 Button(action: {
                     isRecording.toggle()
@@ -41,11 +41,11 @@ struct PerformanceDashboardView: View {
                     }
                     .foregroundColor(isRecording ? .red : .blue)
                 }
-                
+
                 Button("Reset Metrics") {
                     resetMetrics()
                 }
-                
+
                 Button("Export Report") {
                     exportReport()
                 }
@@ -56,12 +56,12 @@ struct PerformanceDashboardView: View {
             loadMetrics()
         }
     }
-    
+
     private func loadMetrics() {
         // Load real metrics in production
         metrics = .sample
     }
-    
+
     private func resetMetrics() {
         metrics = PerformanceMetrics(
             avgParseTime: 0,
@@ -79,7 +79,7 @@ struct PerformanceDashboardView: View {
             avgMemoryMB: 0
         )
     }
-    
+
     private func exportReport() {
         print("Exporting performance report...")
     }
@@ -89,10 +89,10 @@ struct MetricRow: View {
     let title: String
     let value: String
     let trend: Trend
-    
+
     enum Trend {
         case up, down, stable
-        
+
         var icon: String {
             switch self {
             case .up: return "arrow.up.right"
@@ -100,7 +100,7 @@ struct MetricRow: View {
             case .stable: return "arrow.right"
             }
         }
-        
+
         var color: Color {
             switch self {
             case .up: return .red
@@ -109,7 +109,7 @@ struct MetricRow: View {
             }
         }
     }
-    
+
     var body: some View {
         HStack {
             Text(title)
@@ -139,7 +139,7 @@ struct PerformanceMetrics {
     var currentMemoryMB: Double
     var peakMemoryMB: Double
     var avgMemoryMB: Double
-    
+
     static let sample = PerformanceMetrics(
         avgParseTime: 0.0023,
         minParseTime: 0.0012,

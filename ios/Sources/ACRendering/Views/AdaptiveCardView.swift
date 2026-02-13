@@ -9,11 +9,11 @@ public struct AdaptiveCardView: View {
     let cardJson: String
     let hostConfig: HostConfig
     let actionDelegate: ActionDelegate?
-    
+
     @StateObject private var viewModel = CardViewModel()
     @StateObject private var validationState = ValidationState()
     private let actionHandler: ActionHandler
-    
+
     public init(
         cardJson: String,
         hostConfig: HostConfig = TeamsHostConfig.create(),
@@ -25,7 +25,7 @@ public struct AdaptiveCardView: View {
         self.actionDelegate = actionDelegate
         self.actionHandler = actionHandler
     }
-    
+
     public var body: some View {
         content
             .environmentObject(viewModel)
@@ -37,7 +37,7 @@ public struct AdaptiveCardView: View {
                 viewModel.parseCard(json: cardJson)
             }
     }
-    
+
     @ViewBuilder
     private var content: some View {
         if let error = viewModel.parsingError {
@@ -48,7 +48,7 @@ public struct AdaptiveCardView: View {
             ProgressView()
         }
     }
-    
+
     private func cardContent(card: AdaptiveCard) -> some View {
         ScrollView {
             LazyVStack(spacing: 0) {
@@ -70,7 +70,7 @@ public struct AdaptiveCardView: View {
         }
         .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
     }
-    
+
     private func errorView(error: Error) -> some View {
         VStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle")
@@ -109,17 +109,17 @@ extension EnvironmentValues {
         get { self[HostConfigKey.self] }
         set { self[HostConfigKey.self] = newValue }
     }
-    
+
     var actionDelegate: ActionDelegate? {
         get { self[ActionDelegateKey.self] }
         set { self[ActionDelegateKey.self] = newValue }
     }
-    
+
     var actionHandler: ActionHandler {
         get { self[ActionHandlerKey.self] }
         set { self[ActionHandlerKey.self] = newValue }
     }
-    
+
     var validationState: ValidationState {
         get { self[ValidationStateKey.self] }
         set { self[ValidationStateKey.self] = newValue }

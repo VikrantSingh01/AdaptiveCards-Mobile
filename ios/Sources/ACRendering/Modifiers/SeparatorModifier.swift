@@ -11,7 +11,7 @@ public extension View {
 struct SeparatorModifier: ViewModifier {
     let separator: Bool?
     let hostConfig: HostConfig
-    
+
     func body(content: Content) -> some View {
         VStack(spacing: 0) {
             if separator == true {
@@ -20,7 +20,7 @@ struct SeparatorModifier: ViewModifier {
             content
         }
     }
-    
+
     private var separatorLine: some View {
         let color = Color(hex: hostConfig.separator.lineColor)
         return Rectangle()
