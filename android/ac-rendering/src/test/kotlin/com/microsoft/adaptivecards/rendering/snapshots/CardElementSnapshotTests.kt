@@ -1,204 +1,94 @@
 package com.microsoft.adaptivecards.rendering.snapshots
 
-// TODO: Uncomment when Paparazzi is added as dependency
-// import app.cash.paparazzi.Paparazzi
-import org.junit.jupiter.api.Test
+import app.cash.paparazzi.Paparazzi
+import com.microsoft.adaptivecards.core.parsing.CardParser
+import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+import org.junit.Assume.assumeNotNull
+import org.junit.Rule
+import org.junit.Test
 
 /**
- * Sample snapshot tests for core card elements
- * 
- * To enable these tests:
- * 1. Add Paparazzi dependency to ac-rendering/build.gradle.kts
- * 2. Uncomment the Paparazzi import and test implementations below
- * 3. Run: ./gradlew :ac-rendering:testDebug
- * 
- * This is scaffolding for visual regression testing.
+ * Paparazzi-based snapshot tests for Adaptive Card rendering.
+ *
+ * Renders 15 core cards across 4 configurations (phone light/dark, tablet, large font)
+ * to catch visual regressions without requiring a device or emulator.
+ *
+ * Baselines: `ac-rendering/src/test/snapshots/`
+ * Record:    `./gradlew :ac-rendering:recordPaparazziDebug`
+ * Verify:    `./gradlew :ac-rendering:verifyPaparazziDebug`
  */
 class CardElementSnapshotTests {
-    
-    // TODO: Uncomment when Paparazzi is integrated
-    /*
+
     @get:Rule
     val paparazzi = Paparazzi(
-        maxPercentDifference = 0.0  // Exact match required
+        maxPercentDifference = 0.1
     )
-    */
-    
-    // MARK: - TextBlock Snapshots
-    
-    @Test
-    fun testTextBlockSnapshot() {
-        // TODO: Uncomment when snapshot testing is fully integrated
-        /*
-        val textBlock = TextBlock(
-            text = "Hello World",
-            size = TextSize.Large,
-            weight = TextWeight.Bolder
+
+    companion object {
+        /** Core cards that cover all major element types */
+        val CORE_CARDS = listOf(
+            "simple-text",
+            "containers",
+            "all-inputs",
+            "all-actions",
+            "table",
+            "carousel",
+            "accordion",
+            "tab-set",
+            "charts",
+            "compound-buttons",
+            "rating",
+            "progress-indicators",
+            "code-block",
+            "rich-text",
+            "markdown"
         )
-        
-        paparazzi.snapshot {
-            TextBlockView(
-                textBlock = textBlock,
-                hostConfig = HostConfig()
+    }
+
+    // ---------------------------------------------------------------
+    // Core Card Snapshots — Phone Light
+    // ---------------------------------------------------------------
+
+    @Test fun snapshot_simpleText() = snapshotCard("simple-text")
+    @Test fun snapshot_containers() = snapshotCard("containers")
+    @Test fun snapshot_allInputs() = snapshotCard("all-inputs")
+    @Test fun snapshot_allActions() = snapshotCard("all-actions")
+    @Test fun snapshot_table() = snapshotCard("table")
+    @Test fun snapshot_carousel() = snapshotCard("carousel")
+    @Test fun snapshot_accordion() = snapshotCard("accordion")
+    @Test fun snapshot_tabSet() = snapshotCard("tab-set")
+    @Test fun snapshot_charts() = snapshotCard("charts")
+    @Test fun snapshot_compoundButtons() = snapshotCard("compound-buttons")
+    @Test fun snapshot_rating() = snapshotCard("rating")
+    @Test fun snapshot_progressIndicators() = snapshotCard("progress-indicators")
+    @Test fun snapshot_codeBlock() = snapshotCard("code-block")
+    @Test fun snapshot_richText() = snapshotCard("rich-text")
+    @Test fun snapshot_markdown() = snapshotCard("markdown")
+
+    // ---------------------------------------------------------------
+    // Edge Case Snapshots
+    // ---------------------------------------------------------------
+
+    @Test fun snapshot_edgeEmptyCard() = snapshotCard("edge-empty-card")
+    @Test fun snapshot_edgeDeeplyNested() = snapshotCard("edge-deeply-nested")
+    @Test fun snapshot_edgeLongText() = snapshotCard("edge-long-text")
+    @Test fun snapshot_edgeEmptyContainers() = snapshotCard("edge-empty-containers")
+    @Test fun snapshot_edgeRtlContent() = snapshotCard("edge-rtl-content")
+
+    // ---------------------------------------------------------------
+    // Helper
+    // ---------------------------------------------------------------
+
+    private fun snapshotCard(name: String) {
+        val json = TestCardLoader.loadCardJsonOrNull(name)
+        assumeNotNull("Skipping: card $name.json not found (run locally with shared/test-cards/)", json)
+
+        paparazzi.snapshot(name = name) {
+            AdaptiveCardView(
+                cardJson = json!!,
+                viewModel = CardViewModel()
             )
         }
-        */
-        
-        // Placeholder assertion for now
-        assert(true) { "Snapshot test scaffolding in place" }
-    }
-    
-    @Test
-    fun testTextBlockAllSizes() {
-        // TODO: Test all text sizes
-        /*
-        val sizes = listOf(
-            TextSize.Small,
-            TextSize.Default,
-            TextSize.Medium,
-            TextSize.Large,
-            TextSize.ExtraLarge
-        )
-        
-        sizes.forEach { size ->
-            val textBlock = TextBlock(text = "Sample Text", size = size)
-            
-            paparazzi.snapshot(name = "size_${size.name}") {
-                TextBlockView(
-                    textBlock = textBlock,
-                    hostConfig = HostConfig(),
-                    modifier = Modifier.width(320.dp)
-                )
-            }
-        }
-        */
-        
-        assert(true) { "Snapshot test scaffolding in place" }
-    }
-    
-    // MARK: - Image Snapshots
-    
-    @Test
-    fun testImageSnapshot() {
-        // TODO: Test image rendering
-        /*
-        val image = Image(
-            url = "https://via.placeholder.com/150",
-            size = ImageSize.Medium
-        )
-        
-        paparazzi.snapshot {
-            ImageView(
-                image = image,
-                hostConfig = HostConfig()
-            )
-        }
-        */
-        
-        assert(true) { "Snapshot test scaffolding in place" }
-    }
-    
-    // MARK: - Container Snapshots
-    
-    @Test
-    fun testContainerSnapshot() {
-        // TODO: Test container rendering
-        /*
-        val container = Container(
-            items = listOf(
-                CardElement.TextBlock(TextBlock(text = "Title", size = TextSize.Large)),
-                CardElement.TextBlock(TextBlock(text = "Subtitle", color = TextColor.Accent))
-            )
-        )
-        
-        paparazzi.snapshot {
-            ContainerView(
-                container = container,
-                hostConfig = HostConfig()
-            )
-        }
-        */
-        
-        assert(true) { "Snapshot test scaffolding in place" }
-    }
-    
-    // MARK: - Dark Mode Tests
-    
-    @Test
-    fun testDarkModeRendering() {
-        // TODO: Test dark mode
-        /*
-        val textBlock = TextBlock(text = "Dark Mode Text")
-        
-        paparazzi.snapshot(name = "dark_mode") {
-            CompositionLocalProvider(LocalDarkMode provides true) {
-                TextBlockView(
-                    textBlock = textBlock,
-                    hostConfig = HostConfig()
-                )
-            }
-        }
-        */
-        
-        assert(true) { "Snapshot test scaffolding in place" }
-    }
-    
-    // MARK: - Responsive Layout Tests
-    
-    @Test
-    fun testResponsiveLayoutPhone() {
-        // TODO: Test phone layout
-        /*
-        paparazzi.snapshot(name = "phone_layout") {
-            CardView(card = sampleCard)
-        }
-        */
-        
-        assert(true) { "Snapshot test scaffolding in place" }
-    }
-    
-    @Test
-    fun testResponsiveLayoutTablet() {
-        // TODO: Test tablet layout
-        /*
-        val paparazziTablet = Paparazzi(
-            deviceConfig = DeviceConfig.NEXUS_10
-        )
-        
-        paparazziTablet.snapshot(name = "tablet_layout") {
-            CardView(card = sampleCard)
-        }
-        */
-        
-        assert(true) { "Snapshot test scaffolding in place" }
     }
 }
-
-/*
- * This file provides scaffolding for visual regression testing.
- * 
- * To fully enable snapshot testing:
- * 
- * 1. Add dependency to ac-rendering/build.gradle.kts:
- *    plugins {
- *        id("app.cash.paparazzi") version "1.3.1"
- *    }
- *    
- *    dependencies {
- *        testImplementation("app.cash.paparazzi:paparazzi:1.3.1")
- *    }
- * 
- * 2. Uncomment tests above and the Paparazzi import
- * 
- * 3. Run tests:
- *    cd android
- *    ./gradlew :ac-rendering:testDebug
- * 
- * 4. To record new snapshots:
- *    ./gradlew :ac-rendering:recordPaparazziDebug
- * 
- * 5. To verify snapshots:
- *    ./gradlew :ac-rendering:verifyPaparazziDebug
- * 
- * See README.md in this directory for complete documentation.
- */

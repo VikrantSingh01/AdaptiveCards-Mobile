@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.paparazzi)
 }
 
 android {
@@ -68,6 +69,8 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit4)
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.10.1")
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
 }
