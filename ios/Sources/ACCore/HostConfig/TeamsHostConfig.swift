@@ -88,7 +88,7 @@ public class TeamsHostConfig {
             )
         )
     }
-    
+
     private static func teamsDefaultForegroundColors() -> ForegroundColorsConfig {
         return ForegroundColorsConfig(
             default: ColorConfig(default: "#242424", subtle: "#616161"),

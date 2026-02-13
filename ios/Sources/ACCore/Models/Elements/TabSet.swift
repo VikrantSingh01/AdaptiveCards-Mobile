@@ -11,7 +11,7 @@ public struct TabSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         tabs: [Tab],
@@ -38,7 +38,7 @@ public struct Tab: Codable, Equatable {
     public var title: String
     public var icon: String?
     public var items: [CardElement]
-    
+
     public init(
         id: String,
         title: String,

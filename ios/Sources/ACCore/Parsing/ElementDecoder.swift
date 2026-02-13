@@ -10,7 +10,7 @@ public class ElementDecoder {
     ) throws -> T {
         return try T(from: decoder)
     }
-    
+
     /// Helper to get the type string from a container
     public static func getType(
         from container: KeyedDecodingContainer<DynamicCodingKeys>
@@ -31,12 +31,12 @@ public class ElementDecoder {
 public struct DynamicCodingKeys: CodingKey {
     public var stringValue: String
     public var intValue: Int?
-    
+
     public init?(stringValue: String) {
         self.stringValue = stringValue
         self.intValue = nil
     }
-    
+
     public init?(intValue: Int) {
         self.stringValue = String(intValue)
         self.intValue = intValue

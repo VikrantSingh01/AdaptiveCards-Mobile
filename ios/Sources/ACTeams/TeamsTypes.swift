@@ -15,7 +15,7 @@ public struct DeepLinkInfo {
     public let host: String
     public let path: String
     public let parameters: [String: String]
-    
+
     public init(scheme: String, host: String, path: String, parameters: [String: String]) {
         self.scheme = scheme
         self.host = host

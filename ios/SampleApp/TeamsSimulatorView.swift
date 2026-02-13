@@ -4,7 +4,7 @@ struct TeamsSimulatorView: View {
     @State private var messages: [ChatMessage] = ChatMessage.sampleMessages
     @State private var messageText: String = ""
     @EnvironmentObject var actionLog: ActionLogStore
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -17,14 +17,14 @@ struct TeamsSimulatorView: View {
                     }
                     .padding()
                 }
-                
+
                 Divider()
-                
+
                 // Input bar
                 HStack(spacing: 12) {
                     TextField("Type a message...", text: $messageText)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
+
                     Button(action: sendMessage) {
                         Image(systemName: "paperplane.fill")
                             .foregroundColor(.white)
@@ -32,7 +32,7 @@ struct TeamsSimulatorView: View {
                             .background(Circle().fill(Color.blue))
                     }
                     .disabled(messageText.isEmpty)
-                    
+
                     Menu {
                         Button("Send Simple Card") {
                             sendCard(.simple)
@@ -61,10 +61,10 @@ struct TeamsSimulatorView: View {
             }
         }
     }
-    
+
     private func sendMessage() {
         guard !messageText.isEmpty else { return }
-        
+
         let message = ChatMessage(
             sender: "You",
             content: .text(messageText),
@@ -73,7 +73,7 @@ struct TeamsSimulatorView: View {
         messages.append(message)
         messageText = ""
     }
-    
+
     private func sendCard(_ type: CardType) {
         let message = ChatMessage(
             sender: "Bot",
@@ -87,16 +87,16 @@ struct TeamsSimulatorView: View {
 struct ChatBubbleView: View {
     let message: ChatMessage
     @EnvironmentObject var actionLog: ActionLogStore
-    
+
     var body: some View {
         HStack {
             if message.isFromUser { Spacer() }
-            
+
             VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
                 Text(message.sender)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
+
                 switch message.content {
                 case .text(let text):
                     Text(text)
@@ -104,7 +104,7 @@ struct ChatBubbleView: View {
                         .background(message.isFromUser ? Color.blue : Color.gray.opacity(0.2))
                         .foregroundColor(message.isFromUser ? .white : .primary)
                         .cornerRadius(16)
-                    
+
                 case .card(let json):
                     CardPreviewPlaceholder(json: json)
                         .frame(maxWidth: 300)
@@ -112,16 +112,16 @@ struct ChatBubbleView: View {
                         .cornerRadius(12)
                         .shadow(radius: 2)
                 }
-                
+
                 Text(formatTime(message.timestamp))
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
-            
+
             if !message.isFromUser { Spacer() }
         }
     }
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -135,12 +135,12 @@ struct ChatMessage: Identifiable {
     let content: MessageContent
     let isFromUser: Bool
     let timestamp = Date()
-    
+
     enum MessageContent {
         case text(String)
         case card(String)
     }
-    
+
     static let sampleMessages: [ChatMessage] = [
         ChatMessage(sender: "Bot", content: .text("Welcome to Teams Simulator! Send messages or cards to test the chat experience."), isFromUser: false),
         ChatMessage(sender: "You", content: .text("Hello!"), isFromUser: true),
@@ -176,7 +176,7 @@ enum CardType {
     case simple
     case form
     case chart
-    
+
     var json: String {
         switch self {
         case .simple:

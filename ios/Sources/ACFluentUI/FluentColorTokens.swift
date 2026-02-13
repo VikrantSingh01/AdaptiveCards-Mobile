@@ -5,32 +5,32 @@ public struct FluentColorTokens: Equatable {
     public var brand: Color
     public var brandBackground: Color
     public var brandForeground: Color
-    
+
     // Surface colors (light mode defaults)
     public var surface: Color
     public var surfaceSecondary: Color
     public var surfaceTertiary: Color
-    
+
     // Text colors
     public var foreground: Color
     public var foregroundSecondary: Color
     public var foregroundDisabled: Color
-    
+
     // Border colors
     public var stroke: Color
     public var strokeSecondary: Color
-    
+
     // Semantic colors
     public var success: Color
     public var warning: Color
     public var danger: Color
     public var info: Color
-    
+
     // Dark mode variants
     public var darkModeSurface: Color
     public var darkModeSurfaceSecondary: Color
     public var darkModeForeground: Color
-    
+
     public init(
         brand: Color = Color(hex: "#6264A7"),
         brandBackground: Color = Color(hex: "#464775"),
