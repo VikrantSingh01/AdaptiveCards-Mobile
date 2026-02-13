@@ -2,8 +2,7 @@ package com.microsoft.adaptivecards.rendering.snapshots
 
 // TODO: Uncomment when Paparazzi is added as dependency
 // import app.cash.paparazzi.Paparazzi
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 /**
  * Sample snapshot tests for core card elements
