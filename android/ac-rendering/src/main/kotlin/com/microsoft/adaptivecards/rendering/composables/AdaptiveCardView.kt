@@ -127,7 +127,7 @@ fun RenderElement(
             // Input elements - to be wired up by host application to avoid circular dependency
             // The sample-app includes both ac-rendering and ac-inputs and can wire these up
             is InputText, is InputNumber, is InputDate, is InputTime,
-            is InputToggle, is InputChoiceSet, is RatingInput -> {
+            is InputToggle, is InputChoiceSet, is InputDataGrid, is RatingInput -> {
                 // Placeholder rendering - host app should wire up actual input views
                 androidx.compose.material3.Text(
                     text = "[Input: ${element::class.simpleName}]",
