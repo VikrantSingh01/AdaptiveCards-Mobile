@@ -41,12 +41,14 @@ open class CardSnapshotTestCase: SnapshotTestCase {
     /// Path to the shared test-cards directory
     public static var testCardsDirectory: String {
         // Navigate from test file to shared/test-cards
+        // File is at: ios/Tests/VisualTests/Utilities/CardSnapshotTestCase.swift
         let testFileURL = URL(fileURLWithPath: #filePath)
         let repoRoot = testFileURL
             .deletingLastPathComponent()  // Utilities/
             .deletingLastPathComponent()  // VisualTests/
             .deletingLastPathComponent()  // Tests/
             .deletingLastPathComponent()  // ios/
+            .deletingLastPathComponent()  // repo root
         return repoRoot.appendingPathComponent("shared/test-cards").path
     }
 

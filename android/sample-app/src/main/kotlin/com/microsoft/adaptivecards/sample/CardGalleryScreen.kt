@@ -41,7 +41,7 @@ fun CardGalleryScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Card Gallery") },
+                title = { Text("Card Gallery (${filteredCards.size} of ${cards.size} cards)") },
                 actions = {
                     IconButton(onClick = { showFilterMenu = true }) {
                         Icon(Icons.Default.FilterList, "Filter")
@@ -201,6 +201,25 @@ object TestCardLoader {
         Triple("teams-connector.json", "Teams Connector", CardCategory.TEAMS),
         Triple("copilot-citations.json", "Copilot Citations", CardCategory.ADVANCED),
         Triple("templating-basic.json", "Basic Templating", CardCategory.TEMPLATING),
+        Triple("templating-conditional.json", "Conditional Templating", CardCategory.TEMPLATING),
+        Triple("templating-expressions.json", "Expression Templating", CardCategory.TEMPLATING),
+        Triple("templating-iteration.json", "Iteration Templating", CardCategory.TEMPLATING),
+        Triple("templating-nested.json", "Nested Templating", CardCategory.TEMPLATING),
+        Triple("advanced-combined.json", "Advanced Combined", CardCategory.ADVANCED),
+        Triple("split-buttons.json", "Split Buttons", CardCategory.ACTIONS),
+        Triple("popover-action.json", "Popover Action", CardCategory.ACTIONS),
+        Triple("streaming-card.json", "Streaming Card", CardCategory.ADVANCED),
+        Triple("themed-images.json", "Themed Images", CardCategory.BASIC),
+        Triple("teams-task-module.json", "Teams Task Module", CardCategory.TEAMS),
+        Triple("sample-catalog.json", "Sample Catalog", CardCategory.BASIC),
+        Triple("edge-all-unknown-types.json", "Edge: Unknown Types", CardCategory.ADVANCED),
+        Triple("edge-deeply-nested.json", "Edge: Deeply Nested", CardCategory.ADVANCED),
+        Triple("edge-empty-card.json", "Edge: Empty Card", CardCategory.ADVANCED),
+        Triple("edge-empty-containers.json", "Edge: Empty Containers", CardCategory.ADVANCED),
+        Triple("edge-long-text.json", "Edge: Long Text", CardCategory.ADVANCED),
+        Triple("edge-max-actions.json", "Edge: Max Actions", CardCategory.ADVANCED),
+        Triple("edge-mixed-inputs.json", "Edge: Mixed Inputs", CardCategory.ADVANCED),
+        Triple("edge-rtl-content.json", "Edge: RTL Content", CardCategory.ADVANCED),
 
         // --- Official samples (from shared/test-cards/official-samples/) ---
         Triple("official-samples/activity-update.json", "Activity Update", CardCategory.OFFICIAL),

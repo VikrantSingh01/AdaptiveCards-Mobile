@@ -89,9 +89,9 @@ public struct SubmitAction: BaseAction {
     public var tooltip: String?
     public var isEnabled: Bool?
     public var mode: ActionMode?
-    public var data: [String: AnyCodable]?
+    public var data: AnyCodable?  // Can be string or dictionary
     public var associatedInputs: AssociatedInputs?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -100,7 +100,7 @@ public struct SubmitAction: BaseAction {
         tooltip: String? = nil,
         isEnabled: Bool? = nil,
         mode: ActionMode? = nil,
-        data: [String: AnyCodable]? = nil,
+        data: AnyCodable? = nil,
         associatedInputs: AssociatedInputs? = nil
     ) {
         self.id = id
@@ -195,9 +195,9 @@ public struct ExecuteAction: BaseAction {
     public var isEnabled: Bool?
     public var mode: ActionMode?
     public var verb: String?
-    public var data: [String: AnyCodable]?
+    public var data: AnyCodable?  // Can be string or dictionary
     public var associatedInputs: AssociatedInputs?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -207,7 +207,7 @@ public struct ExecuteAction: BaseAction {
         isEnabled: Bool? = nil,
         mode: ActionMode? = nil,
         verb: String? = nil,
-        data: [String: AnyCodable]? = nil,
+        data: AnyCodable? = nil,
         associatedInputs: AssociatedInputs? = nil
     ) {
         self.id = id
