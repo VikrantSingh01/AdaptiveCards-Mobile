@@ -116,7 +116,7 @@ public struct TextRun: Codable, Equatable {
     public var underline: Bool?
     public var highlight: Bool?
     public var selectAction: CardAction?
-    
+
     public init(
         text: String,
         color: ForegroundColor? = nil,
@@ -182,11 +182,11 @@ public struct Media: Codable, Equatable {
         self.requires = requires
         self.fallback = fallback
     }
-    
+
     public struct MediaSource: Codable, Equatable {
         public var mimeType: String
         public var url: String
-        
+
         public init(mimeType: String, url: String) {
             self.mimeType = mimeType
             self.url = url

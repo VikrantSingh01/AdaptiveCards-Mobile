@@ -1,58 +1,21 @@
 package com.microsoft.adaptivecards.core.parsing
 
 import com.microsoft.adaptivecards.core.models.*
-import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonContentPolymorphicSerializer
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 
 object CardParser {
     private val json = Json {
-        classDiscriminator = "type"
+        classDiscriminator = "type"  // Document expected JSON structure
         ignoreUnknownKeys = true
         isLenient = true
         prettyPrint = true
         coerceInputValues = true
         serializersModule = SerializersModule {
             polymorphic(CardElement::class) {
-                defaultDeserializer { TextBlock.serializer() }
-                subclass(TextBlock::class)
-                subclass(Image::class)
-                subclass(Container::class)
-                subclass(ColumnSet::class)
-                subclass(FactSet::class)
-                subclass(ImageSet::class)
-                subclass(ActionSet::class)
-                subclass(Media::class)
-                subclass(RichTextBlock::class)
-                subclass(Table::class)
-                subclass(InputText::class)
-                subclass(InputNumber::class)
-                subclass(InputDate::class)
-                subclass(InputTime::class)
-                subclass(InputToggle::class)
-                subclass(InputChoiceSet::class)
-                // Advanced elements
-                subclass(Carousel::class)
-                subclass(Accordion::class)
-                subclass(CodeBlock::class)
-                subclass(RatingDisplay::class)
-                subclass(RatingInput::class)
-                subclass(ProgressBar::class)
-                subclass(Spinner::class)
-                subclass(TabSet::class)
-                subclass(ListElement::class)
-                subclass(CompoundButton::class)
-                subclass(DonutChart::class)
-                subclass(BarChart::class)
-                subclass(LineChart::class)
-                subclass(PieChart::class)
-                subclass(InputDataGrid::class)
+                defaultDeserializer { CardElementSerializer }
             }
             polymorphic(CardAction::class) {
                 defaultDeserializer { ActionSubmit.serializer() }

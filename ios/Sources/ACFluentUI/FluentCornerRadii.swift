@@ -7,7 +7,7 @@ public struct FluentCornerRadii: Equatable {
     public var large: CGFloat
     public var xLarge: CGFloat
     public var circular: CGFloat
-    
+
     public init(
         none: CGFloat = 0,
         small: CGFloat = 2,

@@ -8,21 +8,21 @@ import ACAccessibility
 struct TabSetView: View {
     let tabSet: TabSet
     let hostConfig: HostConfig
-    
+
     @State private var selectedTabId: String
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.sizeCategory) var sizeCategory
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    
+
     init(tabSet: TabSet, hostConfig: HostConfig) {
         self.tabSet = tabSet
         self.hostConfig = hostConfig
-        
+
         // Initialize selected tab
         let initialTabId = tabSet.selectedTabId ?? tabSet.tabs.first?.id ?? ""
         _selectedTabId = State(initialValue: initialTabId)
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Tab bar
@@ -47,9 +47,9 @@ struct TabSetView: View {
             .background(Color.gray.opacity(0.1))
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Tab bar with \(tabSet.tabs.count) tabs")
-            
+
             Divider()
-            
+
             // Tab content
             if let selectedTab = tabSet.tabs.first(where: { $0.id == selectedTabId }) {
                 TabContentView(tab: selectedTab, hostConfig: hostConfig)
@@ -58,7 +58,7 @@ struct TabSetView: View {
         .spacing(tabSet.spacing, hostConfig: hostConfig)
         .separator(tabSet.separator, hostConfig: hostConfig)
     }
-    
+
     private var adaptiveTabBarHeight: CGFloat {
         if sizeCategory.isAccessibilityCategory {
             return 60
@@ -74,7 +74,7 @@ struct TabButton: View {
     let hostConfig: HostConfig
     let sizeCategory: ContentSizeCategory
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
@@ -83,7 +83,7 @@ struct TabButton: View {
                         .font(adaptiveIconSize)
                         .accessibilityHidden(true)
                 }
-                
+
                 Text(tab.title)
                     .font(adaptiveTextSize)
                     .lineLimit(1)
@@ -110,19 +110,19 @@ struct TabButton: View {
         .accessibilityAddTraits(.isButton)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
-    
+
     private var adaptiveIconSize: Font {
         sizeCategory.isAccessibilityCategory ? .body : .caption
     }
-    
+
     private var adaptiveTextSize: Font {
         sizeCategory.isAccessibilityCategory ? .body : .subheadline
     }
-    
+
     private var adaptiveHorizontalPadding: CGFloat {
         sizeCategory.isAccessibilityCategory ? 20 : 16
     }
-    
+
     private var adaptiveVerticalPadding: CGFloat {
         sizeCategory.isAccessibilityCategory ? 16 : 12
     }
@@ -131,10 +131,10 @@ struct TabButton: View {
 struct TabContentView: View {
     let tab: ACCore.Tab
     let hostConfig: HostConfig
-    
+
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -149,7 +149,7 @@ struct TabContentView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(tab.title) tab content")
     }
-    
+
     private var adaptivePadding: CGFloat {
         if horizontalSizeClass == .regular {
             // iPad - more padding

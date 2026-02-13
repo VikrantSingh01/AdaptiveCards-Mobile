@@ -5,11 +5,11 @@ import ACAccessibility
 struct ContainerView: View {
     let container: Container
     let hostConfig: HostConfig
-    
+
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     var body: some View {
         VStack(spacing: 0) {
             if let items = container.items {
@@ -31,12 +31,12 @@ struct ContainerView: View {
         }
         .accessibilityContainer(label: "Container")
     }
-    
+
     private var verticalContentAlignment: Alignment {
         guard let alignment = container.verticalContentAlignment else {
             return .center
         }
-        
+
         switch alignment {
         case .top:
             return .top
@@ -46,7 +46,7 @@ struct ContainerView: View {
             return .bottom
         }
     }
-    
+
     private var minHeight: CGFloat? {
         guard let minHeightStr = container.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)

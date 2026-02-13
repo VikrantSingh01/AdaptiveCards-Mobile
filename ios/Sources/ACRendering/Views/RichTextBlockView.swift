@@ -5,9 +5,9 @@ import ACAccessibility
 struct RichTextBlockView: View {
     let richTextBlock: RichTextBlock
     let hostConfig: HostConfig
-    
+
     @Environment(\.layoutDirection) var layoutDirection
-    
+
     var body: some View {
         Text(attributedText)
             .multilineTextAlignment(textAlignment)
@@ -16,20 +16,20 @@ struct RichTextBlockView: View {
             .separator(richTextBlock.separator, hostConfig: hostConfig)
             .accessibilityElement(label: plainText)
     }
-    
+
     private var attributedText: AttributedString {
         var result = AttributedString()
-        
+
         for textRun in richTextBlock.inlines {
             var runText = AttributedString(textRun.text)
-            
+
             // Apply font size
             let size = fontSize(for: textRun)
             runText.font = .system(size: CGFloat(size), weight: fontWeight(for: textRun))
-            
+
             // Apply color
             runText.foregroundColor = foregroundColor(for: textRun)
-            
+
             // Apply text styling
             if textRun.italic == true {
                 runText.font = runText.font?.italic()
@@ -40,13 +40,13 @@ struct RichTextBlockView: View {
             if textRun.underline == true {
                 runText.underlineStyle = .single
             }
-            
+
             result.append(runText)
         }
-        
+
         return result
     }
-    
+
     private func fontSize(for textRun: TextRun) -> Int {
         let fontSizeEnum = textRun.size ?? .default
         switch fontSizeEnum {
@@ -62,11 +62,11 @@ struct RichTextBlockView: View {
             return hostConfig.fontSizes.extraLarge
         }
     }
-    
+
     private func fontWeight(for textRun: TextRun) -> Font.Weight {
         let fontWeightEnum = textRun.weight ?? .default
         let weightValue: Int
-        
+
         switch fontWeightEnum {
         case .lighter:
             weightValue = hostConfig.fontWeights.lighter
@@ -75,7 +75,7 @@ struct RichTextBlockView: View {
         case .bolder:
             weightValue = hostConfig.fontWeights.bolder
         }
-        
+
         switch weightValue {
         case 100...299:
             return .light
@@ -89,12 +89,12 @@ struct RichTextBlockView: View {
             return .bold
         }
     }
-    
+
     private func foregroundColor(for textRun: TextRun) -> Color {
         let color = textRun.color ?? .default
         let styleConfig = hostConfig.containerStyles.default
         let colorConfig: ColorConfig
-        
+
         switch color {
         case .default:
             colorConfig = styleConfig.foregroundColors.default
@@ -111,15 +111,15 @@ struct RichTextBlockView: View {
         case .attention:
             colorConfig = styleConfig.foregroundColors.attention
         }
-        
+
         let hex = textRun.isSubtle == true ? colorConfig.subtle : colorConfig.default
         return Color(hex: hex)
     }
-    
+
     private var textAlignment: TextAlignment {
         .from(richTextBlock.horizontalAlignment)
     }
-    
+
     private var frameAlignment: Alignment {
         .from(
             horizontal: richTextBlock.horizontalAlignment,
@@ -127,7 +127,7 @@ struct RichTextBlockView: View {
             layoutDirection: layoutDirection
         )
     }
-    
+
     private var plainText: String {
         richTextBlock.inlines.map { $0.text }.joined()
     }

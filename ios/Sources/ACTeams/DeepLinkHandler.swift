@@ -2,10 +2,10 @@ import Foundation
 
 public class DeepLinkHandler {
     public init() {}
-    
+
     public func parseDeepLink(_ url: URL) -> DeepLinkInfo? {
         guard url.scheme == "msteams" else { return nil }
-        
+
         var parameters: [String: String] = [:]
         if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
            let queryItems = components.queryItems {
@@ -15,7 +15,7 @@ public class DeepLinkHandler {
                 }
             }
         }
-        
+
         return DeepLinkInfo(
             scheme: url.scheme ?? "",
             host: url.host ?? "",
@@ -23,7 +23,7 @@ public class DeepLinkHandler {
             parameters: parameters
         )
     }
-    
+
     public func handleNavigation(_ deepLink: DeepLinkInfo) {
         // Host app implements actual navigation
     }

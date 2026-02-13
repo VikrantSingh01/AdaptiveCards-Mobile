@@ -29,24 +29,24 @@ public class DefaultActionHandler: ActionHandler {
                 gatherInputs: { viewModel.gatherInputValues() }
             )
             handler.handle(submitAction)
-            
+
         case .openUrl(let openUrlAction):
             let handler = OpenUrlActionHandler(delegate: delegate)
             handler.handle(openUrlAction)
-            
+
         case .showCard(let showCardAction):
             let handler = ShowCardActionHandler(
                 toggleCard: { cardId in viewModel.toggleShowCard(cardId: cardId) }
             )
             handler.handle(showCardAction)
-            
+
         case .execute(let executeAction):
             let handler = ExecuteActionHandler(
                 delegate: delegate,
                 gatherInputs: { viewModel.gatherInputValues() }
             )
             handler.handle(executeAction)
-            
+
         case .toggleVisibility(let toggleAction):
             let handler = ToggleVisibilityHandler(
                 toggleVisibility: { elementId, isVisible in

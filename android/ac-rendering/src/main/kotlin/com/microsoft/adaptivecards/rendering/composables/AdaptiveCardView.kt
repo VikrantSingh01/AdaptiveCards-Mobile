@@ -38,11 +38,22 @@ fun AdaptiveCardView(
     viewModel: CardViewModel = viewModel()
 ) {
     val card by viewModel.card.collectAsState()
-    
+    val parseError by viewModel.parseError.collectAsState()
+
     LaunchedEffect(cardJson) {
         viewModel.parseCard(cardJson)
     }
-    
+
+    // Display error if parsing failed
+    parseError?.let { errorMessage ->
+        androidx.compose.material3.Text(
+            text = "Failed to render card: $errorMessage",
+            color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+            modifier = modifier
+        )
+        return
+    }
+
     card?.let { adaptiveCard ->
         HostConfigProvider(hostConfig = hostConfig ?: com.microsoft.adaptivecards.core.hostconfig.HostConfigParser.default()) {
             RTLSupport(isRTL = adaptiveCard.rtl == true) {
@@ -113,12 +124,16 @@ fun RenderElement(
             is RichTextBlock -> RichTextBlockView(element, elementModifier, actionHandler)
             is Media -> MediaView(element, elementModifier)
             is Table -> TableView(element, elementModifier, viewModel, actionHandler)
-            // Input elements - rendered via element registry to avoid circular dependency
-            // The sample-app or host application should register input renderers
+            // Input elements - to be wired up by host application to avoid circular dependency
+            // The sample-app includes both ac-rendering and ac-inputs and can wire these up
             is InputText, is InputNumber, is InputDate, is InputTime,
-            is InputToggle, is InputChoiceSet, is RatingInput -> {
-                // Input elements are rendered by the ac-inputs module
-                // Use ElementRendererRegistry for input rendering integration
+            is InputToggle, is InputChoiceSet, is InputDataGrid, is RatingInput -> {
+                // Placeholder rendering - host app should wire up actual input views
+                androidx.compose.material3.Text(
+                    text = "[Input: ${element::class.simpleName}]",
+                    modifier = elementModifier,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.outline
+                )
             }
             // Advanced elements
             is Carousel -> CarouselView(element, viewModel, actionHandler, elementModifier)

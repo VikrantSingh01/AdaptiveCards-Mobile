@@ -10,17 +10,16 @@ public class ElementDecoder {
     ) throws -> T {
         return try T(from: decoder)
     }
-    
+
     /// Helper to get the type string from a container
     public static func getType(
         from container: KeyedDecodingContainer<DynamicCodingKeys>
     ) throws -> String {
         guard let typeKey = DynamicCodingKeys(stringValue: "type") else {
-            throw DecodingError.keyNotFound(
-                DynamicCodingKeys(stringValue: "type")!,
+            throw DecodingError.dataCorrupted(
                 DecodingError.Context(
                     codingPath: container.codingPath,
-                    debugDescription: "Type key not found"
+                    debugDescription: "Unable to create coding key for 'type'"
                 )
             )
         }
@@ -32,12 +31,12 @@ public class ElementDecoder {
 public struct DynamicCodingKeys: CodingKey {
     public var stringValue: String
     public var intValue: Int?
-    
+
     public init?(stringValue: String) {
         self.stringValue = stringValue
         self.intValue = nil
     }
-    
+
     public init?(intValue: Int) {
         self.stringValue = String(intValue)
         self.intValue = intValue

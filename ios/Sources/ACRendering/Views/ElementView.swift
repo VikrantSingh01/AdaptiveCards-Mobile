@@ -7,12 +7,12 @@ import ACCharts
 struct ElementView: View {
     let element: CardElement
     let hostConfig: HostConfig
-    
+
     @Environment(\.validationState) var validationState
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
-    
+
     var body: some View {
         Group {
             // Check custom renderer registry first
@@ -24,7 +24,7 @@ struct ElementView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var builtInRenderer: some View {
         switch element {
@@ -142,7 +142,7 @@ struct ElementView: View {
             #endif
         }
     }
-    
+
     private func binding<T>(for inputId: String, defaultValue: T) -> Binding<T> {
         Binding(
             get: {
