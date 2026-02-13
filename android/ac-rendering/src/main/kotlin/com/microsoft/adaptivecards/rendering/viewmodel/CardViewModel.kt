@@ -9,10 +9,22 @@ import androidx.lifecycle.viewModelScope
 import com.microsoft.adaptivecards.core.models.AdaptiveCard
 import com.microsoft.adaptivecards.core.models.CardElement
 import com.microsoft.adaptivecards.core.models.CardInput
+import com.microsoft.adaptivecards.core.models.CardAction
 import com.microsoft.adaptivecards.core.models.Container
 import com.microsoft.adaptivecards.core.models.ColumnSet
 import com.microsoft.adaptivecards.core.models.Column
 import com.microsoft.adaptivecards.core.models.UnknownElement
+import com.microsoft.adaptivecards.core.models.Carousel
+import com.microsoft.adaptivecards.core.models.Accordion
+import com.microsoft.adaptivecards.core.models.TabSet
+import com.microsoft.adaptivecards.core.models.ListElement
+import com.microsoft.adaptivecards.core.models.Table
+import com.microsoft.adaptivecards.core.models.TableCell
+import com.microsoft.adaptivecards.core.models.ActionShowCard
+import com.microsoft.adaptivecards.core.models.ActionPopover
+import com.microsoft.adaptivecards.core.models.ActionSet
+import com.microsoft.adaptivecards.core.models.Image
+import com.microsoft.adaptivecards.core.models.RichTextBlock
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -121,7 +133,25 @@ class CardViewModel : ViewModel() {
         // Check for input elements without IDs
         val inputsWithoutIds = mutableListOf<String>()
 
+        fun validateAction(action: CardAction?) {
+            action ?: return
+            when (action) {
+                is ActionShowCard -> {
+                    // Validate the nested card's body
+                    action.card.body?.forEach { validateElement(it) }
+                }
+                is ActionPopover -> {
+                    // Validate the popover body elements
+                    action.popoverBody.forEach { validateElement(it) }
+                }
+                else -> {
+                    // No nested elements to validate
+                }
+            }
+        }
+
         fun validateElement(element: CardElement) {
+            // Validate element type and check for inputs without IDs
             when (element) {
                 is UnknownElement -> {
                     val typeName = element.unknownType ?: "Unknown"
@@ -134,13 +164,61 @@ class CardViewModel : ViewModel() {
                         Log.w(TAG, "Input element of type '${element.type}' is missing required 'id' property")
                     }
                 }
+            }
+            
+            // Recursively validate children in container elements and validate actions
+            when (element) {
                 is Container -> {
                     element.items?.forEach { validateElement(it) }
+                    validateAction(element.selectAction)
                 }
                 is ColumnSet -> {
                     element.columns?.forEach { column ->
                         column.items?.forEach { validateElement(it) }
+                        validateAction(column.selectAction)
                     }
+                    validateAction(element.selectAction)
+                }
+                is Carousel -> {
+                    element.pages.forEach { page ->
+                        page.items.forEach { validateElement(it) }
+                        validateAction(page.selectAction)
+                    }
+                }
+                is Accordion -> {
+                    element.panels.forEach { panel ->
+                        panel.content.forEach { validateElement(it) }
+                    }
+                }
+                is TabSet -> {
+                    element.tabs.forEach { tab ->
+                        tab.items.forEach { validateElement(it) }
+                    }
+                }
+                is ListElement -> {
+                    element.items.forEach { validateElement(it) }
+                }
+                is Table -> {
+                    element.rows.forEach { row ->
+                        row.cells.forEach { cell ->
+                            cell.items?.forEach { validateElement(it) }
+                            validateAction(cell.selectAction)
+                        }
+                    }
+                }
+                is ActionSet -> {
+                    element.actions.forEach { validateAction(it) }
+                }
+                is Image -> {
+                    validateAction(element.selectAction)
+                }
+                is RichTextBlock -> {
+                    element.inlines.forEach { textRun ->
+                        validateAction(textRun.selectAction)
+                    }
+                }
+                else -> {
+                    // No children to validate
                 }
             }
         }
