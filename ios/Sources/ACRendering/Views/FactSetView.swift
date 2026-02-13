@@ -5,7 +5,7 @@ import ACAccessibility
 struct FactSetView: View {
     let factSet: FactSet
     let hostConfig: HostConfig
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: CGFloat(hostConfig.factSet.spacing)) {
             ForEach(factSet.facts) { fact in
@@ -23,11 +23,11 @@ struct FactSetView: View {
         .separator(factSet.separator, hostConfig: hostConfig)
         .accessibilityContainer(label: "Fact Set")
     }
-    
+
     private var titleWeight: Font.Weight {
         hostConfig.factSet.title.weight == "Bolder" ? .bold : .regular
     }
-    
+
     private var valueWeight: Font.Weight {
         hostConfig.factSet.value.weight == "Bolder" ? .bold : .regular
     }

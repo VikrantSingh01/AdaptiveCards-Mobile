@@ -5,7 +5,7 @@ public struct MarkdownTextView: View {
     private let text: String
     private let font: Font
     private let color: Color
-    
+
     /// Create a new MarkdownTextView
     /// - Parameters:
     ///   - text: The markdown text to render
@@ -20,11 +20,11 @@ public struct MarkdownTextView: View {
         self.font = font
         self.color = color
     }
-    
+
     public var body: some View {
         let tokens = MarkdownParser.parse(text)
         let attributedString = MarkdownRenderer.render(tokens: tokens, font: font, color: color)
-        
+
         Text(attributedString)
     }
 }
@@ -36,30 +36,30 @@ public extension String {
         pattern: #"^\d+\.\s"#,
         options: []
     )
-    
+
     /// Check if the string contains markdown syntax
     var containsMarkdown: Bool {
         // Check for inline formatting
         if self.contains("*") || self.contains("[") || self.contains("`") {
             return true
         }
-        
+
         // Check for headers
         if self.hasPrefix("#") {
             return true
         }
-        
+
         // Check for bullet lists
         if self.hasPrefix("- ") {
             return true
         }
-        
+
         // Check for numbered lists (must start with digit followed by ". ")
         if let regex = String.numberedListRegex,
            regex.firstMatch(in: self, range: NSRange(self.startIndex..., in: self)) != nil {
             return true
         }
-        
+
         return false
     }
 }

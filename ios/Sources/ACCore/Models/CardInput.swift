@@ -9,15 +9,15 @@ public enum CardInput: Codable, Equatable {
     case choiceSet(ChoiceSetInput)
     case rating(RatingInput)
     case dataGrid(DataGridInput)
-    
+
     enum CodingKeys: String, CodingKey {
         case type
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-        
+
         switch type {
         case "Input.Text":
             self = .text(try TextInput(from: decoder))
@@ -43,7 +43,7 @@ public enum CardInput: Codable, Equatable {
             )
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         switch self {
         case .text(let input):
@@ -64,7 +64,7 @@ public enum CardInput: Codable, Equatable {
             try input.encode(to: encoder)
         }
     }
-    
+
     public var id: String {
         switch self {
         case .text(let input): return input.id
@@ -77,7 +77,7 @@ public enum CardInput: Codable, Equatable {
         case .dataGrid(let input): return input.id
         }
     }
-    
+
     public var isRequired: Bool {
         switch self {
         case .text(let input): return input.isRequired ?? false
@@ -399,11 +399,11 @@ public struct ChoiceSetInput: Codable, Equatable {
         self.isVisible = isVisible
         self.fallback = fallback
     }
-    
+
     public struct Choice: Codable, Equatable {
         public var title: String
         public var value: String
-        
+
         public init(title: String, value: String) {
             self.title = title
             self.value = value

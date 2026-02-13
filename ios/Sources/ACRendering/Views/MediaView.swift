@@ -5,9 +5,9 @@ import ACAccessibility
 struct MediaView: View {
     let media: Media
     let hostConfig: HostConfig
-    
+
     @State private var isPlaying = false
-    
+
     var body: some View {
         ZStack {
             if let posterUrl = media.poster, let url = URL(string: posterUrl) {
@@ -30,7 +30,7 @@ struct MediaView: View {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
             }
-            
+
             Button(action: {
                 isPlaying = true
                 // In a real implementation, this would play the media

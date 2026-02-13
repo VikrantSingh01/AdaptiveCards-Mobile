@@ -6,7 +6,7 @@ public struct TeamsFluentTheme {
     public let backgroundColor: Color
     public let surfaceColor: Color
     public let textColor: Color
-    
+
     public init(teamsTheme: TeamsTheme) {
         switch teamsTheme {
         case .light:
@@ -29,7 +29,7 @@ public struct TeamsFluentTheme {
             self.textColor = .white
         }
     }
-    
+
     public func apply() -> some View {
         Color.clear
             .preferredColorScheme(colorScheme)

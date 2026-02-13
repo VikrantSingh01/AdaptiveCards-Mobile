@@ -7,13 +7,13 @@ public class FallbackHandler {
         case error      // Throw an error
         case textBlock  // Convert to a TextBlock with fallback text
     }
-    
+
     public var mode: FallbackMode
-    
+
     public init(mode: FallbackMode = .drop) {
         self.mode = mode
     }
-    
+
     /// Handles a fallback element based on the configured mode
     public func handleFallback(
         for type: String,
@@ -30,7 +30,7 @@ public class FallbackHandler {
             return .textBlock(TextBlock(text: fallbackText))
         }
     }
-    
+
     /// Checks if an element has a fallback property
     public func hasFallback(in json: [String: Any]) -> Bool {
         return json["fallback"] != nil

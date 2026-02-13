@@ -6,6 +6,12 @@ public struct ChartDataPoint: Codable, Equatable, Identifiable {
     public var label: String
     public var value: Double
     public var color: String?
+
+    // Use label as stable ID (with value to make it unique if needed)
+    public var id: String {
+        "\(label)_\(value)"
+    }
+
     
     public init(
         label: String,
@@ -40,7 +46,7 @@ public struct DonutChart: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -85,7 +91,7 @@ public struct BarChart: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -132,7 +138,7 @@ public struct LineChart: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,
@@ -178,7 +184,7 @@ public struct PieChart: Codable, Equatable {
     public var separator: Bool?
     public var height: BlockElementHeight?
     public var requires: [String: String]?
-    
+
     public init(
         id: String? = nil,
         title: String? = nil,

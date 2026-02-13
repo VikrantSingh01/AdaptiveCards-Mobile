@@ -105,14 +105,14 @@ public struct TextInputView: View {
         .buttonStyle(.bordered)
         .accessibilityLabel(action.title ?? "Inline action")
     }
-    
+
     private var borderColor: Color {
         if validationState.getError(for: input.id) != nil {
             return .red
         }
         return Color.gray.opacity(0.3)
     }
-    
+
     #if os(iOS)
     private var keyboardType: UIKeyboardType {
         guard let style = input.style else { return .default }
@@ -161,7 +161,7 @@ public struct TextInputView: View {
         }
     }
     #endif
-    
+
     private func validateIfNeeded() {
         let error = InputValidator.validateText(value: value.isEmpty ? nil : value, input: input)
         validationState.setError(for: input.id, message: error)

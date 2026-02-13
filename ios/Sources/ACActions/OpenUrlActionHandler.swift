@@ -9,20 +9,20 @@ import ACCore
 
 public class OpenUrlActionHandler {
     private weak var delegate: ActionDelegate?
-    
+
     public init(delegate: ActionDelegate?) {
         self.delegate = delegate
     }
-    
+
     public func handle(_ action: OpenUrlAction) {
         guard let url = URL(string: action.url) else {
             print("Invalid URL: \(action.url)")
             return
         }
-        
+
         // Notify delegate
         delegate?.onOpenUrl(url: url, actionId: action.id)
-        
+
         // Attempt to open URL
         #if os(iOS)
         if UIApplication.shared.canOpenURL(url) {

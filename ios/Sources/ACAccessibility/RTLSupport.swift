@@ -8,7 +8,7 @@ public extension View {
     func adaptiveRTL() -> some View {
         self.modifier(RTLSupportModifier())
     }
-    
+
     /// Conditionally flips horizontal alignment for RTL
     func mirrorForRTL() -> some View {
         self.modifier(MirrorForRTLModifier())
@@ -17,7 +17,7 @@ public extension View {
 
 private struct RTLSupportModifier: ViewModifier {
     @Environment(\.layoutDirection) var layoutDirection
-    
+
     func body(content: Content) -> some View {
         content
             .environment(\.layoutDirection, layoutDirection)
@@ -26,7 +26,7 @@ private struct RTLSupportModifier: ViewModifier {
 
 private struct MirrorForRTLModifier: ViewModifier {
     @Environment(\.layoutDirection) var layoutDirection
-    
+
     func body(content: Content) -> some View {
         if layoutDirection == .rightToLeft {
             content.scaleEffect(x: -1, y: 1)
@@ -66,7 +66,7 @@ public extension Alignment {
 
         return Alignment(horizontal: h, vertical: v)
     }
-    
+
     private static func verticalAlignment(from alignment: ACCore.VerticalAlignment?) -> SwiftUI.VerticalAlignment {
         guard let alignment = alignment else { return .center }
 
@@ -87,7 +87,7 @@ public extension TextAlignment {
     /// Converts Adaptive Card HorizontalAlignment to SwiftUI TextAlignment
     static func from(_ alignment: ACCore.HorizontalAlignment?) -> TextAlignment {
         guard let alignment = alignment else { return .leading }
-        
+
         switch alignment {
         case .left:
             return .leading

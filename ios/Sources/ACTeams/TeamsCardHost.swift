@@ -8,10 +8,10 @@ public struct TeamsCardHost<Content: View>: View {
     let tokenProvider: AuthTokenProvider?
     let deepLinkHandler: DeepLinkHandler
     let content: () -> Content
-    
+
     @StateObject private var taskModulePresenter = TaskModulePresenter()
     @StateObject private var stageViewPresenter = StageViewPresenter()
-    
+
     public init(
         card: AdaptiveCard,
         theme: TeamsTheme = .light,
@@ -25,7 +25,7 @@ public struct TeamsCardHost<Content: View>: View {
         self.deepLinkHandler = deepLinkHandler
         self.content = content
     }
-    
+
     public var body: some View {
         content()
             .preferredColorScheme(colorScheme)
@@ -60,7 +60,7 @@ public struct TeamsCardHost<Content: View>: View {
             }
             #endif
     }
-    
+
     private var colorScheme: ColorScheme? {
         switch theme {
         case .light:
