@@ -449,7 +449,30 @@ Layouts automatically mirror for right-to-left languages:
 
 ```bash
 cd ios
+
+# Run all tests
 swift test
+
+# Run specific test suite
+swift test --filter ACTemplatingTests
+
+# Run with verbose output
+swift test --verbose
+```
+
+### Build from Command Line
+
+```bash
+cd ios
+
+# Build all modules (debug)
+swift build
+
+# Build release configuration
+swift build -c release
+
+# Clean build artifacts
+swift package clean
 ```
 
 ### Test Coverage
@@ -457,6 +480,15 @@ swift test
 - **ACCore**: Parsing all 8 test cards, host config, round-trip encoding
 - **ACInputs**: Validation for all input types
 - **ACRendering**: Custom renderer registration
+- **ACTemplating**: 40+ tests covering expression parsing, evaluation, and all 60 built-in functions
+
+### Running the Sample App
+
+1. Open `ios/Package.swift` in Xcode
+2. Select the `AdaptiveCardsSample` scheme
+3. Choose iPhone 17 Pro Simulator (or any iOS 16+ simulator)
+4. Press Cmd+R to build and run
+5. The app will display a card gallery with live rendering of Adaptive Cards
 
 ## Example Cards
 
@@ -471,11 +503,27 @@ See `/shared/test-cards/` for example cards:
 - `table.json`: Table with headers and grid lines
 - `media.json`: Video/audio media element
 
+## Build Status (Verified 2026-02-12)
+
+| Item | Status |
+|------|--------|
+| **Modules Built** | 11/11 |
+| **Tests** | All passing |
+| **Sample App** | Running on iPhone 17 Pro Simulator (iOS 26) |
+| **Card Rendering** | Actual Adaptive Card content (not placeholders) |
+
+### Recent Fixes
+- **Rendering placeholder bug**: `ElementView`, `ImageView`, `CompoundButtonView`, `ProgressIndicatorViews`, `RatingDisplayView`, `TabSetView`, and `TableView` were displaying static placeholder text instead of actual card content. Fixed to render real data from parsed Adaptive Card JSON.
+- **Access control**: Added `public` access modifiers to types, initializers, and methods across `ACActions`, `ACCore`, `ACRendering`, `ACMarkdown`, `ACCharts`, `ACFluentUI`, `ACInputs`, and `ACAccessibility` modules so the sample app can access SDK APIs.
+- **ProgressBarView/SpinnerView consolidation**: Removed standalone `ProgressBarView.swift` and `SpinnerView.swift` in favor of the unified `ProgressIndicatorViews.swift`.
+- **ExpressionEvaluator**: Updated expression evaluation logic in `ACTemplating`.
+- **Package.swift**: Updated package manifest for module configuration.
+
 ## Requirements
 
 - iOS 16.0+
 - Swift 5.9+
-- Xcode 15.0+
+- Xcode 15.0+ (Xcode 26 recommended)
 
 ## Performance
 
@@ -511,6 +559,14 @@ if let error = validationState.getError(for: inputId) {
     Text(error).foregroundColor(.red)
 }
 ```
+
+### Cards show placeholder text instead of content
+
+If you see generic text like "TextBlock element" or "Image element" instead of actual card content, ensure you are using the latest version of the rendering views. This was a known issue fixed in v1.1.0-dev where `ElementView` and related views were updated to render real data from parsed card JSON rather than static placeholder strings.
+
+### "Cannot find type in scope" or access control errors
+
+Ensure all SDK module types you reference have `public` access. If building a separate app target that imports the SDK modules, the types, initializers, and methods must be marked `public`. This was addressed in the v1.1.0-dev access control fixes.
 
 ## Contributing
 

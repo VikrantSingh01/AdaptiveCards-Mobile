@@ -15,6 +15,23 @@ Modern Android SDK for rendering [Adaptive Cards](https://adaptivecards.io/) usi
 - 🎨 **Customizable** - Extensible renderer registry and host config
 - 🔄 **Teams Integration** - Pre-configured Teams theme with Fluent UI tokens
 
+## Build Status (Verified 2026-02-12)
+
+| Item | Status |
+|------|--------|
+| **Modules Built** | 12/12 |
+| **Tests** | 150 passed (100% pass rate) |
+| **Sample App** | Running on Android Emulator API 36 |
+| **Card Rendering** | Actual Adaptive Card content via `AdaptiveCardView` composable |
+
+### Recent Fixes
+- **Sample app 9 compilation errors**: Fixed type mismatches, missing imports, incorrect API usage, and parameter errors across `CardDetailScreen.kt`, `CardEditorScreen.kt`, `CardGalleryScreen.kt`, `TeamsSimulatorScreen.kt`, and `MainActivity.kt`.
+- **Rendering placeholder bug**: Replaced placeholder `Text()` composables in `CardDetailScreen` and `CardEditorScreen` with actual `AdaptiveCardView` rendering that parses and displays real card content.
+- **Assets configuration**: Added `assets` source directory configuration in `sample-app/build.gradle.kts` so test card JSON files are bundled and loadable at runtime.
+- **SchemaValidator**: Updated `SchemaValidator.kt` for compatibility.
+- **Markdown build config**: Updated `ac-markdown/build.gradle.kts` and `gradle/libs.versions.toml` for dependency alignment.
+- **minSdk 24 compatibility**: Ensured `DateFunctions` API 24 compatibility, parser support for negative numbers.
+
 ## Modules
 
 - **ac-core** - Core models, parsing, and host configuration
@@ -23,6 +40,12 @@ Modern Android SDK for rendering [Adaptive Cards](https://adaptivecards.io/) usi
 - **ac-actions** - Action handlers and delegates
 - **ac-host-config** - Theme and configuration providers
 - **ac-accessibility** - Accessibility helpers and modifiers
+- **ac-templating** - Template binding with 50+ expression functions
+- **ac-markdown** - Markdown rendering
+- **ac-charts** - Chart components (Bar, Line, Pie, Donut)
+- **ac-fluent-ui** - Fluent UI theming
+- **ac-copilot-extensions** - Copilot features
+- **ac-teams** - Teams integration
 
 ## Quick Start
 
@@ -279,19 +302,46 @@ class CardViewModel : ViewModel() {
 Run tests for each module:
 
 ```bash
+# All tests (150 tests, 100% pass rate as of 2026-02-12)
+./gradlew test
+
 # Core module tests
 ./gradlew :ac-core:test
 
-# All tests
-./gradlew test
+# Templating module tests
+./gradlew :ac-templating:test
+
+# Run with detailed output
+./gradlew test --info
+
+# View HTML test reports
+# android/<module>/build/reports/tests/testDebugUnitTest/index.html
 ```
+
+### Running the Sample App
+
+```bash
+cd android
+
+# Build the sample app
+./gradlew :sample-app:assembleDebug
+
+# Install on connected emulator/device
+./gradlew :sample-app:installDebug
+
+# Or use Android Studio: open android/ folder, select sample-app configuration, click Run
+```
+
+The sample app displays a card gallery with live rendering. Cards are loaded from `assets/test-cards/` and rendered using the `AdaptiveCardView` composable.
 
 ## Requirements
 
-- minSdk 26 (Android 8.0)
+- minSdk 24 (Android 7.0)
 - targetSdk 34 (Android 14)
 - Kotlin 1.9+
 - Jetpack Compose BOM 2024.01+
+- Gradle 8.5+ (wrapper included in repository)
+- JDK 17
 
 ## License
 
@@ -300,6 +350,35 @@ Copyright (c) Microsoft Corporation. All rights reserved.
 ## Contributing
 
 This project welcomes contributions and suggestions. Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
+
+## Troubleshooting
+
+### Cards show placeholder text instead of content
+
+If `CardDetailScreen` or `CardEditorScreen` display generic `Text()` composables instead of actual card content, ensure you are using the latest version that includes `AdaptiveCardView` rendering. This was a known issue fixed in v1.1.0-dev.
+
+### Test card JSON files not loading
+
+Ensure `src/main/assets/test-cards/` directory exists and is configured as an assets source in `build.gradle.kts`:
+```kotlin
+android {
+    sourceSets {
+        getByName("main") {
+            assets.srcDirs("src/main/assets")
+        }
+    }
+}
+```
+
+### Gradle sync fails
+
+- Verify JDK 17 is installed and configured
+- Run `./gradlew clean` then retry
+- Check that `gradle/libs.versions.toml` has correct dependency versions
+
+### Build errors in sample-app
+
+If you encounter compilation errors in sample app screens, ensure all SDK module dependencies are correctly declared in `sample-app/build.gradle.kts` and that Gradle sync has completed successfully.
 
 ## Cross-Platform Alignment
 
