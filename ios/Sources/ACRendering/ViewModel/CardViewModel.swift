@@ -84,10 +84,10 @@ public class CardViewModel: ObservableObject {
         guard let body = card.body else { return }
         
         for element in body {
-            if let id = element.id {
+            if let id = element.elementId {
                 visibility[id] = element.isVisible
             }
-            
+
             // Recursively initialize for nested containers
             initializeVisibilityForElement(element)
         }
@@ -97,7 +97,7 @@ public class CardViewModel: ObservableObject {
         switch element {
         case .container(let container):
             for item in container.items {
-                if let id = item.id {
+                if let id = item.elementId {
                     visibility[id] = item.isVisible
                 }
                 initializeVisibilityForElement(item)
@@ -105,7 +105,7 @@ public class CardViewModel: ObservableObject {
         case .columnSet(let columnSet):
             for column in columnSet.columns {
                 for item in column.items {
-                    if let id = item.id {
+                    if let id = item.elementId {
                         visibility[id] = item.isVisible
                     }
                     initializeVisibilityForElement(item)

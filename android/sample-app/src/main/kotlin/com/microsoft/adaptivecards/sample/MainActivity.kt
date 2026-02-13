@@ -3,6 +3,8 @@ package com.microsoft.adaptivecards.sample
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -153,29 +156,25 @@ fun MoreScreen(
     settingsState: SettingsState
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
-        androidx.compose.foundation.layout.Column {
+        Column {
             Text(
                 "More",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(16.dp)
             )
-            
-            androidx.compose.foundation.clickable.clickable {
-                navController.navigate("action_log")
-            }
-            
+
             ListItem(
                 headlineContent = { Text("Action Log") },
-                leadingContent = { Icon(Icons.Default.List, null) },
+                leadingContent = { Icon(Icons.Default.Menu, null) },
                 modifier = Modifier.clickable { navController.navigate("action_log") }
             )
-            
+
             ListItem(
                 headlineContent = { Text("Performance") },
                 leadingContent = { Icon(Icons.Default.Speed, null) },
                 modifier = Modifier.clickable { navController.navigate("performance") }
             )
-            
+
             ListItem(
                 headlineContent = { Text("Settings") },
                 leadingContent = { Icon(Icons.Default.Settings, null) },

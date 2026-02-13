@@ -38,6 +38,7 @@ public struct TeamsCardHost<Content: View>: View {
                     )
                 }
             }
+            #if os(iOS)
             .fullScreenCover(isPresented: $stageViewPresenter.isPresented) {
                 if let url = stageViewPresenter.url {
                     StageView(
@@ -47,6 +48,17 @@ public struct TeamsCardHost<Content: View>: View {
                     )
                 }
             }
+            #else
+            .sheet(isPresented: $stageViewPresenter.isPresented) {
+                if let url = stageViewPresenter.url {
+                    StageView(
+                        url: url,
+                        title: stageViewPresenter.title,
+                        onDismiss: { stageViewPresenter.dismiss() }
+                    )
+                }
+            }
+            #endif
     }
     
     private var colorScheme: ColorScheme? {

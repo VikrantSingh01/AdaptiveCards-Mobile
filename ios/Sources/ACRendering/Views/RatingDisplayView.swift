@@ -63,15 +63,15 @@ struct RatingDisplayView: View {
         return baseSize
     }
     
-    private func starImage(for index: Int) -> Image {
+    private func starImage(for index: Int) -> SwiftUI.Image {
         let starValue = Double(index + 1)
-        
+
         if rating.value >= starValue {
-            return Image(systemName: "star.fill")
+            return SwiftUI.Image(systemName: "star.fill")
         } else if rating.value >= starValue - 0.5 {
-            return Image(systemName: "star.leadinghalf.filled")
+            return SwiftUI.Image(systemName: "star.leadinghalf.filled")
         } else {
-            return Image(systemName: "star")
+            return SwiftUI.Image(systemName: "star")
         }
     }
     

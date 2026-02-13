@@ -105,7 +105,7 @@ class TemplateEngine {
             if (key == "\$when") {
                 if (value is String) {
                     try {
-                        val parsedExpression = parser.parse(value)
+                        val parsedExpression = parser.parse(extractExpression(value))
                         val evaluator = ExpressionEvaluator(context)
                         val conditionResult = evaluator.evaluate(parsedExpression)
 
@@ -141,7 +141,7 @@ class TemplateEngine {
                     val dataBinding = dict["\$data"] as? String
                     if (dataBinding != null) {
                         try {
-                            val parsedExpression = parser.parse(dataBinding)
+                            val parsedExpression = parser.parse(extractExpression(dataBinding))
                             val evaluator = ExpressionEvaluator(context)
                             val dataValue = evaluator.evaluate(parsedExpression)
 
@@ -199,6 +199,20 @@ class TemplateEngine {
     }
 
     // MARK: - Helpers
+
+    /**
+     * Extract the raw expression from a template expression string.
+     * If the string is wrapped in ${...}, strip the wrapper and return the inner expression.
+     * Otherwise, return the string as-is.
+     */
+    private fun extractExpression(templateExpr: String): String {
+        val trimmed = templateExpr.trim()
+        return if (trimmed.startsWith("\${") && trimmed.endsWith("}")) {
+            trimmed.substring(2, trimmed.length - 1)
+        } else {
+            trimmed
+        }
+    }
 
     private fun stringValue(value: Any?): String {
         return when (value) {

@@ -4,6 +4,7 @@ import ACActions
 
 /// Protocol for handling actions
 public protocol ActionHandler {
+    @MainActor
     func handle(
         _ action: CardAction,
         delegate: ActionDelegate?,
@@ -14,7 +15,8 @@ public protocol ActionHandler {
 /// Default action handler implementation
 public class DefaultActionHandler: ActionHandler {
     public init() {}
-    
+
+    @MainActor
     public func handle(
         _ action: CardAction,
         delegate: ActionDelegate?,
@@ -52,6 +54,15 @@ public class DefaultActionHandler: ActionHandler {
                 }
             )
             handler.handle(toggleAction)
+
+        case .popover(let popoverAction):
+            PopoverActionHandler.handle(action: popoverAction, delegate: delegate)
+
+        case .runCommands(let runCommandsAction):
+            RunCommandsActionHandler.handle(action: runCommandsAction, delegate: delegate)
+
+        case .openUrlDialog(let openUrlDialogAction):
+            OpenUrlDialogActionHandler.handle(action: openUrlDialogAction, delegate: delegate)
         }
     }
 }

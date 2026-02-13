@@ -2,6 +2,7 @@ package com.microsoft.adaptivecards.core.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
@@ -19,7 +20,7 @@ sealed interface CardElement {
 @Serializable
 @SerialName("TextBlock")
 data class TextBlock(
-    override val type: String = "TextBlock",
+    @Transient override val type: String = "TextBlock",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -27,7 +28,7 @@ data class TextBlock(
     override val height: BlockElementHeight? = null,
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
-    val text: String,
+    val text: String = "",
     val color: Color? = null,
     val fontType: FontType? = null,
     val size: FontSize? = null,
@@ -43,7 +44,7 @@ data class TextBlock(
 @Serializable
 @SerialName("Image")
 data class Image(
-    override val type: String = "Image",
+    @Transient override val type: String = "Image",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -66,7 +67,7 @@ data class Image(
 @Serializable
 @SerialName("Container")
 data class Container(
-    override val type: String = "Container",
+    @Transient override val type: String = "Container",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -96,7 +97,7 @@ data class BackgroundImage(
 @Serializable
 @SerialName("ColumnSet")
 data class ColumnSet(
-    override val type: String = "ColumnSet",
+    @Transient override val type: String = "ColumnSet",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -134,7 +135,7 @@ data class Column(
 @Serializable
 @SerialName("FactSet")
 data class FactSet(
-    override val type: String = "FactSet",
+    @Transient override val type: String = "FactSet",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -154,7 +155,7 @@ data class Fact(
 @Serializable
 @SerialName("ImageSet")
 data class ImageSet(
-    override val type: String = "ImageSet",
+    @Transient override val type: String = "ImageSet",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -169,7 +170,7 @@ data class ImageSet(
 @Serializable
 @SerialName("ActionSet")
 data class ActionSet(
-    override val type: String = "ActionSet",
+    @Transient override val type: String = "ActionSet",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -184,7 +185,7 @@ data class ActionSet(
 @Serializable
 @SerialName("Media")
 data class Media(
-    override val type: String = "Media",
+    @Transient override val type: String = "Media",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -206,7 +207,7 @@ data class MediaSource(
 @Serializable
 @SerialName("RichTextBlock")
 data class RichTextBlock(
-    override val type: String = "RichTextBlock",
+    @Transient override val type: String = "RichTextBlock",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -237,7 +238,7 @@ data class TextRun(
 @Serializable
 @SerialName("Table")
 data class Table(
-    override val type: String = "Table",
+    @Transient override val type: String = "Table",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,

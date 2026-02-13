@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import ACCore
 import ACAccessibility
 
@@ -41,6 +44,7 @@ public struct TextInputView: View {
                         validateIfNeeded()
                     }
             } else {
+                #if os(iOS)
                 TextField(input.placeholder ?? "", text: $value)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(keyboardType)
@@ -49,6 +53,13 @@ public struct TextInputView: View {
                     .onChange(of: value) { _ in
                         validateIfNeeded()
                     }
+                #else
+                TextField(input.placeholder ?? "", text: $value)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: value) { _ in
+                        validateIfNeeded()
+                    }
+                #endif
             }
             
             if let error = validationState.getError(for: input.id) {
@@ -71,9 +82,10 @@ public struct TextInputView: View {
         return Color.gray.opacity(0.3)
     }
     
+    #if os(iOS)
     private var keyboardType: UIKeyboardType {
         guard let style = input.style else { return .default }
-        
+
         switch style {
         case .text:
             return .default
@@ -87,10 +99,10 @@ public struct TextInputView: View {
             return .default
         }
     }
-    
+
     private var textContentType: UITextContentType? {
         guard let style = input.style else { return nil }
-        
+
         switch style {
         case .email:
             return .emailAddress
@@ -104,19 +116,20 @@ public struct TextInputView: View {
             return nil
         }
     }
-    
-    private var autocapitalization: TextInputAutocapitalization {
+
+    private var autocapitalization: UITextAutocapitalizationType {
         guard let style = input.style else { return .sentences }
-        
+
         switch style {
         case .text:
             return .sentences
         case .email, .url, .password:
-            return .never
+            return .none
         case .tel:
-            return .never
+            return .none
         }
     }
+    #endif
     
     private func validateIfNeeded() {
         let error = InputValidator.validateText(value: value.isEmpty ? nil : value, input: input)

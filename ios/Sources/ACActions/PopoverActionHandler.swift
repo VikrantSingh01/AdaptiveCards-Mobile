@@ -4,6 +4,7 @@ import ACCore
 @MainActor
 public class PopoverActionHandler {
     public static func handle(action: PopoverAction, delegate: ActionDelegate?) {
-        delegate?.didTriggerAction(action)
+        // TODO: Add appropriate delegate method for PopoverAction
+        print("PopoverAction triggered: \(action)")
     }
 }

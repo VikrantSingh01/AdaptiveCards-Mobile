@@ -1,14 +1,19 @@
 package com.microsoft.adaptivecards.sample
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,10 +120,10 @@ fun EditorPane(
             Text("JSON Editor", style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(
-                    imageVector = if (isValid) 
-                        androidx.compose.material.icons.Icons.Default.CheckCircle 
-                    else 
-                        androidx.compose.material.icons.Icons.Default.Error,
+                    imageVector = if (isValid)
+                        Icons.Default.Check
+                    else
+                        Icons.Default.Close,
                     contentDescription = if (isValid) "Valid" else "Invalid",
                     tint = if (isValid) 
                         MaterialTheme.colorScheme.primary 
@@ -169,14 +174,31 @@ fun EditorPane(
 
 @Composable
 fun PreviewPane(jsonText: String, isValid: Boolean, errorMessage: String) {
+    val editorViewModel: CardViewModel = viewModel(key = "editor_preview")
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        if (isValid) {
-            CardPreviewPlaceholder(jsonText)
-        } else {
+        if (isValid && jsonText.isNotBlank()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(12.dp)
+                ) {
+                    AdaptiveCardView(
+                        cardJson = jsonText,
+                        modifier = Modifier.fillMaxWidth(),
+                        viewModel = editorViewModel
+                    )
+                }
+            }
+        } else if (!isValid) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(

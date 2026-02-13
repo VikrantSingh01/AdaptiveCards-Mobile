@@ -4,6 +4,7 @@ import com.microsoft.adaptivecards.core.models.ActionRunCommands
 
 object RunCommandsActionHandler {
     fun handle(action: ActionRunCommands, delegate: ActionDelegate?) {
-        delegate?.onActionTriggered(action)
+        // RunCommands actions execute commands via delegate
+        delegate?.onExecute("runCommands", mapOf("commands" to action.commands.map { it.id }))
     }
 }

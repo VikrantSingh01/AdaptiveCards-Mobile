@@ -241,7 +241,7 @@ final class CardParserTests: XCTestCase {
         
         // Verify unknown element properties
         let unknownElement = card.body?[1]
-        XCTAssertNil(unknownElement?.id)
+        XCTAssertNil(unknownElement?.elementId)
         XCTAssertFalse(unknownElement?.isVisible ?? true)
     }
     

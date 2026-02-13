@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -218,6 +219,3 @@ private fun buildAccessibilityDescription(chart: LineChart): String {
     return builder.toString()
 }
 
-private fun Modifier.alpha(alpha: Float): Modifier = this.then(
-    androidx.compose.ui.graphics.graphicsLayer(alpha = alpha)
-)

@@ -1,4 +1,5 @@
 import SwiftUI
+import ACCore
 
 // MARK: - RTL Support
 
@@ -37,11 +38,11 @@ private struct MirrorForRTLModifier: ViewModifier {
 
 // MARK: - Alignment Helpers
 
-public extension HorizontalAlignment {
+public extension SwiftUI.HorizontalAlignment {
     /// Converts Adaptive Card HorizontalAlignment to SwiftUI alignment, respecting RTL
-    static func from(_ alignment: ACCore.HorizontalAlignment?, layoutDirection: LayoutDirection) -> HorizontalAlignment {
+    static func from(_ alignment: ACCore.HorizontalAlignment?, layoutDirection: LayoutDirection) -> SwiftUI.HorizontalAlignment {
         guard let alignment = alignment else { return .leading }
-        
+
         switch alignment {
         case .left:
             return layoutDirection == .leftToRight ? .leading : .trailing
@@ -60,15 +61,15 @@ public extension Alignment {
         vertical: ACCore.VerticalAlignment?,
         layoutDirection: LayoutDirection
     ) -> Alignment {
-        let h = HorizontalAlignment.from(horizontal, layoutDirection: layoutDirection)
+        let h = SwiftUI.HorizontalAlignment.from(horizontal, layoutDirection: layoutDirection)
         let v = verticalAlignment(from: vertical)
-        
+
         return Alignment(horizontal: h, vertical: v)
     }
     
-    private static func verticalAlignment(from alignment: ACCore.VerticalAlignment?) -> VerticalAlignment {
+    private static func verticalAlignment(from alignment: ACCore.VerticalAlignment?) -> SwiftUI.VerticalAlignment {
         guard let alignment = alignment else { return .center }
-        
+
         switch alignment {
         case .top:
             return .top

@@ -2,6 +2,7 @@ package com.microsoft.adaptivecards.core.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
@@ -21,7 +22,7 @@ sealed interface CardAction {
 @Serializable
 @SerialName("Action.Submit")
 data class ActionSubmit(
-    override val type: String = "Action.Submit",
+    @Transient override val type: String = "Action.Submit",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -38,7 +39,7 @@ data class ActionSubmit(
 @Serializable
 @SerialName("Action.OpenUrl")
 data class ActionOpenUrl(
-    override val type: String = "Action.OpenUrl",
+    @Transient override val type: String = "Action.OpenUrl",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -54,7 +55,7 @@ data class ActionOpenUrl(
 @Serializable
 @SerialName("Action.ShowCard")
 data class ActionShowCard(
-    override val type: String = "Action.ShowCard",
+    @Transient override val type: String = "Action.ShowCard",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -70,7 +71,7 @@ data class ActionShowCard(
 @Serializable
 @SerialName("Action.Execute")
 data class ActionExecute(
-    override val type: String = "Action.Execute",
+    @Transient override val type: String = "Action.Execute",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -88,7 +89,7 @@ data class ActionExecute(
 @Serializable
 @SerialName("Action.ToggleVisibility")
 data class ActionToggleVisibility(
-    override val type: String = "Action.ToggleVisibility",
+    @Transient override val type: String = "Action.ToggleVisibility",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -110,7 +111,7 @@ data class TargetElement(
 @Serializable
 @SerialName("Action.Popover")
 data class ActionPopover(
-    override val type: String = "Action.Popover",
+    @Transient override val type: String = "Action.Popover",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -128,7 +129,7 @@ data class ActionPopover(
 @Serializable
 @SerialName("Action.RunCommands")
 data class ActionRunCommands(
-    override val type: String = "Action.RunCommands",
+    @Transient override val type: String = "Action.RunCommands",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
@@ -151,7 +152,7 @@ data class Command(
 @Serializable
 @SerialName("Action.OpenUrlDialog")
 data class ActionOpenUrlDialog(
-    override val type: String = "Action.OpenUrlDialog",
+    @Transient override val type: String = "Action.OpenUrlDialog",
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,

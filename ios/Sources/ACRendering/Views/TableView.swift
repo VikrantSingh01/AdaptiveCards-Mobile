@@ -3,7 +3,7 @@ import ACCore
 import ACAccessibility
 
 struct TableView: View {
-    let table: Table
+    let table: ACCore.Table
     let hostConfig: HostConfig
     
     var body: some View {

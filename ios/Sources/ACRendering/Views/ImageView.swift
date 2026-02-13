@@ -77,12 +77,11 @@ struct ImageView: View {
         return .fit
     }
     
-    @ViewBuilder
-    private var imageShape: some Shape {
+    private var imageShape: AnyShape {
         if image.style == .person {
-            Circle()
+            return AnyShape(Circle())
         } else {
-            Rectangle()
+            return AnyShape(Rectangle())
         }
     }
     

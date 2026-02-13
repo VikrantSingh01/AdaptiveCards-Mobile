@@ -78,13 +78,19 @@ public final class ExpressionEvaluator {
             } else if let r = rightValue as? String {
                 return String(describing: leftValue ?? "") + r
             }
-            return try coerceToNumber(leftValue) + try coerceToNumber(rightValue)
-            
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left + right
+
         case "-":
-            return try coerceToNumber(leftValue) - try coerceToNumber(rightValue)
-            
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left - right
+
         case "*":
-            return try coerceToNumber(leftValue) * try coerceToNumber(rightValue)
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left * right
             
         case "/":
             let divisor = try coerceToNumber(rightValue)
@@ -107,22 +113,34 @@ public final class ExpressionEvaluator {
             return !isEqual(leftValue, rightValue)
             
         case "<":
-            return try coerceToNumber(leftValue) < try coerceToNumber(rightValue)
-            
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left < right
+
         case ">":
-            return try coerceToNumber(leftValue) > try coerceToNumber(rightValue)
-            
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left > right
+
         case "<=":
-            return try coerceToNumber(leftValue) <= try coerceToNumber(rightValue)
-            
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left <= right
+
         case ">=":
-            return try coerceToNumber(leftValue) >= try coerceToNumber(rightValue)
-            
+            let left = try coerceToNumber(leftValue)
+            let right = try coerceToNumber(rightValue)
+            return left >= right
+
         case "&&":
-            return try coerceToBool(leftValue) && try coerceToBool(rightValue)
-            
+            let left = try coerceToBool(leftValue)
+            let right = try coerceToBool(rightValue)
+            return left && right
+
         case "||":
-            return try coerceToBool(leftValue) || try coerceToBool(rightValue)
+            let left = try coerceToBool(leftValue)
+            let right = try coerceToBool(rightValue)
+            return left || right
             
         default:
             throw EvaluationError.unknownOperator(op)

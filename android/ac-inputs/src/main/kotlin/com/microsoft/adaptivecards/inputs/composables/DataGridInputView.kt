@@ -44,7 +44,7 @@ fun DataGridInputView(
     modifier: Modifier = Modifier
 ) {
     var gridData by remember {
-        mutableStateOf(
+        mutableStateOf<MutableList<MutableList<JsonElement>>>(
             element.rows?.map { it.toMutableList() }?.toMutableList()
                 ?: mutableListOf()
         )
@@ -172,8 +172,9 @@ fun DataGridInputView(
         ) {
             Button(
                 onClick = {
-                    if (element.maxRows == null || gridData.size < element.maxRows) {
-                        val newRow = element.columns.map { column ->
+                    val maxRows = element.maxRows
+                    if (maxRows == null || gridData.size < maxRows) {
+                        val newRow: MutableList<JsonElement> = element.columns.map<DataGridColumn, JsonElement> { column ->
                             when (column.type) {
                                 "toggle" -> JsonPrimitive(false)
                                 "number" -> JsonPrimitive(0)
@@ -184,7 +185,7 @@ fun DataGridInputView(
                         gridData = gridData.toMutableList()
                     }
                 },
-                enabled = element.maxRows == null || gridData.size < element.maxRows,
+                enabled = element.maxRows?.let { gridData.size < it } ?: true,
                 modifier = Modifier
                     .height(48.dp)
                     .semantics {

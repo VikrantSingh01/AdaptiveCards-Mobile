@@ -33,9 +33,9 @@ fun ProgressBarView(
         try {
             Color(android.graphics.Color.parseColor(it))
         } catch (e: Exception) {
-            Color(hostConfig.colors.accent.default)
+            try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
         }
-    } ?: Color(hostConfig.colors.accent.default)
+    } ?: try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
     
     val percentage = (element.value * 100).toInt()
     
@@ -124,7 +124,7 @@ fun SpinnerView(
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(size),
-            color = Color(hostConfig.colors.accent.default),
+            color = try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) },
             strokeWidth = strokeWidth
         )
 

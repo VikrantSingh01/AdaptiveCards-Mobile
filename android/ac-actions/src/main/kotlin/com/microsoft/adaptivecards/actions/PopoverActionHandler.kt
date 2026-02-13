@@ -4,6 +4,7 @@ import com.microsoft.adaptivecards.core.models.ActionPopover
 
 object PopoverActionHandler {
     fun handle(action: ActionPopover, delegate: ActionDelegate?) {
-        delegate?.onActionTriggered(action)
+        // Popover actions are UI-driven; delegate notification only
+        delegate?.onShowCard(action.id ?: "", true)
     }
 }

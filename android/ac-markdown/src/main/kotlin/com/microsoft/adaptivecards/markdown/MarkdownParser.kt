@@ -55,26 +55,26 @@ class MarkdownParser private constructor() {
             }
             
             // Check for headers
-            if (line.startsWith("#")) {
-                parseHeader(line)?.let {
-                    tokens.add(it)
-                    continue
-                }
+            val headerToken = if (line.startsWith("#")) parseHeader(line) else null
+            if (headerToken != null) {
+                tokens.add(headerToken)
+                continue
             }
-            
+
             // Check for bullet list
             if (line.startsWith("- ")) {
                 val content = line.substring(2)
                 tokens.add(MarkdownToken.BulletItem(content))
                 continue
             }
-            
+
             // Check for numbered list
-            parseNumberedList(line)?.let {
-                tokens.add(it)
+            val numberedToken = parseNumberedList(line)
+            if (numberedToken != null) {
+                tokens.add(numberedToken)
                 continue
             }
-            
+
             // Parse inline markdown
             tokens.addAll(parseInlineMarkdown(line))
             tokens.add(MarkdownToken.LineBreak)
@@ -265,5 +265,5 @@ fun String.containsMarkdown(): Boolean {
            this.contains("`") ||
            this.startsWith("#") ||
            this.startsWith("- ") ||
-           this.matches(Regex("""^\d+\.\s"""))
+           Regex("""^\d+\.\s""").containsMatchIn(this)
 }

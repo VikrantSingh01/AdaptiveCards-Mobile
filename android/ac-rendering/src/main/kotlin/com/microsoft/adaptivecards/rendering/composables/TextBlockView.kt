@@ -39,7 +39,7 @@ fun TextBlockView(
     }
     
     // Determine font weight
-    val fontWeight = when (element.weight ?: FontWeight.Default) {
+    val fontWeight = when (element.weight ?: com.microsoft.adaptivecards.core.models.FontWeight.Default) {
         com.microsoft.adaptivecards.core.models.FontWeight.Lighter -> FontWeight.Light
         com.microsoft.adaptivecards.core.models.FontWeight.Default -> FontWeight.Normal
         com.microsoft.adaptivecards.core.models.FontWeight.Bolder -> FontWeight.Bold

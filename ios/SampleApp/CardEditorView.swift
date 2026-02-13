@@ -164,10 +164,10 @@ struct CardEditorView: View {
     
     private func loadSample() {
         // Load a sample card
-        jsonText = defaultCardJSON
+        jsonText = Self.defaultCardJSON
     }
-    
-    private static let defaultCardJSON = """
+
+    static let defaultCardJSON = """
     {
       "type": "AdaptiveCard",
       "version": "1.5",

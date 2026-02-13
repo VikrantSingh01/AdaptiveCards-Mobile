@@ -43,13 +43,13 @@ class CardParserTest {
                     {
                         "type": "TextBlock",
                         "text": "Title",
-                        "weight": "bolder",
-                        "size": "large"
+                        "weight": "Bolder",
+                        "size": "Large"
                     },
                     {
                         "type": "Image",
                         "url": "https://example.com/image.png",
-                        "size": "medium"
+                        "size": "Medium"
                     }
                 ]
             }
@@ -78,7 +78,7 @@ class CardParserTest {
                 "body": [
                     {
                         "type": "Container",
-                        "style": "emphasis",
+                        "style": "Emphasis",
                         "items": [
                             {
                                 "type": "TextBlock",

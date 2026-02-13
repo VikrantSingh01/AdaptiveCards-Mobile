@@ -5,7 +5,7 @@ final class MarkdownParserTests: XCTestCase {
     
     func testBoldParsing() {
         let tokens = MarkdownParser.parse("This is **bold** text")
-        XCTAssertEqual(tokens.count, 4) // text, bold, text, linebreak
+        XCTAssertEqual(tokens.count, 3) // text, bold, text
         
         if case .bold(let text) = tokens[1] {
             XCTAssertEqual(text, "bold")
@@ -16,7 +16,7 @@ final class MarkdownParserTests: XCTestCase {
     
     func testItalicParsing() {
         let tokens = MarkdownParser.parse("This is *italic* text")
-        XCTAssertEqual(tokens.count, 4) // text, italic, text, linebreak
+        XCTAssertEqual(tokens.count, 3) // text, italic, text
         
         if case .italic(let text) = tokens[1] {
             XCTAssertEqual(text, "italic")
@@ -27,7 +27,7 @@ final class MarkdownParserTests: XCTestCase {
     
     func testCodeParsing() {
         let tokens = MarkdownParser.parse("This is `code` text")
-        XCTAssertEqual(tokens.count, 4) // text, code, text, linebreak
+        XCTAssertEqual(tokens.count, 3) // text, code, text
         
         if case .code(let text) = tokens[1] {
             XCTAssertEqual(text, "code")
@@ -115,7 +115,7 @@ final class MarkdownParserTests: XCTestCase {
     
     func testPlainText() {
         let tokens = MarkdownParser.parse("Plain text without markdown")
-        XCTAssertEqual(tokens.count, 2) // text, linebreak
+        XCTAssertEqual(tokens.count, 1) // text
         
         if case .text(let text) = tokens[0] {
             XCTAssertEqual(text, "Plain text without markdown")

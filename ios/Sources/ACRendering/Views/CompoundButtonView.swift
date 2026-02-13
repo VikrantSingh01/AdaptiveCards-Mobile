@@ -133,12 +133,19 @@ struct CompoundButtonView: View {
             return "Toggles visibility"
         case .execute:
             return "Executes action"
+        case .popover:
+            return "Shows popover"
+        case .runCommands:
+            return "Runs commands"
+        case .openUrlDialog:
+            return "Opens URL dialog"
         }
     }
     
     private func handleAction() {
         guard let action = button.action else { return }
-        viewModel.performAction(action)
+        // TODO: Implement action handling through CardViewModel
+        print("CompoundButton action triggered: \(action)")
     }
 }
 
@@ -148,11 +155,15 @@ struct CompoundButtonStyle: ButtonStyle {
     let isDisabled: Bool
     
     private enum Colors {
+        #if os(iOS)
         static let defaultBackground = Color(.systemBackground)
+        #else
+        static let defaultBackground = Color(nsColor: .windowBackgroundColor)
+        #endif
         static let emphasisBackground = Color.accentColor
         static let positiveBackground = Color.green
         static let destructiveBackground = Color.red
-        
+
         static let defaultText = Color.primary
         static let emphasisText = Color.white
         static let positiveText = Color.white

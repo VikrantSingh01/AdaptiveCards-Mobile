@@ -89,10 +89,11 @@ public final class TemplateEngine {
             // Handle $when condition
             if key == "$when" {
                 if let condition = value as? String {
-                    let parsedExpression = try parser.parse(condition)
+                    let expressionStr = extractExpression(from: condition)
+                    let parsedExpression = try parser.parse(expressionStr)
                     let evaluator = ExpressionEvaluator(context: context)
                     let conditionResult = try evaluator.evaluate(parsedExpression)
-                    
+
                     // If condition is false, skip this entire dictionary
                     if !toBool(conditionResult) {
                         return [:]
@@ -115,7 +116,8 @@ public final class TemplateEngine {
             if let dict = item as? [String: Any] {
                 // Check for $data iteration
                 if let dataBinding = dict["$data"] as? String {
-                    let parsedExpression = try parser.parse(dataBinding)
+                    let expressionStr = extractExpression(from: dataBinding)
+                    let parsedExpression = try parser.parse(expressionStr)
                     let evaluator = ExpressionEvaluator(context: context)
                     let dataValue = try evaluator.evaluate(parsedExpression)
                     
@@ -165,7 +167,20 @@ public final class TemplateEngine {
     }
     
     // MARK: - Helpers
-    
+
+    /// Extracts a raw expression from a template string.
+    /// If the string is of the form "${expr}", returns "expr".
+    /// Otherwise returns the string as-is (assumed to be a raw expression).
+    private func extractExpression(from template: String) -> String {
+        let trimmed = template.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("${") && trimmed.hasSuffix("}") {
+            let start = trimmed.index(trimmed.startIndex, offsetBy: 2)
+            let end = trimmed.index(before: trimmed.endIndex)
+            return String(trimmed[start..<end])
+        }
+        return trimmed
+    }
+
     private func stringValue(_ value: Any?) -> String {
         if let str = value as? String {
             return str

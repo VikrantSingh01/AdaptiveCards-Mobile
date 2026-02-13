@@ -2,13 +2,14 @@ package com.microsoft.adaptivecards.core.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
 // Carousel Element
 @Serializable
 @SerialName("Carousel")
 data class Carousel(
-    override val type: String = "Carousel",
+    @Transient override val type: String = "Carousel",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -31,7 +32,7 @@ data class CarouselPage(
 @Serializable
 @SerialName("Accordion")
 data class Accordion(
-    override val type: String = "Accordion",
+    @Transient override val type: String = "Accordion",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -54,7 +55,7 @@ data class AccordionPanel(
 @Serializable
 @SerialName("CodeBlock")
 data class CodeBlock(
-    override val type: String = "CodeBlock",
+    @Transient override val type: String = "CodeBlock",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -72,7 +73,7 @@ data class CodeBlock(
 @Serializable
 @SerialName("Rating")
 data class RatingDisplay(
-    override val type: String = "Rating",
+    @Transient override val type: String = "Rating",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -90,7 +91,7 @@ data class RatingDisplay(
 @Serializable
 @SerialName("Input.Rating")
 data class RatingInput(
-    override val type: String = "Input.Rating",
+    @Transient override val type: String = "Input.Rating",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -109,7 +110,7 @@ data class RatingInput(
 @Serializable
 @SerialName("ProgressBar")
 data class ProgressBar(
-    override val type: String = "ProgressBar",
+    @Transient override val type: String = "ProgressBar",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -126,7 +127,7 @@ data class ProgressBar(
 @Serializable
 @SerialName("Spinner")
 data class Spinner(
-    override val type: String = "Spinner",
+    @Transient override val type: String = "Spinner",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -142,7 +143,7 @@ data class Spinner(
 @Serializable
 @SerialName("TabSet")
 data class TabSet(
-    override val type: String = "TabSet",
+    @Transient override val type: String = "TabSet",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -166,7 +167,7 @@ data class Tab(
 @Serializable
 @SerialName("List")
 data class ListElement(
-    override val type: String = "List",
+    @Transient override val type: String = "List",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -183,7 +184,7 @@ data class ListElement(
 @Serializable
 @SerialName("CompoundButton")
 data class CompoundButton(
-    override val type: String = "CompoundButton",
+    @Transient override val type: String = "CompoundButton",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -211,7 +212,7 @@ data class ChartDataPoint(
 @Serializable
 @SerialName("DonutChart")
 data class DonutChart(
-    override val type: String = "DonutChart",
+    @Transient override val type: String = "DonutChart",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -231,7 +232,7 @@ data class DonutChart(
 @Serializable
 @SerialName("BarChart")
 data class BarChart(
-    override val type: String = "BarChart",
+    @Transient override val type: String = "BarChart",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -252,7 +253,7 @@ data class BarChart(
 @Serializable
 @SerialName("LineChart")
 data class LineChart(
-    override val type: String = "LineChart",
+    @Transient override val type: String = "LineChart",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,
@@ -273,7 +274,7 @@ data class LineChart(
 @Serializable
 @SerialName("PieChart")
 data class PieChart(
-    override val type: String = "PieChart",
+    @Transient override val type: String = "PieChart",
     override val id: String? = null,
     override val isVisible: Boolean = true,
     override val separator: Boolean = false,

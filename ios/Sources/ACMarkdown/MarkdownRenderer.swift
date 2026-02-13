@@ -63,7 +63,6 @@ public class MarkdownRenderer {
             if let url = URL(string: url) {
                 attributed.link = url
             }
-            attributed.accessibilityLabel = "Link: \(text)"
             return attributed
             
         case .header(let level, let text):

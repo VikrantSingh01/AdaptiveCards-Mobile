@@ -31,8 +31,10 @@ struct CarouselView: View {
                         .accessibilityLabel("Page \(index + 1) of \(carousel.pages.count)")
                 }
             }
+            #if os(iOS)
             .tabViewStyle(.page)
             .indexViewStyle(.page(backgroundDisplayMode: .always))
+            #endif
             .frame(minHeight: adaptiveMinHeight)
         }
         .spacing(carousel.spacing, hostConfig: hostConfig)

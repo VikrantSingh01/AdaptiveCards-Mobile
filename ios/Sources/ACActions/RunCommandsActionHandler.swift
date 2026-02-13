@@ -4,6 +4,7 @@ import ACCore
 @MainActor
 public class RunCommandsActionHandler {
     public static func handle(action: RunCommandsAction, delegate: ActionDelegate?) {
-        delegate?.didTriggerAction(action)
+        // TODO: Add appropriate delegate method for RunCommandsAction
+        print("RunCommandsAction triggered: \(action)")
     }
 }

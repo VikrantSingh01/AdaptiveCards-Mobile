@@ -1,10 +1,8 @@
 package com.microsoft.adaptivecards.sample
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -13,8 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -189,11 +189,16 @@ fun ChatBubble(message: ChatMessage) {
                     }
                 }
                 is MessageContent.Card -> {
+                    val msgViewModel: CardViewModel = viewModel(key = "chat_${message.id}")
                     Card(
                         modifier = Modifier.widthIn(max = 300.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        CardPreviewPlaceholder(message.content.json)
+                        AdaptiveCardView(
+                            cardJson = message.content.json,
+                            modifier = Modifier.padding(8.dp),
+                            viewModel = msgViewModel
+                        )
                     }
                 }
             }

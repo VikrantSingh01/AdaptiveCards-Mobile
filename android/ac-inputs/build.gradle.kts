@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -17,10 +18,6 @@ android {
 
     buildFeatures {
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 
     buildTypes {
@@ -49,7 +46,8 @@ dependencies {
     implementation(project(":ac-host-config"))
 
     implementation(libs.kotlin.stdlib)
-    
+    implementation(libs.kotlinx.serialization.json)
+
     // Compose
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -57,6 +55,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.foundation)
     implementation(libs.compose.runtime)
+    implementation("androidx.compose.material:material-icons-extended")
     
     // Lifecycle
     implementation(libs.lifecycle.viewmodel.compose)

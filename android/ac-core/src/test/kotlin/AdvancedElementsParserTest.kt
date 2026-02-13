@@ -741,7 +741,7 @@ class AdvancedElementsParserTest {
                     style = "emphasis",
                     action = ActionSubmit(
                         title = "Submit",
-                        data = mapOf("action" to "test")
+                        data = kotlinx.serialization.json.JsonObject(mapOf("action" to kotlinx.serialization.json.JsonPrimitive("test")))
                     )
                 )
             )

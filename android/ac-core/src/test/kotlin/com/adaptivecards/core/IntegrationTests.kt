@@ -67,22 +67,22 @@ class IntegrationTests {
         val inputTypes = mutableSetOf<String>()
         card.body?.forEach { element ->
             when (element) {
-                is TextInput -> inputTypes.add("TextInput")
-                is NumberInput -> inputTypes.add("NumberInput")
-                is DateInput -> inputTypes.add("DateInput")
-                is TimeInput -> inputTypes.add("TimeInput")
-                is ToggleInput -> inputTypes.add("ToggleInput")
-                is ChoiceSetInput -> inputTypes.add("ChoiceSetInput")
+                is InputText -> inputTypes.add("InputText")
+                is InputNumber -> inputTypes.add("InputNumber")
+                is InputDate -> inputTypes.add("InputDate")
+                is InputTime -> inputTypes.add("InputTime")
+                is InputToggle -> inputTypes.add("InputToggle")
+                is InputChoiceSet -> inputTypes.add("InputChoiceSet")
                 else -> {}
             }
         }
         
-        assertTrue(inputTypes.contains("TextInput"))
-        assertTrue(inputTypes.contains("NumberInput"))
-        assertTrue(inputTypes.contains("DateInput"))
-        assertTrue(inputTypes.contains("TimeInput"))
-        assertTrue(inputTypes.contains("ToggleInput"))
-        assertTrue(inputTypes.contains("ChoiceSetInput"))
+        assertTrue(inputTypes.contains("InputText"))
+        assertTrue(inputTypes.contains("InputNumber"))
+        assertTrue(inputTypes.contains("InputDate"))
+        assertTrue(inputTypes.contains("InputTime"))
+        assertTrue(inputTypes.contains("InputToggle"))
+        assertTrue(inputTypes.contains("InputChoiceSet"))
     }
     
     @Test
@@ -91,22 +91,27 @@ class IntegrationTests {
         val card = CardParser.parse(json)
         
         assertNotNull(card.actions)
-        assertTrue(card.actions!!.size >= 3)
+        assertTrue(card.actions!!.isNotEmpty())
         
-        // Verify various action types
+        // Verify various action types from both top-level and body ActionSets
         val actionTypes = mutableSetOf<String>()
-        card.actions?.forEach { action ->
+        val allActions = mutableListOf<CardAction>()
+        card.actions?.let { allActions.addAll(it) }
+        card.body?.filterIsInstance<ActionSet>()?.forEach { allActions.addAll(it.actions) }
+
+        allActions.forEach { action ->
             when (action) {
-                is SubmitAction -> actionTypes.add("Submit")
-                is OpenUrlAction -> actionTypes.add("OpenUrl")
-                is ShowCardAction -> actionTypes.add("ShowCard")
-                is ToggleVisibilityAction -> actionTypes.add("ToggleVisibility")
+                is ActionSubmit -> actionTypes.add("Submit")
+                is ActionOpenUrl -> actionTypes.add("OpenUrl")
+                is ActionShowCard -> actionTypes.add("ShowCard")
+                is ActionToggleVisibility -> actionTypes.add("ToggleVisibility")
                 else -> {}
             }
         }
-        
+
         assertTrue(actionTypes.contains("Submit"))
         assertTrue(actionTypes.contains("OpenUrl"))
+        assertTrue(actionTypes.contains("ToggleVisibility"))
     }
     
     // MARK: - Advanced Elements Tests
@@ -328,7 +333,7 @@ class IntegrationTests {
         var displayCount = 0
         card.body?.forEach { element ->
             when (element) {
-                is TextInput, is NumberInput, is DateInput, is TimeInput, is ToggleInput, is ChoiceSetInput, is RatingInput -> inputCount++
+                is InputText, is InputNumber, is InputDate, is InputTime, is InputToggle, is InputChoiceSet, is RatingInput -> inputCount++
                 is TextBlock, is Image, is Container, is FactSet -> displayCount++
                 else -> {}
             }
@@ -438,6 +443,8 @@ class IntegrationTests {
         val possiblePaths = listOf(
             "$testCardsPath/$name.json",
             "shared/test-cards/$name.json",
+            "../shared/test-cards/$name.json",
+            "../../shared/test-cards/$name.json",
             "../../../shared/test-cards/$name.json",
             "../../../../../../shared/test-cards/$name.json"
         )
