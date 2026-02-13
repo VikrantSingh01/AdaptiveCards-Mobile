@@ -16,7 +16,8 @@ public struct AdaptiveCard: Codable, Equatable {
     public var refresh: Refresh?
     public var authentication: Authentication?
     public var metadata: [String: AnyCodable]?
-    
+    public var rtl: Bool?
+
     enum CodingKeys: String, CodingKey {
         case type
         case version
@@ -33,6 +34,7 @@ public struct AdaptiveCard: Codable, Equatable {
         case refresh
         case authentication
         case metadata
+        case rtl
     }
     
     public init(
@@ -49,7 +51,8 @@ public struct AdaptiveCard: Codable, Equatable {
         verticalContentAlignment: VerticalAlignment? = nil,
         refresh: Refresh? = nil,
         authentication: Authentication? = nil,
-        metadata: [String: AnyCodable]? = nil
+        metadata: [String: AnyCodable]? = nil,
+        rtl: Bool? = nil
     ) {
         self.version = version
         self.schema = schema
@@ -65,5 +68,6 @@ public struct AdaptiveCard: Codable, Equatable {
         self.refresh = refresh
         self.authentication = authentication
         self.metadata = metadata
+        self.rtl = rtl
     }
 }

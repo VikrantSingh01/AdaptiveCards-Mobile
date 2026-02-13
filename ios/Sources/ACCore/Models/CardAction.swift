@@ -451,6 +451,38 @@ public struct AnyCodable: Codable, Equatable {
     }
 }
 
+// MARK: - CardAction Convenience Properties
+
+extension CardAction {
+    /// Returns the title of the action regardless of the specific action type
+    public var title: String? {
+        switch self {
+        case .submit(let a): return a.title
+        case .openUrl(let a): return a.title
+        case .showCard(let a): return a.title
+        case .execute(let a): return a.title
+        case .toggleVisibility(let a): return a.title
+        case .popover(let a): return a.title
+        case .runCommands(let a): return a.title
+        case .openUrlDialog(let a): return a.title
+        }
+    }
+
+    /// Returns the icon URL of the action regardless of the specific action type
+    public var iconUrl: String? {
+        switch self {
+        case .submit(let a): return a.iconUrl
+        case .openUrl(let a): return a.iconUrl
+        case .showCard(let a): return a.iconUrl
+        case .execute(let a): return a.iconUrl
+        case .toggleVisibility(let a): return a.iconUrl
+        case .popover(let a): return a.iconUrl
+        case .runCommands(let a): return a.iconUrl
+        case .openUrlDialog(let a): return a.iconUrl
+        }
+    }
+}
+
 // MARK: - CardAction Identifiable Extension
 
 extension CardAction: Identifiable {

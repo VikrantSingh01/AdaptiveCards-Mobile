@@ -101,5 +101,8 @@ let package = Package(
             name: "IntegrationTests",
             dependencies: ["ACCore"],
             resources: [.copy("Resources")]),
+        .testTarget(
+            name: "VisualTests",
+            dependencies: ["ACCore", "ACRendering", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI"]),
     ]
 )

@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACInputs
+import ACCharts
 
 /// Routes to the appropriate view for each element type
 struct ElementView: View {
@@ -8,6 +9,8 @@ struct ElementView: View {
     let hostConfig: HostConfig
     
     @Environment(\.validationState) var validationState
+    @Environment(\.actionHandler) var actionHandler
+    @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
     
     var body: some View {
@@ -50,7 +53,10 @@ struct ElementView: View {
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value ?? ""),
-                validationState: validationState
+                validationState: validationState,
+                onInlineAction: input.inlineAction != nil ? { action in
+                    actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
+                } : nil
             )
         case .numberInput(let input):
             NumberInputView(
@@ -114,11 +120,14 @@ struct ElementView: View {
             ListView(list: list, hostConfig: hostConfig)
         case .compoundButton(let button):
             CompoundButtonView(button: button, hostConfig: hostConfig)
-        case .donutChart, .barChart, .lineChart, .pieChart:
-            // Chart rendering not yet implemented
-            Text("Chart element")
-                .font(.caption)
-                .foregroundColor(.gray)
+        case .donutChart(let chart):
+            DonutChartView(chart: chart)
+        case .barChart(let chart):
+            BarChartView(chart: chart)
+        case .lineChart(let chart):
+            LineChartView(chart: chart)
+        case .pieChart(let chart):
+            PieChartView(chart: chart)
         case .unknown(let type):
             // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG

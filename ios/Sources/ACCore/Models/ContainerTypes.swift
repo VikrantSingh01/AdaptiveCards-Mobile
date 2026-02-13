@@ -18,7 +18,8 @@ public struct Container: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
     public var targetWidth: String?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         items: [CardElement],
@@ -33,7 +34,8 @@ public struct Container: Codable, Equatable {
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
-        targetWidth: String? = nil
+        targetWidth: String? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.items = items
@@ -49,6 +51,7 @@ public struct Container: Codable, Equatable {
         self.isVisible = isVisible
         self.requires = requires
         self.targetWidth = targetWidth
+        self.fallback = fallback
     }
 }
 
@@ -68,7 +71,8 @@ public struct ColumnSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         columns: [Column],
@@ -81,7 +85,8 @@ public struct ColumnSet: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.columns = columns
@@ -95,6 +100,7 @@ public struct ColumnSet: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
 }
 
@@ -208,7 +214,8 @@ public struct ImageSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         images: [Image],
@@ -217,7 +224,8 @@ public struct ImageSet: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.images = images
@@ -227,6 +235,7 @@ public struct ImageSet: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
 }
 
@@ -241,7 +250,8 @@ public struct FactSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         facts: [Fact],
@@ -249,7 +259,8 @@ public struct FactSet: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.facts = facts
@@ -258,6 +269,7 @@ public struct FactSet: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
     
     public struct Fact: Codable, Equatable, Identifiable {
@@ -285,7 +297,8 @@ public struct ActionSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         actions: [CardAction],
@@ -294,7 +307,8 @@ public struct ActionSet: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.actions = actions
@@ -304,6 +318,7 @@ public struct ActionSet: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
 }
 
@@ -324,7 +339,8 @@ public struct Table: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         columns: [TableColumnDefinition]? = nil,
@@ -338,7 +354,8 @@ public struct Table: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.columns = columns
@@ -353,6 +370,7 @@ public struct Table: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
 }
 
@@ -482,7 +500,9 @@ public struct Image: Codable, Equatable, Identifiable {
     public var requires: [String: String]?
     public var targetWidth: String?
     public var themedUrls: [String: String]?
-    
+    public var backgroundColor: String?
+    public var fallback: CardElement?
+
     // Stable identifier using id property or url as fallback
     public var stableId: String {
         if let id = id, !id.isEmpty {
@@ -490,7 +510,7 @@ public struct Image: Codable, Equatable, Identifiable {
         }
         return url.isEmpty ? "image_no_url" : url
     }
-    
+
     public init(
         id: String? = nil,
         url: String,
@@ -506,7 +526,9 @@ public struct Image: Codable, Equatable, Identifiable {
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
         targetWidth: String? = nil,
-        themedUrls: [String: String]? = nil
+        themedUrls: [String: String]? = nil,
+        backgroundColor: String? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.url = url
@@ -523,5 +545,7 @@ public struct Image: Codable, Equatable, Identifiable {
         self.requires = requires
         self.targetWidth = targetWidth
         self.themedUrls = themedUrls
+        self.backgroundColor = backgroundColor
+        self.fallback = fallback
     }
 }

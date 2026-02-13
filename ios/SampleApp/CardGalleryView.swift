@@ -87,9 +87,12 @@ enum CardCategory: String, CaseIterable, Identifiable {
     case advanced = "Advanced"
     case teams = "Teams"
     case templating = "Templating"
-    
+    case officialSamples = "Official"
+    case elementSamples = "Elements"
+    case teamsSamples = "Teams Templated"
+
     var id: String { rawValue }
-    
+
     var color: Color {
         switch self {
         case .all: return .gray
@@ -100,6 +103,9 @@ enum CardCategory: String, CaseIterable, Identifiable {
         case .advanced: return .red
         case .teams: return .indigo
         case .templating: return .teal
+        case .officialSamples: return .mint
+        case .elementSamples: return .cyan
+        case .teamsSamples: return .pink
         }
     }
 }
@@ -112,6 +118,18 @@ struct TestCard: Identifiable {
     let category: CardCategory
     let isAdvanced: Bool
     let jsonString: String
+    /// Optional data JSON for templated cards (teams-samples)
+    let dataJsonString: String?
+
+    init(title: String, description: String, filename: String, category: CardCategory, isAdvanced: Bool, jsonString: String, dataJsonString: String? = nil) {
+        self.title = title
+        self.description = description
+        self.filename = filename
+        self.category = category
+        self.isAdvanced = isAdvanced
+        self.jsonString = jsonString
+        self.dataJsonString = dataJsonString
+    }
 }
 
 class TestCardLoader {
@@ -193,7 +211,7 @@ class TestCardLoader {
             ("advanced-combined.json", "Advanced Combined", .advanced, true),
         ]
 
-        return cardDefinitions.compactMap { (filename, title, category, isAdvanced) in
+        var cards = cardDefinitions.compactMap { (filename, title, category, isAdvanced) -> TestCard? in
             guard let jsonString = loadCardJSON(filename) else { return nil }
 
             return TestCard(
@@ -205,9 +223,107 @@ class TestCardLoader {
                 jsonString: jsonString
             )
         }
+
+        // Load official samples from shared/test-cards/official-samples/
+        cards.append(contentsOf: loadCardsFromSubdirectory("official-samples", category: .officialSamples))
+
+        // Load element samples from shared/test-cards/element-samples/
+        cards.append(contentsOf: loadCardsFromSubdirectory("element-samples", category: .elementSamples))
+
+        // Load teams templated samples from shared/test-cards/teams-samples/
+        cards.append(contentsOf: loadTeamsSamples())
+
+        return cards
     }
 
-    private static func loadCardJSON(_ filename: String) -> String? {
+    /// Loads all JSON cards from a subdirectory of the test-cards folder
+    private static func loadCardsFromSubdirectory(_ subdirectory: String, category: CardCategory) -> [TestCard] {
+        guard let directory = testCardsDirectory else { return [] }
+        let subdir = (directory as NSString).appendingPathComponent(subdirectory)
+
+        guard let files = try? FileManager.default.contentsOfDirectory(atPath: subdir) else {
+            print("Warning: Could not read subdirectory: \(subdir)")
+            return []
+        }
+
+        return files
+            .filter { $0.hasSuffix(".json") }
+            .sorted()
+            .compactMap { filename -> TestCard? in
+                let filePath = (subdir as NSString).appendingPathComponent(filename)
+                guard let data = FileManager.default.contents(atPath: filePath),
+                      let jsonString = String(data: data, encoding: .utf8) else {
+                    return nil
+                }
+
+                let name = filename.replacingOccurrences(of: ".json", with: "")
+                let title = name
+                    .replacingOccurrences(of: "-", with: " ")
+                    .split(separator: " ")
+                    .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+                    .joined(separator: " ")
+
+                return TestCard(
+                    title: title,
+                    description: "\(category.rawValue) sample: \(title)",
+                    filename: "\(subdirectory)/\(filename)",
+                    category: category,
+                    isAdvanced: false,
+                    jsonString: jsonString
+                )
+            }
+    }
+
+    /// Loads teams-samples as template+data pairs, merging data into templates
+    private static func loadTeamsSamples() -> [TestCard] {
+        guard let directory = testCardsDirectory else { return [] }
+        let subdir = (directory as NSString).appendingPathComponent("teams-samples")
+
+        guard let files = try? FileManager.default.contentsOfDirectory(atPath: subdir) else {
+            print("Warning: Could not read subdirectory: \(subdir)")
+            return []
+        }
+
+        let templateFiles = files.filter { $0.hasSuffix("-template.json") }.sorted()
+
+        return templateFiles.compactMap { templateFilename -> TestCard? in
+            let baseName = templateFilename
+                .replacingOccurrences(of: "-template.json", with: "")
+            let dataFilename = "\(baseName)-data.json"
+
+            let templatePath = (subdir as NSString).appendingPathComponent(templateFilename)
+            let dataPath = (subdir as NSString).appendingPathComponent(dataFilename)
+
+            guard let templateData = FileManager.default.contents(atPath: templatePath),
+                  let templateJson = String(data: templateData, encoding: .utf8) else {
+                return nil
+            }
+
+            var dataJson: String? = nil
+            if let dataData = FileManager.default.contents(atPath: dataPath),
+               let dataStr = String(data: dataData, encoding: .utf8) {
+                dataJson = dataStr
+            }
+
+            let title = baseName
+                .replacingOccurrences(of: "-", with: " ")
+                .split(separator: " ")
+                .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+                .joined(separator: " ")
+
+            return TestCard(
+                title: title,
+                description: "Teams templated sample: \(title)",
+                filename: "teams-samples/\(templateFilename)",
+                category: .teamsSamples,
+                isAdvanced: false,
+                jsonString: templateJson,
+                dataJsonString: dataJson
+            )
+        }
+    }
+
+    static func loadCardJSON(_ filename: String) -> String? {
         // Try to load the real card JSON from the shared test-cards directory
         if let directory = testCardsDirectory {
             let filePath = (directory as NSString).appendingPathComponent(filename)
@@ -218,7 +334,8 @@ class TestCardLoader {
         }
 
         // Try loading from the app bundle directly (e.g. if cards were added as bundle resources)
-        if let url = Bundle.main.url(forResource: filename.replacingOccurrences(of: ".json", with: ""), withExtension: "json"),
+        let resourceName = (filename as NSString).deletingPathExtension
+        if let url = Bundle.main.url(forResource: resourceName, withExtension: "json"),
            let data = try? Data(contentsOf: url),
            let jsonString = String(data: data, encoding: .utf8) {
             return jsonString

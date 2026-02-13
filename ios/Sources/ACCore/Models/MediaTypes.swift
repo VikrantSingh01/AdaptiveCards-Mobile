@@ -21,7 +21,8 @@ public struct TextBlock: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
     public var targetWidth: String?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         text: String,
@@ -39,7 +40,8 @@ public struct TextBlock: Codable, Equatable {
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
-        targetWidth: String? = nil
+        targetWidth: String? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.text = text
@@ -58,6 +60,7 @@ public struct TextBlock: Codable, Equatable {
         self.isVisible = isVisible
         self.requires = requires
         self.targetWidth = targetWidth
+        self.fallback = fallback
     }
 }
 
@@ -73,7 +76,8 @@ public struct RichTextBlock: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         inlines: [TextRun],
@@ -82,7 +86,8 @@ public struct RichTextBlock: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.inlines = inlines
@@ -92,6 +97,7 @@ public struct RichTextBlock: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
 }
 
@@ -151,7 +157,8 @@ public struct Media: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
-    
+    public var fallback: CardElement?
+
     public init(
         id: String? = nil,
         sources: [MediaSource],
@@ -161,7 +168,8 @@ public struct Media: Codable, Equatable {
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        fallback: CardElement? = nil
     ) {
         self.id = id
         self.sources = sources
@@ -172,6 +180,7 @@ public struct Media: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.fallback = fallback
     }
     
     public struct MediaSource: Codable, Equatable {

@@ -59,7 +59,7 @@ public struct AdaptiveCardView: View {
                         }
                     }
                 }
-                
+
                 if let actions = card.actions, !actions.isEmpty {
                     ActionSetView(actions: actions, hostConfig: hostConfig)
                         .padding(.top, CGFloat(hostConfig.spacing.default))
@@ -68,6 +68,7 @@ public struct AdaptiveCardView: View {
             .padding(CGFloat(hostConfig.spacing.padding))
             .containerStyle(nil, hostConfig: hostConfig)
         }
+        .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
     }
     
     private func errorView(error: Error) -> some View {
