@@ -194,7 +194,7 @@ public final class TemplateEngine {
         } else if value == nil {
             return ""
         } else {
-            return String(describing: value ?? "")
+            return String(describing: value!)
         }
     }
     
