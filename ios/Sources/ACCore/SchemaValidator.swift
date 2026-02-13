@@ -1,12 +1,32 @@
 import Foundation
 
+/// Schema validator for Adaptive Cards v1.6
+/// Validates card JSON against the v1.6 schema specification
 public struct SchemaValidator {
+    /// Target schema version for validation
+    public static let targetSchemaVersion = "1.6"
+    
+    /// Valid element types in Adaptive Cards v1.6 (including custom chart extensions)
     public static let validElementTypes: Set<String> = [
-        "TextBlock", "Image", "Media", "RichTextBlock", "Container", "ColumnSet",
-        "ImageSet", "FactSet", "ActionSet", "Table", "Input.Text", "Input.Number",
-        "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet", "Carousel",
-        "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
-        "TabSet", "List", "CompoundButton", "DonutChart", "BarChart", "LineChart", "PieChart"
+        // Core elements (v1.0)
+        "TextBlock", "Image", "Media", "RichTextBlock",
+        // Container elements (v1.0)
+        "Container", "ColumnSet", "ImageSet", "FactSet", "ActionSet",
+        // Input elements (v1.0)
+        "Input.Text", "Input.Number", "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet",
+        // Advanced elements (v1.3+)
+        "Carousel", "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
+        "TabSet", "List",
+        // v1.6 elements
+        "Table", "CompoundButton",
+        // Custom chart extensions
+        "DonutChart", "BarChart", "LineChart", "PieChart"
+    ]
+    
+    /// Valid action types in Adaptive Cards v1.6
+    public static let validActionTypes: Set<String> = [
+        "Action.Submit", "Action.OpenUrl", "Action.ShowCard", 
+        "Action.ToggleVisibility", "Action.Execute"
     ]
 
     public init() {}
@@ -63,10 +83,12 @@ public struct SchemaValidator {
                 errors.append(SchemaValidationError(
                     path: "$.version",
                     message: "Invalid version format",
-                    expected: "X.Y format (e.g., 1.5)",
+                    expected: "X.Y format (e.g., 1.6)",
                     actual: version
                 ))
             }
+            // Note: We accept versions up to and including 1.6
+            // Higher versions are accepted but features may not be supported
         }
 
         // Validate body array if present
@@ -89,7 +111,13 @@ public struct SchemaValidator {
 
         // Validate actions array if present
         if let actions = jsonObject["actions"] {
-            if !(actions is [Any]) {
+            if actions is [Any] {
+                if let actionsArray = actions as? [[String: Any]] {
+                    for (index, action) in actionsArray.enumerated() {
+                        errors.append(contentsOf: validateAction(action, path: "$.actions[\(index)]"))
+                    }
+                }
+            } else {
                 errors.append(SchemaValidationError(
                     path: "$.actions",
                     message: "Invalid type",
@@ -99,6 +127,31 @@ public struct SchemaValidator {
             }
         }
 
+        return errors
+    }
+    
+    /// Validates an action object
+    private func validateAction(_ action: [String: Any], path: String) -> [SchemaValidationError] {
+        var errors: [SchemaValidationError] = []
+        
+        if action["type"] == nil {
+            errors.append(SchemaValidationError(
+                path: "\(path).type",
+                message: "Missing required field",
+                expected: "type: String",
+                actual: "undefined"
+            ))
+        } else if let type = action["type"] as? String {
+            if !Self.validActionTypes.contains(type) {
+                errors.append(SchemaValidationError(
+                    path: "\(path).type",
+                    message: "Unknown action type",
+                    expected: "One of: \(Self.validActionTypes.sorted().joined(separator: ", "))",
+                    actual: type
+                ))
+            }
+        }
+        
         return errors
     }
 
