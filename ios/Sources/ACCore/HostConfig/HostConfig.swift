@@ -12,7 +12,7 @@ public struct HostConfig: Codable {
     public var adaptiveCard: AdaptiveCardConfig
     public var imageSet: ImageSetConfig
     public var factSet: FactSetConfig
-    
+
     public init(
         spacing: SpacingConfig = SpacingConfig(),
         separator: SeparatorConfig = SeparatorConfig(),
@@ -49,7 +49,7 @@ public struct SpacingConfig: Codable {
     public var large: Int
     public var extraLarge: Int
     public var padding: Int
-    
+
     public init(
         small: Int = 4,
         default: Int = 8,
@@ -72,7 +72,7 @@ public struct SpacingConfig: Codable {
 public struct SeparatorConfig: Codable {
     public var lineThickness: Int
     public var lineColor: String
-    
+
     public init(lineThickness: Int = 1, lineColor: String = "#E0E0E0") {
         self.lineThickness = lineThickness
         self.lineColor = lineColor
@@ -87,7 +87,7 @@ public struct FontSizesConfig: Codable {
     public var medium: Int
     public var large: Int
     public var extraLarge: Int
-    
+
     public init(
         small: Int = 12,
         default: Int = 14,
@@ -109,7 +109,7 @@ public struct FontWeightsConfig: Codable {
     public var lighter: Int
     public var `default`: Int
     public var bolder: Int
-    
+
     public init(lighter: Int = 300, default: Int = 400, bolder: Int = 600) {
         self.lighter = lighter
         self.default = `default`
@@ -122,7 +122,7 @@ public struct FontWeightsConfig: Codable {
 public struct FontTypesConfig: Codable {
     public var `default`: FontFamilyConfig
     public var monospace: FontFamilyConfig
-    
+
     public init(
         default: FontFamilyConfig = FontFamilyConfig(fontFamily: "System"),
         monospace: FontFamilyConfig = FontFamilyConfig(fontFamily: "Courier")
@@ -130,10 +130,10 @@ public struct FontTypesConfig: Codable {
         self.default = `default`
         self.monospace = monospace
     }
-    
+
     public struct FontFamilyConfig: Codable {
         public var fontFamily: String
-        
+
         public init(fontFamily: String) {
             self.fontFamily = fontFamily
         }
@@ -149,7 +149,7 @@ public struct ContainerStylesConfig: Codable {
     public var attention: ContainerStyleConfig
     public var warning: ContainerStyleConfig
     public var accent: ContainerStyleConfig
-    
+
     public init(
         default: ContainerStyleConfig = ContainerStyleConfig(
             backgroundColor: "#FFFFFF",
@@ -188,7 +188,7 @@ public struct ContainerStylesConfig: Codable {
 public struct ContainerStyleConfig: Codable {
     public var backgroundColor: String
     public var foregroundColors: ForegroundColorsConfig
-    
+
     public init(backgroundColor: String, foregroundColors: ForegroundColorsConfig) {
         self.backgroundColor = backgroundColor
         self.foregroundColors = foregroundColors
@@ -203,7 +203,7 @@ public struct ForegroundColorsConfig: Codable {
     public var good: ColorConfig
     public var warning: ColorConfig
     public var attention: ColorConfig
-    
+
     public init(
         default: ColorConfig = ColorConfig(default: "#000000", subtle: "#666666"),
         dark: ColorConfig = ColorConfig(default: "#000000", subtle: "#666666"),
@@ -226,7 +226,7 @@ public struct ForegroundColorsConfig: Codable {
 public struct ColorConfig: Codable {
     public var `default`: String
     public var subtle: String
-    
+
     public init(default: String, subtle: String) {
         self.default = `default`
         self.subtle = subtle
@@ -239,7 +239,7 @@ public struct ImageSizesConfig: Codable {
     public var small: Int
     public var medium: Int
     public var large: Int
-    
+
     public init(small: Int = 60, medium: Int = 120, large: Int = 180) {
         self.small = small
         self.medium = medium
@@ -256,7 +256,7 @@ public struct ActionsConfig: Codable {
     public var maxActions: Int
     public var spacing: String
     public var showCard: ShowCardConfig
-    
+
     public init(
         actionsOrientation: String = "Horizontal",
         actionAlignment: String = "Left",
@@ -277,7 +277,7 @@ public struct ActionsConfig: Codable {
 public struct ShowCardConfig: Codable {
     public var actionMode: String
     public var style: String
-    
+
     public init(actionMode: String = "Inline", style: String = "Emphasis") {
         self.actionMode = actionMode
         self.style = style
@@ -288,7 +288,7 @@ public struct ShowCardConfig: Codable {
 
 public struct AdaptiveCardConfig: Codable {
     public var allowCustomStyle: Bool
-    
+
     public init(allowCustomStyle: Bool = true) {
         self.allowCustomStyle = allowCustomStyle
     }
@@ -299,7 +299,7 @@ public struct AdaptiveCardConfig: Codable {
 public struct ImageSetConfig: Codable {
     public var imageSize: String
     public var maxImageHeight: Int
-    
+
     public init(imageSize: String = "Medium", maxImageHeight: Int = 100) {
         self.imageSize = imageSize
         self.maxImageHeight = maxImageHeight
@@ -312,7 +312,7 @@ public struct FactSetConfig: Codable {
     public var title: FactSetTextConfig
     public var value: FactSetTextConfig
     public var spacing: Int
-    
+
     public init(
         title: FactSetTextConfig = FactSetTextConfig(weight: "Bolder"),
         value: FactSetTextConfig = FactSetTextConfig(weight: "Default"),
@@ -326,7 +326,7 @@ public struct FactSetConfig: Codable {
 
 public struct FactSetTextConfig: Codable {
     public var weight: String
-    
+
     public init(weight: String) {
         self.weight = weight
     }

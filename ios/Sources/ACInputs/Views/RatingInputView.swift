@@ -10,9 +10,9 @@ public struct RatingInputView: View {
     let hostConfig: HostConfig
     @Binding var value: Double
     let validationState: ValidationState?
-    
+
     @Environment(\.sizeCategory) var sizeCategory
-    
+
     public init(
         input: RatingInput,
         hostConfig: HostConfig,
@@ -24,7 +24,7 @@ public struct RatingInputView: View {
         self._value = value
         self.validationState = validationState
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let label = input.label {
@@ -33,7 +33,7 @@ public struct RatingInputView: View {
                     .foregroundColor(.secondary)
                     .accessibilityHidden(true)
             }
-            
+
             HStack(spacing: adaptiveSpacing) {
                 ForEach(1...maxStars, id: \.self) { starIndex in
                     Button(action: {
@@ -54,7 +54,7 @@ public struct RatingInputView: View {
                     .accessibilityAddTraits(.isButton)
                 }
             }
-            
+
             if let error = validationError {
                 Text(error)
                     .font(.caption)
@@ -67,15 +67,15 @@ public struct RatingInputView: View {
         .accessibilityLabel(input.label ?? "Rating input")
         .accessibilityValue("\(Int(value.rounded(.up))) out of \(maxStars) stars selected")
     }
-    
+
     private var maxStars: Int {
         return input.max ?? 5
     }
-    
+
     private var adaptiveSpacing: CGFloat {
         sizeCategory.isAccessibilityCategory ? 16 : 8
     }
-    
+
     private var adaptiveStarSize: Font {
         if sizeCategory.isAccessibilityCategory {
             return .title
@@ -83,7 +83,7 @@ public struct RatingInputView: View {
             return .title2
         }
     }
-    
+
     private func starImage(for index: Int) -> SwiftUI.Image {
         let starValue = Double(index)
 
@@ -95,14 +95,14 @@ public struct RatingInputView: View {
             return SwiftUI.Image(systemName: "star")
         }
     }
-    
+
     private var validationError: String? {
         guard let state = validationState else { return nil }
-        
+
         if input.isRequired == true, value == 0 {
             return input.errorMessage ?? "Rating is required"
         }
-        
+
         return nil
     }
 }

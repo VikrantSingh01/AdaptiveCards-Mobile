@@ -6,7 +6,7 @@ public struct ActionButton: View {
     let action: CardAction
     let hostConfig: HostConfig
     let onTap: () -> Void
-    
+
     public init(
         action: CardAction,
         hostConfig: HostConfig,
@@ -16,7 +16,7 @@ public struct ActionButton: View {
         self.hostConfig = hostConfig
         self.onTap = onTap
     }
-    
+
     public var body: some View {
         Button(action: onTap) {
             HStack(spacing: 8) {
@@ -30,7 +30,7 @@ public struct ActionButton: View {
                         EmptyView()
                     }
                 }
-                
+
                 if let title = title {
                     Text(title)
                         .lineLimit(1)
@@ -45,7 +45,7 @@ public struct ActionButton: View {
         .disabled(!(isEnabled ?? true))
         .accessibilityAction(label: title, hint: tooltip)
     }
-    
+
     private var title: String? {
         switch action {
         case .submit(let a): return a.title
@@ -58,7 +58,7 @@ public struct ActionButton: View {
         case .openUrlDialog(let a): return a.title
         }
     }
-    
+
     private var iconUrl: String? {
         switch action {
         case .submit(let a): return a.iconUrl
@@ -71,7 +71,7 @@ public struct ActionButton: View {
         case .openUrlDialog(let a): return a.iconUrl
         }
     }
-    
+
     private var style: ActionStyle? {
         switch action {
         case .submit(let a): return a.style
@@ -84,7 +84,7 @@ public struct ActionButton: View {
         case .openUrlDialog(let a): return a.style
         }
     }
-    
+
     private var tooltip: String? {
         switch action {
         case .submit(let a): return a.tooltip
@@ -97,7 +97,7 @@ public struct ActionButton: View {
         case .openUrlDialog(let a): return a.tooltip
         }
     }
-    
+
     private var isEnabled: Bool? {
         switch action {
         case .submit(let a): return a.isEnabled
@@ -110,10 +110,10 @@ public struct ActionButton: View {
         case .openUrlDialog(let a): return a.isEnabled
         }
     }
-    
+
     private var backgroundColor: Color {
         let actionStyle = style ?? .default
-        
+
         switch actionStyle {
         case .default:
             return Color.blue
@@ -123,7 +123,7 @@ public struct ActionButton: View {
             return Color.red
         }
     }
-    
+
     private var foregroundColor: Color {
         return .white
     }

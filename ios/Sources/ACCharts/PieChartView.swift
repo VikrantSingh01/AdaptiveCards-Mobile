@@ -5,34 +5,34 @@ public struct PieChartView: View {
     let chart: PieChart
     @State private var selectedIndex: Int?
     @State private var animationProgress: CGFloat = 0
-    
+
     public init(chart: PieChart) {
         self.chart = chart
     }
-    
+
     private var chartSize: ChartSize {
         ChartSize.from(chart.size)
     }
-    
+
     private var colors: [Color] {
         ChartColors.colors(from: chart.colors)
     }
-    
+
     private var total: Double {
         chart.data.reduce(0) { $0 + $1.value }
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let title = chart.title {
                 Text(title)
                     .font(.headline)
             }
-            
+
             HStack(alignment: .center, spacing: 20) {
                 pieChart
                     .frame(height: chartSize.height)
-                
+
                 if chart.showLegend ?? true {
                     legend
                 }
@@ -46,23 +46,23 @@ public struct PieChartView: View {
             }
         }
     }
-    
+
     private var pieChart: some View {
         GeometryReader { geometry in
             let size = min(geometry.size.width, geometry.size.height)
             let radius = size / 2
-            
+
             Canvas { context, canvasSize in
                 var startAngle = Angle.degrees(-90)
-                
+
                 for (index, dataPoint) in chart.data.enumerated() {
                     let percentage = dataPoint.value / total
                     let sweepAngle = Angle.degrees(360 * percentage * Double(animationProgress))
-                    
+
                     let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
-                    
+
                     let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
-                    
+
                     var path = Path()
                     path.move(to: center)
                     path.addArc(
@@ -73,22 +73,22 @@ public struct PieChartView: View {
                         clockwise: false
                     )
                     path.closeSubpath()
-                    
+
                     context.fill(
                         path,
                         with: .color(selectedIndex == index ? color.opacity(0.7) : color)
                     )
-                    
+
                     // Draw percentage label if enabled
                     if chart.showPercentages ?? false, animationProgress > 0.9 {
                         let midAngle = startAngle + sweepAngle / 2
                         let labelRadius = radius * 0.65
                         let labelX = center.x + labelRadius * cos(midAngle.asCGFloatRadians)
                         let labelY = center.y + labelRadius * sin(midAngle.asCGFloatRadians)
-                        
+
                         let percentageText = String(format: "%.0f%%", percentage * 100)
                         let textPoint = CGPoint(x: labelX, y: labelY)
-                        
+
                         context.draw(
                             Text(percentageText)
                                 .font(.caption)
@@ -97,7 +97,7 @@ public struct PieChartView: View {
                             at: textPoint
                         )
                     }
-                    
+
                     startAngle += sweepAngle
                 }
             }
@@ -110,7 +110,7 @@ public struct PieChartView: View {
         }
         .aspectRatio(1, contentMode: .fit)
     }
-    
+
     private var legend: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(chart.data.enumerated()), id: \.element.id) { index, dataPoint in
@@ -119,12 +119,12 @@ public struct PieChartView: View {
                     RoundedRectangle(cornerRadius: 2)
                         .fill(color)
                         .frame(width: 16, height: 16)
-                    
+
                     Text(dataPoint.label)
                         .font(.caption)
-                    
+
                     Spacer()
-                    
+
                     Text(String(format: "%.0f%%", (dataPoint.value / total) * 100))
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -136,44 +136,44 @@ public struct PieChartView: View {
             }
         }
     }
-    
+
     private func indexForTap(at location: CGPoint, in geometry: GeometryProxy, radius: CGFloat) -> Int? {
         let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
         let dx = location.x - center.x
         let dy = location.y - center.y
         let distance = sqrt(dx * dx + dy * dy)
-        
+
         guard distance <= radius else { return nil }
-        
+
         var angle = atan2(dy, dx) + .pi / 2
         if angle < 0 { angle += 2 * .pi }
-        
+
         var startAngle: Double = 0
         for (index, dataPoint) in chart.data.enumerated() {
             let percentage = dataPoint.value / total
             let sweepAngle = 2 * .pi * percentage
-            
+
             if angle >= startAngle && angle < startAngle + sweepAngle {
                 return index
             }
             startAngle += sweepAngle
         }
-        
+
         return nil
     }
-    
+
     private var accessibilityDescription: String {
         var description = "Pie chart"
         if let title = chart.title {
             description += " titled \(title)"
         }
         description += ". \(chart.data.count) segments: "
-        
+
         let segments = chart.data.map { dataPoint in
             let percentage = (dataPoint.value / total) * 100
             return "\(dataPoint.label) \(String(format: "%.0f%%", percentage))"
         }.joined(separator: ", ")
-        
+
         description += segments
         return description
     }
