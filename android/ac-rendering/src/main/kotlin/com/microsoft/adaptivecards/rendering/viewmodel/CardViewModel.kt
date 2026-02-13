@@ -93,7 +93,7 @@ class CardViewModel : ViewModel() {
         }
 
         fun validateElement(element: CardElement) {
-            // Check for unknown elements and inputs without IDs
+            // Validate element type and check for inputs without IDs
             when (element) {
                 is UnknownElement -> {
                     val typeName = element.unknownType ?: "Unknown"
@@ -108,7 +108,7 @@ class CardViewModel : ViewModel() {
                 }
             }
             
-            // Recursively validate children in container elements
+            // Recursively validate children in container elements and validate actions
             when (element) {
                 is Container -> {
                     element.items?.forEach { validateElement(it) }
