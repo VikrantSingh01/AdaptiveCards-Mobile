@@ -3,6 +3,27 @@ import SwiftUI
 /// Renders markdown tokens to AttributedString for SwiftUI Text views
 public class MarkdownRenderer {
 
+    /// URL schemes considered safe for user navigation.
+    ///
+    /// Only these schemes are rendered as clickable links. All other schemes
+    /// (e.g. `javascript:`, `data:`, `file:`, `vbscript:`, custom app schemes)
+    /// are blocked to prevent XSS, phishing, and open-redirect attacks.
+    ///
+    /// - `http` / `https` — standard web URLs
+    /// - `mailto` — email composition
+    /// - `tel` — phone dialer
+    ///
+    /// See: GHSA-r5qq-54gp-7gcx
+    private static let allowedSchemes: Set<String> = ["http", "https", "mailto", "tel"]
+
+    /// Returns true if the URL uses a safe, allowed scheme.
+    ///
+    /// URLs without a scheme or with a disallowed scheme return false.
+    public static func isSafeUrl(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return allowedSchemes.contains(scheme)
+    }
+
     /// Convert markdown tokens to AttributedString
     /// - Parameters:
     ///   - tokens: The parsed markdown tokens
@@ -58,10 +79,12 @@ public class MarkdownRenderer {
         case .link(let text, let url):
             var attributed = AttributedString(text)
             attributed.font = font
-            attributed.foregroundColor = .blue
-            attributed.underlineStyle = .single
-            if let url = URL(string: url) {
-                attributed.link = url
+            if let parsedUrl = URL(string: url), Self.isSafeUrl(parsedUrl) {
+                attributed.foregroundColor = .blue
+                attributed.underlineStyle = .single
+                attributed.link = parsedUrl
+            } else {
+                attributed.foregroundColor = color
             }
             return attributed
 
