@@ -264,6 +264,13 @@ public final class ExpressionParser {
             left = .binaryOp(operator: op, left: left, right: right)
         }
 
+        // Handle 'in' as a keyword operator (e.g., x in collection)
+        if case .identifier(let id) = currentToken(), id == "in" {
+            advance()
+            let right = try parseComparison()
+            left = .binaryOp(operator: "in", left: left, right: right)
+        }
+
         return left
     }
 

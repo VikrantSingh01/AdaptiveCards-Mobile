@@ -28,6 +28,7 @@ class ExpressionEvaluator(private val context: DataContext) {
             CollectionFunctions.register(functionsMap)
             LogicFunctions.register(functionsMap)
             MathFunctions.register(functionsMap)
+            ConversionFunctions.register(functionsMap)
 
             functionsMap.toMap()
         }
@@ -112,6 +113,21 @@ class ExpressionEvaluator(private val context: DataContext) {
             ">=" -> coerceToNumber(leftValue) >= coerceToNumber(rightValue)
             "&&" -> coerceToBool(leftValue) && coerceToBool(rightValue)
             "||" -> coerceToBool(leftValue) || coerceToBool(rightValue)
+            "in" -> {
+                // Membership check: value in collection
+                when (rightValue) {
+                    is List<*> -> rightValue.any { isEqual(it, leftValue) }
+                    is Map<*, *> -> {
+                        val key = leftValue?.toString() ?: ""
+                        rightValue.containsKey(key)
+                    }
+                    is String -> {
+                        val needle = leftValue?.toString() ?: ""
+                        rightValue.contains(needle)
+                    }
+                    else -> throw EvaluationException("'in' operator requires array, object, or string on right side")
+                }
+            }
             else -> throw EvaluationException("Unknown operator: $op")
         }
     }
