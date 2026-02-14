@@ -56,8 +56,11 @@ object SubmitActionHandler {
  * Handler for OpenUrl actions
  */
 object OpenUrlActionHandler {
+    private val ALLOWED_SCHEMES = setOf("http", "https", "mailto", "tel")
+
     /**
-     * Open URL in browser or external app
+     * Open URL in browser or external app.
+     * Only URLs with allowed schemes (http, https, mailto, tel) are opened.
      */
     fun handleOpenUrl(
         action: ActionOpenUrl,
@@ -65,7 +68,12 @@ object OpenUrlActionHandler {
         delegate: ActionDelegate
     ) {
         try {
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(action.url))
+            val uri = android.net.Uri.parse(action.url)
+            val scheme = uri.scheme?.lowercase()
+            if (scheme == null || scheme !in ALLOWED_SCHEMES) {
+                return
+            }
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
             context.startActivity(intent)
             delegate.onOpenUrl(action.url)
         } catch (e: Exception) {

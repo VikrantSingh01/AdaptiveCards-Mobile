@@ -273,3 +273,45 @@ ACCore (no deps)                  ac-core (no deps)
 - **Shared test cards are bundled as assets** — Android `sample-app/build.gradle.kts` includes `../../shared/test-cards` as an asset source dir. Moving test cards breaks the Android build.
 - **kotlinx-serialization** — Android models use `@Serializable` from kotlinx. iOS uses `Codable`. Don't mix up serialization approaches.
 - **Compose + SwiftUI parity** — when adding UI, implement the Compose composable and SwiftUI view side-by-side. Don't finish one platform before starting the other.
+
+## Security — URL Scheme Allowlist
+
+All user-facing URLs (markdown links, OpenUrl actions, citations) are validated against an allowlist before rendering or opening. This prevents XSS, phishing, and open-redirect attacks from untrusted Adaptive Card JSON (GHSA-r5qq-54gp-7gcx).
+
+### Allowed schemes
+
+| Scheme | Purpose | Example |
+|---|---|---|
+| `http` | Standard web URL | `http://example.com` |
+| `https` | Secure web URL | `https://example.com` |
+| `mailto` | Email composition | `mailto:user@example.com` |
+| `tel` | Phone dialer | `tel:+1234567890` |
+
+### Blocked schemes (any scheme not in the allowlist)
+
+| Scheme | Risk |
+|---|---|
+| `javascript:` | XSS — script execution in web view contexts |
+| `data:` | XSS — inline HTML/script execution |
+| `vbscript:` | Script execution (legacy) |
+| `file:` | Local filesystem access |
+| `ftp:` | Unencrypted file transfer |
+| Custom app schemes | Unintended app launches, deep-link hijacking |
+
+### Where validation is enforced
+
+Validation happens at **both** the rendering layer (links are not made clickable) and the click handler (defense in depth):
+
+| File | Layer |
+|---|---|
+| `ios/Sources/ACMarkdown/MarkdownRenderer.swift` | Rendering — `isSafeUrl()` |
+| `android/.../markdown/MarkdownRenderer.kt` | Rendering — `isSafeUrl()` |
+| `ios/Sources/ACActions/OpenUrlActionHandler.swift` | Action handler |
+| `android/.../actions/ActionHandlers.kt` | Action handler |
+| `android/.../markdown/MarkdownText.kt` | Click handler (defense in depth) |
+| `android/.../rendering/composables/TextBlockView.kt` | Click handler (defense in depth) |
+| `ios/Sources/ACCopilotExtensions/CitationView.swift` | Citation link rendering |
+
+### Adding a new allowed scheme
+
+If a new scheme needs to be supported, update **all 5 locations** where `allowedSchemes` / `ALLOWED_SCHEMES` is defined (grep for `allowedSchemes` or `ALLOWED_SCHEMES`) and add corresponding tests.
