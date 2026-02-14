@@ -6,6 +6,8 @@
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # iOS
 *.ipa
@@ -34,6 +36,8 @@ local.properties
 .vscode/
 .idea/
 *.iml
+*.swp
+*~
 
 # Misc
 *.log
