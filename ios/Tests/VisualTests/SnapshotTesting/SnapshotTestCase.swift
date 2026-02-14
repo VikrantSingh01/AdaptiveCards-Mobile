@@ -189,9 +189,24 @@ open class SnapshotTestCase: XCTestCase {
     /// Tolerance for pixel-level comparison (0.0 = exact, 1.0 = no comparison)
     open var snapshotTolerance: Double { 0.01 }
 
-    /// Whether to record new baselines instead of comparing
+    /// Whether to record new baselines instead of comparing.
+    /// Checks environment variable first (for CI), then falls back to a
+    /// `.record` flag file in the Snapshots directory (for local xcodebuild).
+    ///
+    /// Usage:
+    ///   CI:    `RECORD_SNAPSHOTS=1 swift test ...`
+    ///   Local: `touch ios/Tests/VisualTests/Snapshots/.record`
     open var recordMode: Bool {
-        ProcessInfo.processInfo.environment["RECORD_SNAPSHOTS"] == "1"
+        if ProcessInfo.processInfo.environment["RECORD_SNAPSHOTS"] == "1" {
+            return true
+        }
+        // File-based flag for local xcodebuild (env vars don't propagate to simulator)
+        let flagPath = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()  // SnapshotTesting/
+            .deletingLastPathComponent()  // VisualTests/
+            .appendingPathComponent("Snapshots/.record")
+            .path
+        return FileManager.default.fileExists(atPath: flagPath)
     }
 
     /// Root directory for snapshot storage

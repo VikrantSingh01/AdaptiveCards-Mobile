@@ -75,6 +75,35 @@ class CardElementSnapshotTests {
     @Test fun snapshot_edgeLongText() = snapshotCard("edge-long-text")
     @Test fun snapshot_edgeEmptyContainers() = snapshotCard("edge-empty-containers")
     @Test fun snapshot_edgeRtlContent() = snapshotCard("edge-rtl-content")
+    @Test fun snapshot_edgeMaxActions() = snapshotCard("edge-max-actions")
+    @Test fun snapshot_edgeMixedInputs() = snapshotCard("edge-mixed-inputs")
+    @Test fun snapshot_edgeAllUnknownTypes() = snapshotCard("edge-all-unknown-types")
+
+    // ---------------------------------------------------------------
+    // Official Samples
+    // ---------------------------------------------------------------
+
+    @Test fun snapshot_officialActivityUpdate() = snapshotCard("official-samples/activity-update")
+    @Test fun snapshot_officialCalendarReminder() = snapshotCard("official-samples/calendar-reminder")
+    @Test fun snapshot_officialExpenseReport() = snapshotCard("official-samples/expense-report")
+    @Test fun snapshot_officialFlightDetails() = snapshotCard("official-samples/flight-details")
+    @Test fun snapshot_officialFlightItinerary() = snapshotCard("official-samples/flight-itinerary")
+    @Test fun snapshot_officialFlightUpdate() = snapshotCard("official-samples/flight-update")
+    @Test fun snapshot_officialFoodOrder() = snapshotCard("official-samples/food-order")
+    @Test fun snapshot_officialImageGallery() = snapshotCard("official-samples/image-gallery")
+    @Test fun snapshot_officialInputForm() = snapshotCard("official-samples/input-form-official")
+    @Test fun snapshot_officialRestaurant() = snapshotCard("official-samples/restaurant")
+    @Test fun snapshot_officialWeather() = snapshotCard("official-samples/weather-compact")
+
+    // ---------------------------------------------------------------
+    // Teams Official Samples
+    // ---------------------------------------------------------------
+
+    @Test fun snapshot_teamsOfficialAccount() = snapshotCard("teams-official-samples/account")
+    @Test fun snapshot_teamsOfficialCafeMenu() = snapshotCard("teams-official-samples/cafe-menu")
+    @Test fun snapshot_teamsOfficialIssue() = snapshotCard("teams-official-samples/issue")
+    @Test fun snapshot_teamsOfficialRecipe() = snapshotCard("teams-official-samples/recipe")
+    @Test fun snapshot_teamsOfficialWorkItem() = snapshotCard("teams-official-samples/work-item")
 
     // ---------------------------------------------------------------
     // Helper
@@ -84,7 +113,9 @@ class CardElementSnapshotTests {
         val json = TestCardLoader.loadCardJsonOrNull(name)
         assumeNotNull("Skipping: card $name.json not found (run locally with shared/test-cards/)", json)
 
-        paparazzi.snapshot(name = name) {
+        // Replace path separators to avoid FileNotFoundException in Paparazzi output
+        val sanitizedName = name.replace("/", "_")
+        paparazzi.snapshot(name = sanitizedName) {
             AdaptiveCardView(
                 cardJson = json!!,
                 viewModel = CardViewModel()

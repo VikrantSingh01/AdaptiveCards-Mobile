@@ -26,7 +26,7 @@ open class CardSnapshotTestCase: SnapshotTestCase {
     /// Default host config used for rendering
     public var hostConfig: HostConfig { HostConfig() }
 
-    /// List of all available test card filenames (without extension)
+    /// List of all available test card filenames at the top level (without extension)
     public static var allTestCardNames: [String] {
         let resourceDir = testCardsDirectory
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: resourceDir) else {
@@ -36,6 +36,41 @@ open class CardSnapshotTestCase: SnapshotTestCase {
             .filter { $0.hasSuffix(".json") }
             .map { String($0.dropLast(5)) }
             .sorted()
+    }
+
+    /// Recursively discovers all .json card files under shared/test-cards/,
+    /// including subdirectories (official-samples/, element-samples/, etc.)
+    /// Returns (displayName, relativePath) pairs.
+    public static var allDiscoveredCardPaths: [(name: String, relativePath: String)] {
+        let baseDir = testCardsDirectory
+        let fileManager = FileManager.default
+
+        guard let enumerator = fileManager.enumerator(
+            at: URL(fileURLWithPath: baseDir),
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+
+        var cards: [(name: String, relativePath: String)] = []
+
+        while let url = enumerator.nextObject() as? URL {
+            guard url.pathExtension == "json" else { continue }
+            let fullPath = url.path
+            let relativePath = String(fullPath.dropFirst(baseDir.count + 1))
+            let name = relativePath
+                .replacingOccurrences(of: "/", with: "_")
+                .replacingOccurrences(of: ".json", with: "")
+            cards.append((name: name, relativePath: relativePath))
+        }
+
+        return cards.sorted { $0.name < $1.name }
+    }
+
+    /// Total count of all discoverable cards (including subdirectories)
+    public static var totalCardCount: Int {
+        allDiscoveredCardPaths.count
     }
 
     /// Path to the shared test-cards directory
