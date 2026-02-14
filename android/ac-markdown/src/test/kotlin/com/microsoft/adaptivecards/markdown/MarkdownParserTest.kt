@@ -136,4 +136,67 @@ class MarkdownParserTest {
         assertTrue("1. numbered".containsMarkdown())
         assertFalse("Plain text".containsMarkdown())
     }
+
+    // URL Scheme Security Tests (GHSA-r5qq-54gp-7gcx)
+
+    @Test
+    fun `test safe URL schemes are allowed`() {
+        assertTrue(MarkdownRenderer.isSafeUrl("https://example.com"))
+        assertTrue(MarkdownRenderer.isSafeUrl("http://example.com"))
+        assertTrue(MarkdownRenderer.isSafeUrl("mailto:user@example.com"))
+        assertTrue(MarkdownRenderer.isSafeUrl("tel:+1234567890"))
+    }
+
+    @Test
+    fun `test javascript scheme is blocked`() {
+        assertFalse(MarkdownRenderer.isSafeUrl("javascript:alert('XSS')"))
+    }
+
+    @Test
+    fun `test data scheme is blocked`() {
+        assertFalse(MarkdownRenderer.isSafeUrl("data:text/html,<script>alert('XSS')</script>"))
+    }
+
+    @Test
+    fun `test file scheme is blocked`() {
+        assertFalse(MarkdownRenderer.isSafeUrl("file:///etc/passwd"))
+    }
+
+    @Test
+    fun `test custom app scheme is blocked`() {
+        assertFalse(MarkdownRenderer.isSafeUrl("myapp://deeplink/action"))
+    }
+
+    @Test
+    fun `test vbscript scheme is blocked`() {
+        assertFalse(MarkdownRenderer.isSafeUrl("vbscript:msgbox('XSS')"))
+    }
+
+    @Test
+    fun `test renderer strips unsafe link annotation`() {
+        val tokens = MarkdownParser.parse("[click](javascript:alert('XSS'))")
+        val rendered = MarkdownRenderer.render(tokens)
+
+        // Text content should be present
+        assertTrue(rendered.text.contains("click"))
+
+        // No URL annotation should exist for unsafe schemes
+        val annotations = rendered.getStringAnnotations(tag = "URL", start = 0, end = rendered.length)
+        assertTrue(annotations.isEmpty(), "Unsafe URL should not produce a URL annotation")
+    }
+
+    @Test
+    fun `test renderer keeps safe link annotation`() {
+        val tokens = MarkdownParser.parse("[click](https://example.com)")
+        val rendered = MarkdownRenderer.render(tokens)
+
+        val annotations = rendered.getStringAnnotations(tag = "URL", start = 0, end = rendered.length)
+        assertTrue(annotations.isNotEmpty(), "Safe URL should produce a URL annotation")
+        assertEquals("https://example.com", annotations.first().item)
+    }
+
+    @Test
+    fun `test schemeless URL is blocked`() {
+        assertFalse(MarkdownRenderer.isSafeUrl("no-scheme-url"))
+    }
 }

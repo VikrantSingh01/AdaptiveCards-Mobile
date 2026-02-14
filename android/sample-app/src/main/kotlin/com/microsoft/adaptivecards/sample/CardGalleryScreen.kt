@@ -161,7 +161,8 @@ enum class CardCategory(val displayName: String) {
     TEMPLATING("Templating"),
     OFFICIAL("Official Samples"),
     ELEMENT("Element Samples"),
-    TEAMS_TEMPLATED("Teams Templated")
+    TEAMS_TEMPLATED("Teams Templated"),
+    TEAMS_OFFICIAL("Teams Official")
 }
 
 data class TestCard(
@@ -316,6 +317,27 @@ object TestCardLoader {
         Triple("teams-samples/flight-update-template.json", "Teams: Flight Update", CardCategory.TEAMS_TEMPLATED),
         Triple("teams-samples/order-confirmation-template.json", "Teams: Order Confirmation", CardCategory.TEAMS_TEMPLATED),
         Triple("teams-samples/restaurant-order-template.json", "Teams: Restaurant Order", CardCategory.TEAMS_TEMPLATED),
+
+        // --- Teams official samples (from shared/test-cards/teams-official-samples/) ---
+        Triple("teams-official-samples/account.json", "Teams: Account", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/author-highlight-video.json", "Teams: Author Highlight Video", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/book-a-room.json", "Teams: Book a Room", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/cafe-menu.json", "Teams: Cafe Menu", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/communication.json", "Teams: Communication", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/course-video.json", "Teams: Course Video", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/editorial.json", "Teams: Editorial", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/expense-report.json", "Teams: Expense Report", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/insights.json", "Teams: Insights", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/issue.json", "Teams: Issue", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/list.json", "Teams: List", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/project-dashboard.json", "Teams: Project Dashboard", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/recipe.json", "Teams: Recipe", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/simple-event.json", "Teams: Simple Event", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/simple-time-off-request.json", "Teams: Simple Time Off Request", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/standard-video.json", "Teams: Standard Video", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/team-standup-summary.json", "Teams: Team Standup Summary", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/time-off-request.json", "Teams: Time Off Request", CardCategory.TEAMS_OFFICIAL),
+        Triple("teams-official-samples/work-item.json", "Teams: Work Item", CardCategory.TEAMS_OFFICIAL),
     )
 
     /**
@@ -407,6 +429,7 @@ object TestCardLoader {
             CardCategory.OFFICIAL -> "Official sample: $title"
             CardCategory.ELEMENT -> "Element test: $title"
             CardCategory.TEAMS_TEMPLATED -> "Teams templated: $title"
+            CardCategory.TEAMS_OFFICIAL -> "Teams official sample: $title"
             CardCategory.ALL -> "Test card: $title"
         }
     }

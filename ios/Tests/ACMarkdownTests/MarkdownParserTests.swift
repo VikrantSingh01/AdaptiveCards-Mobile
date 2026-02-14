@@ -134,4 +134,70 @@ final class MarkdownParserTests: XCTestCase {
         // Should return same tokens
         XCTAssertEqual(tokens1.count, tokens2.count)
     }
+
+    // MARK: - URL Scheme Security Tests (GHSA-r5qq-54gp-7gcx)
+
+    func testSafeUrlSchemes() {
+        XCTAssertTrue(MarkdownRenderer.isSafeUrl(URL(string: "https://example.com")!))
+        XCTAssertTrue(MarkdownRenderer.isSafeUrl(URL(string: "http://example.com")!))
+        XCTAssertTrue(MarkdownRenderer.isSafeUrl(URL(string: "mailto:user@example.com")!))
+        XCTAssertTrue(MarkdownRenderer.isSafeUrl(URL(string: "tel:+1234567890")!))
+    }
+
+    func testBlocksJavascriptScheme() {
+        let url = URL(string: "javascript:alert('XSS')")!
+        XCTAssertFalse(MarkdownRenderer.isSafeUrl(url))
+    }
+
+    func testBlocksDataScheme() {
+        let url = URL(string: "data:text/html,<script>alert('XSS')</script>")!
+        XCTAssertFalse(MarkdownRenderer.isSafeUrl(url))
+    }
+
+    func testBlocksFileScheme() {
+        let url = URL(string: "file:///etc/passwd")!
+        XCTAssertFalse(MarkdownRenderer.isSafeUrl(url))
+    }
+
+    func testBlocksCustomAppScheme() {
+        let url = URL(string: "myapp://deeplink/action")!
+        XCTAssertFalse(MarkdownRenderer.isSafeUrl(url))
+    }
+
+    func testBlocksVbscriptScheme() {
+        if let url = URL(string: "vbscript:msgbox('XSS')") {
+            XCTAssertFalse(MarkdownRenderer.isSafeUrl(url))
+        }
+    }
+
+    func testRendererStripsUnsafeLink() {
+        let tokens = MarkdownParser.parse("[click](javascript:alert('XSS'))")
+        let rendered = MarkdownRenderer.render(tokens: tokens)
+
+        // The rendered text should contain the display text but NOT be a clickable link
+        let fullText = String(rendered.characters)
+        XCTAssertTrue(fullText.contains("click"))
+
+        // Verify no link attribute is set on the rendered string
+        var hasLink = false
+        for run in rendered.runs {
+            if run.link != nil {
+                hasLink = true
+            }
+        }
+        XCTAssertFalse(hasLink, "Unsafe URL should not produce a clickable link")
+    }
+
+    func testRendererAllowsSafeLink() {
+        let tokens = MarkdownParser.parse("[click](https://example.com)")
+        let rendered = MarkdownRenderer.render(tokens: tokens)
+
+        var hasLink = false
+        for run in rendered.runs {
+            if run.link != nil {
+                hasLink = true
+            }
+        }
+        XCTAssertTrue(hasLink, "Safe URL should produce a clickable link")
+    }
 }

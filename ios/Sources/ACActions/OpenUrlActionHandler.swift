@@ -14,9 +14,17 @@ public class OpenUrlActionHandler {
         self.delegate = delegate
     }
 
+    private static let allowedSchemes: Set<String> = ["http", "https", "mailto", "tel"]
+
     public func handle(_ action: OpenUrlAction) {
         guard let url = URL(string: action.url) else {
             print("Invalid URL: \(action.url)")
+            return
+        }
+
+        guard let scheme = url.scheme?.lowercased(),
+              Self.allowedSchemes.contains(scheme) else {
+            print("Blocked URL with disallowed scheme: \(action.url)")
             return
         }
 
