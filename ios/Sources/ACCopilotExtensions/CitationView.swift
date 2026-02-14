@@ -5,6 +5,8 @@ public struct CitationView: View {
     public let onTap: (() -> Void)?
     @State private var isExpanded = false
 
+    private static let allowedSchemes: Set<String> = ["http", "https", "mailto", "tel"]
+
     public init(citation: Citation, onTap: (() -> Void)? = nil) {
         self.citation = citation
         self.onTap = onTap
@@ -37,7 +39,10 @@ public struct CitationView: View {
                             .lineLimit(3)
                     }
 
-                    if let url = citation.url, let validUrl = URL(string: url) {
+                    if let url = citation.url,
+                       let validUrl = URL(string: url),
+                       let scheme = validUrl.scheme?.lowercased(),
+                       Self.allowedSchemes.contains(scheme) {
                         Link(url, destination: validUrl)
                             .font(.caption2)
                             .lineLimit(1)
