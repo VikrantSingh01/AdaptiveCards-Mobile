@@ -132,6 +132,7 @@ struct CardGalleryView: View {
                 summaryPill("Official", count: cards.filter { $0.category == .officialSamples }.count, color: .mint)
                 summaryPill("Elements", count: cards.filter { $0.category == .elementSamples }.count, color: .cyan)
                 summaryPill("Teams", count: cards.filter { $0.category == .teamsSamples }.count, color: .pink)
+                summaryPill("T. Official", count: cards.filter { $0.category == .teamsOfficialSamples }.count, color: .indigo)
                 summaryPill("Edge", count: cards.filter { $0.category == .edgeCases }.count, color: .orange)
             }
         }
@@ -184,6 +185,7 @@ enum CardSection: String, CaseIterable, Hashable {
     case officialSamples = "Official Samples"
     case elementSamples = "Element Samples"
     case teamsSamples = "Teams Templated Samples"
+    case teamsOfficialSamples = "Teams Official Samples"
     case edgeCases = "Edge Cases"
 
     var title: String { rawValue }
@@ -194,6 +196,7 @@ enum CardSection: String, CaseIterable, Hashable {
         case .officialSamples: return "star.fill"
         case .elementSamples: return "cube"
         case .teamsSamples: return "person.2.fill"
+        case .teamsOfficialSamples: return "person.3.fill"
         case .edgeCases: return "exclamationmark.triangle"
         }
     }
@@ -204,6 +207,7 @@ enum CardSection: String, CaseIterable, Hashable {
         case .officialSamples: return .mint
         case .elementSamples: return .cyan
         case .teamsSamples: return .pink
+        case .teamsOfficialSamples: return .indigo
         case .edgeCases: return .orange
         }
     }
@@ -218,6 +222,8 @@ enum CardSection: String, CaseIterable, Hashable {
             return category == .elementSamples
         case .teamsSamples:
             return category == .teamsSamples
+        case .teamsOfficialSamples:
+            return category == .teamsOfficialSamples
         case .edgeCases:
             return category == .edgeCases
         }
@@ -236,6 +242,7 @@ enum CardCategory: String, CaseIterable, Identifiable {
     case officialSamples = "Official"
     case elementSamples = "Elements"
     case teamsSamples = "Teams Templated"
+    case teamsOfficialSamples = "Teams Official"
     case edgeCases = "Edge Cases"
 
     var id: String { rawValue }
@@ -253,6 +260,7 @@ enum CardCategory: String, CaseIterable, Identifiable {
         case .officialSamples: return .mint
         case .elementSamples: return .cyan
         case .teamsSamples: return .pink
+        case .teamsOfficialSamples: return .indigo
         case .edgeCases: return .orange
         }
     }
@@ -391,6 +399,9 @@ class TestCardLoader {
 
         // Load teams templated samples from shared/test-cards/teams-samples/
         cards.append(contentsOf: loadTeamsSamples())
+
+        // Load teams official samples from shared/test-cards/teams-official-samples/
+        cards.append(contentsOf: loadCardsFromSubdirectory("teams-official-samples", category: .teamsOfficialSamples))
 
         return cards
     }
