@@ -262,8 +262,8 @@ This document tracks the implementation status of all Adaptive Card element type
 ### Templating Engine
 - **iOS File**: `ios/Sources/ACTemplating/TemplateEngine.swift`
 - **Android File**: `android/ac-templating/src/main/kotlin/com/microsoft/adaptivecards/templating/TemplateEngine.kt`
-- **Status**: ⚠️ Partial
-- **Notes**: iOS has 60+ expression functions fully implemented. Android implementation is in progress.
+- **Status**: ✅ Matched
+- **Notes**: iOS has 60+ expression functions fully implemented. Android ac-templating module is also complete with 50+ functions.
 
 ### Schema Validation
 - **iOS File**: `ios/Sources/ACCore/SchemaValidator.swift`
@@ -312,8 +312,8 @@ All edge cases are handled consistently across both platforms without crashes or
 | **Advanced Elements** | 9 | 9 | ✅ 100% |
 | **Chart Elements** | 4 | 4 | ✅ 100% |
 | **Actions** | 5 | 5 | ✅ 100% |
-| **Special Features** | 4 | 4 | ⚠️ 75% (templating in progress) |
-| **Total** | 41 | 41 | ✅ 98% |
+| **Special Features** | 4 | 4 | ✅ 100% |
+| **Total** | 41 | 41 | ✅ 100% |
 
 ---
 
