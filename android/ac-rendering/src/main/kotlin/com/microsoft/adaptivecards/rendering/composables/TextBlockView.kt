@@ -89,13 +89,15 @@ fun TextBlockView(
             maxLines = maxLines,
             overflow = overflow,
             onClick = { offset ->
-                // Handle link clicks
+                // Handle link clicks — only open URLs with safe schemes
                 annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
                     .firstOrNull()?.let { annotation ->
-                        try {
-                            uriHandler.openUri(annotation.item)
-                        } catch (e: Exception) {
-                            // Handle URI opening error gracefully
+                        if (MarkdownRenderer.isSafeUrl(annotation.item)) {
+                            try {
+                                uriHandler.openUri(annotation.item)
+                            } catch (e: Exception) {
+                                // Handle URI opening error gracefully
+                            }
                         }
                     }
             }
