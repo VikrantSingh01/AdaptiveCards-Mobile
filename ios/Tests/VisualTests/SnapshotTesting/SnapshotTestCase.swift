@@ -308,30 +308,44 @@ open class SnapshotTestCase: XCTestCase {
 
     // MARK: - View Rendering
 
-    /// Renders a SwiftUI view to a UIImage with the given configuration
+    /// Renders a SwiftUI view to a UIImage with the given configuration.
+    ///
+    /// Uses UIHostingController + drawHierarchy for rendering. In SPM test environments
+    /// drawHierarchy may return false with afterScreenUpdates:true (render server issue),
+    /// so we also try afterScreenUpdates:false which captures the current layer state.
+    /// If that also fails, we fall back to layer.render(in:) + explicit background fill.
     public func renderView<V: View>(_ view: V, configuration: SnapshotConfiguration) -> UIImage? {
+        let colorScheme: ColorScheme = configuration.interfaceStyle == .dark ? .dark : .light
+        let sizeCategory: ContentSizeCategory = mapContentSizeCategory(configuration.contentSizeCategory)
+
         let wrappedView = view
-            .environment(\.colorScheme, configuration.interfaceStyle == .dark ? .dark : .light)
-            .environment(\.sizeCategory, ContentSizeCategory(configuration.contentSizeCategory))
+            .environment(\.colorScheme, colorScheme)
+            .environment(\.sizeCategory, sizeCategory)
 
         let hostingController = UIHostingController(rootView: wrappedView)
         hostingController.overrideUserInterfaceStyle = configuration.interfaceStyle
 
+        // Simple UIWindow — avoid UIWindow(windowScene:) which crashes in SPM tests
         let window = UIWindow(frame: CGRect(origin: .zero, size: configuration.size))
         window.rootViewController = hostingController
         window.overrideUserInterfaceStyle = configuration.interfaceStyle
         window.makeKeyAndVisible()
 
         hostingController.view.frame = CGRect(origin: .zero, size: configuration.size)
-        hostingController.view.backgroundColor = configuration.interfaceStyle == .dark
-            ? UIColor.systemBackground
-            : UIColor.systemBackground
+        hostingController.view.backgroundColor = .systemBackground
 
-        // Force layout
+        // Force initial layout
         hostingController.view.setNeedsLayout()
         hostingController.view.layoutIfNeeded()
 
-        // Calculate the intrinsic content height
+        // Give SwiftUI enough time to complete its full render cycle.
+        // SwiftUI processes @StateObject init, body evaluation, and layout in
+        // separate passes which each need a RunLoop tick.
+        for _ in 0..<5 {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
+        }
+
+        // Recalculate size after content is rendered
         let targetSize = CGSize(
             width: configuration.size.width,
             height: UIView.layoutFittingCompressedSize.height
@@ -342,23 +356,59 @@ open class SnapshotTestCase: XCTestCase {
             verticalFittingPriority: .fittingSizeLevel
         )
 
-        // Use the fitted height but cap at the configured height
         let renderHeight = min(fittingSize.height, configuration.size.height)
         let renderSize = CGSize(width: configuration.size.width, height: max(renderHeight, 100))
 
         hostingController.view.frame = CGRect(origin: .zero, size: renderSize)
+        window.frame = CGRect(origin: .zero, size: renderSize)
         hostingController.view.setNeedsLayout()
         hostingController.view.layoutIfNeeded()
 
-        // Render to image
-        let renderer = UIGraphicsImageRenderer(size: renderSize, format: .init(for: configuration.traits))
-        let image = renderer.image { context in
-            hostingController.view.drawHierarchy(in: CGRect(origin: .zero, size: renderSize), afterScreenUpdates: true)
+        // Additional settle time after resize
+        for _ in 0..<3 {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
         }
 
-        // Clean up
-        window.isHidden = true
+        // Force CATransaction commit
+        CATransaction.flush()
 
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = UIScreen.main.scale
+        let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
+
+        // Attempt 1: drawHierarchy with afterScreenUpdates: true
+        var capturedContent = false
+        var image = renderer.image { context in
+            capturedContent = hostingController.view.drawHierarchy(
+                in: CGRect(origin: .zero, size: renderSize),
+                afterScreenUpdates: true
+            )
+        }
+
+        // Attempt 2: drawHierarchy with afterScreenUpdates: false
+        if !capturedContent {
+            image = renderer.image { context in
+                capturedContent = hostingController.view.drawHierarchy(
+                    in: CGRect(origin: .zero, size: renderSize),
+                    afterScreenUpdates: false
+                )
+            }
+        }
+
+        // Attempt 3: layer.render — renders CALayer tree directly
+        // Won't capture Metal-composited SwiftUI content but captures UIKit layers
+        if !capturedContent {
+            image = renderer.image { context in
+                // Fill with system background since layer.render won't have it
+                UIColor.systemBackground.setFill()
+                context.fill(CGRect(origin: .zero, size: renderSize))
+                hostingController.view.layer.render(in: context.cgContext)
+            }
+        }
+
+        print("SNAPSHOT_DIAG: drawHierarchyCaptured=\(capturedContent) size=\(image.size) scale=\(image.scale) renderSize=\(renderSize)")
+
+        window.isHidden = true
         return image
     }
 
@@ -616,23 +666,23 @@ open class SnapshotTestCase: XCTestCase {
 
 // MARK: - ContentSizeCategory Conversion
 
-extension ContentSizeCategory {
-    init(_ uiContentSizeCategory: UIContentSizeCategory) {
-        switch uiContentSizeCategory {
-        case .extraSmall: self = .extraSmall
-        case .small: self = .small
-        case .medium: self = .medium
-        case .large: self = .large
-        case .extraLarge: self = .extraLarge
-        case .extraExtraLarge: self = .extraExtraLarge
-        case .extraExtraExtraLarge: self = .extraExtraExtraLarge
-        case .accessibilityMedium: self = .accessibilityMedium
-        case .accessibilityLarge: self = .accessibilityLarge
-        case .accessibilityExtraLarge: self = .accessibilityExtraLarge
-        case .accessibilityExtraExtraLarge: self = .accessibilityExtraExtraLarge
-        case .accessibilityExtraExtraExtraLarge: self = .accessibilityExtraExtraExtraLarge
-        default: self = .large
-        }
+/// Maps UIKit UIContentSizeCategory to SwiftUI ContentSizeCategory.
+/// Using a standalone function to avoid init ambiguity with newer SDK versions.
+private func mapContentSizeCategory(_ uiCategory: UIContentSizeCategory) -> ContentSizeCategory {
+    switch uiCategory {
+    case .extraSmall: return .extraSmall
+    case .small: return .small
+    case .medium: return .medium
+    case .large: return .large
+    case .extraLarge: return .extraLarge
+    case .extraExtraLarge: return .extraExtraLarge
+    case .extraExtraExtraLarge: return .extraExtraExtraLarge
+    case .accessibilityMedium: return .accessibilityMedium
+    case .accessibilityLarge: return .accessibilityLarge
+    case .accessibilityExtraLarge: return .accessibilityExtraLarge
+    case .accessibilityExtraExtraLarge: return .accessibilityExtraExtraLarge
+    case .accessibilityExtraExtraExtraLarge: return .accessibilityExtraExtraExtraLarge
+    default: return .large
     }
 }
 #endif // canImport(UIKit)

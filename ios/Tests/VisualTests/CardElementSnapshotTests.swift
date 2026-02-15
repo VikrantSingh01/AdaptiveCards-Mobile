@@ -14,6 +14,18 @@ import SwiftUI
 /// Verify:           `swift test --filter SnapshotTests`
 final class CardElementSnapshotTests: CardSnapshotTestCase {
 
+    // MARK: - Diagnostic Test
+
+    /// Diagnostic: test if ImageRenderer can capture basic SwiftUI Text
+    func testDiagnosticPlainText() {
+        let view = Text("DIAGNOSTIC: Hello World")
+            .font(.largeTitle)
+            .foregroundColor(.red)
+            .padding(40)
+            .background(Color.yellow)
+        assertSnapshot(of: view, named: "diagnostic_plain_text", configuration: .iPhone15Pro)
+    }
+
     // MARK: - TextBlock Snapshots
 
     func testTextBlockBasic() {

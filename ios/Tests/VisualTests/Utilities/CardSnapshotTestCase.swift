@@ -113,21 +113,28 @@ open class CardSnapshotTestCase: SnapshotTestCase {
 
     // MARK: - View Rendering Helpers
 
-    /// Creates an AdaptiveCardView from a JSON string
+    /// Creates a synchronously-rendered card view from a JSON string.
+    /// Unlike AdaptiveCardView (which parses asynchronously via onAppear),
+    /// this pre-parses the card so the view is ready for immediate snapshot capture.
     public func createCardView(json: String, hostConfig: HostConfig? = nil) -> some View {
-        AdaptiveCardView(
-            cardJson: json,
-            hostConfig: hostConfig ?? self.hostConfig
-        )
+        let config = hostConfig ?? self.hostConfig
+        // Pre-parse the card synchronously for snapshot testing
+        if let card = try? parser.parse(json) {
+            return AnyView(PreParsedCardView(card: card, hostConfig: config))
+        } else {
+            // Fallback: show error text so snapshots aren't blank
+            return AnyView(
+                Text("Parse Error")
+                    .foregroundColor(.red)
+                    .padding()
+            )
+        }
     }
 
-    /// Creates an AdaptiveCardView for a named test card
+    /// Creates a synchronously-rendered card view for a named test card
     public func createCardView(named name: String, hostConfig: HostConfig? = nil) throws -> some View {
         let json = try loadTestCard(named: name)
-        return AdaptiveCardView(
-            cardJson: json,
-            hostConfig: hostConfig ?? self.hostConfig
-        )
+        return createCardView(json: json, hostConfig: hostConfig)
     }
 
     // MARK: - Snapshot Assertion Helpers
@@ -143,10 +150,7 @@ open class CardSnapshotTestCase: SnapshotTestCase {
     ) -> SnapshotDiffResult {
         do {
             let json = try loadTestCard(named: cardName)
-            let view = AdaptiveCardView(
-                cardJson: json,
-                hostConfig: hostConfig ?? self.hostConfig
-            )
+            let view = createCardView(json: json, hostConfig: hostConfig)
             return assertSnapshot(
                 of: view,
                 named: cardName,
@@ -179,10 +183,7 @@ open class CardSnapshotTestCase: SnapshotTestCase {
     ) -> [SnapshotDiffResult] {
         do {
             let json = try loadTestCard(named: cardName)
-            let view = AdaptiveCardView(
-                cardJson: json,
-                hostConfig: hostConfig ?? self.hostConfig
-            )
+            let view = createCardView(json: json, hostConfig: hostConfig)
             return assertSnapshots(
                 of: view,
                 named: cardName,
