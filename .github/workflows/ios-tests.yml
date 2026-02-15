@@ -75,12 +75,39 @@ jobs:
         echo "📋 Found $CARD_COUNT test card JSON files"
         echo "CARD_COUNT=$CARD_COUNT" >> $GITHUB_ENV
 
-    - name: Run Visual Regression Tests (verify mode)
+    - name: Boot iOS Simulator
+      run: |
+        SIMULATOR=$(xcrun simctl list devices available --json | python3 -c "
+import json, sys
+devices = json.load(sys.stdin)['devices']
+for runtime, devs in devices.items():
+  if 'iOS' in runtime:
+    for d in devs:
+      if 'iPhone' in d['name'] and d['state'] == 'Booted':
+        print(d['udid']); sys.exit(0)
+for runtime, devs in devices.items():
+  if 'iOS' in runtime:
+    for d in devs:
+      if 'iPhone' in d['name']:
+        print(d['udid']); sys.exit(0)
+")
+        echo "SIM_UDID=$SIMULATOR" >> $GITHUB_ENV
+        xcrun simctl boot "$SIMULATOR" 2>/dev/null || true
+        echo "Using simulator: $SIMULATOR"
+
+    - name: Run Visual Snapshot Tests (CardElementSnapshotTests)
       working-directory: ios
       run: |
-        swift test --filter "VisualTests" 2>&1 || true
+        xcodebuild test \
+          -scheme AdaptiveCards-Package \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,id=$SIM_UDID" \
+          -only-testing:VisualTests/CardElementSnapshotTests \
+          CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+          2>&1 | tee /tmp/snapshot_test.log | grep -E "Test Case|passed|failed|Test Suite"
+        # Fail the job if any test failed
+        grep -q "\*\* TEST SUCCEEDED \*\*" /tmp/snapshot_test.log
       env:
-        # Omit RECORD_SNAPSHOTS to run in comparison mode
         SNAPSHOT_TOLERANCE: "0.01"
 
     - name: Upload Snapshot Baselines
