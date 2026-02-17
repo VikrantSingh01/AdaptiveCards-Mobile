@@ -110,6 +110,33 @@ swift test --parallel --enable-code-coverage  # With coverage
 
 Test targets: ACCoreTests, ACRenderingTests, ACInputsTests, ACTemplatingTests, ACMarkdownTests, ACChartsTests, IntegrationTests, VisualTests
 
+### iOS Visual Snapshot Tests (REQUIRED for rendering changes)
+
+```bash
+cd ios && xcodebuild test \
+  -scheme AdaptiveCards-Package \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 16e' \
+  -only-testing:VisualTests/CardElementSnapshotTests \
+  CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+```
+
+**Expected**: 10/10 tests pass. All baselines match within tolerance.
+
+**Critical rules for snapshot rendering code:**
+- Do NOT use `ScrollView` or `LazyVStack` in `PreParsedCardView` — they defeat `layer.render` snapshot capture
+- Do NOT use `@StateObject` in snapshot views — SwiftUI lifecycle doesn't fire during `layer.render`
+- Use `VStack` with synchronous `CardViewModel` property assignment
+- `drawHierarchy` returns `false` in SPM XCTest — this is expected; `layer.render` fallback works
+- Always include CodeSign flags: `CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO`
+
+**Recording baselines** (after rendering changes):
+1. `touch ios/Tests/VisualTests/Snapshots/.record`
+2. Run snapshot tests → records new baselines
+3. `rm ios/Tests/VisualTests/Snapshots/.record`
+4. Run again → verify mode (compare against baselines)
+5. Commit updated `.png` baselines
+
 ### Android
 
 ```bash

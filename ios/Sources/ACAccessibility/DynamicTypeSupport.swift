@@ -92,14 +92,18 @@ public extension View {
             hostConfig.fontWeights.bolder
         }
 
+        // Map CSS font-weight values to SwiftUI Font.Weight
+        // CSS 400 = regular, 700 = bold, 800+ = heavy
+        // Legacy C++ renderer uses UIKit .bold (700) for bolder,
+        // so we map 800+ → .bold for parity
         switch weightValue {
-        case 100...299:
+        case ...299:
             return .light
-        case 300...399:
+        case 300...499:
             return .regular
-        case 400...599:
+        case 500...599:
             return .medium
-        case 600...799:
+        case 600...699:
             return .semibold
         default:
             return .bold

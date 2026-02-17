@@ -33,11 +33,18 @@ struct ActionSetView: View {
             ActionButton(action: action, hostConfig: hostConfig) {
                 actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
             }
+            .if(isStretch) { view in
+                view.frame(maxWidth: .infinity)
+            }
         }
     }
 
     private var orientation: Orientation {
         hostConfig.actions.actionsOrientation.lowercased() == "vertical" ? .vertical : .horizontal
+    }
+
+    private var isStretch: Bool {
+        hostConfig.actions.actionAlignment.lowercased() == "stretch"
     }
 
     private var alignment: Alignment {
@@ -47,6 +54,8 @@ struct ActionSetView: View {
             return .center
         case "right":
             return .trailing
+        case "stretch":
+            return .leading
         default:
             return .leading
         }

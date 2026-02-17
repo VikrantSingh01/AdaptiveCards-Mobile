@@ -51,7 +51,13 @@ public struct NumberInputView: View {
     @ViewBuilder
     private var numberTextField: some View {
         let field = TextField(input.placeholder ?? "Enter number", text: $textValue)
-            .textFieldStyle(.roundedBorder)
+            .textFieldStyle(.plain)
+            .padding(8)
+            .background(Color(uiColor: .systemBackground))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
             .onChange(of: textValue) { newValue in
                 updateValue(from: newValue)
             }
