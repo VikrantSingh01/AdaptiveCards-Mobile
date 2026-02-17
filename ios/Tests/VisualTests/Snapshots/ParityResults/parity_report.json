@@ -1,35 +1,35 @@
 {
-  "aboveThreshold" : 9,
-  "passed" : 3,
+  "aboveThreshold" : 0,
+  "passed" : 12,
   "results" : [
     {
       "card" : "parity-actions",
-      "diffPercentage" : 0.45551208651399488,
-      "message" : "Diff 45.55% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.076089314949602541,
+      "message" : "Diff 7.61% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-activity-update",
-      "diffPercentage" : 0.29933988569942038,
-      "message" : "Diff 29.93% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.04061702806122449,
+      "message" : "Diff 4.06% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-columnset-layouts",
-      "diffPercentage" : 0.1388291581550371,
-      "message" : "Diff 13.88% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.043175334649989031,
+      "message" : "Diff 4.32% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-container-styles",
-      "diffPercentage" : 0.82672139184928939,
-      "message" : "Diff 82.67% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0,
+      "message" : "Diff 0.00% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-factset",
-      "diffPercentage" : 0.097536935904011912,
-      "message" : "Diff 9.75% within threshold",
+      "diffPercentage" : 0.034766763848396498,
+      "message" : "Diff 3.48% within threshold",
       "status" : "passed"
     },
     {
@@ -40,42 +40,42 @@
     },
     {
       "card" : "parity-imageset",
-      "diffPercentage" : 0.014613671633296604,
-      "message" : "Diff 1.46% within threshold",
+      "diffPercentage" : 0,
+      "message" : "Diff 0.00% within threshold",
       "status" : "passed"
     },
     {
       "card" : "parity-inputs",
-      "diffPercentage" : 0.31850111269536513,
-      "message" : "Diff 31.85% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.08733020160501076,
+      "message" : "Diff 8.73% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-nested-containers",
-      "diffPercentage" : 0.67314402035623411,
-      "message" : "Diff 67.31% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.0077711908757872698,
+      "message" : "Diff 0.78% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-richtext",
-      "diffPercentage" : 0.14069974554707379,
-      "message" : "Diff 14.07% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.043310657596371885,
+      "message" : "Diff 4.33% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-table",
-      "diffPercentage" : 0.10225177159429806,
-      "message" : "Diff 10.23% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.057206632653061223,
+      "message" : "Diff 5.72% within threshold",
+      "status" : "passed"
     },
     {
       "card" : "parity-textblock-basic",
-      "diffPercentage" : 0.18518146511316458,
-      "message" : "Diff 18.52% above 10.00% threshold (informational)",
-      "status" : "above_threshold"
+      "diffPercentage" : 0.0018974531961544949,
+      "message" : "Diff 0.19% within threshold",
+      "status" : "passed"
     }
   ],
-  "timestamp" : "2026-02-17T05:01:58Z",
+  "timestamp" : "2026-02-17T15:54:46Z",
   "tolerance" : 0.01,
   "totalCards" : 12
 }

@@ -16,8 +16,11 @@ struct ImageView: View {
         AsyncImage(url: URL(string: image.url)) { phase in
             switch phase {
             case .empty:
+                // When image hasn't loaded yet, render as empty rather than
+                // reserving the target size. This matches legacy behavior where
+                // unloaded images don't reserve space in auto-width columns.
                 Color.clear
-                    .frame(width: imageWidth ?? 0, height: imageHeight ?? 0)
+                    .frame(width: 0, height: 0)
             case .success(let img):
                 img
                     .resizable()

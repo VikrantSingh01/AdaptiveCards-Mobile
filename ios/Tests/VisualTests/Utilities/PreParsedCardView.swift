@@ -21,8 +21,9 @@ struct PreParsedCardView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let body = card.body, !body.isEmpty {
-                ForEach(body) { element in
+                ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
                     ElementView(element: element, hostConfig: hostConfig)
+                        .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
                 }
             }
             if let actions = card.actions, !actions.isEmpty {
@@ -31,7 +32,7 @@ struct PreParsedCardView: View {
             }
         }
         .padding(CGFloat(hostConfig.spacing.padding))
-        .containerStyle(nil, hostConfig: hostConfig)
+        .containerStyle(.default, hostConfig: hostConfig)
         .environmentObject(viewModel)
         .environment(\.hostConfig, hostConfig)
         .environment(\.actionHandler, DefaultActionHandler())

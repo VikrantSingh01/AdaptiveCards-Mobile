@@ -181,7 +181,13 @@ public enum ColumnWidth: Codable, Equatable {
             case "stretch":
                 self = .stretch
             default:
-                self = .pixels(stringValue)
+                // Per AC spec, numeric strings like "1", "2" are weighted values.
+                // Only strings containing non-numeric chars (e.g. "50px") are pixel values.
+                if let numericValue = Double(stringValue) {
+                    self = .weighted(numericValue)
+                } else {
+                    self = .pixels(stringValue)
+                }
             }
         } else if let doubleValue = try? container.decode(Double.self) {
             self = .weighted(doubleValue)

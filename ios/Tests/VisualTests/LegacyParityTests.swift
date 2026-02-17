@@ -39,6 +39,16 @@ final class LegacyParityTests: CardSnapshotTestCase {
     /// and does not use this tolerance.
     override var snapshotTolerance: Double { 0.01 }
 
+    /// Cards that require UIHostingController rendering instead of ImageRenderer.
+    /// UIKit-backed controls (DatePicker, Toggle, Picker) render with yellow accent
+    /// in ImageRenderer's windowless environment. UIHostingController provides a
+    /// real UIKit window hierarchy, producing correct system accent colors.
+    private let cardsRequiringHostingController: Set<String> = ["parity-inputs"]
+
+    /// Toggled per-card by assertLegacyParity to control rendering pipeline.
+    private var _useHostingController = false
+    override var preferHostingControllerRendering: Bool { _useHostingController }
+
     /// Directory containing legacy golden-path PNGs.
     private var legacyBaselinesDirectory: String {
         let testFileURL = URL(fileURLWithPath: #filePath)
@@ -107,6 +117,10 @@ final class LegacyParityTests: CardSnapshotTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) -> ParityResult {
+        // Enable UIHostingController rendering for cards with UIKit-backed controls
+        _useHostingController = cardsRequiringHostingController.contains(cardName)
+        defer { _useHostingController = false }
+
         // 1. Load and render via greenfield SwiftUI
         let json: String
         do {

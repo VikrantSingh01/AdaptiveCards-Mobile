@@ -316,7 +316,7 @@ public struct FactSetConfig: Codable {
     public init(
         title: FactSetTextConfig = FactSetTextConfig(weight: "Bolder", maxWidth: 150),
         value: FactSetTextConfig = FactSetTextConfig(weight: "Default", maxWidth: 0),
-        spacing: Int = 10
+        spacing: Int = 0
     ) {
         self.title = title
         self.value = value

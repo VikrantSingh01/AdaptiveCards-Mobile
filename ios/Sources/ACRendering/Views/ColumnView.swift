@@ -13,9 +13,10 @@ struct ColumnView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let items = column.items {
-                ForEach(items) { element in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
                         ElementView(element: element, hostConfig: hostConfig)
+                            .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
                     }
                 }
             }
@@ -31,7 +32,7 @@ struct ColumnView: View {
 
     private var verticalContentAlignment: Alignment {
         guard let alignment = column.verticalContentAlignment else {
-            return .center
+            return .top
         }
 
         switch alignment {
