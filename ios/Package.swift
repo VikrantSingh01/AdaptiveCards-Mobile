@@ -103,6 +103,6 @@ let package = Package(
             resources: [.copy("Resources")]),
         .testTarget(
             name: "VisualTests",
-            dependencies: ["ACCore", "ACRendering", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI"]),
+            dependencies: ["ACCore", "ACRendering", "ACInputs", "ACActions", "ACAccessibility", "ACTemplating", "ACMarkdown", "ACCharts", "ACFluentUI"]),
     ]
 )
