@@ -14,11 +14,19 @@ struct ColumnSetView: View {
         HStack(alignment: .top, spacing: CGFloat(hostConfig.spacing.default)) {
             ForEach(columnSet.columns, id: \.stableId) { column in
                 ColumnView(column: column, hostConfig: hostConfig)
-                    .frame(width: columnWidth(for: column))
+                    .frame(width: fixedWidth(for: column))
+                    .if(isWeighted(column)) { view in
+                        view.frame(maxWidth: .infinity)
+                    }
+                    .if(isStretch(column)) { view in
+                        view.frame(maxWidth: .infinity)
+                    }
+                    .if(isAuto(column)) { view in
+                        view.fixedSize(horizontal: true, vertical: false)
+                    }
             }
         }
         .frame(minHeight: minHeight)
-        .padding(columnSet.bleed == true ? 0 : CGFloat(hostConfig.spacing.padding))
         .containerStyle(columnSet.style, hostConfig: hostConfig)
         .spacing(columnSet.spacing, hostConfig: hostConfig)
         .separator(columnSet.separator, hostConfig: hostConfig)
@@ -28,20 +36,38 @@ struct ColumnSetView: View {
         .accessibilityContainer(label: "Column Set")
     }
 
-    private func columnWidth(for column: Column) -> CGFloat? {
+    private func fixedWidth(for column: Column) -> CGFloat? {
         guard let width = column.width else { return nil }
 
         switch width {
-        case .auto:
-            return nil
-        case .stretch:
-            return nil
-        case .weighted(let value):
-            // This is a simplified implementation
-            // Proper implementation would calculate based on total weights
-            return nil
         case .pixels(let value):
             return CGFloat(Int(value.replacingOccurrences(of: "px", with: "")) ?? 0)
+        default:
+            return nil
+        }
+    }
+
+    private func isWeighted(_ column: Column) -> Bool {
+        guard let width = column.width else { return true } // default is stretch-like
+        switch width {
+        case .weighted: return true
+        default: return false
+        }
+    }
+
+    private func isStretch(_ column: Column) -> Bool {
+        guard let width = column.width else { return true }
+        switch width {
+        case .stretch: return true
+        default: return false
+        }
+    }
+
+    private func isAuto(_ column: Column) -> Bool {
+        guard let width = column.width else { return false }
+        switch width {
+        case .auto: return true
+        default: return false
         }
     }
 

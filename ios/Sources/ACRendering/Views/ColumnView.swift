@@ -22,7 +22,7 @@ struct ColumnView: View {
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
-        .padding(column.bleed == true ? 0 : CGFloat(hostConfig.spacing.padding))
+        .padding(column.style != nil ? CGFloat(hostConfig.spacing.padding) : 0)
         .containerStyle(column.style, hostConfig: hostConfig)
         .selectAction(column.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)

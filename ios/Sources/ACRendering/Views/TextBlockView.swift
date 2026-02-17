@@ -81,16 +81,22 @@ struct TextBlockView: View {
         }
 
         switch weightValue {
-        case 100...299:
+        case 100...199:
+            return .ultraLight
+        case 200...299:
             return .light
         case 300...399:
             return .regular
-        case 400...599:
+        case 400...499:
+            return .regular
+        case 500...599:
             return .medium
-        case 600...799:
+        case 600...699:
             return .semibold
-        default:
+        case 700...799:
             return .bold
+        default:
+            return .heavy
         }
     }
 

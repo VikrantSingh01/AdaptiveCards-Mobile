@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 public struct ActionButton: View {
     let action: CardAction
@@ -113,14 +114,15 @@ public struct ActionButton: View {
 
     private var backgroundColor: Color {
         let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
 
         switch actionStyle {
         case .default:
-            return Color.blue
+            return Color(hex: colors.accent.`default`)
         case .positive:
-            return Color.green
+            return Color(hex: colors.good.`default`)
         case .destructive:
-            return Color.red
+            return Color(hex: colors.attention.`default`)
         }
     }
 

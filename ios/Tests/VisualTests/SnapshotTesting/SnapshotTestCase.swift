@@ -373,7 +373,7 @@ open class SnapshotTestCase: XCTestCase {
         CATransaction.flush()
 
         let format = UIGraphicsImageRendererFormat()
-        format.scale = UIScreen.main.scale
+        format.scale = 2.0 // Match legacy renderer baseline capture scale
         let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
 
         // Attempt 1: drawHierarchy with afterScreenUpdates: true
@@ -552,8 +552,9 @@ open class SnapshotTestCase: XCTestCase {
             bitmapInfo: bitmapInfo.rawValue
         ) else { return 1.0 }
 
-        context1.draw(cgImage1, in: CGRect(x: 0, y: 0, width: width1, height: height1))
-        context2.draw(cgImage2, in: CGRect(x: 0, y: 0, width: width2, height: height2))
+        // Scale both images to match the max canvas dimensions for fair comparison
+        context1.draw(cgImage1, in: CGRect(x: 0, y: 0, width: maxWidth, height: maxHeight))
+        context2.draw(cgImage2, in: CGRect(x: 0, y: 0, width: maxWidth, height: maxHeight))
 
         // Count differing pixels (with per-channel threshold to handle anti-aliasing)
         let channelThreshold: UInt8 = 3

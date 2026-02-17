@@ -68,7 +68,7 @@ let package = Package(
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
             name: "ACActions",
-            dependencies: ["ACCore", "ACAccessibility"]),
+            dependencies: ["ACCore", "ACAccessibility", "ACFluentUI"]),
         .target(
             name: "ACRendering",
             dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI"]),
