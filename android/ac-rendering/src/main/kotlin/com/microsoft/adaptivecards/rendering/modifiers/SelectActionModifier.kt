@@ -22,14 +22,14 @@ fun Modifier.selectAction(
         // Handle the action based on type
         when (action) {
             is com.microsoft.adaptivecards.core.models.ActionOpenUrl -> {
-                actionHandler.onOpenUrl(action.url)
+                actionHandler.onOpenUrl(action.url, action.id)
             }
             is com.microsoft.adaptivecards.core.models.ActionSubmit -> {
                 // For selectAction, submit with empty data
-                actionHandler.onSubmit(emptyMap())
+                actionHandler.onSubmit(emptyMap(), action.id)
             }
             is com.microsoft.adaptivecards.core.models.ActionExecute -> {
-                actionHandler.onExecute(action.verb ?: "", emptyMap())
+                actionHandler.onExecute(action.verb ?: "", emptyMap(), action.id)
             }
             else -> {
                 // Other action types

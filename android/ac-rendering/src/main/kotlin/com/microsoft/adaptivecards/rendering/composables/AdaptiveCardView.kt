@@ -15,6 +15,7 @@ import com.microsoft.adaptivecards.hostconfig.HostConfigProvider
 import com.microsoft.adaptivecards.rendering.modifiers.adaptiveSeparator
 import com.microsoft.adaptivecards.rendering.modifiers.adaptiveSpacing
 import com.microsoft.adaptivecards.rendering.modifiers.SeparatorLine
+import com.microsoft.adaptivecards.rendering.registry.GlobalElementRendererRegistry
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import com.microsoft.adaptivecards.rendering.viewmodel.DefaultActionHandler
@@ -22,26 +23,40 @@ import com.microsoft.adaptivecards.accessibility.RTLSupport
 
 /**
  * Main entry point for rendering an Adaptive Card
- * 
- * @param cardJson The JSON string of the adaptive card
+ *
+ * @param cardJson The JSON string of the adaptive card (may contain `${expression}` template syntax)
+ * @param templateData Optional data context for template expansion
  * @param hostConfig Optional host configuration
  * @param actionHandler Handler for card actions
  * @param modifier Modifier for the card container
  * @param viewModel Optional ViewModel for state management
+ * @param onCardParsed Called when the card is successfully parsed
+ * @param onCardParseError Called when card parsing fails
  */
 @Composable
 fun AdaptiveCardView(
     cardJson: String,
+    templateData: Map<String, Any?>? = null,
     hostConfig: HostConfig? = null,
     actionHandler: ActionHandler = DefaultActionHandler(),
     modifier: Modifier = Modifier,
-    viewModel: CardViewModel = viewModel()
+    viewModel: CardViewModel = viewModel(),
+    onCardParsed: ((AdaptiveCard) -> Unit)? = null,
+    onCardParseError: ((String) -> Unit)? = null
 ) {
     val card by viewModel.card.collectAsState()
     val parseError by viewModel.parseError.collectAsState()
 
-    LaunchedEffect(cardJson) {
-        viewModel.parseCard(cardJson)
+    LaunchedEffect(cardJson, templateData) {
+        viewModel.parseCard(cardJson, templateData)
+    }
+
+    // Lifecycle callbacks
+    LaunchedEffect(card) {
+        card?.let { onCardParsed?.invoke(it) }
+    }
+    LaunchedEffect(parseError) {
+        parseError?.let { onCardParseError?.invoke(it) }
     }
 
     // Display error if parsing failed
@@ -146,7 +161,11 @@ fun RenderElement(
             is ListElement -> ListView(element, viewModel, actionHandler, elementModifier)
             is CompoundButton -> CompoundButtonView(element, actionHandler, elementModifier)
             else -> {
-                // Unknown element type - could check custom registry here
+                // Check custom element registry for host-registered renderers
+                val customRenderer = GlobalElementRendererRegistry.getRenderer(element.type)
+                if (customRenderer != null) {
+                    customRenderer(element, elementModifier)
+                }
             }
         }
     }

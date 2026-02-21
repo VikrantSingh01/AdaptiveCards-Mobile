@@ -71,7 +71,7 @@ let package = Package(
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
             name: "ACRendering",
-            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI"]),
+            dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI", "ACTemplating"]),
         .target(
             name: "ACCopilotExtensions",
             dependencies: ["ACCore"]),
