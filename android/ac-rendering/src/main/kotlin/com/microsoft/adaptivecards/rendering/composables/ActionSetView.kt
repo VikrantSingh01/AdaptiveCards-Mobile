@@ -84,14 +84,14 @@ private fun handleAction(
     when (action) {
         is ActionSubmit -> {
             val inputData = viewModel.getAllInputValues()
-            actionHandler.onSubmit(inputData)
+            actionHandler.onSubmit(inputData, action.id)
         }
         is ActionOpenUrl -> {
-            actionHandler.onOpenUrl(action.url)
+            actionHandler.onOpenUrl(action.url, action.id)
         }
         is ActionExecute -> {
             val inputData = viewModel.getAllInputValues()
-            actionHandler.onExecute(action.verb ?: "", inputData)
+            actionHandler.onExecute(action.verb ?: "", inputData, action.id)
         }
         is ActionShowCard -> {
             actionHandler.onShowCard(action)
@@ -103,7 +103,7 @@ private fun handleAction(
             actionHandler.onToggleVisibility(action.targetElements.map { it.elementId })
         }
         is ActionOpenUrlDialog -> {
-            actionHandler.onOpenUrl(action.url)
+            actionHandler.onOpenUrl(action.url, action.id)
         }
         is ActionPopover -> {
             // Popover actions handled externally

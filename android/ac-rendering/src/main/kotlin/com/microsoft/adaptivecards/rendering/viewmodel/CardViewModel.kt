@@ -26,6 +26,7 @@ import com.microsoft.adaptivecards.core.models.ActionSet
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.RichTextBlock
 import com.microsoft.adaptivecards.core.parsing.CardParser
+import com.microsoft.adaptivecards.templating.TemplateEngine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -84,6 +85,12 @@ class CardViewModel : ViewModel() {
     private val _parseError = MutableStateFlow<String?>(null)
     val parseError: StateFlow<String?> = _parseError.asStateFlow()
 
+    private val templateEngine = TemplateEngine()
+
+    /** Stored template for data refresh support */
+    private var storedTemplate: String? = null
+    private var storedTemplateData: Map<String, Any?>? = null
+
     // SnapshotStateMap API - Direct mutable access for Compose with O(1) performance
     val inputValues: SnapshotStateMap<String, Any> = mutableStateMapOf()
     val visibilityState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
@@ -108,11 +115,25 @@ class CardViewModel : ViewModel() {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
     
     /**
-     * Parse and set the card from JSON
+     * Parse and set the card from JSON, optionally expanding template expressions with data
+     * @param jsonString The card JSON string (may contain `${expression}` template syntax)
+     * @param templateData Optional data context for template expansion
      */
-    fun parseCard(jsonString: String) {
+    fun parseCard(jsonString: String, templateData: Map<String, Any?>? = null) {
         try {
-            val parsedCard = CardParser.parse(jsonString)
+            var cardJson = jsonString
+
+            // If template data provided, expand template first
+            if (templateData != null) {
+                storedTemplate = jsonString
+                storedTemplateData = templateData
+                cardJson = templateEngine.expand(jsonString, templateData)
+            } else {
+                storedTemplate = null
+                storedTemplateData = null
+            }
+
+            val parsedCard = CardParser.parse(cardJson)
             _card.value = parsedCard
             _parseError.value = null
             validateCardStructure(parsedCard)
@@ -301,6 +322,18 @@ class CardViewModel : ViewModel() {
         return validationErrors.isEmpty()
     }
     
+    /**
+     * Re-expands the stored template with new data, preserving user input values.
+     * Only works if the card was originally parsed with templateData.
+     * @param newData New data context for template expansion
+     */
+    fun refreshData(newData: Map<String, Any?>) {
+        val template = storedTemplate ?: return
+        val savedInputs = inputValues.toMap()
+        parseCard(template, newData)
+        inputValues.putAll(savedInputs)
+    }
+
     /**
      * Reset the card state
      */
