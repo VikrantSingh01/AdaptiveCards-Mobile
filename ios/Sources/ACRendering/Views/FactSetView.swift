@@ -11,9 +11,11 @@ struct FactSetView: View {
             ForEach(factSet.facts) { fact in
                 HStack(alignment: .top, spacing: 8) {
                     Text(fact.title)
+                        .font(.system(size: CGFloat(hostConfig.factSet.title.size)))
                         .fontWeight(titleWeight)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(width: titleMaxWidth > 0 ? CGFloat(titleMaxWidth) : nil, alignment: .leading)
                     Text(fact.value)
+                        .font(.system(size: CGFloat(hostConfig.factSet.value.size)))
                         .fontWeight(valueWeight)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -22,6 +24,10 @@ struct FactSetView: View {
         .spacing(factSet.spacing, hostConfig: hostConfig)
         .separator(factSet.separator, hostConfig: hostConfig)
         .accessibilityContainer(label: "Fact Set")
+    }
+
+    private var titleMaxWidth: Int {
+        hostConfig.factSet.title.maxWidth
     }
 
     private var titleWeight: Font.Weight {

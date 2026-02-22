@@ -263,6 +263,43 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         }
     }
 
+    /// The spacing property from the underlying element, if any
+    public var spacing: Spacing? {
+        switch self {
+        case .textBlock(let e): return e.spacing
+        case .image(let e): return e.spacing
+        case .media(let e): return e.spacing
+        case .richTextBlock(let e): return e.spacing
+        case .container(let e): return e.spacing
+        case .columnSet(let e): return e.spacing
+        case .imageSet(let e): return e.spacing
+        case .factSet(let e): return e.spacing
+        case .actionSet(let e): return e.spacing
+        case .table(let e): return e.spacing
+        case .textInput(let e): return e.spacing
+        case .numberInput(let e): return e.spacing
+        case .dateInput(let e): return e.spacing
+        case .timeInput(let e): return e.spacing
+        case .toggleInput(let e): return e.spacing
+        case .choiceSetInput(let e): return e.spacing
+        case .carousel(let e): return e.spacing
+        case .accordion(let e): return e.spacing
+        case .codeBlock(let e): return e.spacing
+        case .ratingDisplay(let e): return e.spacing
+        case .ratingInput(let e): return e.spacing
+        case .progressBar(let e): return e.spacing
+        case .spinner(let e): return e.spacing
+        case .tabSet(let e): return e.spacing
+        case .list(let e): return e.spacing
+        case .compoundButton(let e): return e.spacing
+        case .donutChart(let e): return e.spacing
+        case .barChart(let e): return e.spacing
+        case .lineChart(let e): return e.spacing
+        case .pieChart(let e): return e.spacing
+        case .unknown: return nil
+        }
+    }
+
     /// Returns the type string for this element
     public var typeString: String {
         switch self {

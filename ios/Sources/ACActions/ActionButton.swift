@@ -1,6 +1,8 @@
 import SwiftUI
+import UIKit
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 public struct ActionButton: View {
     let action: CardAction
@@ -36,12 +38,14 @@ public struct ActionButton: View {
                         .lineLimit(1)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(backgroundColor)
-            .foregroundColor(foregroundColor)
-            .cornerRadius(4)
+            .font(.system(size: 15))
+            .frame(maxWidth: .infinity)
+            .padding(10)
+            .foregroundColor(buttonForegroundColor)
+            .background(buttonBackgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
+        .buttonStyle(.plain)
         .disabled(!(isEnabled ?? true))
         .accessibilityAction(label: title, hint: tooltip)
     }
@@ -113,18 +117,47 @@ public struct ActionButton: View {
 
     private var backgroundColor: Color {
         let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
 
         switch actionStyle {
         case .default:
-            return Color.blue
+            return Color(hex: colors.accent.`default`)
         case .positive:
-            return Color.green
+            return Color(hex: colors.good.`default`)
         case .destructive:
-            return Color.red
+            return Color(hex: colors.attention.`default`)
         }
     }
 
     private var foregroundColor: Color {
         return .white
+    }
+
+    /// Background color for filled button style matching legacy renderer
+    private var buttonBackgroundColor: Color {
+        let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
+
+        switch actionStyle {
+        case .default:
+            return Color(uiColor: .systemBlue)
+        case .positive:
+            return Color(hex: colors.accent.`default`)
+        case .destructive:
+            return .clear
+        }
+    }
+
+    /// Foreground text color matching legacy renderer
+    private var buttonForegroundColor: Color {
+        let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
+
+        switch actionStyle {
+        case .default, .positive:
+            return .white
+        case .destructive:
+            return Color(hex: colors.attention.`default`)
+        }
     }
 }
