@@ -24,6 +24,9 @@ public final class ExpressionEvaluator {
         // Math functions
         MathFunctions.register(into: &functions)
 
+        // Conversion functions (ported from production SDK)
+        ConversionFunctions.register(into: &functions)
+
         return functions
     }()
 
@@ -144,6 +147,17 @@ public final class ExpressionEvaluator {
             let left = try coerceToBool(leftValue)
             let right = try coerceToBool(rightValue)
             return left || right
+
+        case "in":
+            // Membership operator: check if leftValue is in rightValue (array or string)
+            if let array = rightValue as? [Any?] {
+                return array.contains { isEqual($0, leftValue) }
+            } else if let str = rightValue as? String, let search = leftValue as? String {
+                return str.contains(search)
+            } else if let dict = rightValue as? [String: Any], let key = leftValue as? String {
+                return dict[key] != nil
+            }
+            return false
 
         default:
             throw EvaluationError.unknownOperator(op)
