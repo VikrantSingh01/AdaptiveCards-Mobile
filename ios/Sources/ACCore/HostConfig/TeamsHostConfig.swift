@@ -4,6 +4,9 @@ import Foundation
 public class TeamsHostConfig {
     public static func create() -> HostConfig {
         return HostConfig(
+            fontFamily: "Segoe UI",
+            supportsInteractivity: true,
+            imageBaseUrl: "",
             spacing: SpacingConfig(
                 small: 4,
                 default: 8,
@@ -29,33 +32,39 @@ public class TeamsHostConfig {
                 bolder: 600
             ),
             fontTypes: FontTypesConfig(
-                default: FontTypesConfig.FontFamilyConfig(fontFamily: "Segoe UI"),
-                monospace: FontTypesConfig.FontFamilyConfig(fontFamily: "Courier New")
+                default: FontTypeDefinition(fontFamily: "Segoe UI"),
+                monospace: FontTypeDefinition(fontFamily: "Courier New")
             ),
             containerStyles: ContainerStylesConfig(
                 default: ContainerStyleConfig(
                     backgroundColor: "#FFFFFF",
-                    foregroundColors: teamsDefaultForegroundColors()
+                    foregroundColors: teamsDefaultForegroundColors(),
+                    borderColor: "#E1DFDD"
                 ),
                 emphasis: ContainerStyleConfig(
                     backgroundColor: "#F5F5F5",
-                    foregroundColors: teamsDefaultForegroundColors()
+                    foregroundColors: teamsDefaultForegroundColors(),
+                    borderColor: "#E1DFDD"
                 ),
                 good: ContainerStyleConfig(
                     backgroundColor: "#DFF6DD",
-                    foregroundColors: teamsDefaultForegroundColors()
+                    foregroundColors: teamsDefaultForegroundColors(),
+                    borderColor: "#9FD89F"
                 ),
                 attention: ContainerStyleConfig(
                     backgroundColor: "#FFF4CE",
-                    foregroundColors: teamsDefaultForegroundColors()
+                    foregroundColors: teamsDefaultForegroundColors(),
+                    borderColor: "#F8D22A"
                 ),
                 warning: ContainerStyleConfig(
                     backgroundColor: "#FED9CC",
-                    foregroundColors: teamsDefaultForegroundColors()
+                    foregroundColors: teamsDefaultForegroundColors(),
+                    borderColor: "#E97548"
                 ),
                 accent: ContainerStyleConfig(
                     backgroundColor: "#E8F2FD",
-                    foregroundColors: teamsDefaultForegroundColors()
+                    foregroundColors: teamsDefaultForegroundColors(),
+                    borderColor: "#6264A7"
                 )
             ),
             imageSizes: ImageSizesConfig(
@@ -71,8 +80,11 @@ public class TeamsHostConfig {
                 spacing: "Default",
                 showCard: ShowCardConfig(
                     actionMode: "Inline",
-                    style: "Emphasis"
-                )
+                    style: "Emphasis",
+                    inlineTopMargin: 16
+                ),
+                iconPlacement: "AboveTitle",
+                iconSize: 20
             ),
             adaptiveCard: AdaptiveCardConfig(
                 allowCustomStyle: true
@@ -85,7 +97,80 @@ public class TeamsHostConfig {
                 title: FactSetTextConfig(weight: "Bolder"),
                 value: FactSetTextConfig(weight: "Default"),
                 spacing: 8
-            )
+            ),
+            media: MediaConfig(
+                defaultPoster: "",
+                playButton: "",
+                allowInlinePlayback: true
+            ),
+            inputs: InputsConfig(
+                label: InputLabelGroupConfig(
+                    inputSpacing: "Default",
+                    requiredInputs: InputLabelConfig(
+                        color: "Default",
+                        isSubtle: false,
+                        size: "Default",
+                        suffix: " *",
+                        weight: "Default"
+                    ),
+                    optionalInputs: InputLabelConfig(
+                        color: "Default",
+                        isSubtle: true,
+                        size: "Default",
+                        suffix: "",
+                        weight: "Default"
+                    )
+                ),
+                errorMessage: ErrorMessageConfig(
+                    size: "Default",
+                    spacing: "Default",
+                    weight: "Default"
+                )
+            ),
+            hostWidth: HostWidthConfig(
+                veryNarrow: 250,
+                narrow: 350,
+                standard: 500
+            ),
+            textBlock: TextBlockConfig(
+                headingLevel: 2
+            ),
+            textStyles: TextStylesConfig(
+                heading: TextStyleConfig(
+                    weight: "Bolder",
+                    size: "Large",
+                    isSubtle: false,
+                    color: "Default",
+                    fontType: "Default"
+                ),
+                columnHeader: TextStyleConfig(
+                    weight: "Bolder",
+                    size: "Default",
+                    isSubtle: false,
+                    color: "Default",
+                    fontType: "Default"
+                )
+            ),
+            image: ImageConfig(imageSize: "Auto"),
+            ratingLabel: RatingElementConfig(
+                filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
+                emptyStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
+                ratingTextColor: "#242424",
+                countTextColor: "#616161"
+            ),
+            ratingInput: RatingElementConfig(
+                filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
+                emptyStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
+                ratingTextColor: "#242424",
+                countTextColor: "#616161"
+            ),
+            table: TableConfig(cellSpacing: 8),
+            compoundButton: CompoundButtonConfig(
+                badge: BadgeConfig(backgroundColor: "#6264A7"),
+                borderColor: "#E1DFDD"
+            ),
+            borderWidth: [:],
+            cornerRadius: [:]
         )
     }
 
