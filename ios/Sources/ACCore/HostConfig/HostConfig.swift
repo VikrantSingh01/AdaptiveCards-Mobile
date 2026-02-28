@@ -132,12 +132,12 @@ public struct SpacingConfig: Codable {
     public var padding: Int
 
     public init(
-        small: Int = 4,
+        small: Int = 3,
         default: Int = 8,
-        medium: Int = 12,
-        large: Int = 16,
-        extraLarge: Int = 24,
-        padding: Int = 16
+        medium: Int = 20,
+        large: Int = 30,
+        extraLarge: Int = 40,
+        padding: Int = 20
     ) {
         self.small = small
         self.default = `default`
@@ -154,7 +154,7 @@ public struct SeparatorConfig: Codable {
     public var lineThickness: Int
     public var lineColor: String
 
-    public init(lineThickness: Int = 1, lineColor: String = "#E0E0E0") {
+    public init(lineThickness: Int = 1, lineColor: String = "#B2000000") {
         self.lineThickness = lineThickness
         self.lineColor = lineColor
     }
@@ -170,11 +170,11 @@ public struct FontSizesConfig: Codable {
     public var extraLarge: Int
 
     public init(
-        small: Int = 12,
-        default: Int = 14,
-        medium: Int = 17,
-        large: Int = 21,
-        extraLarge: Int = 26
+        small: Int = 10,
+        default: Int = 12,
+        medium: Int = 14,
+        large: Int = 17,
+        extraLarge: Int = 20
     ) {
         self.small = small
         self.default = `default`
@@ -191,7 +191,7 @@ public struct FontWeightsConfig: Codable {
     public var `default`: Int
     public var bolder: Int
 
-    public init(lighter: Int = 300, default: Int = 400, bolder: Int = 600) {
+    public init(lighter: Int = 200, default: Int = 400, bolder: Int = 800) {
         self.lighter = lighter
         self.default = `default`
         self.bolder = bolder
@@ -242,27 +242,27 @@ public struct ContainerStylesConfig: Codable {
 
     public init(
         default: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#FFFFFF",
+            backgroundColor: "#FFFFFFFF",
             foregroundColors: ForegroundColorsConfig()
         ),
         emphasis: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#F5F5F5",
+            backgroundColor: "#08000000",
             foregroundColors: ForegroundColorsConfig()
         ),
         good: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#E8F5E9",
+            backgroundColor: "#FFD5F0DD",
             foregroundColors: ForegroundColorsConfig()
         ),
         attention: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#FFF3E0",
+            backgroundColor: "#F7E9E9",
             foregroundColors: ForegroundColorsConfig()
         ),
         warning: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#FFEBEE",
+            backgroundColor: "#F7F7DF",
             foregroundColors: ForegroundColorsConfig()
         ),
         accent: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#E3F2FD",
+            backgroundColor: "#DCE5F7",
             foregroundColors: ForegroundColorsConfig()
         )
     ) {
@@ -308,13 +308,13 @@ public struct ForegroundColorsConfig: Codable {
     public var attention: ColorConfig
 
     public init(
-        default: ColorConfig = ColorConfig(default: "#000000", subtle: "#666666"),
-        dark: ColorConfig = ColorConfig(default: "#000000", subtle: "#666666"),
-        light: ColorConfig = ColorConfig(default: "#FFFFFF", subtle: "#CCCCCC"),
-        accent: ColorConfig = ColorConfig(default: "#0078D4", subtle: "#0063B1"),
-        good: ColorConfig = ColorConfig(default: "#4CAF50", subtle: "#388E3C"),
-        warning: ColorConfig = ColorConfig(default: "#FF9800", subtle: "#F57C00"),
-        attention: ColorConfig = ColorConfig(default: "#F44336", subtle: "#D32F2F")
+        default: ColorConfig = ColorConfig(default: "#FF000000", subtle: "#B2000000"),
+        dark: ColorConfig = ColorConfig(default: "#FF101010", subtle: "#B2101010"),
+        light: ColorConfig = ColorConfig(default: "#FFFFFFFF", subtle: "#B2FFFFFF"),
+        accent: ColorConfig = ColorConfig(default: "#FF0000FF", subtle: "#B20000FF"),
+        good: ColorConfig = ColorConfig(default: "#FF008000", subtle: "#B2008000"),
+        warning: ColorConfig = ColorConfig(default: "#FFFFD700", subtle: "#B2FFD700"),
+        attention: ColorConfig = ColorConfig(default: "#FF8B0000", subtle: "#B28B0000")
     ) {
         self.default = `default`
         self.dark = dark
@@ -363,7 +363,7 @@ public struct ImageSizesConfig: Codable {
     public var medium: Int
     public var large: Int
 
-    public init(small: Int = 60, medium: Int = 120, large: Int = 180) {
+    public init(small: Int = 80, medium: Int = 120, large: Int = 180) {
         self.small = small
         self.medium = medium
         self.large = large
@@ -384,8 +384,8 @@ public struct ActionsConfig: Codable {
 
     public init(
         actionsOrientation: String = "Horizontal",
-        actionAlignment: String = "Left",
-        buttonSpacing: Int = 8,
+        actionAlignment: String = "Stretch",
+        buttonSpacing: Int = 10,
         maxActions: Int = 5,
         spacing: String = "Default",
         showCard: ShowCardConfig = ShowCardConfig(),
@@ -464,9 +464,9 @@ public struct FactSetConfig: Codable {
     public var spacing: Int
 
     public init(
-        title: FactSetTextConfig = FactSetTextConfig(weight: "Bolder"),
-        value: FactSetTextConfig = FactSetTextConfig(weight: "Default"),
-        spacing: Int = 8
+        title: FactSetTextConfig = FactSetTextConfig(weight: "Bolder", maxWidth: 150),
+        value: FactSetTextConfig = FactSetTextConfig(weight: "Default", maxWidth: 0),
+        spacing: Int = 0
     ) {
         self.title = title
         self.value = value
@@ -583,6 +583,8 @@ public struct InputLabelConfig: Codable {
         self.size = size
         self.suffix = suffix
         self.weight = weight
+        self.maxWidth = maxWidth
+        self.size = size
     }
 }
 
