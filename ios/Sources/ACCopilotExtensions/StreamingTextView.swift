@@ -34,6 +34,9 @@ public struct StreamingTextView: View {
     }
 
     public var body: some View {
+        if !AdaptiveCardFeatureFlags.shared.enableCopilotStreamingExtensions {
+            EmptyView()
+        } else {
         VStack(alignment: .leading, spacing: 8) {
             // Streaming text with cursor
             textContent

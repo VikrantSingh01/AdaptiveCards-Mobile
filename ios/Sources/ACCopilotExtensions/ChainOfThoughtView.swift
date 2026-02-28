@@ -1,4 +1,5 @@
 import SwiftUI
+import ACCore
 
 // MARK: - ChainOfThoughtView
 
@@ -19,6 +20,9 @@ public struct ChainOfThoughtView: View {
     }
 
     public var body: some View {
+        if !AdaptiveCardFeatureFlags.shared.enableCopilotStreamingExtensions {
+            EmptyView()
+        } else {
         VStack(alignment: .leading, spacing: 0) {
             // Header with state
             HStack {

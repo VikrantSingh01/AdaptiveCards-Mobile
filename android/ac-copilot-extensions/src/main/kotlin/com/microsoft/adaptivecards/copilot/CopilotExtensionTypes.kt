@@ -49,3 +49,21 @@ data class CopilotResponse(
     val citations: List<Citation> = emptyList(),
     val references: List<Reference> = emptyList()
 )
+
+
+// Feature Flag convenience
+import com.microsoft.adaptivecards.core.AdaptiveCardFeatureFlags
+
+/**
+ * Returns this response with streaming/CoT fields cleared if the feature flag is off.
+ */
+fun CopilotResponse.flagFiltered(): CopilotResponse {
+    if (!AdaptiveCardFeatureFlags.enableCopilotStreamingExtensions) {
+        return copy(
+            streamingState = StreamingState.IDLE,
+            streamingContent = null,
+            chainOfThought = null
+        )
+    }
+    return this
+}

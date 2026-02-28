@@ -1,4 +1,5 @@
 import Foundation
+import ACCore
 
 public struct Citation: Codable, Equatable, Identifiable {
     public var id: String
@@ -111,5 +112,25 @@ public struct CopilotResponse: Equatable {
         self.chainOfThought = chainOfThought
         self.citations = citations
         self.references = references
+    }
+}
+
+
+// MARK: - Feature Flag Convenience
+
+extension CopilotResponse {
+    /// Returns a CopilotResponse with streaming/CoT fields cleared if the feature flag is off.
+    /// This ensures consumers get empty streaming data when the feature is disabled.
+    public var flagFiltered: CopilotResponse {
+        guard AdaptiveCardFeatureFlags.shared.enableCopilotStreamingExtensions else {
+            return CopilotResponse(
+                streamingState: .idle,
+                streamingContent: nil,
+                chainOfThought: nil,
+                citations: self.citations,
+                references: self.references
+            )
+        }
+        return self
     }
 }
