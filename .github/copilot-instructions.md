@@ -6,6 +6,7 @@ Adaptive Cards Mobile SDK — cross-platform (iOS + Android) rendering library f
 
 - **Repo**: VikrantSingh01/AdaptiveCards-Mobile
 - **Main branch**: `main`
+- **Integration branch**: `proxy/integration` (see below)
 - **Schema version**: Adaptive Cards v1.6
 - **License**: MIT
 
@@ -200,6 +201,29 @@ This is a core project requirement. When modifying rendering or schema support:
 - `bugfix/*` — bug fixes
 - `hotfix/*` — critical fixes
 - `copilot/*` — AI-generated branches
+- `proxy/integration` — **pre-merge integration branch** (see docs below)
+
+### Proxy Integration Branch (IMPORTANT)
+
+This repo uses a **proxy branch** (`proxy/integration`) to pre-integrate all open
+feature PRs before they land on `main`. This is critical context for any agent
+working on this codebase.
+
+**Key docs** (read these before making changes):
+- `docs/AGENT_PROXY_WORKFLOW.md` — Full agentic workflow: how to add PRs, handle conflicts, iterate
+- `docs/PROXY_BRANCH_TRACKER.md` — Current merge state, dependency graph, feature flags
+- `docs/CONFLICT_RESOLUTION_LOG.md` — Forensic trail of every conflict resolution
+
+**Workflow summary**:
+1. New PRs are opened against `main` (for individual review)
+2. New PRs are also merged into `proxy/integration` (for integrated testing)
+3. `PROXY_BRANCH_TRACKER.md` is updated on every merge
+4. Changes that affect rendering behavior are gated behind `AdaptiveCardFeatureFlags`
+5. When PRs are approved, they merge to `main` individually (in dependency order)
+6. After each main merge, proxy is synced with the updated main
+
+**Feature flags**: `ios/Sources/ACCore/AdaptiveCardFeatureFlags.swift` and
+`android/ac-core/.../core/AdaptiveCardFeatureFlags.kt` — all default to `false`.
 
 ### Commit Messages (Conventional Commits)
 
