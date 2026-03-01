@@ -1,6 +1,7 @@
 package com.microsoft.adaptivecards.copilot
 
 import kotlinx.serialization.Serializable
+import com.microsoft.adaptivecards.core.AdaptiveCardFeatureFlags
 
 @Serializable
 data class Citation(
@@ -51,8 +52,6 @@ data class CopilotResponse(
 )
 
 
-// Feature Flag convenience
-import com.microsoft.adaptivecards.core.AdaptiveCardFeatureFlags
 
 /**
  * Returns this response with streaming/CoT fields cleared if the feature flag is off.

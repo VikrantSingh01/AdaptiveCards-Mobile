@@ -40,7 +40,7 @@
 			"type": "Input.Text",
 			"id": "firstRegexCase",
 			"isRequired": true,
-            "regex": "^([a-zA-Z0-9._%+-]+@outokumpu\.com)(,[a-zA-Z0-9._%+-]+@outokumpu\.com)*$",
+            "regex": "^([a-zA-Z0-9._%+-]+@outokumpu\\.com)(,[a-zA-Z0-9._%+-]+@outokumpu\\.com)*$",
 			"label": "What is your first regex case?"
 		},
         {
@@ -53,7 +53,7 @@
             "type": "Input.Text",
             "id": "thirdRegexCase",
             "isRequired": true,
-            "regex": "^([a-zA-Z0-9._%+-]+@outokumpu\\\.com)(,[a-zA-Z0-9._%+-]+@outokumpu\\\.com)*$",
+            "regex": "^([a-zA-Z0-9._%+-]+@outokumpu\\\\.com)(,[a-zA-Z0-9._%+-]+@outokumpu\\\\.com)*$",
             "label": "What is your third regex case?"
         },
         {
@@ -67,7 +67,7 @@
             "type": "Input.Text",
             "id": "fifthRegexCase",
             "isRequired": true,
-            "regex": "^([a-zA-Z0-9._%+-]+@outokumpu\\\\\.com)(,[a-zA-Z0-9._%+-]+@outokumpu\\\\\.com)*$",
+            "regex": "^([a-zA-Z0-9._%+-]+@outokumpu\\\\\\.com)(,[a-zA-Z0-9._%+-]+@outokumpu\\\\\\.com)*$",
             "label": "What is your fifth regex case?"
         }
 	],

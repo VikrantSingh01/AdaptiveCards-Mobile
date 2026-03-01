@@ -498,7 +498,6 @@ public struct FactSetTextConfig: Codable {
         self.isSubtle = isSubtle
         self.fontType = fontType
         self.wrap = wrap
-        self.maxWidth = maxWidth
     }
 
     public init(from decoder: Decoder) throws {
@@ -583,8 +582,6 @@ public struct InputLabelConfig: Codable {
         self.size = size
         self.suffix = suffix
         self.weight = weight
-        self.maxWidth = maxWidth
-        self.size = size
     }
 }
 

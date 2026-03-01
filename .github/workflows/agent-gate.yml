@@ -198,7 +198,7 @@ jobs:
 
   ios-visual-tests:
     name: "3a. iOS Visual Regression"
-    needs: [ios-unit-tests]  # Only run after unit tests pass
+    # Runs independently - visual tests build the project separately
     runs-on: macos-14
     steps:
     - uses: actions/checkout@v4
@@ -300,7 +300,7 @@ jobs:
 
   android-visual-tests:
     name: "3b. Android Visual Regression (Paparazzi)"
-    needs: [android-unit-tests]  # Only run after unit tests pass
+    # Runs independently - visual tests build the project separately
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -348,7 +348,7 @@ jobs:
 
   parity-check:
     name: "4. Cross-Platform Parity"
-    needs: [ios-unit-tests, android-unit-tests]
+    # Runs independently - checks file structure, not build output
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
