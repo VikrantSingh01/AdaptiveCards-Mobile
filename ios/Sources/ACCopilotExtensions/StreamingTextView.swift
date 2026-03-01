@@ -134,7 +134,7 @@ public struct StreamingTextView: View {
 
     private var textFont: Font {
         if let config = hostConfig {
-            let size = CGFloat(config.fontTypes.defaultFont.fontSizes?.default ?? 14)
+            let size = CGFloat(config.fontTypes.`default`.fontSizes?.`default` ?? 14)
             return .system(size: size)
         }
         return .body
