@@ -83,7 +83,7 @@ public struct FlowLayoutView: View {
         )
     }
 
-    private func alignment(for horizontal: HorizontalAlignment) -> Alignment {
+    private func alignment(for horizontal: ACCore.HorizontalAlignment) -> Alignment {
         switch horizontal {
         case .left: return .leading
         case .center: return .center
@@ -95,7 +95,7 @@ public struct FlowLayoutView: View {
         switch spacing {
         case .none: return 0
         case .small: return CGFloat(hostConfig.spacing.small)
-        case .default: return CGFloat(hostConfig.spacing.defaultSpacing)
+        case .default: return CGFloat(hostConfig.spacing.`default`)
         case .medium: return CGFloat(hostConfig.spacing.medium)
         case .large: return CGFloat(hostConfig.spacing.large)
         case .extraLarge: return CGFloat(hostConfig.spacing.extraLarge)
