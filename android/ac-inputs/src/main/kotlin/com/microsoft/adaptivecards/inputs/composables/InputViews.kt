@@ -140,7 +140,7 @@ fun ChoiceSetInputView(
                     onClick = { expanded = true },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(element.choices.find { it.value == selectedValue }?.title ?: element.placeholder ?: "Select...")
+                    Text(element.displayText(selectedValue))
                 }
                 
                 DropdownMenu(

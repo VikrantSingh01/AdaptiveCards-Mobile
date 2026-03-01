@@ -400,6 +400,33 @@ public struct ChoiceSetInput: Codable, Equatable {
         self.fallback = fallback
     }
 
+    /// Resolves the display title for a given value string.
+    /// Returns the matching choice title, or falls back to the value itself
+    /// if no match is found (defensive against malformed cards).
+    public func resolveTitle(forValue selectedValue: String) -> String {
+        return choices.first(where: { $0.value == selectedValue })?.title ?? selectedValue
+    }
+
+    /// Resolves display titles for a comma-separated multi-select value string.
+    public func resolveTitles(forValue selectedValue: String) -> [String] {
+        let values = selectedValue.split(separator: ",").map { String($0) }
+        return values.map { val in resolveTitle(forValue: val) }
+    }
+
+    /// Returns the display text for the current selection (single or multi).
+    /// Uses placeholder as fallback when no selection exists.
+    public func displayText(forValue selectedValue: String?) -> String {
+        guard let selectedValue = selectedValue, !selectedValue.isEmpty else {
+            return placeholder ?? "Select"
+        }
+        if isMultiSelect == true {
+            let titles = resolveTitles(forValue: selectedValue)
+            return titles.joined(separator: ", ")
+        } else {
+            return resolveTitle(forValue: selectedValue)
+        }
+    }
+
     public struct Choice: Codable, Equatable {
         public var title: String
         public var value: String

@@ -132,3 +132,10 @@ The following pre-existing bugs were fixed to get the gate passing:
 | `FactSetView.swift` | `CGFloat(String)` → fontSize resolver helper | `ba9c259` |
 | `SnapshotTestCase.swift` | `MainActor.assumeIsolated` iOS 17 availability | `aedbb36` |
 | `HostConfig.swift` (FontSizesConfig) | Default font size 12 → 14 | `2bf219e` |
+
+### PR #47: fix: ChoiceSet renders title instead of value
+- **Branch:** proxy/fix-choiceset-title-display
+- **Issue:** #38 (upstream microsoft/Teams-AdaptiveCards-Mobile#391)
+- **Status:** Open  Agent Gate PASSED
+- **Changes:** Added resolveTitle/displayText methods to ChoiceSetInput (iOS) and InputChoiceSet (Android), fixed accessibility, added FilteredChoiceSetView, 30 total tests
+- **CI Run:** Agent Validation Gate SUCCESS (all required gates passed)
