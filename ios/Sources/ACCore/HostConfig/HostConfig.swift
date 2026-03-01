@@ -498,6 +498,7 @@ public struct FactSetTextConfig: Codable {
         self.isSubtle = isSubtle
         self.fontType = fontType
         self.wrap = wrap
+        self.maxWidth = maxWidth
     }
 
     public init(from decoder: Decoder) throws {
