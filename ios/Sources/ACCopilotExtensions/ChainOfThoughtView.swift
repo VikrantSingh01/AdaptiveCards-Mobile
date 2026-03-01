@@ -78,6 +78,7 @@ public struct ChainOfThoughtView: View {
                 expandedSteps.insert(0)
             }
         }
+        }
     }
 }
 

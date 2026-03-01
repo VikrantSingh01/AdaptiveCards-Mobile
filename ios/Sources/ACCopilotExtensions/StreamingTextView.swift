@@ -52,6 +52,7 @@ public struct StreamingTextView: View {
         .onChange(of: content.content) { _ in
             startTypingAnimation()
         }
+        }
     }
 
     // MARK: - Text Content
