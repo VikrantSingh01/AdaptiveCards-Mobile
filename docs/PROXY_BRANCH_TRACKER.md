@@ -74,10 +74,61 @@ git rebase upstream/main
 
 ---
 
-## CI/Test Strategy (Planned)
+## CI/Test Strategy — Agent Validation Gate ✅
 
-1. **Build verification**: iOS (xcodebuild) + Android (Gradle) compile checks
-2. **Unit tests**: Feature flags OFF (baseline) and ON (new behavior)
-3. **Visual regression**: Snapshot tests from PR #38/#39 infra (flags ON)
-4. **Integration**: Test card corpus from PR #33 renders without crash
-5. **Flag matrix**: CI should test both flags-OFF and flags-ON configurations
+> **Workflow**: `.github/workflows/agent-gate.yml`
+> **Fork**: `hggzm/AdaptiveCards-Mobile` (Actions enabled, admin access)
+> **Status**: All required gates PASSING as of commit `2bf219e`
+> **Run**: [22536015609](https://github.com/hggzm/AdaptiveCards-Mobile/actions/runs/22536015609)
+
+### Gate Architecture (4 Stages, parallel)
+
+| Stage | Job | Status | Time | Required |
+|-------|-----|--------|------|----------|
+| 1a | Validate Test Card JSON | ✅ Pass | ~26s | Yes |
+| 1b | SwiftLint | ✅ Pass | ~15s | Advisory |
+| 1c | Kotlin Lint | ✅ Pass | ~4m20s | Advisory |
+| 2a | iOS Unit Tests (xcodebuild) | ✅ Pass | ~3m21s | **Yes** |
+| 2b | iOS Parse Validation | ⚠️ Advisory | ~33s | No (known fatalError) |
+| 2c | Android Unit Tests | ✅ Pass | ~1m6s | **Yes** |
+| 3a | iOS Visual Regression (732 baselines) | ✅ Pass | ~4m25s | Advisory |
+| 3b | Android Visual Regression (Paparazzi) | ✅ Pass | ~50s | Advisory |
+| 4 | Cross-Platform Parity | ✅ Pass | ~7s | **Yes** |
+| — | **GATE VERDICT** | ✅ **PASSED** | ~2s | — |
+
+### Agent Usage
+```bash
+# Check gate status for latest push
+gh run list --repo hggzm/AdaptiveCards-Mobile --workflow agent-gate.yml --limit 1 --json conclusion
+# → {"conclusion": "success"} means gate PASSED
+
+# Trigger manual run (e.g., to record new baselines)
+gh workflow run agent-gate.yml --repo hggzm/AdaptiveCards-Mobile -f record_baselines=true
+```
+
+### Workflow Triggers
+- Push to `proxy/**` or `main`
+- Pull requests to `main` or `proxy/**`
+- Manual dispatch with optional `record_baselines` flag
+
+### Bug Fixes Required to Pass Gate
+
+The following pre-existing bugs were fixed to get the gate passing:
+
+| File | Fix | Commit |
+|------|-----|--------|
+| `ios-tests.yml` | YAML indentation in embedded Python block | `7123e14` |
+| `Action.Execute.With.RegexValidation.json` | Invalid JSON escape `\.` | `cb3292f` |
+| `HostConfig.swift` (InputLabelConfig) | Remove non-existent `maxWidth` property | `cb3292f` |
+| `HostConfig.swift` (FactSetTextConfig) | Restore accidentally removed `maxWidth` init | `8658d13` |
+| `CopilotExtensionTypes.kt` | Move import from line 55 to file header | `cb3292f` |
+| `ChainOfThoughtView.swift` | Missing closing brace for else block | `3324f86` |
+| `StreamingTextView.swift` | Missing closing brace + `fontTypes.defaultFont` fix | `3324f86`, `c8c4a7a` |
+| `CopilotReferenceView.swift` | Non-exhaustive switch (4 missing cases) | `3324f86` |
+| `StreamingCardView.swift` | `error.localizedDescription` on String type | `3324f86` |
+| `AreaGridLayoutView.swift` | Missing `import ACCore` + `defaultSpacing` fix | `6a16dda`, `ba9c259` |
+| `FlowLayoutView.swift` | Missing `import ACCore` + `HorizontalAlignment` ambiguity + `defaultSpacing` | `6a16dda`, `ba9c259` |
+| `ColumnSetView.swift` | `Layout` protocol ambiguity → `SwiftUI.Layout` | `6a16dda` |
+| `FactSetView.swift` | `CGFloat(String)` → fontSize resolver helper | `ba9c259` |
+| `SnapshotTestCase.swift` | `MainActor.assumeIsolated` iOS 17 availability | `aedbb36` |
+| `HostConfig.swift` (FontSizesConfig) | Default font size 12 → 14 | `2bf219e` |

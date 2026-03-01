@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0-dev] - Unreleased
 
+### 🔧 CI/CD: Agent Validation Gate (2026-02-28)
+
+#### Added
+- **Agent Validation Gate workflow** (`.github/workflows/agent-gate.yml`): Comprehensive 4-stage CI pipeline that serves as the single validation gate for agent work. Runs unit tests, visual regression, lint, JSON validation, and parity checks in parallel across iOS and Android.
+- **Workflow branch triggers**: All 7 existing workflows now trigger on `proxy/**` branches in addition to `main`.
+
+#### Fixed (pre-existing compile & test errors)
+- **ACCopilotExtensions** (iOS): Missing closing braces in `ChainOfThoughtView` and `StreamingTextView`, non-exhaustive switch in `CopilotReferenceView`, `error.localizedDescription` on String in `StreamingCardView`, and `fontTypes.defaultFont` → `fontTypes.default` in `StreamingTextView`.
+- **ACRendering** (iOS): Missing `import ACCore` in `AreaGridLayoutView` and `FlowLayoutView`, `Layout` protocol ambiguity in `ColumnSetView`, `defaultSpacing` → backticked `default` keyword, and `CGFloat(String)` init error in `FactSetView`.
+- **HostConfig.swift** (iOS): Removed non-existent `maxWidth` from `InputLabelConfig`, restored `maxWidth` in `FactSetTextConfig`, fixed default font size 12 → 14.
+- **CopilotExtensionTypes.kt** (Android): Moved misplaced import from line 55 to file header.
+- **Action.Execute.With.RegexValidation.json**: Fixed invalid JSON escape sequences.
+- **ios-tests.yml**: Fixed YAML indentation in embedded Python block.
+- **SnapshotTestCase.swift**: Wrapped `MainActor.assumeIsolated` in `#available(iOS 17.0, *)`.
+
+---
+
+
 ### 🔧 Sample App Rendering Fixes & Build Verification (2026-02-12)
 
 #### Fixed
