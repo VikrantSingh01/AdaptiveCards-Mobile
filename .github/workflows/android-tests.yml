@@ -2,13 +2,13 @@ name: Android Tests
 
 on:
   push:
-    branches: [ main, 'copilot/**', 'feat/**', 'feature/**' ]
+    branches: [ main, 'copilot/**', 'feat/**', 'feature/**', 'proxy/**' ]
     paths:
       - 'android/**'
       - 'shared/test-cards/**'
       - '.github/workflows/android-tests.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'proxy/**' ]
     paths:
       - 'android/**'
       - 'shared/test-cards/**'

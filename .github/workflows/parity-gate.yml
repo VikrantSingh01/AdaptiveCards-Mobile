@@ -2,14 +2,14 @@ name: Cross-Platform Parity Gate
 
 on:
   push:
-    branches: [ main, 'copilot/**', 'feat/**' ]
+    branches: [ main, 'copilot/**', 'feat/**', 'proxy/**' ]
     paths:
       - 'ios/**'
       - 'android/**'
       - 'shared/**'
       - '.github/workflows/parity-gate.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'proxy/**' ]
     paths:
       - 'ios/**'
       - 'android/**'

@@ -3,13 +3,13 @@ name: Visual Regression Gate
 on:
   # Auto-run on PR and push  
   push:
-    branches: [ main ]
+    branches: [ main, 'proxy/**' ]
     paths:
       - 'ios/**'
       - 'android/**'
       - 'shared/test-cards/**'
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'proxy/**' ]
     paths:
       - 'ios/**'
       - 'android/**'
