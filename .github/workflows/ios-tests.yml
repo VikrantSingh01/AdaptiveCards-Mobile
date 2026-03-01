@@ -78,19 +78,19 @@ jobs:
     - name: Boot iOS Simulator
       run: |
         SIMULATOR=$(xcrun simctl list devices available --json | python3 -c "
-import json, sys
-devices = json.load(sys.stdin)['devices']
-for runtime, devs in devices.items():
-  if 'iOS' in runtime:
-    for d in devs:
-      if 'iPhone' in d['name'] and d['state'] == 'Booted':
-        print(d['udid']); sys.exit(0)
-for runtime, devs in devices.items():
-  if 'iOS' in runtime:
-    for d in devs:
-      if 'iPhone' in d['name']:
-        print(d['udid']); sys.exit(0)
-")
+        import json, sys
+        devices = json.load(sys.stdin)['devices']
+        for runtime, devs in devices.items():
+          if 'iOS' in runtime:
+            for d in devs:
+              if 'iPhone' in d['name'] and d['state'] == 'Booted':
+                print(d['udid']); sys.exit(0)
+        for runtime, devs in devices.items():
+          if 'iOS' in runtime:
+            for d in devs:
+              if 'iPhone' in d['name']:
+                print(d['udid']); sys.exit(0)
+        ")
         echo "SIM_UDID=$SIMULATOR" >> $GITHUB_ENV
         xcrun simctl boot "$SIMULATOR" 2>/dev/null || true
         echo "Using simulator: $SIMULATOR"
