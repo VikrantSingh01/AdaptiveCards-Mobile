@@ -171,7 +171,7 @@ public struct FontSizesConfig: Codable {
 
     public init(
         small: Int = 10,
-        default: Int = 12,
+        default: Int = 14,
         medium: Int = 14,
         large: Int = 17,
         extraLarge: Int = 20
