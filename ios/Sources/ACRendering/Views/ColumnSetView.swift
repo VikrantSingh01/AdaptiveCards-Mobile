@@ -6,7 +6,7 @@ import ACAccessibility
 /// - Weighted columns get space proportional to their weight
 /// - Auto columns get their ideal size
 /// - Stretch/default columns share remaining space equally
-struct ProportionalColumnLayout: Layout {
+struct ProportionalColumnLayout: SwiftUI.Layout {
     let columns: [Column]
     let columnSpacing: CGFloat
 
@@ -15,7 +15,7 @@ struct ProportionalColumnLayout: Layout {
         columns.count > 1 ? CGFloat(columns.count - 1) * columnSpacing : 0
     }
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: SwiftUI.Layout.Subviews, cache: inout ()) -> CGSize {
         let widths = computeWidths(totalWidth: proposal.width ?? 0, subviews: subviews)
         // Use nil height proposal so columns report their natural/intrinsic height
         // rather than expanding to fill the proposed height from the parent
@@ -25,7 +25,7 @@ struct ProportionalColumnLayout: Layout {
         return CGSize(width: proposal.width ?? 0, height: height)
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: SwiftUI.Layout.Subviews, cache: inout ()) {
         let widths = computeWidths(totalWidth: bounds.width, subviews: subviews)
         var x = bounds.minX
         for (index, subview) in subviews.enumerated() {
@@ -36,7 +36,7 @@ struct ProportionalColumnLayout: Layout {
         }
     }
 
-    private func computeWidths(totalWidth: CGFloat, subviews: Subviews) -> [CGFloat] {
+    private func computeWidths(totalWidth: CGFloat, subviews: SwiftUI.Layout.Subviews) -> [CGFloat] {
         guard !columns.isEmpty else { return [] }
 
         var widths = [CGFloat](repeating: 0, count: columns.count)
