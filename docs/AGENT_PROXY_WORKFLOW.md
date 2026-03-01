@@ -389,3 +389,25 @@ grep -n 'var.*Boolean.*=' android/ac-core/src/main/kotlin/com/microsoft/adaptive
 5. **Upstream main may receive direct merges**: PR #41 was merged directly to main outside this proxy workflow. Always sync before integrating new PRs.
 
 6. **Shell escaping**: When running git commands through `wsl -d Ubuntu-22.04`, heredocs and complex string escaping often fail. Use Python scripts for file creation instead of shell heredocs.
+
+---
+
+## 12. Related Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `docs/PROXY_BRANCH_TRACKER.md` | Current merge state, dependency graph, CI gate status, bug fix log |
+| `docs/AGENT_GATE_PLAYBOOK.md` | How the agent validation gate was built — replication guide for other repos |
+| `docs/HANDOFF_AC_MOBILE_GATE.md` | Handoff document for the next agent picking up work on this repo |
+| `CHANGELOG.md` | Chronological change history |
+| `CLAUDE.md` | Agent instructions (build commands, module layout, test commands) |
+| `.github/workflows/agent-gate.yml` | The validation gate workflow itself |
+
+### Agent Validation Gate
+
+The proxy branch now has a fully operational CI gate. See `docs/AGENT_GATE_PLAYBOOK.md` for the architecture and `docs/PROXY_BRANCH_TRACKER.md` for current status. Every push to `proxy/**` triggers the gate automatically on the `hggzm/AdaptiveCards-Mobile` fork.
+
+```bash
+# Quick gate check (single command)
+gh run list --repo hggzm/AdaptiveCards-Mobile --workflow agent-gate.yml --limit 1 --json conclusion
+```
