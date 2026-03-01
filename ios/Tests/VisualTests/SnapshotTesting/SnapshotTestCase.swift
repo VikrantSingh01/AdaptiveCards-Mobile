@@ -332,7 +332,9 @@ open class SnapshotTestCase: XCTestCase {
         }
 
         // Primary: SwiftUI ImageRenderer — renders directly without UIKit intermediary
-        let image: UIImage? = MainActor.assumeIsolated {
+        let image: UIImage?
+        if #available(iOS 17.0, *) {
+            image = MainActor.assumeIsolated {
             // Set global UIKit tint for UIKit-backed controls (DatePicker, Toggle, Picker)
             // that lose their accent color in ImageRenderer's windowless environment
             let previousTint = UIView.appearance().tintColor
@@ -350,6 +352,9 @@ open class SnapshotTestCase: XCTestCase {
             UIView.appearance().tintColor = previousTint
 
             return result
+            }
+        } else {
+            image = nil
         }
 
         if let uiImage = image {
