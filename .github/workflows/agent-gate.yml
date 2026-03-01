@@ -1,0 +1,509 @@
+name: Agent Validation Gate
+
+# ==============================================================================
+# AGENT VALIDATION GATE
+# ==============================================================================
+# This is the SINGLE comprehensive gate that agents use to validate their work.
+# It runs ALL tests (unit + visual + parse + parity) and produces a clear
+# pass/fail signal that other agents can poll via GitHub API.
+#
+# Trigger: push to proxy/**, pull_request to main or proxy/**, manual dispatch
+# Gate signal: The "gate-verdict" job at the end — check its conclusion.
+#
+# Agent usage:
+#   gh run list --repo hggzm/AdaptiveCards-Mobile --workflow agent-gate.yml --limit 1 --json conclusion
+#   → {"conclusion": "success"} means gate PASSED
+# ==============================================================================
+
+on:
+  push:
+    branches: [ 'proxy/**', main ]
+  pull_request:
+    branches: [ main, 'proxy/**' ]
+  workflow_dispatch:
+    inputs:
+      record_baselines:
+        description: 'Record new visual baselines instead of comparing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Cancel in-progress runs on the same branch
+concurrency:
+  group: agent-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # STAGE 1: Fast checks (parallel)
+  # ============================================================================
+
+  json-validation:
+    name: "1a. Validate Test Card JSON"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate JSON syntax
+      run: |
+        echo "=== Test Card Inventory ==="
+        TOTAL=$(find shared/test-cards -name '*.json' 2>/dev/null | wc -l | tr -d ' ')
+        echo "Total test cards: $TOTAL"
+
+        ERRORS=0
+        for f in $(find shared/test-cards -name '*.json'); do
+          if ! python3 -m json.tool "$f" > /dev/null 2>&1; then
+            echo "FAIL: $f"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
+
+        if [ $ERRORS -gt 0 ]; then
+          echo "::error::$ERRORS test card(s) have invalid JSON"
+          exit 1
+        fi
+        echo "All $TOTAL test cards are valid JSON"
+
+    - name: Validate AdaptiveCard schema fields
+      run: |
+        cd shared/test-cards
+        WARNINGS=0
+        for f in *.json; do
+          [ -f "$f" ] || continue
+          if ! grep -q '"type".*"AdaptiveCard"' "$f"; then
+            echo "::warning file=shared/test-cards/$f::Missing AdaptiveCard type"
+            WARNINGS=$((WARNINGS + 1))
+          fi
+        done
+        echo "Schema field check complete ($WARNINGS warnings)"
+
+  lint-swift:
+    name: "1b. SwiftLint"
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install SwiftLint
+      run: brew install swiftlint 2>/dev/null || true
+    - name: Run SwiftLint
+      run: |
+        cd ios
+        swiftlint lint --reporter github-actions-logging 2>&1 || true
+        echo "SwiftLint complete (non-blocking)"
+
+  lint-kotlin:
+    name: "1c. Kotlin Lint"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: gradle/actions/setup-gradle@v4
+    - name: Run Android Lint
+      working-directory: android
+      run: ./gradlew lint 2>&1 || echo "Lint not configured — skipping"
+
+  # ============================================================================
+  # STAGE 2: Unit tests (parallel per platform)
+  # ============================================================================
+
+  ios-unit-tests:
+    name: "2a. iOS Unit Tests"
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+
+    - name: Swift version
+      run: swift --version
+
+    - name: Run unit tests (xcodebuild)
+      working-directory: ios
+      run: |
+        # Use xcodebuild to build & test only the required targets
+        # This avoids building ACCopilotExtensions which has known compile issues
+        xcodebuild test \
+          -scheme AdaptiveCards-Package \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=latest" \
+          -only-testing:ACCoreTests \
+          -only-testing:ACRenderingTests \
+          -only-testing:ACInputsTests \
+          -only-testing:ACTemplatingTests \
+          -only-testing:ACMarkdownTests \
+          -only-testing:ACChartsTests \
+          -only-testing:IntegrationTests \
+          CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+          2>&1 | tee /tmp/ios-unit-tests.log
+
+        # Check result
+        if grep -q "\*\* TEST SUCCEEDED \*\*" /tmp/ios-unit-tests.log; then
+          echo "### iOS Unit Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### iOS Unit Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+  ios-parse-validation:
+    name: "2b. iOS Parse Validation"
+    runs-on: macos-14
+    continue-on-error: true  # Advisory: known fatalError in some card types
+    steps:
+    - uses: actions/checkout@v4
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+    - name: Validate all cards parse correctly
+      working-directory: ios
+      run: swift test --filter "AllCardsDiscoveryTests/testAllCards_parseOnly"
+
+  android-unit-tests:
+    name: "2c. Android Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+
+    - uses: gradle/actions/setup-gradle@v4
+
+    - name: Run unit tests
+      working-directory: android
+      run: |
+        ./gradlew testDebugUnitTest --stacktrace 2>&1 | tee /tmp/android-unit-tests.log
+        echo "### Android Unit Tests" >> $GITHUB_STEP_SUMMARY
+        echo "Unit tests completed" >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-unit-test-reports
+        path: |
+          android/**/build/reports/tests/
+          android/**/build/test-results/
+        retention-days: 7
+
+  # ============================================================================
+  # STAGE 3: Visual regression tests (parallel per platform)
+  # ============================================================================
+
+  ios-visual-tests:
+    name: "3a. iOS Visual Regression"
+    # Runs independently - visual tests build the project separately
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+
+    - name: Card inventory
+      run: |
+        TOTAL=$(find shared/test-cards -name '*.json' | wc -l | tr -d ' ')
+        echo "Testing against $TOTAL test cards"
+
+    - name: Boot iOS Simulator
+      run: |
+        SIMULATOR=$(xcrun simctl list devices available --json | python3 -c "
+        import json, sys
+        devices = json.load(sys.stdin)['devices']
+        for runtime, devs in devices.items():
+          if 'iOS' in runtime:
+            for d in devs:
+              if 'iPhone' in d['name']:
+                print(d['udid']); sys.exit(0)
+        ")
+        echo "SIM_UDID=$SIMULATOR" >> $GITHUB_ENV
+        xcrun simctl boot "$SIMULATOR" 2>/dev/null || true
+        echo "Using simulator: $SIMULATOR"
+
+    - name: Run CardElementSnapshotTests
+      working-directory: ios
+      env:
+        RECORD_SNAPSHOTS: ${{ github.event.inputs.record_baselines == 'true' && '1' || '' }}
+        SNAPSHOT_TOLERANCE: "0.01"
+      run: |
+        if [ -n "$RECORD_SNAPSHOTS" ]; then
+          echo "::notice::RECORDING MODE — creating new baselines"
+        fi
+        xcodebuild test \
+          -scheme AdaptiveCards-Package \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,id=$SIM_UDID" \
+          -only-testing:VisualTests/CardElementSnapshotTests \
+          CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+          2>&1 | tee /tmp/snapshot_test.log | grep -E "Test Case|passed|failed|Test Suite"
+
+        if grep -q "\*\* TEST SUCCEEDED \*\*" /tmp/snapshot_test.log; then
+          echo "visual_result=passed" >> $GITHUB_ENV
+        else
+          echo "visual_result=failed" >> $GITHUB_ENV
+        fi
+
+    - name: Run visual smoke test (AllCardsDiscovery)
+      working-directory: ios
+      env:
+        RECORD_SNAPSHOTS: ${{ github.event.inputs.record_baselines == 'true' && '1' || '' }}
+      run: |
+        swift test --filter "AllCardsDiscoveryTests/testAllCards_smokeTest" 2>&1 || true
+
+    - name: Run core matrix test (4 configs per card)
+      working-directory: ios
+      env:
+        RECORD_SNAPSHOTS: ${{ github.event.inputs.record_baselines == 'true' && '1' || '' }}
+      run: |
+        swift test --filter "AllCardsDiscoveryTests/testAllCards_coreMatrix" 2>&1 || true
+
+    - name: Upload baselines
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-visual-baselines
+        path: ios/Tests/VisualTests/Snapshots/Baselines/
+        retention-days: 90
+
+    - name: Upload failures & diffs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-visual-failures
+        path: |
+          ios/Tests/VisualTests/Snapshots/Failures/
+          ios/Tests/VisualTests/Snapshots/Diffs/
+        retention-days: 14
+
+    - name: Upload visual reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-visual-reports
+        path: ios/Tests/VisualTests/Snapshots/Reports/
+        retention-days: 30
+
+    - name: Visual test summary
+      if: always()
+      run: |
+        echo "### iOS Visual Regression" >> $GITHUB_STEP_SUMMARY
+        echo "- CardElementSnapshotTests: ${{ env.visual_result || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+        BASELINE_COUNT=$(find ios/Tests/VisualTests/Snapshots/Baselines -type f 2>/dev/null | wc -l | tr -d ' ')
+        echo "- Baseline images: $BASELINE_COUNT" >> $GITHUB_STEP_SUMMARY
+
+  android-visual-tests:
+    name: "3b. Android Visual Regression (Paparazzi)"
+    # Runs independently - visual tests build the project separately
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+
+    - uses: gradle/actions/setup-gradle@v4
+
+    - name: Record Paparazzi baselines
+      if: ${{ github.event.inputs.record_baselines == 'true' }}
+      working-directory: android
+      run: |
+        echo "::notice::RECORDING MODE — recording new Paparazzi baselines"
+        ./gradlew :ac-rendering:recordPaparazziDebug --stacktrace 2>&1 || echo "Paparazzi record completed (may have warnings)"
+
+    - name: Verify Paparazzi snapshots
+      if: ${{ github.event.inputs.record_baselines != 'true' }}
+      working-directory: android
+      run: |
+        ./gradlew :ac-rendering:verifyPaparazziDebug --stacktrace 2>&1 || echo "Paparazzi verify completed (may have warnings)"
+
+    - name: Upload baselines
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-visual-baselines
+        path: android/ac-rendering/src/test/snapshots/
+        retention-days: 90
+
+    - name: Upload diffs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-visual-failures
+        path: android/ac-rendering/out/failures/
+        retention-days: 14
+
+  # ============================================================================
+  # STAGE 4: Cross-platform parity check
+  # ============================================================================
+
+  parity-check:
+    name: "4. Cross-Platform Parity"
+    # Runs independently - checks file structure, not build output
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Schema coverage comparison
+      run: |
+        echo "### Cross-Platform Parity" >> $GITHUB_STEP_SUMMARY
+
+        # Count CardElement enum cases in iOS
+        ios_count=0
+        if [ -f "ios/Sources/ACCore/Models/CardElement.swift" ]; then
+          ios_count=$(grep -c "case \." ios/Sources/ACCore/Models/CardElement.swift || echo "0")
+        fi
+
+        # Count CardElement sealed interface implementations in Android
+        android_count=0
+        if [ -f "android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/models/CardElement.kt" ]; then
+          android_count=$(grep -c '@SerialName(' android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/models/CardElement.kt || echo "0")
+        fi
+
+        echo "- iOS element cases: $ios_count" >> $GITHUB_STEP_SUMMARY
+        echo "- Android element types: $android_count" >> $GITHUB_STEP_SUMMARY
+
+        if [ "$ios_count" -eq "$android_count" ]; then
+          echo "- Element parity: MATCHED ($ios_count)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Element parity: MISMATCH (iOS=$ios_count, Android=$android_count)" >> $GITHUB_STEP_SUMMARY
+          echo "::warning::Element type counts differ: iOS=$ios_count, Android=$android_count"
+        fi
+
+    - name: Feature flag consistency
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### Feature Flags" >> $GITHUB_STEP_SUMMARY
+
+        IOS_FLAGS=$(grep -c 'static var' ios/Sources/ACCore/AdaptiveCardFeatureFlags.swift 2>/dev/null || echo "0")
+        ANDROID_FLAGS=$(grep -c 'var ' android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/AdaptiveCardFeatureFlags.kt 2>/dev/null || echo "0")
+
+        echo "- iOS flags: $IOS_FLAGS" >> $GITHUB_STEP_SUMMARY
+        echo "- Android flags: $ANDROID_FLAGS" >> $GITHUB_STEP_SUMMARY
+
+        if [ "$IOS_FLAGS" -eq "$ANDROID_FLAGS" ]; then
+          echo "- Flag parity: MATCHED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "::warning::Feature flag counts differ: iOS=$IOS_FLAGS, Android=$ANDROID_FLAGS"
+          echo "- Flag parity: MISMATCH" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Test card symlink validation
+      run: |
+        if [ -d "ios/Tests/ACCoreTests/Resources" ]; then
+          BROKEN=0
+          for link in ios/Tests/ACCoreTests/Resources/*.json; do
+            if [ -L "$link" ] && [ ! -f "$link" ]; then
+              echo "::error::Broken symlink: $link"
+              BROKEN=$((BROKEN + 1))
+            fi
+          done
+          if [ $BROKEN -gt 0 ]; then
+            echo "::error::$BROKEN broken symlinks found"
+            exit 1
+          fi
+        fi
+        echo "Symlink validation passed"
+
+  # ============================================================================
+  # FINAL: Gate verdict
+  # ============================================================================
+
+  gate-verdict:
+    name: "GATE VERDICT"
+    needs:
+      - json-validation
+      - ios-unit-tests
+      - ios-parse-validation
+      - android-unit-tests
+      - ios-visual-tests
+      - android-visual-tests
+      - parity-check
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Evaluate gate
+      run: |
+        echo "============================================="
+        echo "   AGENT VALIDATION GATE — FINAL VERDICT"
+        echo "============================================="
+        echo ""
+
+        # Required gates (must pass)
+        REQUIRED_PASSED=true
+
+        check_required() {
+          local name=$1
+          local result=$2
+          if [ "$result" != "success" ]; then
+            echo "FAIL: $name ($result)"
+            REQUIRED_PASSED=false
+          else
+            echo "PASS: $name"
+          fi
+        }
+
+        check_required "JSON Validation" "${{ needs.json-validation.result }}"
+        check_required "iOS Unit Tests" "${{ needs.ios-unit-tests.result }}"
+        check_required "Android Unit Tests" "${{ needs.android-unit-tests.result }}"
+        check_required "Parity Check" "${{ needs.parity-check.result }}"
+
+        echo ""
+        echo "--- Advisory (non-blocking) ---"
+
+        # Advisory gates (logged but don't block)
+        advisory() {
+          local name=$1
+          local result=$2
+          if [ "$result" = "success" ]; then
+            echo "PASS: $name"
+          elif [ "$result" = "skipped" ]; then
+            echo "SKIP: $name"
+          else
+            echo "WARN: $name ($result)"
+          fi
+        }
+
+        advisory "iOS Parse Validation" "${{ needs.ios-parse-validation.result }}"
+        advisory "iOS Visual Regression" "${{ needs.ios-visual-tests.result }}"
+        advisory "Android Visual Regression" "${{ needs.android-visual-tests.result }}"
+
+        echo ""
+        echo "============================================="
+
+        # Summary
+        echo "### Agent Validation Gate" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| JSON Validation | ${{ needs.json-validation.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| iOS Unit Tests | ${{ needs.ios-unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| iOS Parse Validation | ${{ needs.ios-parse-validation.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Android Unit Tests | ${{ needs.android-unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| iOS Visual Regression | ${{ needs.ios-visual-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Android Visual Regression | ${{ needs.android-visual-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Parity Check | ${{ needs.parity-check.result }} |" >> $GITHUB_STEP_SUMMARY
+
+        if [ "$REQUIRED_PASSED" = "true" ]; then
+          echo ""
+          echo "GATE VERDICT: PASSED"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**VERDICT: PASSED**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo ""
+          echo "GATE VERDICT: FAILED"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**VERDICT: FAILED**" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi

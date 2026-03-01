@@ -19,6 +19,8 @@ public struct Container: Codable, Equatable {
     public var requires: [String: String]?
     public var targetWidth: String?
     public var fallback: CardElement?
+    /// Layout descriptor (FlowLayout or AreaGridLayout). When nil, uses default stack layout.
+    public var layout: Layout?
 
     public init(
         id: String? = nil,
@@ -35,7 +37,8 @@ public struct Container: Codable, Equatable {
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
         targetWidth: String? = nil,
-        fallback: CardElement? = nil
+        fallback: CardElement? = nil,
+        layout: Layout? = nil
     ) {
         self.id = id
         self.items = items
@@ -52,6 +55,7 @@ public struct Container: Codable, Equatable {
         self.requires = requires
         self.targetWidth = targetWidth
         self.fallback = fallback
+        self.layout = layout
     }
 }
 
@@ -181,7 +185,13 @@ public enum ColumnWidth: Codable, Equatable {
             case "stretch":
                 self = .stretch
             default:
-                self = .pixels(stringValue)
+                // Per AC spec, numeric strings like "1", "2" are weighted values.
+                // Only strings containing non-numeric chars (e.g. "50px") are pixel values.
+                if let numericValue = Double(stringValue) {
+                    self = .weighted(numericValue)
+                } else {
+                    self = .pixels(stringValue)
+                }
             }
         } else if let doubleValue = try? container.decode(Double.self) {
             self = .weighted(doubleValue)

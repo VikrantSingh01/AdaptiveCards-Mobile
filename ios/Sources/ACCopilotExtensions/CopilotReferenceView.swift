@@ -59,6 +59,14 @@ public struct CopilotReferenceView: View {
             return "link"
         case .document:
             return "doc.text.fill"
+        case .email:
+            return "envelope.fill"
+        case .meeting:
+            return "calendar"
+        case .person:
+            return "person.fill"
+        case .message:
+            return "message.fill"
         }
     }
 }

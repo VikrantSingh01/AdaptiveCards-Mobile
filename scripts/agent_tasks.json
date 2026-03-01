@@ -1,0 +1,68 @@
+{
+  "description": "Remaining tasks for visual testing pipeline (PR #38 follow-ups)",
+  "created": "2026-02-14",
+  "tasks": [
+    {
+      "agent": "copilot",
+      "title": "fix(ci): Add CODE_SIGNING_ALLOWED=NO flags to visual-regression.yml",
+      "platform": "ci",
+      "body": "The `visual-regression.yml` GitHub Actions workflow currently fails on Xcode 26 because SPM test targets produce resource-only `.bundle` files that fail CodeSign validation.\n\n### Problem\nXcode 26 SPM bundles (`AdaptiveCards_ACCoreTests.bundle`, `AdaptiveCards_IntegrationTests.bundle`) don't have executables, causing:\n```\nCodeSign failed: bundle format unrecognized, invalid, or unsuitable\n```\n\n### Fix Required\nAdd these build settings to ALL `xcodebuild` commands in `visual-regression.yml` and `ios-tests.yml`:\n```\nCODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO\n```\n\n### Files to modify\n- `.github/workflows/visual-regression.yml`\n- `.github/workflows/ios-tests.yml`\n\n### Verification\nThe `run_snapshot_test.sh` script already has these flags — match that pattern.",
+      "acceptance": [
+        "visual-regression.yml xcodebuild commands include CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO",
+        "ios-tests.yml xcodebuild commands include the same flags",
+        "iOS tests still build and pass in CI"
+      ],
+      "labels": ["ci", "bug"]
+    },
+    {
+      "agent": "claude",
+      "title": "fix(ios): Fix ColumnSet rendering in snapshot tests — baselines are empty white",
+      "platform": "ios",
+      "body": "The `ColumnSet` element baselines (`columnset_basic_iPhone_15_Pro.png`, `columnset_basic_iPad_Portrait.png`, `columnset_basic_iPhone_SE.png`) are pure white with 0% non-white pixels.\n\n### Root Cause Investigation Needed\nThe `PreParsedCardView` correctly renders `TextBlock`, `Container`, `Image`, and `ActionSet` elements via `ElementView`. However `ColumnSet` may not be rendering because:\n1. `ColumnSet` might be handled differently in the view hierarchy\n2. The `ForEach(body)` in `PreParsedCardView` may not iterate `ColumnSet` children correctly\n3. The `ElementView` composable may not handle `ColumnSet` type\n\n### Key Files\n- `ios/Tests/VisualTests/Utilities/PreParsedCardView.swift` — the snapshot rendering view\n- `ios/Sources/ACRendering/Views/` — where ElementView dispatches to element-specific views\n- `ios/Tests/VisualTests/CardElementSnapshotTests.swift` — the test file (`testColumnSetBasic`)\n\n### Test Card Used\nThe `testColumnSetBasic` test uses this JSON:\n```json\n{\"type\":\"AdaptiveCard\",\"version\":\"1.5\",\"body\":[{\"type\":\"ColumnSet\",\"columns\":[{\"type\":\"Column\",\"width\":\"auto\",\"items\":[{\"type\":\"TextBlock\",\"text\":\"Column 1\",\"weight\":\"Bolder\"}]},{\"type\":\"Column\",\"width\":\"stretch\",\"items\":[{\"type\":\"TextBlock\",\"text\":\"Column 2\"}]},{\"type\":\"Column\",\"width\":\"auto\",\"items\":[{\"type\":\"TextBlock\",\"text\":\"Column 3\"}]}]}]}\n```\n\n### Expected Result\nBaselines should show three columns: \"Column 1\" (bold), \"Column 2\" (stretched), \"Column 3\" side by side.\n\n### Constraints\n- Do NOT use ScrollView or LazyVStack in PreParsedCardView\n- Do NOT use @StateObject\n- Must use VStack with sync CardViewModel\n- `layer.render` is the working capture path (drawHierarchy returns false in SPM XCTest)",
+      "acceptance": [
+        "columnset_basic_iPhone_15_Pro.png baseline shows 3 visible columns with text",
+        "All 10 CardElementSnapshotTests pass in both record and verify modes",
+        "No regression in other baselines (textblock, container, dark_mode, etc.)"
+      ],
+      "labels": ["bug", "rendering"]
+    },
+    {
+      "agent": "copilot",
+      "title": "fix(ios): Investigate and fix full VisualTests suite timeout",
+      "platform": "ios",
+      "body": "Running all `VisualTests` test classes together causes a timeout/hang after ~15 minutes:\n```bash\nxcodebuild test -only-testing:VisualTests ...\n```\n\nBut running just `CardElementSnapshotTests` works fine:\n```bash\nxcodebuild test -only-testing:VisualTests/CardElementSnapshotTests ...\n```\n\n### Test Classes in VisualTests\n- `CardElementSnapshotTests.swift` — ✅ 10/10 pass\n- `AllCardsDiscoveryTests.swift` — discovers 173+ cards, may generate hundreds of snapshots\n- `DeviceSizeVisualTests.swift`\n- `CardParseValidationTests.swift`\n- `EdgeCaseVisualTests.swift`\n- `CardVisualRegressionTests.swift`\n- `ComprehensiveSnapshotTests.swift`\n- `CardPerformanceTests.swift`\n- `AppearanceVisualTests.swift`\n\n### Likely Causes\n1. `AllCardsDiscoveryTests` generates too many snapshots (173 cards × multiple configs = 600+ images)\n2. Some test classes may have infinite loops or excessive RunLoop spinning\n3. Test classes may be conflicting when run together\n\n### Fix Approach\n- Add per-test timeout (e.g., 60s per snapshot test)\n- Limit AllCardsDiscoveryTests to a single configuration (not full matrix) by default\n- Add `XCTSkipIf` for expensive tests when not in CI\n- Ensure each test class can run independently",
+      "acceptance": [
+        "Running -only-testing:VisualTests completes within 10 minutes",
+        "CardElementSnapshotTests still pass (10/10)",
+        "No test hangs or timeouts",
+        "AllCardsDiscoveryTests generates baselines for all shared test cards"
+      ],
+      "labels": ["performance", "testing"]
+    },
+    {
+      "agent": "claude",
+      "title": "fix(android): Investigate Android Paparazzi screenshot quality issues",
+      "platform": "android",
+      "body": "The Android Paparazzi snapshot tests run and pass (39/39) but the screenshot quality needs investigation. Some screenshots may have rendering issues compared to iOS baselines.\n\n### Current State\n- Paparazzi tests: `android/ac-rendering/src/test/kotlin/.../AllCardsDiscoveryTests.kt`\n- Card element tests: `android/ac-rendering/src/test/kotlin/.../CardElementSnapshotTests.kt`\n- Teams-specific tests: `android/ac-rendering/src/test/kotlin/.../TeamsCardSnapshotTests.kt`\n\n### Tasks\n1. Run `./gradlew :ac-rendering:recordPaparazziDebug` and capture fresh golden files\n2. Compare golden files against iOS baselines for the same cards (e.g., `accordion`, `all-actions`, `charts`)\n3. Identify any rendering discrepancies (missing elements, wrong colors, layout issues)\n4. Fix any Compose rendering bugs found\n5. Ensure golden files are committed\n\n### Commands\n```bash\ncd android\n./gradlew :ac-rendering:recordPaparazziDebug     # Record golden files\n./gradlew :ac-rendering:verifyPaparazziDebug      # Verify against golden\n```",
+      "acceptance": [
+        "Paparazzi golden files recorded and committed",
+        "All Paparazzi tests pass in verify mode",
+        "Key cards (accordion, all-actions, charts, code-block) render with visible content",
+        "No regression in existing Android unit tests"
+      ],
+      "labels": ["android", "testing"]
+    },
+    {
+      "agent": "copilot",
+      "title": "feat(ios): Commit remaining 692 baseline PNGs for full card discovery tests",
+      "platform": "ios",
+      "body": "There are ~692 untracked baseline PNG files in `ios/Tests/VisualTests/Snapshots/Baselines/` from the full-card discovery test runs. These should be committed so the visual regression pipeline has complete baselines.\n\n### Current State\n- 27 baselines already committed (CardElementSnapshotTests)\n- ~692 baselines untracked (from AllCardsDiscoveryTests and other test classes)\n- These were generated by running all VisualTests in record mode\n\n### Tasks\n1. Review the untracked baselines — remove any that are clearly broken (0 bytes, corrupt)\n2. Run pixel analysis to identify which have content vs. empty white\n3. `git add` all baselines that have visible content (>0.5% non-white pixels)\n4. Commit with message: `feat(ios): add full-card discovery baseline screenshots`\n5. Push to `feature/visual-testing-activation` branch\n\n### Analysis Script\n```python\nfrom PIL import Image\nimport os\nbase = 'ios/Tests/VisualTests/Snapshots/Baselines'\nfor f in sorted(os.listdir(base)):\n    if not f.endswith('.png'): continue\n    img = Image.open(os.path.join(base, f))\n    pixels = list(img.getdata())\n    non_white = sum(1 for p in pixels if (p[0],p[1],p[2]) != (255,255,255) and p[3] > 0)\n    pct = 100 * non_white / len(pixels)\n    print(f'{'OK' if pct > 0.5 else 'EMPTY':5s} {pct:5.1f}% {f}')\n```",
+      "acceptance": [
+        "All untracked baseline PNGs with visible content are committed",
+        "Empty/white baselines are documented (list of which cards produce empty screenshots)",
+        "Git status shows no untracked .png files in Baselines directory"
+      ],
+      "labels": ["testing", "cleanup"]
+    }
+  ]
+}

@@ -46,6 +46,7 @@ public struct TimeInputView: View {
                 displayedComponents: [.hourAndMinute]
             )
             .datePickerStyle(.compact)
+            .tint(.blue)
             .onChange(of: date) { newDate in
                 updateValue(from: newDate)
             }

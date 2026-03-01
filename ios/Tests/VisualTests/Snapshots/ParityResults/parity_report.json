@@ -1,0 +1,81 @@
+{
+  "aboveThreshold" : 0,
+  "passed" : 12,
+  "results" : [
+    {
+      "card" : "parity-actions",
+      "diffPercentage" : 0.076089314949602541,
+      "message" : "Diff 7.61% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-activity-update",
+      "diffPercentage" : 0.04061702806122449,
+      "message" : "Diff 4.06% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-columnset-layouts",
+      "diffPercentage" : 0.043175334649989031,
+      "message" : "Diff 4.32% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-container-styles",
+      "diffPercentage" : 0,
+      "message" : "Diff 0.00% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-factset",
+      "diffPercentage" : 0.034766763848396498,
+      "message" : "Diff 3.48% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-image-sizes",
+      "diffPercentage" : 0,
+      "message" : "Diff 0.00% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-imageset",
+      "diffPercentage" : 0,
+      "message" : "Diff 0.00% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-inputs",
+      "diffPercentage" : 0.08733020160501076,
+      "message" : "Diff 8.73% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-nested-containers",
+      "diffPercentage" : 0.0077711908757872698,
+      "message" : "Diff 0.78% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-richtext",
+      "diffPercentage" : 0.043310657596371885,
+      "message" : "Diff 4.33% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-table",
+      "diffPercentage" : 0.057206632653061223,
+      "message" : "Diff 5.72% within threshold",
+      "status" : "passed"
+    },
+    {
+      "card" : "parity-textblock-basic",
+      "diffPercentage" : 0.0018974531961544949,
+      "message" : "Diff 0.19% within threshold",
+      "status" : "passed"
+    }
+  ],
+  "timestamp" : "2026-02-17T15:54:46Z",
+  "tolerance" : 0.01,
+  "totalCards" : 12
+}

@@ -46,6 +46,7 @@ public struct DateInputView: View {
                 displayedComponents: [.date]
             )
             .datePickerStyle(.compact)
+            .tint(.blue)
             .onChange(of: date) { newDate in
                 updateValue(from: newDate)
             }
