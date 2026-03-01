@@ -107,7 +107,7 @@ public struct ChoiceSetInputView: View {
 
     private var expandedView: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(input.choices, id: \.value) { choice in
+            ForEach(Array(input.choices.enumerated()), id: \.element.value) { index, choice in
                 if input.isMultiSelect == true {
                     Toggle(choice.title, isOn: Binding(
                         get: { selectedValues.contains(choice.value) },
@@ -121,6 +121,12 @@ public struct ChoiceSetInputView: View {
                         }
                     ))
                     .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    .accessibilityChoiceItem(
+                        label: choice.title,
+                        index: index,
+                        totalCount: input.choices.count,
+                        selected: selectedValues.contains(choice.value)
+                    )
                 } else {
                     Button(action: {
                         value = choice.value
@@ -135,9 +141,16 @@ public struct ChoiceSetInputView: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundColor(.primary)
+                    .accessibilityChoiceItem(
+                        label: choice.title,
+                        index: index,
+                        totalCount: input.choices.count,
+                        selected: value == choice.value
+                    )
                 }
             }
         }
+        .accessibilityChoiceList(label: input.label ?? "Choices", count: input.choices.count)
     }
 
     private var filteredView: some View {

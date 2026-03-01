@@ -94,3 +94,44 @@ public extension View {
         }
     }
 }
+
+// MARK: - ChoiceSet / Dropdown Accessibility
+
+public extension View {
+    /// Adds accessibility for a dropdown/picker button showing its state.
+    func accessibilityDropdown(
+        label: String,
+        selectedValue: String?,
+        isRequired: Bool = false
+    ) -> some View {
+        let req = isRequired ? ", required" : ""
+        let val = (selectedValue != nil && !selectedValue!.isEmpty) ? ", \(selectedValue!)" : ""
+        return self
+            .accessibilityLabel("\(label)\(req), popup button\(val)")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Double tap to open dropdown")
+    }
+
+    /// Adds accessibility for a choice item in a radio group or choice list,
+    /// providing correct "X of Y" position info for VoiceOver.
+    func accessibilityChoiceItem(
+        label: String,
+        index: Int,
+        totalCount: Int,
+        selected: Bool
+    ) -> some View {
+        self
+            .accessibilityLabel(label)
+            .accessibilityValue(selected ? "selected" : "")
+            .accessibilityHint("\(index + 1) of \(totalCount)")
+            .accessibilityAddTraits(selected ? [.isSelected] : [])
+    }
+
+    /// Marks this view as a list container for accessibility with the given
+    /// item count.  VoiceOver uses this to announce "list, N items".
+    func accessibilityChoiceList(label: String, count: Int) -> some View {
+        self
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("\(label), \(count) options")
+    }
+}
