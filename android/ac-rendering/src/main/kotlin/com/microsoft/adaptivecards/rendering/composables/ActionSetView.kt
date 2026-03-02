@@ -23,6 +23,8 @@ import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import com.microsoft.adaptivecards.accessibility.buttonSemantics
 import com.microsoft.adaptivecards.accessibility.linkSemantics
+import com.microsoft.adaptivecards.accessibility.toggleButtonSemantics
+import com.microsoft.adaptivecards.accessibility.containerSemantics
 
 /**
  * Renders an ActionSet as a row or column of action buttons.
@@ -54,28 +56,62 @@ fun ActionSetView(
         visibleActions = primaryActions
     }
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(
-            hostConfig.actions.buttonSpacing.dp
-        )
-    ) {
-        visibleActions.forEach { action ->
-            ActionButton(
-                action = action,
-                actionHandler = actionHandler,
-                viewModel = viewModel,
-                modifier = Modifier.weight(1f)
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(
+                hostConfig.actions.buttonSpacing.dp
             )
+        ) {
+            visibleActions.forEach { action ->
+                ActionButton(
+                    action = action,
+                    actionHandler = actionHandler,
+                    viewModel = viewModel,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            // Overflow menu for secondary actions
+            if (secondaryActions.isNotEmpty()) {
+                OverflowMenuButton(
+                    actions = secondaryActions,
+                    actionHandler = actionHandler,
+                    viewModel = viewModel
+                )
+            }
         }
 
-        // Overflow menu for secondary actions
-        if (secondaryActions.isNotEmpty()) {
-            OverflowMenuButton(
-                actions = secondaryActions,
-                actionHandler = actionHandler,
-                viewModel = viewModel
-            )
+        // Render inline ShowCard content for expanded ShowCard actions
+        // (upstream #100, #374)
+        actions.filterIsInstance<ActionShowCard>().forEach { showCardAction ->
+            val actionId = showCardAction.id ?: return@forEach
+            val isExpanded = viewModel.isShowCardExpanded(actionId)
+            if (isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .containerSemantics("${showCardAction.title ?: "Card"} content")
+                ) {
+                    showCardAction.card.body?.forEachIndexed { index, element ->
+                        RenderElement(
+                            element = element,
+                            isFirst = index == 0,
+                            viewModel = viewModel,
+                            actionHandler = actionHandler
+                        )
+                    }
+                    showCardAction.card.actions?.let { subActions ->
+                        if (subActions.isNotEmpty()) {
+                            ActionSetView(
+                                actions = subActions,
+                                actionHandler = actionHandler,
+                                viewModel = viewModel
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -120,7 +156,12 @@ private fun OverflowMenuButton(
 }
 
 /**
- * Renders a single action as a button
+ * Renders a single action as a button.
+ *
+ * ShowCard actions use [toggleButtonSemantics] to announce expanded/collapsed
+ * state (upstream #100, #374). Other actions use [buttonSemantics] (with
+ * mergeDescendants to avoid duplicate TalkBack focus, upstream #202) or
+ * [linkSemantics] for OpenUrl actions (upstream #492).
  */
 @Composable
 fun ActionButton(
@@ -141,23 +182,43 @@ fun ActionButton(
 
     // Use tooltip as content description for accessibility when available
     val tooltipText = action.tooltip
+    val label = tooltipText ?: action.title ?: "Action"
 
-    // Use link semantics for ActionOpenUrl to avoid TalkBack announcing
-    // both "link" and "button" (upstream #492)
-    val semanticsModifier = if (action is com.microsoft.adaptivecards.core.models.ActionOpenUrl) {
-        modifier.linkSemantics(
-            label = tooltipText ?: action.title ?: "Link",
-            enabled = action.isEnabled
-        )
-    } else {
-        modifier.buttonSemantics(
-            label = tooltipText ?: action.title ?: "Action",
-            enabled = action.isEnabled
-        )
+    // Choose correct semantics modifier based on action type:
+    // - ShowCard: toggleButtonSemantics with expanded/collapsed state
+    // - OpenUrl: linkSemantics (no Role.Button to avoid "link button")
+    // - All others: buttonSemantics
+    val semanticsModifier = when (action) {
+        is ActionShowCard -> {
+            val actionId = action.id ?: ""
+            val isExpanded = viewModel.isShowCardExpanded(actionId)
+            modifier.toggleButtonSemantics(
+                label = label,
+                expanded = isExpanded,
+                enabled = action.isEnabled
+            )
+        }
+        is ActionOpenUrl -> {
+            modifier.linkSemantics(
+                label = tooltipText ?: action.title ?: "Link",
+                enabled = action.isEnabled
+            )
+        }
+        else -> {
+            modifier.buttonSemantics(
+                label = label,
+                enabled = action.isEnabled
+            )
+        }
     }
 
     Button(
         onClick = {
+            // For ShowCard, toggle the expanded state in the view model
+            if (action is ActionShowCard) {
+                val actionId = action.id ?: ""
+                viewModel.toggleShowCard(actionId)
+            }
             handleAction(action, actionHandler, viewModel)
         },
         enabled = action.isEnabled,

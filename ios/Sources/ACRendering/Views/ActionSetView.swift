@@ -55,9 +55,13 @@ struct ActionSetView: View {
     @ViewBuilder
     private var actionContent: some View {
         ForEach(visibleActions) { action in
-            ActionButton(action: action, hostConfig: hostConfig) {
+            ActionButton(
+                action: action,
+                hostConfig: hostConfig
+            ) {
                 actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
             }
+            .accessibilityValue(showCardExpandedState(for: action).map { $0 ? "expanded" : "collapsed" } ?? "")
             .if(isStretch) { view in
                 view.frame(maxWidth: .infinity)
             }
@@ -65,6 +69,52 @@ struct ActionSetView: View {
 
         if !overflowActions.isEmpty {
             overflowMenu
+        }
+
+        // Render inline ShowCard content for expanded cards (upstream #100, #374)
+        ForEach(showCardActions, id: \.actionId) { showCardInfo in
+            if viewModel.isShowCardExpanded(actionId: showCardInfo.actionId) {
+                VStack(spacing: 0) {
+                    if let body = showCardInfo.card.body {
+                        ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
+                            ElementView(element: element, hostConfig: hostConfig)
+                        }
+                    }
+                    if let subActions = showCardInfo.card.actions, !subActions.isEmpty {
+                        ActionSetView(actions: subActions, hostConfig: hostConfig)
+                    }
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("\(showCardInfo.title) content")
+            }
+        }
+    }
+
+    /// Returns expanded state for ShowCard actions, nil for others
+    private func showCardExpandedState(for action: CardAction) -> Bool? {
+        switch action {
+        case .showCard(let showCardAction):
+            let actionId = showCardAction.id ?? ""
+            return viewModel.isShowCardExpanded(actionId: actionId)
+        default:
+            return nil
+        }
+    }
+
+    /// Extracts ShowCard actions with their IDs and cards
+    private var showCardActions: [ShowCardInfo] {
+        actions.compactMap { action in
+            switch action {
+            case .showCard(let showCardAction):
+                let actionId = showCardAction.id ?? ""
+                return ShowCardInfo(
+                    actionId: actionId,
+                    title: showCardAction.title ?? "Card",
+                    card: showCardAction.card
+                )
+            default:
+                return nil
+            }
         }
     }
 
@@ -115,4 +165,12 @@ struct ActionSetView: View {
         case horizontal
         case vertical
     }
+}
+
+/// Helper for tracking ShowCard action metadata
+private struct ShowCardInfo: Identifiable {
+    let actionId: String
+    let title: String
+    let card: AdaptiveCard
+    var id: String { actionId }
 }

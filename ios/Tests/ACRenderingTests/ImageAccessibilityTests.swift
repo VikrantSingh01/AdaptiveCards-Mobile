@@ -22,8 +22,8 @@ final class ImageAccessibilityTests: XCTestCase {
             id: "test-image",
             url: url,
             altText: altText,
-            style: style,
-            size: size
+            size: size,
+            style: style
         )
     }
 

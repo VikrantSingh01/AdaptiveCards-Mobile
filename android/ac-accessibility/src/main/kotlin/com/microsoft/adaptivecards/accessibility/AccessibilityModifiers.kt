@@ -12,17 +12,36 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 
 /**
- * Adds accessibility semantics for a button
+ * Adds accessibility semantics for a button.
+ * Uses mergeDescendants to prevent duplicate TalkBack focus when
+ * combined with Material3 Button's internal clickable semantics
+ * (upstream #202).
  */
 fun Modifier.buttonSemantics(
     label: String,
     enabled: Boolean = true
-): Modifier = this.semantics {
+): Modifier = this.semantics(mergeDescendants = true) {
     contentDescription = label
     role = Role.Button
     if (!enabled) {
         stateDescription = "Disabled"
     }
+}
+
+/**
+ * Adds accessibility semantics for a toggle/expand button (e.g. ShowCard).
+ * Announces label + expanded/collapsed state so TalkBack says
+ * "Show History button, expanded" or "Show History button, collapsed"
+ * (upstream #100, #374).
+ */
+fun Modifier.toggleButtonSemantics(
+    label: String,
+    expanded: Boolean,
+    enabled: Boolean = true
+): Modifier = this.semantics(mergeDescendants = true) {
+    contentDescription = label
+    role = Role.Button
+    stateDescription = if (!enabled) "Disabled" else if (expanded) "expanded" else "collapsed"
 }
 
 /**

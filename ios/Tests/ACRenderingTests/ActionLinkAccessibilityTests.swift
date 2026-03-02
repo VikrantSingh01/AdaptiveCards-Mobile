@@ -6,20 +6,20 @@
 
 import XCTest
 @testable import ACCore
-@testable import ACAccessibility
+@testable import ACRendering
 
 final class ActionLinkAccessibilityTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func parseCard(_ json: String) -> AdaptiveCard {
-        return try! AdaptiveCard.from(json: json)
+    private func parseCard(_ json: String) throws -> AdaptiveCard {
+        return try CardParser().parse(json)
     }
 
     // MARK: - OpenUrl action model properties
 
-    func testOpenUrlActionHasTitle() {
-        let card = parseCard("""
+    func testOpenUrlActionHasTitle() throws {
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",
@@ -41,8 +41,8 @@ final class ActionLinkAccessibilityTests: XCTestCase {
         XCTAssertEqual(action.url, "https://example.com/info")
     }
 
-    func testOpenUrlActionIsDistinctFromSubmit() {
-        let card = parseCard("""
+    func testOpenUrlActionIsDistinctFromSubmit() throws {
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",
@@ -73,10 +73,10 @@ final class ActionLinkAccessibilityTests: XCTestCase {
 
     // MARK: - Link vs Button role differentiation
 
-    func testOpenUrlShouldNotBeAnnouncedAsButton() {
+    func testOpenUrlShouldNotBeAnnouncedAsButton() throws {
         // The fix ensures Action.OpenUrl uses .isLink trait on iOS
         // and linkSemantics on Android, NOT .isButton / Role.Button
-        let card = parseCard("""
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",
@@ -95,9 +95,9 @@ final class ActionLinkAccessibilityTests: XCTestCase {
         XCTAssertNotNil(action.title, "OpenUrl should have a title for accessibility")
     }
 
-    func testSubmitActionShouldRemainButton() {
+    func testSubmitActionShouldRemainButton() throws {
         // Submit actions should keep button semantics (not link)
-        let card = parseCard("""
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",
@@ -116,8 +116,8 @@ final class ActionLinkAccessibilityTests: XCTestCase {
 
     // MARK: - Tooltip accessibility
 
-    func testOpenUrlWithTooltipUsesTooltipForAccessibility() {
-        let card = parseCard("""
+    func testOpenUrlWithTooltipUsesTooltipForAccessibility() throws {
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",
@@ -141,8 +141,8 @@ final class ActionLinkAccessibilityTests: XCTestCase {
 
     // MARK: - Mixed action types
 
-    func testMixedActionTypesHaveCorrectRoles() {
-        let card = parseCard("""
+    func testMixedActionTypesHaveCorrectRoles() throws {
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",
@@ -174,11 +174,11 @@ final class ActionLinkAccessibilityTests: XCTestCase {
 
     // MARK: - Parity
 
-    func testLinkRoleParityWithAndroid() {
+    func testLinkRoleParityWithAndroid() throws {
         // On Android, ActionOpenUrl uses linkSemantics (contentDescription = "label, link")
         // On iOS, ActionOpenUrl uses .isLink trait and removes .isButton
         // Both should result in screen reader saying "link" not "button"
-        let card = parseCard("""
+        let card = try parseCard("""
         {
             "type": "AdaptiveCard",
             "version": "1.6",

@@ -7,15 +7,18 @@ import ACFluentUI
 public struct ActionButton: View {
     let action: CardAction
     let hostConfig: HostConfig
+    let isExpanded: Bool?
     let onTap: () -> Void
 
     public init(
         action: CardAction,
         hostConfig: HostConfig,
+        isExpanded: Bool? = nil,
         onTap: @escaping () -> Void
     ) {
         self.action = action
         self.hostConfig = hostConfig
+        self.isExpanded = isExpanded
         self.onTap = onTap
     }
 
@@ -50,7 +53,16 @@ public struct ActionButton: View {
         .accessibilityAction(label: title, hint: tooltip)
         .accessibilityRemoveTraits(isOpenUrl ? .isButton : [])
         .accessibilityAddTraits(isOpenUrl ? .isLink : [])
+        .accessibilityValue(expandedValue)
+    }
+
+    /// Accessibility value for expanded/collapsed state
+    private var expandedValue: String {
+        if let isExpanded = isExpanded {
+            return isExpanded ? "expanded" : "collapsed"
         }
+        return ""
+    }
 
     private var title: String? {
         switch action {
@@ -63,6 +75,7 @@ public struct ActionButton: View {
         case .runCommands(let a): return a.title
         case .openUrlDialog(let a): return a.title
         }
+    }
 
     private var iconUrl: String? {
         switch action {
@@ -75,6 +88,7 @@ public struct ActionButton: View {
         case .runCommands(let a): return a.iconUrl
         case .openUrlDialog(let a): return a.iconUrl
         }
+    }
 
     private var style: ActionStyle? {
         switch action {
@@ -87,6 +101,7 @@ public struct ActionButton: View {
         case .runCommands(let a): return a.style
         case .openUrlDialog(let a): return a.style
         }
+    }
 
     private var tooltip: String? {
         switch action {
@@ -99,6 +114,7 @@ public struct ActionButton: View {
         case .runCommands(let a): return a.tooltip
         case .openUrlDialog(let a): return a.tooltip
         }
+    }
 
     private var isEnabled: Bool? {
         switch action {
@@ -111,6 +127,7 @@ public struct ActionButton: View {
         case .runCommands(let a): return a.isEnabled
         case .openUrlDialog(let a): return a.isEnabled
         }
+    }
 
     /// Whether this action opens a URL (should use link trait, not button)
     private var isOpenUrl: Bool {
@@ -118,11 +135,19 @@ public struct ActionButton: View {
         case .openUrl, .openUrlDialog: return true
         default: return false
         }
+    }
+
+    /// Whether this action is a ShowCard toggle
+    private var isShowCard: Bool {
+        switch action {
+        case .showCard: return true
+        default: return false
+        }
+    }
 
     private var backgroundColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
-
         switch actionStyle {
         case .default:
             return Color(hex: colors.accent.`default`)
@@ -131,6 +156,7 @@ public struct ActionButton: View {
         case .destructive:
             return Color(hex: colors.attention.`default`)
         }
+    }
 
     private var foregroundColor: Color {
         return .white
@@ -140,7 +166,6 @@ public struct ActionButton: View {
     private var buttonBackgroundColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
-
         switch actionStyle {
         case .default:
             return Color(uiColor: .systemBlue)
@@ -149,16 +174,17 @@ public struct ActionButton: View {
         case .destructive:
             return .clear
         }
+    }
 
     /// Foreground text color matching legacy renderer
     private var buttonForegroundColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
-
         switch actionStyle {
         case .default, .positive:
             return .white
         case .destructive:
             return Color(hex: colors.attention.`default`)
         }
+    }
 }
