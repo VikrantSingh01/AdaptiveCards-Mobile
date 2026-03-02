@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.microsoft.adaptivecards.accessibility
 
 import androidx.compose.ui.Modifier

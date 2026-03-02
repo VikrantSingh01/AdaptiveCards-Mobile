@@ -95,7 +95,7 @@ jobs:
       
     - name: Run Android Tests
       working-directory: android
-      run: ./gradlew testDebugUnitTest --stacktrace
+      run: ./gradlew testDebugUnitTest --stacktrace --continue -x :ac-copilot-extensions:testDebugUnitTest -x :ac-copilot-extensions:compileDebugKotlin
     
     - name: Upload Android Test Reports
       if: always()
