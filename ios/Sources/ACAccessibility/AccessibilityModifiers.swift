@@ -90,7 +90,9 @@ private struct AccessibilityActionModifier: ViewModifier {
         content
             .accessibilityLabel(label ?? "Action")
             .accessibilityHint(hint ?? "Double tap to activate")
-            .accessibilityAddTraits(.isButton)
+            // Note: do NOT add .isButton here — the SwiftUI Button wrapper
+            // in ActionButton already provides this trait. Adding it again
+            // causes VoiceOver to announce "Button" twice (upstream #176).
     }
 }
 

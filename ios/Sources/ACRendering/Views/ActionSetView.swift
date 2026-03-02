@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import ACCore
 import ACActions
 import ACAccessibility
@@ -25,6 +28,13 @@ struct ActionSetView: View {
         }
         .frame(maxWidth: .infinity, alignment: alignment)
         .accessibilityContainer(label: "Actions")
+        .onChange(of: viewModel.showCards) { _ in
+            // Notify VoiceOver that the layout changed so it can
+            // discover newly-revealed ShowCard content (upstream #181).
+            #if canImport(UIKit)
+            UIAccessibility.post(notification: .layoutChanged, argument: nil)
+            #endif
+        }
     }
 
     // MARK: - Overflow logic

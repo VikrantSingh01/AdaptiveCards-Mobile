@@ -9,6 +9,7 @@ import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.invisibleToUser
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -47,16 +48,22 @@ fun Modifier.toggleButtonSemantics(
 }
 
 /**
- * Adds accessibility semantics for an image
+ * Adds accessibility semantics for an image.
+ * When altText is provided, announces the image with its description.
+ * When altText is null, the image is decorative and hidden from TalkBack
+ * to prevent focus landing on invisible/meaningless elements
+ * (upstream #203, #108).
  */
 fun Modifier.imageSemantics(
     altText: String?
-): Modifier = this.semantics {
-    // Always announce image role so TalkBack says "image" or "graphic"
-    role = Role.Image
-    if (altText != null) {
+): Modifier = if (altText != null) {
+    this.semantics {
+        role = Role.Image
         contentDescription = altText
     }
+} else {
+    // Decorative image — hide from TalkBack entirely
+    this.semantics { invisibleToUser() }
 }
 
 /**

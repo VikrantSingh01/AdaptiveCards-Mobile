@@ -42,7 +42,12 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .accessibilityElement(label: image.altText ?? "Image", traits: .isImage)
+        .if(image.altText != nil && !(image.altText?.isEmpty ?? true)) { view in
+                view.accessibilityElement(label: image.altText!, traits: .isImage)
+            }
+            .if(image.altText == nil || (image.altText?.isEmpty ?? true)) { view in
+                view.accessibilityHidden(true)
+            }
     }
 
     private var backgroundColorValue: Color {
