@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,7 @@ fun ProgressBarView(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .semantics {
+            .clearAndSetSemantics {
                 contentDescription = buildString {
                     element.label?.let { append("$it, ") }
                     append("Progress: $percentage percent")
@@ -114,7 +115,7 @@ fun SpinnerView(
     }
 
     Column(
-        modifier = modifier.semantics {
+        modifier = modifier.clearAndSetSemantics {
             contentDescription = buildString {
                 append("Loading")
                 element.label?.let { append(": $it") }

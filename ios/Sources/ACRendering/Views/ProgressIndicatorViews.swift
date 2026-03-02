@@ -60,9 +60,10 @@ struct ProgressBarView: View {
             .frame(height: barHeight)
             .cornerRadius(barHeight / 2)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(progressBar.label ?? "Progress")
         .accessibilityValue("\(Int(progressBar.value * 100)) percent")
+        .accessibilityAddTraits(.updatesFrequently)
     }
 }
 

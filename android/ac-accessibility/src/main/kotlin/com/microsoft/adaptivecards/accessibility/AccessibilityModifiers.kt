@@ -263,3 +263,39 @@ fun Modifier.inputWithErrorSemantics(
         stateDescription = "Empty"
     }
 }
+
+/**
+ * Adds accessibility semantics for a progress bar element.
+ * Uses clearAndSetSemantics to merge all child elements (label,
+ * progress indicator, percentage text) into a single TalkBack node.
+ * This prevents TalkBack from announcing children individually,
+ * which was causing irrelevant "link" and "image" announcements
+ * on poll cards (upstream #451).
+ *
+ * @param label Optional descriptive label for the progress bar
+ * @param percentage The progress value as an integer percentage (0-100)
+ */
+fun Modifier.progressBarSemantics(
+    label: String?,
+    percentage: Int
+): Modifier = this.semantics(mergeDescendants = true) {
+    contentDescription = buildString {
+        label?.let { append("$it, ") }
+        append("Progress: $percentage percent")
+    }
+}
+
+/**
+ * Adds accessibility semantics for a spinner/loading indicator.
+ * Merges all children to prevent duplicate announcements.
+ *
+ * @param label Optional descriptive label for what is loading
+ */
+fun Modifier.spinnerSemantics(
+    label: String?
+): Modifier = this.semantics(mergeDescendants = true) {
+    contentDescription = buildString {
+        append("Loading")
+        label?.let { append(": $it") }
+    }
+}
