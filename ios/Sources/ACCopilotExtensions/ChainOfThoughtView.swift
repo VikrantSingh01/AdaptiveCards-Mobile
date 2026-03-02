@@ -1,0 +1,195 @@
+import SwiftUI
+import ACCore
+
+// MARK: - ChainOfThoughtView
+
+/// SwiftUI view for rendering Chain of Thought UX.
+///
+/// Ported from production Teams-AdaptiveCards-Mobile SDK.
+/// Shows the reasoning steps Copilot goes through while processing a request,
+/// with expandable entries, status indicators, and animated transitions.
+@available(iOS 15.0, *)
+public struct ChainOfThoughtView: View {
+    public let data: ChainOfThoughtData
+    @State private var expandedSteps = Set<Int>()
+    public var onHeightChange: (() -> Void)?
+
+    public init(data: ChainOfThoughtData, onHeightChange: (() -> Void)? = nil) {
+        self.data = data
+        self.onHeightChange = onHeightChange
+    }
+
+    public var body: some View {
+        if !AdaptiveCardFeatureFlags.shared.enableCopilotStreamingExtensions {
+            EmptyView()
+        } else {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header with state
+            HStack {
+                Image(systemName: "brain.head.profile")
+                    .foregroundColor(.blue)
+                    .font(.system(size: 16))
+
+                Text(data.state)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
+
+            // Chain of thought entries
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(data.entries.enumerated()), id: \.offset) { index, entry in
+                    ChainOfThoughtEntryView(
+                        entry: entry,
+                        stepIndex: index,
+                        isCompleted: data.isDone || index < data.entries.count - 1,
+                        isLast: index == data.entries.count - 1,
+                        isExpanded: expandedSteps.contains(index),
+                        onToggleExpanded: {
+                            onHeightChange?()
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                if expandedSteps.contains(index) {
+                                    expandedSteps.remove(index)
+                                } else {
+                                    expandedSteps.insert(index)
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+        }
+        .padding(16)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .frame(maxWidth: .infinity)
+        .fixedSize(horizontal: false, vertical: true)
+        .onAppear {
+            if !data.entries.isEmpty {
+                expandedSteps.insert(0)
+            }
+        }
+        }
+    }
+}
+
+// MARK: - ChainOfThoughtEntryView
+
+@available(iOS 15.0, *)
+public struct ChainOfThoughtEntryView: View {
+    public let entry: ChainOfThoughtEntry
+    public let stepIndex: Int
+    public let isCompleted: Bool
+    public let isLast: Bool
+    public let isExpanded: Bool
+    public let onToggleExpanded: () -> Void
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Step header
+            Button(action: onToggleExpanded) {
+                HStack(alignment: .top, spacing: 12) {
+                    // Status indicator with connecting line
+                    VStack(spacing: 0) {
+                        ZStack {
+                            Circle()
+                                .fill(isCompleted ? Color.green : Color.orange)
+                                .frame(width: 12, height: 12)
+
+                            if isCompleted {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+
+                        if !isLast {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 2, height: 24)
+                                .padding(.top, 4)
+                        }
+                    }
+                    .frame(width: 12)
+
+                    // Header content
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .center) {
+                            Text(entry.header)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .lineLimit(nil)
+                                .multilineTextAlignment(.leading)
+                                .foregroundColor(.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+
+                            Spacer()
+
+                            // App info
+                            if let appInfo = entry.appInfo {
+                                HStack(spacing: 4) {
+                                    AsyncImage(url: URL(string: appInfo.icon)) { image in
+                                        image.resizable().aspectRatio(contentMode: .fit)
+                                    } placeholder: {
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.gray.opacity(0.3))
+                                    }
+                                    .frame(width: 16, height: 16)
+
+                                    Text(appInfo.name)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+
+                            // Chevron
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 12))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.vertical, 8)
+
+            // Expanded content
+            if isExpanded {
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(spacing: 0) {
+                        Spacer().frame(height: 12)
+                        if !isLast {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 2)
+                        }
+                    }
+                    .frame(width: 12)
+
+                    Text(entry.content)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 8)
+                }
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .move(edge: .top))
+                ))
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}

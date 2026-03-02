@@ -136,7 +136,29 @@ data class InputChoiceSet(
     val isMultiSelect: Boolean? = null,
     val placeholder: String? = null,
     val wrap: Boolean? = null
-) : CardInput
+) : CardInput {
+    /** Resolves the display title for a given value string. */
+    fun resolveTitle(selectedValue: String): String {
+        return choices.firstOrNull { it.value == selectedValue }?.title ?: selectedValue
+    }
+
+    /** Resolves display titles for a comma-separated multi-select value string. */
+    fun resolveTitles(selectedValue: String): List<String> {
+        return selectedValue.split(",").map { resolveTitle(it) }
+    }
+
+    /** Returns the display text for the current selection. Uses placeholder as fallback. */
+    fun displayText(selectedValue: String?): String {
+        if (selectedValue.isNullOrEmpty()) {
+            return placeholder ?: "Select..."
+        }
+        return if (isMultiSelect == true) {
+            resolveTitles(selectedValue).joinToString(", ")
+        } else {
+            resolveTitle(selectedValue)
+        }
+    }
+}
 
 @Serializable
 data class Choice(

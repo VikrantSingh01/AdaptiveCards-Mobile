@@ -6,6 +6,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.semantics
+import com.microsoft.adaptivecards.accessibility.dropdownItemSemantics
+import com.microsoft.adaptivecards.accessibility.dropdownMenuSemantics
+import com.microsoft.adaptivecards.accessibility.dropdownSemantics
+import com.microsoft.adaptivecards.accessibility.radioGroupItemSemantics
 import com.microsoft.adaptivecards.core.models.*
 import com.microsoft.adaptivecards.inputs.validation.InputValidator
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
@@ -140,7 +148,7 @@ fun ChoiceSetInputView(
                     onClick = { expanded = true },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(element.choices.find { it.value == selectedValue }?.title ?: element.placeholder ?: "Select...")
+                    Text(element.displayText(selectedValue))
                 }
                 
                 DropdownMenu(
@@ -159,17 +167,34 @@ fun ChoiceSetInputView(
                 }
             }
             ChoiceInputStyle.Expanded -> {
-                // Radio buttons
-                element.choices.forEach { choice ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        RadioButton(
-                            selected = selectedValue == choice.value,
-                            onClick = { selectedValue = choice.value }
+                // Radio buttons with correct accessibility index count
+                val choiceCount = element.choices.size
+                Column(
+                    modifier = Modifier.semantics {
+                        collectionInfo = CollectionInfo(
+                            rowCount = choiceCount,
+                            columnCount = 1
                         )
-                        Text(choice.title)
+                    }
+                ) {
+                    element.choices.forEachIndexed { index, choice ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .radioGroupItemSemantics(
+                                    label = choice.title,
+                                    index = index,
+                                    totalCount = choiceCount,
+                                    selected = selectedValue == choice.value
+                                )
+                        ) {
+                            RadioButton(
+                                selected = selectedValue == choice.value,
+                                onClick = { selectedValue = choice.value }
+                            )
+                            Text(choice.title)
+                        }
                     }
                 }
             }

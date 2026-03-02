@@ -16,8 +16,11 @@ struct ImageView: View {
         AsyncImage(url: URL(string: image.url)) { phase in
             switch phase {
             case .empty:
-                ProgressView()
-                    .frame(width: imageWidth, height: imageHeight)
+                // When image hasn't loaded yet, render as empty rather than
+                // reserving the target size. This matches legacy behavior where
+                // unloaded images don't reserve space in auto-width columns.
+                Color.clear
+                    .frame(width: 0, height: 0)
             case .success(let img):
                 img
                     .resizable()
@@ -39,7 +42,12 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .accessibilityElement(label: image.altText ?? "Image")
+        .if(image.altText != nil && !(image.altText?.isEmpty ?? true)) { view in
+                view.accessibilityElement(label: image.altText!, traits: .isImage)
+            }
+            .if(image.altText == nil || (image.altText?.isEmpty ?? true)) { view in
+                view.accessibilityHidden(true)
+            }
     }
 
     private var backgroundColorValue: Color {

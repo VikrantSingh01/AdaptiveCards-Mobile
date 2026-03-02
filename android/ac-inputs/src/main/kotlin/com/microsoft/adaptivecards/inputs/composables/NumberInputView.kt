@@ -9,6 +9,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.microsoft.adaptivecards.core.models.InputNumber
+import com.microsoft.adaptivecards.accessibility.errorSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.microsoft.adaptivecards.inputs.validation.InputValidator
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
@@ -62,11 +65,12 @@ fun NumberInputView(
             modifier = Modifier.fillMaxWidth()
         )
         
-        // Error message
+        // Error message — LiveRegion so TalkBack announces when it appears
         error?.let { errorText ->
             Text(
                 text = errorText,
-                color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                modifier = Modifier.errorSemantics(errorText)
             )
         }
     }

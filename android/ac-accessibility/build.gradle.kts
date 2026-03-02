@@ -38,14 +38,28 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
     implementation(libs.kotlin.stdlib)
-    
+
     // Compose
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
     implementation(libs.compose.runtime)
+
+    // Test dependencies
+    testImplementation(libs.junit4)
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.compose.material3)
+    debugImplementation(libs.compose.ui.test.manifest)
 }

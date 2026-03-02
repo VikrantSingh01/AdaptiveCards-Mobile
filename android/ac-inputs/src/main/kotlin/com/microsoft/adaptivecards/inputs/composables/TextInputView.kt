@@ -7,11 +7,15 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.microsoft.adaptivecards.core.models.InputText
 import com.microsoft.adaptivecards.core.models.TextInputStyle
+import com.microsoft.adaptivecards.accessibility.errorSemantics
 import com.microsoft.adaptivecards.inputs.validation.InputValidator
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
@@ -65,11 +69,12 @@ fun TextInputView(
             modifier = Modifier.fillMaxWidth()
         )
         
-        // Error message
+        // Error message — LiveRegion so TalkBack announces when it appears
         error?.let { errorText ->
             Text(
                 text = errorText,
-                color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                modifier = Modifier.errorSemantics(errorText)
             )
         }
     }

@@ -57,7 +57,7 @@ fun ImageView(
     
     AsyncImage(
         model = element.url,
-        contentDescription = element.altText,
+        contentDescription = null, // Handled by imageSemantics modifier
         contentScale = if (element.size == ImageSize.Stretch) ContentScale.Crop else ContentScale.Fit,
         modifier = finalModifier
             .imageSemantics(element.altText)

@@ -1,19 +1,24 @@
 import SwiftUI
+import UIKit
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 public struct ActionButton: View {
     let action: CardAction
     let hostConfig: HostConfig
+    let isExpanded: Bool?
     let onTap: () -> Void
 
     public init(
         action: CardAction,
         hostConfig: HostConfig,
+        isExpanded: Bool? = nil,
         onTap: @escaping () -> Void
     ) {
         self.action = action
         self.hostConfig = hostConfig
+        self.isExpanded = isExpanded
         self.onTap = onTap
     }
 
@@ -36,14 +41,27 @@ public struct ActionButton: View {
                         .lineLimit(1)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(backgroundColor)
-            .foregroundColor(foregroundColor)
-            .cornerRadius(4)
+            .font(.system(size: 15))
+            .frame(maxWidth: .infinity)
+            .padding(10)
+            .foregroundColor(buttonForegroundColor)
+            .background(buttonBackgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
+        .buttonStyle(.plain)
         .disabled(!(isEnabled ?? true))
         .accessibilityAction(label: title, hint: tooltip)
+        .accessibilityRemoveTraits(isOpenUrl ? .isButton : [])
+        .accessibilityAddTraits(isOpenUrl ? .isLink : [])
+        .accessibilityValue(expandedValue)
+    }
+
+    /// Accessibility value for expanded/collapsed state
+    private var expandedValue: String {
+        if let isExpanded = isExpanded {
+            return isExpanded ? "expanded" : "collapsed"
+        }
+        return ""
     }
 
     private var title: String? {
@@ -111,20 +129,62 @@ public struct ActionButton: View {
         }
     }
 
+    /// Whether this action opens a URL (should use link trait, not button)
+    private var isOpenUrl: Bool {
+        switch action {
+        case .openUrl, .openUrlDialog: return true
+        default: return false
+        }
+    }
+
+    /// Whether this action is a ShowCard toggle
+    private var isShowCard: Bool {
+        switch action {
+        case .showCard: return true
+        default: return false
+        }
+    }
+
     private var backgroundColor: Color {
         let actionStyle = style ?? .default
-
+        let colors = hostConfig.containerStyles.default.foregroundColors
         switch actionStyle {
         case .default:
-            return Color.blue
+            return Color(hex: colors.accent.`default`)
         case .positive:
-            return Color.green
+            return Color(hex: colors.good.`default`)
         case .destructive:
-            return Color.red
+            return Color(hex: colors.attention.`default`)
         }
     }
 
     private var foregroundColor: Color {
         return .white
+    }
+
+    /// Background color for filled button style matching legacy renderer
+    private var buttonBackgroundColor: Color {
+        let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
+        switch actionStyle {
+        case .default:
+            return Color(uiColor: .systemBlue)
+        case .positive:
+            return Color(hex: colors.accent.`default`)
+        case .destructive:
+            return .clear
+        }
+    }
+
+    /// Foreground text color matching legacy renderer
+    private var buttonForegroundColor: Color {
+        let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
+        switch actionStyle {
+        case .default, .positive:
+            return .white
+        case .destructive:
+            return Color(hex: colors.attention.`default`)
+        }
     }
 }

@@ -37,8 +37,10 @@ public struct TextInputView: View {
 
             if input.isMultiline == true {
                 TextEditor(text: $value)
+                    .scrollContentBackground(.hidden)
                     .frame(minHeight: 80)
                     .padding(8)
+                    .background(Color(uiColor: .systemBackground))
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
                             .stroke(borderColor, lineWidth: 1)
@@ -50,7 +52,13 @@ public struct TextInputView: View {
                 HStack(spacing: 4) {
                     #if os(iOS)
                     TextField(input.placeholder ?? "", text: $value)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(.plain)
+                        .padding(8)
+                        .background(Color(uiColor: .systemBackground))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
                         .keyboardType(keyboardType)
                         .textContentType(textContentType)
                         .autocapitalization(autocapitalization)
@@ -59,7 +67,13 @@ public struct TextInputView: View {
                         }
                     #else
                     TextField(input.placeholder ?? "", text: $value)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(.plain)
+                        .padding(8)
+                        .background(Color(uiColor: .systemBackground))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
                         .onChange(of: value) { _ in
                             validateIfNeeded()
                         }
@@ -80,8 +94,10 @@ public struct TextInputView: View {
         .accessibilityInput(
             label: input.label ?? input.placeholder,
             value: value,
-            isRequired: input.isRequired ?? false
+            isRequired: input.isRequired ?? false,
+            error: validationState.getError(for: input.id)
         )
+        .accessibilityAnnounceError(validationState.getError(for: input.id))
     }
 
     @ViewBuilder

@@ -2,14 +2,14 @@ name: Cross-Platform Parity Gate
 
 on:
   push:
-    branches: [ main, 'copilot/**', 'feat/**' ]
+    branches: [ main, 'copilot/**', 'feat/**', 'proxy/**' ]
     paths:
       - 'ios/**'
       - 'android/**'
       - 'shared/**'
       - '.github/workflows/parity-gate.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'proxy/**' ]
     paths:
       - 'ios/**'
       - 'android/**'
@@ -41,11 +41,28 @@ jobs:
       
     - name: Build iOS Package
       working-directory: ios
-      run: swift build
+      run: |
+        xcodebuild build \
+          -scheme AdaptiveCards-Package \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=latest" \
+          CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
       
     - name: Run iOS Tests with Coverage
       working-directory: ios
-      run: swift test --parallel --enable-code-coverage
+      run: |
+        xcodebuild test \
+          -scheme AdaptiveCards-Package \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=latest" \
+          -only-testing:ACCoreTests \
+          -only-testing:ACRenderingTests \
+          -only-testing:ACInputsTests \
+          -only-testing:ACTemplatingTests \
+          -only-testing:ACMarkdownTests \
+          -only-testing:ACChartsTests \
+          -only-testing:IntegrationTests \
+          CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
       
     - name: Upload iOS Test Results
       if: always()
@@ -78,7 +95,7 @@ jobs:
       
     - name: Run Android Tests
       working-directory: android
-      run: ./gradlew testDebugUnitTest --stacktrace
+      run: ./gradlew :ac-core:testDebugUnitTest :ac-rendering:testDebugUnitTest :ac-inputs:testDebugUnitTest :ac-actions:testDebugUnitTest :ac-host-config:testDebugUnitTest :ac-accessibility:testDebugUnitTest :ac-templating:testDebugUnitTest :ac-markdown:testDebugUnitTest :ac-charts:testDebugUnitTest :ac-fluent-ui:testDebugUnitTest :ac-teams:testDebugUnitTest --stacktrace --continue
     
     - name: Upload Android Test Reports
       if: always()

@@ -54,9 +54,12 @@ public struct TokenExchangeResource: Codable, Equatable {
 public struct Refresh: Codable, Equatable {
     public var action: CardAction
     public var userIds: [String]?
+    /// ISO-8601 timestamp indicating when the card content expires (v1.6)
+    public var expires: String?
 
-    public init(action: CardAction, userIds: [String]? = nil) {
+    public init(action: CardAction, userIds: [String]? = nil, expires: String? = nil) {
         self.action = action
         self.userIds = userIds
+        self.expires = expires
     }
 }

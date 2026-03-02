@@ -2,12 +2,12 @@ name: Validate Test Cards
 
 on:
   push:
-    branches: [ main, 'copilot/**' ]
+    branches: [ main, 'copilot/**', 'proxy/**' ]
     paths:
       - 'shared/test-cards/**'
       - '.github/workflows/validate-test-cards.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'proxy/**' ]
     paths:
       - 'shared/test-cards/**'
 

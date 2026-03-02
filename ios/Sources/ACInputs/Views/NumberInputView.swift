@@ -44,14 +44,22 @@ public struct NumberInputView: View {
         .accessibilityInput(
             label: input.label ?? input.placeholder,
             value: textValue,
-            isRequired: input.isRequired ?? false
+            isRequired: input.isRequired ?? false,
+            error: validationState.getError(for: input.id)
         )
+        .accessibilityAnnounceError(validationState.getError(for: input.id))
     }
 
     @ViewBuilder
     private var numberTextField: some View {
         let field = TextField(input.placeholder ?? "Enter number", text: $textValue)
-            .textFieldStyle(.roundedBorder)
+            .textFieldStyle(.plain)
+            .padding(8)
+            .background(Color(uiColor: .systemBackground))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
             .onChange(of: textValue) { newValue in
                 updateValue(from: newValue)
             }

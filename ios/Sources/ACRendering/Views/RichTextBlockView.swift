@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ACCore
 import ACAccessibility
 
@@ -23,9 +24,10 @@ struct RichTextBlockView: View {
         for textRun in richTextBlock.inlines {
             var runText = AttributedString(textRun.text)
 
-            // Apply font size
+            // Apply font size — use UIFont-backed Font for parity with legacy UIKit
             let size = fontSize(for: textRun)
-            runText.font = .system(size: CGFloat(size), weight: fontWeight(for: textRun))
+            let weight = uiFontWeight(for: textRun)
+            runText.font = Font(UIFont.systemFont(ofSize: CGFloat(size), weight: weight))
 
             // Apply color
             runText.foregroundColor = foregroundColor(for: textRun)
@@ -39,6 +41,17 @@ struct RichTextBlockView: View {
             }
             if textRun.underline == true {
                 runText.underlineStyle = .single
+            }
+
+            // Highlight support
+            if textRun.highlight == true {
+                runText.backgroundColor = Color.yellow.opacity(0.3)
+            }
+
+            // Link styling for text runs with selectAction
+            if textRun.selectAction != nil {
+                runText.underlineStyle = .single
+                runText.foregroundColor = foregroundColor(for: TextRun(text: textRun.text, color: .accent))
             }
 
             result.append(runText)
@@ -77,16 +90,56 @@ struct RichTextBlockView: View {
         }
 
         switch weightValue {
-        case 100...299:
+        case 100...199:
+            return .ultraLight
+        case 200...299:
             return .light
         case 300...399:
             return .regular
-        case 400...599:
+        case 400...499:
+            return .regular
+        case 500...599:
             return .medium
-        case 600...799:
+        case 600...699:
             return .semibold
-        default:
+        case 700...799:
             return .bold
+        default:
+            return .heavy
+        }
+    }
+
+    /// UIFont.Weight for legacy parity — used to create UIFont-backed Font
+    private func uiFontWeight(for textRun: TextRun) -> UIFont.Weight {
+        let fontWeightEnum = textRun.weight ?? .default
+        let weightValue: Int
+
+        switch fontWeightEnum {
+        case .lighter:
+            weightValue = hostConfig.fontWeights.lighter
+        case .default:
+            weightValue = hostConfig.fontWeights.default
+        case .bolder:
+            weightValue = hostConfig.fontWeights.bolder
+        }
+
+        switch weightValue {
+        case 100...199:
+            return .ultraLight
+        case 200...299:
+            return .light
+        case 300...399:
+            return .regular
+        case 400...499:
+            return .regular
+        case 500...599:
+            return .medium
+        case 600...699:
+            return .semibold
+        case 700...799:
+            return .bold
+        default:
+            return .heavy
         }
     }
 

@@ -7,6 +7,9 @@ import com.microsoft.adaptivecards.core.models.*
  */
 object TeamsHostConfig {
     fun create(): HostConfig = HostConfig(
+        fontFamily = "Segoe UI",
+        supportsInteractivity = true,
+        imageBaseUrl = "",
         spacing = SpacingConfig(
             small = 4,
             default = 8,
@@ -19,7 +22,6 @@ object TeamsHostConfig {
             lineThickness = 1,
             lineColor = "#E1DFDD"
         ),
-        supportsInteractivity = true,
         fontTypes = FontTypesConfig(
             default = FontTypeConfig(
                 fontFamily = "Segoe UI, system-ui, -apple-system, sans-serif"
@@ -43,75 +45,33 @@ object TeamsHostConfig {
         containerStyles = ContainerStylesConfig(
             default = ContainerStyleConfig(
                 backgroundColor = "#FFFFFF",
-                foregroundColors = ForegroundColorsConfig(
-                    default = ColorConfig(default = "#242424", subtle = "#616161"),
-                    dark = ColorConfig(default = "#000000", subtle = "#616161"),
-                    light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
-                    accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
-                    good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
-                    warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
-                    attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
-                )
+                borderColor = "#E1DFDD",
+                foregroundColors = teamsForegroundColors()
             ),
             emphasis = ContainerStyleConfig(
                 backgroundColor = "#F5F5F5",
-                foregroundColors = ForegroundColorsConfig(
-                    default = ColorConfig(default = "#242424", subtle = "#616161"),
-                    dark = ColorConfig(default = "#000000", subtle = "#616161"),
-                    light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
-                    accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
-                    good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
-                    warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
-                    attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
-                )
+                borderColor = "#E1DFDD",
+                foregroundColors = teamsForegroundColors()
             ),
             good = ContainerStyleConfig(
                 backgroundColor = "#DFF6DD",
-                foregroundColors = ForegroundColorsConfig(
-                    default = ColorConfig(default = "#242424", subtle = "#616161"),
-                    dark = ColorConfig(default = "#000000", subtle = "#616161"),
-                    light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
-                    accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
-                    good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
-                    warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
-                    attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
-                )
+                borderColor = "#9FD89F",
+                foregroundColors = teamsForegroundColors()
             ),
             attention = ContainerStyleConfig(
                 backgroundColor = "#FED9CC",
-                foregroundColors = ForegroundColorsConfig(
-                    default = ColorConfig(default = "#242424", subtle = "#616161"),
-                    dark = ColorConfig(default = "#000000", subtle = "#616161"),
-                    light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
-                    accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
-                    good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
-                    warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
-                    attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
-                )
+                borderColor = "#E97548",
+                foregroundColors = teamsForegroundColors()
             ),
             warning = ContainerStyleConfig(
                 backgroundColor = "#FFF4CE",
-                foregroundColors = ForegroundColorsConfig(
-                    default = ColorConfig(default = "#242424", subtle = "#616161"),
-                    dark = ColorConfig(default = "#000000", subtle = "#616161"),
-                    light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
-                    accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
-                    good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
-                    warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
-                    attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
-                )
+                borderColor = "#F8D22A",
+                foregroundColors = teamsForegroundColors()
             ),
             accent = ContainerStyleConfig(
                 backgroundColor = "#E8E8F7",
-                foregroundColors = ForegroundColorsConfig(
-                    default = ColorConfig(default = "#242424", subtle = "#616161"),
-                    dark = ColorConfig(default = "#000000", subtle = "#616161"),
-                    light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
-                    accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
-                    good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
-                    warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
-                    attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
-                )
+                borderColor = "#6264A7",
+                foregroundColors = teamsForegroundColors()
             )
         ),
         imageSizes = ImageSizesConfig(
@@ -142,6 +102,7 @@ object TeamsHostConfig {
         ),
         media = MediaConfig(
             defaultPoster = null,
+            playButton = null,
             allowInlinePlayback = true
         ),
         factSet = FactSetConfig(
@@ -156,18 +117,82 @@ object TeamsHostConfig {
             spacing = 10
         ),
         inputs = InputsConfig(
-            label = InputLabelConfig(
-                color = Color.Default,
-                isSubtle = false,
-                size = FontSize.Default,
-                suffix = " *",
-                weight = FontWeight.Default
+            label = InputLabelGroupConfig(
+                inputSpacing = Spacing.Default,
+                requiredInputs = InputLabelConfig(
+                    color = Color.Default,
+                    isSubtle = false,
+                    size = FontSize.Default,
+                    suffix = " *",
+                    weight = FontWeight.Default
+                ),
+                optionalInputs = InputLabelConfig(
+                    color = Color.Default,
+                    isSubtle = true,
+                    size = FontSize.Default,
+                    suffix = "",
+                    weight = FontWeight.Default
+                )
             ),
             errorMessage = InputErrorMessageConfig(
                 color = Color.Attention,
                 size = FontSize.Small,
                 weight = FontWeight.Default
             )
-        )
+        ),
+        hostWidth = HostWidthConfig(
+            veryNarrow = 250,
+            narrow = 350,
+            standard = 500
+        ),
+        textBlock = TextBlockConfig(
+            headingLevel = 2
+        ),
+        textStyles = TextStylesConfig(
+            heading = TextStyleConfig(
+                weight = FontWeight.Bolder,
+                size = FontSize.Large,
+                isSubtle = false,
+                color = Color.Default,
+                fontType = "Default"
+            ),
+            columnHeader = TextStyleConfig(
+                weight = FontWeight.Bolder,
+                size = FontSize.Default,
+                isSubtle = false,
+                color = Color.Default,
+                fontType = "Default"
+            )
+        ),
+        image = ImageConfig(imageSize = ImageSize.Auto),
+        ratingLabel = RatingElementConfig(
+            filledStar = RatingStarConfig(marigoldColor = "#EAA300", neutralColor = "#242424"),
+            emptyStar = RatingStarConfig(marigoldColor = "#EAA300", neutralColor = "#242424"),
+            ratingTextColor = "#242424",
+            countTextColor = "#616161"
+        ),
+        ratingInput = RatingElementConfig(
+            filledStar = RatingStarConfig(marigoldColor = "#EAA300", neutralColor = "#242424"),
+            emptyStar = RatingStarConfig(marigoldColor = "#EAA300", neutralColor = "#242424"),
+            ratingTextColor = "#242424",
+            countTextColor = "#616161"
+        ),
+        table = TableConfig(cellSpacing = 8),
+        compoundButton = CompoundButtonConfig(
+            badge = BadgeConfig(backgroundColor = "#6264A7"),
+            borderColor = "#E1DFDD"
+        ),
+        borderWidth = emptyMap(),
+        cornerRadius = emptyMap()
+    )
+
+    private fun teamsForegroundColors(): ForegroundColorsConfig = ForegroundColorsConfig(
+        default = ColorConfig(default = "#242424", subtle = "#616161"),
+        dark = ColorConfig(default = "#000000", subtle = "#616161"),
+        light = ColorConfig(default = "#FFFFFF", subtle = "#E1DFDD"),
+        accent = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
+        good = ColorConfig(default = "#92C353", subtle = "#9ED06D"),
+        warning = ColorConfig(default = "#F8D22A", subtle = "#F9DD51"),
+        attention = ColorConfig(default = "#C4314B", subtle = "#D3596D")
     )
 }
