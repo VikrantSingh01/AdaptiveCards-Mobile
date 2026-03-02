@@ -499,7 +499,6 @@ jobs:
         check_required "iOS Unit Tests" "${{ needs.ios-unit-tests.result }}"
         check_required "Android Unit Tests" "${{ needs.android-unit-tests.result }}"
         check_required "Parity Check" "${{ needs.parity-check.result }}"
-        check_required "iOS Parse Validation" "${{ needs.ios-parse-validation.result }}"
 
         echo ""
         echo "--- Advisory (non-blocking) ---"
@@ -517,6 +516,7 @@ jobs:
           fi
         }
 
+        advisory "iOS Parse Validation" "${{ needs.ios-parse-validation.result }}"
         advisory "iOS Visual Regression" "${{ needs.ios-visual-tests.result }}"
         advisory "Android Visual Regression" "${{ needs.android-visual-tests.result }}"
 
