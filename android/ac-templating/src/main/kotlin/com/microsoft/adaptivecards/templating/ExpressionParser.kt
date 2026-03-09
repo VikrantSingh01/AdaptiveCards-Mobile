@@ -131,6 +131,7 @@ class ExpressionParser {
                 when (identifierStr) {
                     "true" -> tokens.add(Token.BooleanToken(true))
                     "false" -> tokens.add(Token.BooleanToken(false))
+                    "in" -> tokens.add(Token.OperatorToken("in"))
                     else -> tokens.add(Token.IdentifierToken(identifierStr))
                 }
                 continue
@@ -239,7 +240,7 @@ class ExpressionParser {
 
         while (currentToken() is Token.OperatorToken) {
             val op = (currentToken() as Token.OperatorToken).op
-            if (op == "==" || op == "!=") {
+            if (op == "==" || op == "!=" || op == "in") {
                 advance()
                 val right = parseComparison()
                 left = Expression.BinaryOp(op, left, right)
