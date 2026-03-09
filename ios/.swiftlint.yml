@@ -2,6 +2,7 @@ excluded:
   - .build
   - .swiftpm
   - SampleApp
+  - Tests/VisualTests/SnapshotTesting
 
 disabled_rules:
   - todo
