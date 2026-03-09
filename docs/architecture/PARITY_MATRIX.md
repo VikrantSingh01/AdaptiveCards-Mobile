@@ -180,7 +180,8 @@ This document provides a comprehensive feature-by-feature matrix tracking implem
 | **Container Bleed** | ✅ | ✅ | ✅ | Containers bleed to parent edges |
 | **Min Height** | ✅ | ✅ | ✅ | Minimum height constraints |
 | **Responsive Design** | ✅ | ✅ | ✅ | Target width ranges (narrow/standard/wide) |
-| **menuActions (Overflow)** | ❌ | ❌ | 🚧 | **TRACKED GAP**: Overflow menu for actions; tests added with TODO markers |
+| **menuActions (Overflow)** | ✅ | ✅ | ✅ | Primary/secondary action mode; overflow "..." menu via SwiftUI Menu / Compose DropdownMenu |
+| **Refresh.expires** | ✅ | ✅ | ✅ | ISO-8601 expiration timestamp on Refresh model (v1.6) |
 
 ---
 
@@ -190,7 +191,7 @@ This document provides a comprehensive feature-by-feature matrix tracking implem
 
 | Feature | Priority | Status | Notes |
 |---------|----------|--------|-------|
-| **menuActions (Overflow Menu)** | High | 🚧 Research | Action overflow menu; tests added; implementation requires native menu components |
+| **menuActions (Overflow Menu)** | High | ✅ Done | Primary/secondary mode, maxActions overflow, "..." menu button |
 | **Advanced Table Spanning** | Medium | 🎯 Planned | Complex row/column spanning; basic table support exists |
 | **Authentication Flow** | Low | Out of Scope | Host application responsibility |
 
