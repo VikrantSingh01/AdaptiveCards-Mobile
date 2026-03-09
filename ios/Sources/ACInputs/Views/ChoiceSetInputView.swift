@@ -83,6 +83,7 @@ public struct ChoiceSetInputView: View {
             }
         }
         .pickerStyle(.menu)
+        .tint(.blue)
     }
 
     private var multiSelectCompactView: some View {
@@ -99,6 +100,7 @@ public struct ChoiceSetInputView: View {
                         updateMultiSelectValue()
                     }
                 ))
+                .toggleStyle(SwitchToggleStyle(tint: .blue))
             }
         }
     }
@@ -118,6 +120,7 @@ public struct ChoiceSetInputView: View {
                             updateMultiSelectValue()
                         }
                     ))
+                    .toggleStyle(SwitchToggleStyle(tint: .blue))
                 } else {
                     Button(action: {
                         value = choice.value
