@@ -1,6 +1,8 @@
 import SwiftUI
 #if canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
+#endif
 #endif
 import ACCore
 import ACAccessibility

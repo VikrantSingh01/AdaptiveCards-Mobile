@@ -18,7 +18,7 @@ struct ContainerStyleModifier: ViewModifier {
     }
 
     private var backgroundColor: Color {
-        let containerStyle = style ?? .default
+        guard let containerStyle = style else { return .clear }
         let styleConfig: ContainerStyleConfig
 
         switch containerStyle {

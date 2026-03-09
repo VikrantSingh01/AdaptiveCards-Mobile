@@ -1,6 +1,8 @@
 import Foundation
 #if canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
+#endif
 #endif
 #if canImport(AppKit)
 import AppKit

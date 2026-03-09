@@ -2,7 +2,7 @@ name: iOS Tests
 
 on:
   push:
-    branches: [ main, 'copilot/**', 'feat/**' ]
+    branches: [ main, 'copilot/**', 'feat/**', 'feature/**' ]
     paths:
       - 'ios/**'
       - 'shared/test-cards/**'
@@ -18,8 +18,8 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Run iOS Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: macos-14
     permissions:
       contents: read
@@ -40,14 +40,118 @@ jobs:
       working-directory: ios
       run: swift build
       
-    - name: Run iOS Tests with Coverage
+    - name: Run Unit Tests
       working-directory: ios
-      run: swift test --parallel --enable-code-coverage
+      run: |
+        swift test --parallel --enable-code-coverage \
+          --filter "ACCoreTests|ACRenderingTests|ACInputsTests|ACTemplatingTests|ACMarkdownTests|ACChartsTests|IntegrationTests"
       
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: ios-test-results
+        name: ios-unit-test-results
         path: ios/.build/debug/
         retention-days: 7
+
+  visual-tests:
+    name: Visual Regression Tests
+    runs-on: macos-14
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+
+    - name: Count test cards
+      run: |
+        CARD_COUNT=$(find shared/test-cards -name "*.json" | wc -l | tr -d ' ')
+        echo "📋 Found $CARD_COUNT test card JSON files"
+        echo "CARD_COUNT=$CARD_COUNT" >> $GITHUB_ENV
+
+    - name: Boot iOS Simulator
+      run: |
+        SIMULATOR=$(xcrun simctl list devices available --json | python3 -c "
+import json, sys
+devices = json.load(sys.stdin)['devices']
+for runtime, devs in devices.items():
+  if 'iOS' in runtime:
+    for d in devs:
+      if 'iPhone' in d['name'] and d['state'] == 'Booted':
+        print(d['udid']); sys.exit(0)
+for runtime, devs in devices.items():
+  if 'iOS' in runtime:
+    for d in devs:
+      if 'iPhone' in d['name']:
+        print(d['udid']); sys.exit(0)
+")
+        echo "SIM_UDID=$SIMULATOR" >> $GITHUB_ENV
+        xcrun simctl boot "$SIMULATOR" 2>/dev/null || true
+        echo "Using simulator: $SIMULATOR"
+
+    - name: Run Visual Snapshot Tests (CardElementSnapshotTests)
+      working-directory: ios
+      run: |
+        xcodebuild test \
+          -scheme AdaptiveCards-Package \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,id=$SIM_UDID" \
+          -only-testing:VisualTests/CardElementSnapshotTests \
+          CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+          2>&1 | tee /tmp/snapshot_test.log | grep -E "Test Case|passed|failed|Test Suite"
+        # Fail the job if any test failed
+        grep -q "\*\* TEST SUCCEEDED \*\*" /tmp/snapshot_test.log
+      env:
+        SNAPSHOT_TOLERANCE: "0.01"
+
+    - name: Upload Snapshot Baselines
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-snapshot-baselines
+        path: ios/Tests/VisualTests/Snapshots/Baselines/
+        retention-days: 30
+
+    - name: Upload Snapshot Failures
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-snapshot-failures
+        path: |
+          ios/Tests/VisualTests/Snapshots/Failures/
+          ios/Tests/VisualTests/Snapshots/Diffs/
+        retention-days: 14
+
+    - name: Upload Visual Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-visual-reports
+        path: ios/Tests/VisualTests/Snapshots/Reports/
+        retention-days: 14
+
+  parse-validation:
+    name: Card Parse Validation
+    runs-on: macos-14
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+
+    - name: Validate all cards parse
+      working-directory: ios
+      run: |
+        swift test --filter "AllCardsDiscoveryTests/testAllCards_parseOnly"

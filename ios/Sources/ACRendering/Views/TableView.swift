@@ -60,7 +60,6 @@ struct TableCellView: View {
         .frame(minHeight: minHeight)
         .padding(8)
         .containerStyle(cell.style, hostConfig: hostConfig)
-        .font(isHeader ? .headline : .body)
     }
 
     private var verticalContentAlignment: Alignment {

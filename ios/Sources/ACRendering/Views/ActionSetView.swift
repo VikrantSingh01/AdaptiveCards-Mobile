@@ -58,6 +58,9 @@ struct ActionSetView: View {
             ActionButton(action: action, hostConfig: hostConfig) {
                 actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
             }
+            .if(isStretch) { view in
+                view.frame(maxWidth: .infinity)
+            }
         }
 
         if !overflowActions.isEmpty {
@@ -90,6 +93,10 @@ struct ActionSetView: View {
         hostConfig.actions.actionsOrientation.lowercased() == "vertical" ? .vertical : .horizontal
     }
 
+    private var isStretch: Bool {
+        hostConfig.actions.actionAlignment.lowercased() == "stretch"
+    }
+
     private var alignment: Alignment {
         let alignmentStr = hostConfig.actions.actionAlignment.lowercased()
         switch alignmentStr {
@@ -97,6 +104,8 @@ struct ActionSetView: View {
             return .center
         case "right":
             return .trailing
+        case "stretch":
+            return .leading
         default:
             return .leading
         }
