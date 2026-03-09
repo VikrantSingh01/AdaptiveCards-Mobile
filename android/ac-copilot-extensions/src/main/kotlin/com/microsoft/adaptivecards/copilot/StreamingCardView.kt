@@ -44,7 +44,7 @@ fun StreamingCardView(
             is StreamingState.Complete -> {}
             is StreamingState.Error -> {
                 Text(
-                    text = "Error: ${streamingState.error.message}",
+                    text = "Error: ${streamingState.message}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error
                 )

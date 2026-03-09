@@ -30,8 +30,8 @@ public struct StreamingCardView: View {
                 }
             case .complete:
                 EmptyView()
-            case .error(let error):
-                Text("Error: \(error.localizedDescription)")
+            case .error(let message):
+                Text("Error: \(message)")
                     .font(.caption)
                     .foregroundColor(.red)
             }
