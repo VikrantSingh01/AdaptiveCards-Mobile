@@ -9,14 +9,14 @@ public enum StreamingPhase: String, Codable, CaseIterable {
     case start = "start"
     case informative = "informative"
     case streaming = "streaming"
-    case final_ = "final"
+    case `final` = "final"
 
     public static func from(_ rawValue: String) -> StreamingPhase? {
         switch rawValue.lowercased() {
         case "start": return .start
         case "informative": return .informative
         case "streaming": return .streaming
-        case "final": return .final_
+        case "final": return .`final`
         default: return nil
         }
     }
