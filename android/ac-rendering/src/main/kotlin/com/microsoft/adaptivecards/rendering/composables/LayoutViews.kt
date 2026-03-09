@@ -5,13 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.hostconfig.HostConfig
 import com.microsoft.adaptivecards.core.models.*
+import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
+import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+import com.microsoft.adaptivecards.rendering.viewmodel.DefaultActionHandler
 
 /**
  * A Jetpack Compose view that renders items in a flow/wrap layout.
@@ -24,22 +25,24 @@ fun FlowLayoutView(
     items: List<CardElement>,
     flowLayout: FlowLayout,
     hostConfig: HostConfig,
+    viewModel: CardViewModel,
+    actionHandler: ActionHandler = DefaultActionHandler(),
     modifier: Modifier = Modifier
 ) {
-    val colSpacing = spacingToDp(flowLayout.columnSpacing ?: Spacing.DEFAULT, hostConfig)
-    val rowSpacing = spacingToDp(flowLayout.rowSpacing ?: Spacing.DEFAULT, hostConfig)
+    val colSpacing = spacingToDp(flowLayout.columnSpacing ?: Spacing.Default, hostConfig)
+    val rowSpacing = spacingToDp(flowLayout.rowSpacing ?: Spacing.Default, hostConfig)
 
     FlowRow(
         horizontalSpacing = colSpacing,
         verticalSpacing = rowSpacing,
         horizontalAlignment = when (flowLayout.horizontalAlignment) {
-            HorizontalAlignment.CENTER -> Alignment.CenterHorizontally
-            HorizontalAlignment.RIGHT -> Alignment.End
+            HorizontalAlignment.Center -> Alignment.CenterHorizontally
+            HorizontalAlignment.Right -> Alignment.End
             else -> Alignment.Start
         },
         modifier = modifier
     ) {
-        items.forEachIndexed { _, item ->
+        items.forEach { item ->
             val itemWidthDp = parseSizeDp(flowLayout.itemWidth)
             val minWidthDp = parseSizeDp(flowLayout.minItemWidth)
             val maxWidthDp = parseSizeDp(flowLayout.maxItemWidth)
@@ -48,10 +51,13 @@ fun FlowLayoutView(
                 .then(if (itemWidthDp != null) Modifier.width(itemWidthDp) else Modifier)
                 .then(if (minWidthDp != null) Modifier.widthIn(min = minWidthDp) else Modifier)
                 .then(if (maxWidthDp != null) Modifier.widthIn(max = maxWidthDp) else Modifier)
-                .then(if (flowLayout.itemFit == ItemFit.FILL) Modifier.weight(1f) else Modifier)
 
             Box(modifier = itemModifier) {
-                ElementRenderer(element = item, hostConfig = hostConfig)
+                RenderElement(
+                    element = item,
+                    viewModel = viewModel,
+                    actionHandler = actionHandler
+                )
             }
         }
     }
@@ -97,7 +103,6 @@ private fun FlowRow(
             }
 
             if (neededWidth > constraints.maxWidth && currentRow.placeables.isNotEmpty()) {
-                // Wrap to next row
                 currentRow = RowInfo()
                 rows.add(currentRow)
             }
@@ -146,10 +151,12 @@ fun AreaGridLayoutView(
     items: List<CardElement>,
     gridLayout: AreaGridLayout,
     hostConfig: HostConfig,
+    viewModel: CardViewModel,
+    actionHandler: ActionHandler = DefaultActionHandler(),
     modifier: Modifier = Modifier
 ) {
-    val colSpacing = spacingToDp(gridLayout.columnSpacing ?: Spacing.DEFAULT, hostConfig)
-    val rowSpacing = spacingToDp(gridLayout.rowSpacing ?: Spacing.DEFAULT, hostConfig)
+    val colSpacing = spacingToDp(gridLayout.columnSpacing ?: Spacing.Default, hostConfig)
+    val rowSpacing = spacingToDp(gridLayout.rowSpacing ?: Spacing.Default, hostConfig)
     val maxRow = gridLayout.areas.maxOfOrNull { it.row + (it.rowSpan ?: 1) - 1 } ?: 1
     val columnCount = gridLayout.columns.size.coerceAtLeast(1)
 
@@ -166,13 +173,17 @@ fun AreaGridLayoutView(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(colSpacing)
             ) {
-                areasInRow.forEachIndexed { _, area ->
+                areasInRow.forEach { area ->
                     val areaIndex = gridLayout.areas.indexOf(area)
                     val weight = columnWeight(area, gridLayout.columns, columnCount)
 
                     Box(modifier = Modifier.weight(weight)) {
                         if (areaIndex < items.size) {
-                            ElementRenderer(element = items[areaIndex], hostConfig = hostConfig)
+                            RenderElement(
+                                element = items[areaIndex],
+                                viewModel = viewModel,
+                                actionHandler = actionHandler
+                            )
                         }
                     }
                 }
@@ -203,7 +214,7 @@ private fun parseFractionWeight(colDef: String): Float {
     if (colDef.endsWith("fr")) {
         return colDef.removeSuffix("fr").toFloatOrNull() ?: 1f
     }
-    return 1f // Default weight for "auto", pixel values, etc.
+    return 1f
 }
 
 /**
@@ -211,13 +222,13 @@ private fun parseFractionWeight(colDef: String): Float {
  */
 private fun spacingToDp(spacing: Spacing, hostConfig: HostConfig): Dp {
     return when (spacing) {
-        Spacing.NONE -> 0.dp
-        Spacing.SMALL -> hostConfig.spacing.small.dp
-        Spacing.DEFAULT -> hostConfig.spacing.defaultSpacing.dp
-        Spacing.MEDIUM -> hostConfig.spacing.medium.dp
-        Spacing.LARGE -> hostConfig.spacing.large.dp
-        Spacing.EXTRA_LARGE -> hostConfig.spacing.extraLarge.dp
-        Spacing.PADDING -> hostConfig.spacing.padding.dp
+        Spacing.None -> 0.dp
+        Spacing.Small -> hostConfig.spacing.small.dp
+        Spacing.Default -> hostConfig.spacing.default.dp
+        Spacing.Medium -> hostConfig.spacing.medium.dp
+        Spacing.Large -> hostConfig.spacing.large.dp
+        Spacing.ExtraLarge -> hostConfig.spacing.extraLarge.dp
+        Spacing.Padding -> hostConfig.spacing.padding.dp
     }
 }
 
