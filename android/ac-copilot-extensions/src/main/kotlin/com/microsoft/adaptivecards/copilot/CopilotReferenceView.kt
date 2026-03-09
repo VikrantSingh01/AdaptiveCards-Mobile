@@ -27,6 +27,10 @@ fun CopilotReferenceView(reference: Reference) {
                     Reference.ReferenceType.FILE -> Icons.Filled.Description
                     Reference.ReferenceType.URL -> Icons.Filled.Link
                     Reference.ReferenceType.DOCUMENT -> Icons.Filled.Article
+                    Reference.ReferenceType.EMAIL -> Icons.Filled.Email
+                    Reference.ReferenceType.MEETING -> Icons.Filled.Event
+                    Reference.ReferenceType.PERSON -> Icons.Filled.Person
+                    Reference.ReferenceType.MESSAGE -> Icons.Filled.Chat
                 },
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,

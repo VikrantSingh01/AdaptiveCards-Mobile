@@ -17,6 +17,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Psychology
 import coil.compose.AsyncImage
 
 /**
@@ -53,7 +55,7 @@ fun ChainOfThoughtView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.Default.Settings,
+                imageVector = Icons.Filled.Psychology,
                 contentDescription = "Thinking",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(16.dp)
