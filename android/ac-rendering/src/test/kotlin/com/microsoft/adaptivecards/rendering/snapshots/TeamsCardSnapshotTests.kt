@@ -43,6 +43,21 @@ class TeamsCardSnapshotTests {
     @Test fun teamsSnapshot_activityUpdate() = snapshotTeamsCard("official-samples/activity-update")
     @Test fun teamsSnapshot_calendarReminder() = snapshotTeamsCard("official-samples/calendar-reminder")
     @Test fun teamsSnapshot_inputFormOfficial() = snapshotTeamsCard("official-samples/input-form-official")
+    @Test fun teamsSnapshot_expenseReport() = snapshotTeamsCard("official-samples/expense-report")
+    @Test fun teamsSnapshot_flightDetails() = snapshotTeamsCard("official-samples/flight-details")
+    @Test fun teamsSnapshot_foodOrder() = snapshotTeamsCard("official-samples/food-order")
+
+    // MARK: - Teams Official Samples
+
+    @Test fun teamsSnapshot_account() = snapshotTeamsCard("teams-official-samples/account")
+    @Test fun teamsSnapshot_cafeMenu() = snapshotTeamsCard("teams-official-samples/cafe-menu")
+    @Test fun teamsSnapshot_communication() = snapshotTeamsCard("teams-official-samples/communication")
+    @Test fun teamsSnapshot_editorial() = snapshotTeamsCard("teams-official-samples/editorial")
+    @Test fun teamsSnapshot_insights() = snapshotTeamsCard("teams-official-samples/insights")
+    @Test fun teamsSnapshot_issue() = snapshotTeamsCard("teams-official-samples/issue")
+    @Test fun teamsSnapshot_projectDashboard() = snapshotTeamsCard("teams-official-samples/project-dashboard")
+    @Test fun teamsSnapshot_recipe() = snapshotTeamsCard("teams-official-samples/recipe")
+    @Test fun teamsSnapshot_workItem() = snapshotTeamsCard("teams-official-samples/work-item")
 
     // MARK: - Helper
 

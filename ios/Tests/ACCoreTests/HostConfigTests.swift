@@ -7,7 +7,7 @@ final class HostConfigTests: XCTestCase {
         let config = HostConfig()
 
         XCTAssertEqual(config.spacing.default, 8)
-        XCTAssertEqual(config.fontSizes.default, 14)
+        XCTAssertEqual(config.fontSizes.default, 12)
         XCTAssertEqual(config.separator.lineThickness, 1)
     }
 

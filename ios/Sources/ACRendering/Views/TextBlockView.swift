@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import ACCore
 import ACAccessibility
 import ACMarkdown
@@ -21,8 +24,13 @@ struct TextBlockView: View {
 
             Text(attributedString)
                 .multilineTextAlignment(textAlignment)
-                .lineLimit(textBlock.maxLines)
-                .frame(maxWidth: .infinity, alignment: frameAlignment)
+                .lineLimit(effectiveLineLimit)
+                .if(textBlock.wrap == true) { view in
+                    view.frame(maxWidth: .infinity, alignment: frameAlignment)
+                }
+                .if(textBlock.wrap != true) { view in
+                    view.frame(maxWidth: .infinity, alignment: frameAlignment)
+                }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
                 .accessibilityElement(label: textBlock.text)
@@ -32,7 +40,7 @@ struct TextBlockView: View {
                 .font(font)
                 .foregroundColor(foregroundColor)
                 .multilineTextAlignment(textAlignment)
-                .lineLimit(textBlock.maxLines)
+                .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
@@ -41,13 +49,66 @@ struct TextBlockView: View {
     }
 
     private var font: Font {
-        let size = fontSize
-        let weight = fontWeight
+        let size = CGFloat(fontSize)
 
+        #if canImport(UIKit)
+        let weight = uiFontWeight
         if textBlock.fontType == .monospace {
-            return .system(size: CGFloat(size), weight: weight, design: .monospaced)
+            return Font(UIFont.monospacedSystemFont(ofSize: size, weight: weight))
         } else {
-            return .system(size: CGFloat(size), weight: weight)
+            return Font(UIFont.systemFont(ofSize: size, weight: weight))
+        }
+        #else
+        let weight = swiftUIFontWeight
+        if textBlock.fontType == .monospace {
+            return .system(size: size, weight: weight, design: .monospaced)
+        } else {
+            return .system(size: size, weight: weight)
+        }
+        #endif
+    }
+
+    #if canImport(UIKit)
+    private var uiFontWeight: UIFont.Weight {
+        let fontWeightEnum = textBlock.weight ?? .default
+        let weightValue: Int
+
+        switch fontWeightEnum {
+        case .lighter:
+            weightValue = hostConfig.fontWeights.lighter
+        case .default:
+            weightValue = hostConfig.fontWeights.default
+        case .bolder:
+            weightValue = hostConfig.fontWeights.bolder
+        }
+
+        switch weightValue {
+        case 100...199:
+            return .ultraLight
+        case 200...299:
+            return .light
+        case 300...399:
+            return .regular
+        case 400...499:
+            return .regular
+        case 500...599:
+            return .medium
+        case 600...699:
+            return .semibold
+        case 700...799:
+            return .bold
+        default:
+            return .heavy
+        }
+    }
+    #endif
+
+    private var swiftUIFontWeight: Font.Weight {
+        let fontWeightEnum = textBlock.weight ?? .default
+        switch fontWeightEnum {
+        case .lighter: return .light
+        case .default: return .regular
+        case .bolder: return .bold
         }
     }
 
@@ -81,16 +142,22 @@ struct TextBlockView: View {
         }
 
         switch weightValue {
-        case 100...299:
+        case 100...199:
+            return .ultraLight
+        case 200...299:
             return .light
         case 300...399:
             return .regular
-        case 400...599:
+        case 400...499:
+            return .regular
+        case 500...599:
             return .medium
-        case 600...799:
+        case 600...699:
             return .semibold
-        default:
+        case 700...799:
             return .bold
+        default:
+            return .heavy
         }
     }
 
@@ -131,5 +198,14 @@ struct TextBlockView: View {
             vertical: nil,
             layoutDirection: layoutDirection
         )
+    }
+
+    /// Computes the effective line limit based on wrap and maxLines properties.
+    /// When wrap is false/nil and no maxLines set, limit to 1 line (legacy behavior).
+    private var effectiveLineLimit: Int? {
+        if let maxLines = textBlock.maxLines {
+            return maxLines
+        }
+        return textBlock.wrap == true ? nil : 1
     }
 }
