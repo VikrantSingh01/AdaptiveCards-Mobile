@@ -194,3 +194,18 @@ public enum SpinnerSize: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case medium = "Medium"
     case large = "Large"
 }
+
+// MARK: - Layout Types
+
+/// The type of layout used by a container
+public enum LayoutType: String, Codable, CaseIterable, CaseInsensitiveCodable {
+    case stack = "Layout.Stack"
+    case flow = "Layout.Flow"
+    case areaGrid = "Layout.AreaGrid"
+}
+
+/// How items should be sized within a FlowLayout
+public enum ItemFit: String, Codable, CaseIterable, CaseInsensitiveCodable {
+    case fit = "Fit"
+    case fill = "Fill"
+}
