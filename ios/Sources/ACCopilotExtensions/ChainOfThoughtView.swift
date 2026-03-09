@@ -35,7 +35,11 @@ public struct ChainOfThoughtView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(.systemGray6))
+            #if canImport(UIKit)
+            .background(Color(UIColor.systemGray6))
+            #else
+            .background(Color.gray.opacity(0.12))
+            #endif
             .cornerRadius(8)
 
             // Chain of thought entries
@@ -64,7 +68,7 @@ public struct ChainOfThoughtView: View {
             .padding(.top, 8)
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(Color(white: 1.0, opacity: 1.0))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         .frame(maxWidth: .infinity)
