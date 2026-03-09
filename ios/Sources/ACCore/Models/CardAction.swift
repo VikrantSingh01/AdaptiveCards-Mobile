@@ -481,6 +481,20 @@ extension CardAction {
         case .openUrlDialog(let a): return a.iconUrl
         }
     }
+
+    /// Returns the mode (primary/secondary) of the action regardless of the specific action type
+    public var mode: ActionMode? {
+        switch self {
+        case .submit(let a): return a.mode
+        case .openUrl(let a): return a.mode
+        case .showCard(let a): return a.mode
+        case .execute(let a): return a.mode
+        case .toggleVisibility(let a): return a.mode
+        case .popover(let a): return a.mode
+        case .runCommands(let a): return a.mode
+        case .openUrlDialog(let a): return a.mode
+        }
+    }
 }
 
 // MARK: - CardAction Identifiable Extension
