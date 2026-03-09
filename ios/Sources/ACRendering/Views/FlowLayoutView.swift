@@ -1,4 +1,5 @@
 import SwiftUI
+import ACCore
 
 // MARK: - FlowLayoutView
 
@@ -7,14 +8,11 @@ import SwiftUI
 /// Items flow horizontally and wrap to new rows when they exceed the available width.
 /// Supports configurable item sizing, spacing, and alignment.
 ///
-/// Ported from production AdaptiveCards C++ ObjectModel's FlowLayout concept,
-/// implemented natively in SwiftUI using GeometryReader-based layout calculation.
+/// Uses SwiftUI's Layout protocol (iOS 16+) for proper flow layout calculation.
 public struct FlowLayoutView: View {
     let items: [CardElement]
     let flowLayout: FlowLayout
     let hostConfig: HostConfig
-
-    @State private var totalHeight: CGFloat = .zero
 
     public init(items: [CardElement], flowLayout: FlowLayout, hostConfig: HostConfig) {
         self.items = items
@@ -23,70 +21,21 @@ public struct FlowLayoutView: View {
     }
 
     public var body: some View {
-        GeometryReader { geometry in
-            self.generateContent(in: geometry)
-        }
-        .frame(height: totalHeight)
-    }
-
-    private func generateContent(in geometry: GeometryProxy) -> some View {
-        var width = CGFloat.zero
-        var height = CGFloat.zero
-
         let colSpacing = spacingValue(flowLayout.columnSpacing ?? .default)
         let rowSpacing = spacingValue(flowLayout.rowSpacing ?? .default)
 
-        return ZStack(alignment: alignment(for: flowLayout.horizontalAlignment ?? .left)) {
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+        FlowLayoutContainer(horizontalSpacing: colSpacing, verticalSpacing: rowSpacing) {
+            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 ElementView(element: item, hostConfig: hostConfig)
-                    .fixedSize(horizontal: flowLayout.itemFit == .fit, vertical: false)
-                    .frame(
-                        minWidth: parseSize(flowLayout.minItemWidth),
-                        maxWidth: parseSize(flowLayout.maxItemWidth) ?? .infinity
-                    )
                     .modifier(
                         FlowItemModifier(
                             itemWidth: parseSize(flowLayout.itemWidth),
+                            minWidth: parseSize(flowLayout.minItemWidth),
+                            maxWidth: parseSize(flowLayout.maxItemWidth),
                             itemFit: flowLayout.itemFit ?? .fit
                         )
                     )
-                    .alignmentGuide(.leading) { dimension in
-                        if abs(width - dimension.width) > geometry.size.width {
-                            width = 0
-                            height -= rowSpacing + dimension.height
-                        }
-                        let result = width
-                        if index == items.count - 1 {
-                            width = 0
-                        } else {
-                            width -= dimension.width + colSpacing
-                        }
-                        return result
-                    }
-                    .alignmentGuide(.top) { _ in
-                        let result = height
-                        if index == items.count - 1 {
-                            height = 0
-                        }
-                        return result
-                    }
             }
-        }
-        .background(
-            GeometryReader { geo -> Color in
-                DispatchQueue.main.async {
-                    totalHeight = geo.size.height
-                }
-                return Color.clear
-            }
-        )
-    }
-
-    private func alignment(for horizontal: HorizontalAlignment) -> Alignment {
-        switch horizontal {
-        case .left: return .leading
-        case .center: return .center
-        case .right: return .trailing
         }
     }
 
@@ -94,7 +43,7 @@ public struct FlowLayoutView: View {
         switch spacing {
         case .none: return 0
         case .small: return CGFloat(hostConfig.spacing.small)
-        case .default: return CGFloat(hostConfig.spacing.defaultSpacing)
+        case .default: return CGFloat(hostConfig.spacing.`default`)
         case .medium: return CGFloat(hostConfig.spacing.medium)
         case .large: return CGFloat(hostConfig.spacing.large)
         case .extraLarge: return CGFloat(hostConfig.spacing.extraLarge)
@@ -109,20 +58,81 @@ public struct FlowLayoutView: View {
     }
 }
 
+// MARK: - FlowLayoutContainer (Layout protocol)
+
+/// Custom Layout that arranges children in a flow/wrap pattern
+private struct FlowLayoutContainer: SwiftUI.Layout {
+    let horizontalSpacing: CGFloat
+    let verticalSpacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        for (index, position) in result.positions.enumerated() where index < subviews.count {
+            subviews[index].place(
+                at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y),
+                proposal: ProposedViewSize(result.sizes[index])
+            )
+        }
+    }
+
+    private struct LayoutResult {
+        var size: CGSize
+        var positions: [CGPoint]
+        var sizes: [CGSize]
+    }
+
+    private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> LayoutResult {
+        let maxWidth = proposal.width ?? .infinity
+        var positions: [CGPoint] = []
+        var sizes: [CGSize] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var totalWidth: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+
+            if currentX + size.width > maxWidth && currentX > 0 {
+                // Wrap to next row
+                currentX = 0
+                currentY += rowHeight + verticalSpacing
+                rowHeight = 0
+            }
+
+            positions.append(CGPoint(x: currentX, y: currentY))
+            sizes.append(size)
+            rowHeight = max(rowHeight, size.height)
+            currentX += size.width + horizontalSpacing
+            totalWidth = max(totalWidth, currentX - horizontalSpacing)
+        }
+
+        let totalHeight = currentY + rowHeight
+        return LayoutResult(
+            size: CGSize(width: totalWidth, height: totalHeight),
+            positions: positions,
+            sizes: sizes
+        )
+    }
+}
+
 // MARK: - FlowItemModifier
 
 /// Applies width constraints based on FlowLayout's itemWidth and itemFit settings
 private struct FlowItemModifier: ViewModifier {
     let itemWidth: CGFloat?
+    let minWidth: CGFloat?
+    let maxWidth: CGFloat?
     let itemFit: ItemFit
 
     func body(content: Content) -> some View {
-        if let width = itemWidth {
-            content.frame(width: width)
-        } else if itemFit == .fill {
-            content.frame(maxWidth: .infinity)
-        } else {
-            content
-        }
+        content
+            .frame(width: itemWidth)
+            .frame(minWidth: minWidth, maxWidth: maxWidth ?? .infinity)
     }
 }
