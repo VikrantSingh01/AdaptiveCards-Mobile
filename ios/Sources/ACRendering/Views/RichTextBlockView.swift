@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import ACCore
 import ACAccessibility
 
@@ -24,10 +26,13 @@ struct RichTextBlockView: View {
         for textRun in richTextBlock.inlines {
             var runText = AttributedString(textRun.text)
 
-            // Apply font size — use UIFont-backed Font for parity with legacy UIKit
             let size = fontSize(for: textRun)
+            #if canImport(UIKit)
             let weight = uiFontWeight(for: textRun)
             runText.font = Font(UIFont.systemFont(ofSize: CGFloat(size), weight: weight))
+            #else
+            runText.font = .system(size: CGFloat(size), weight: swiftUIFontWeight(for: textRun))
+            #endif
 
             // Apply color
             runText.foregroundColor = foregroundColor(for: textRun)
@@ -109,7 +114,16 @@ struct RichTextBlockView: View {
         }
     }
 
-    /// UIFont.Weight for legacy parity — used to create UIFont-backed Font
+    private func swiftUIFontWeight(for textRun: TextRun) -> Font.Weight {
+        let fontWeightEnum = textRun.weight ?? .default
+        switch fontWeightEnum {
+        case .lighter: return .light
+        case .default: return .regular
+        case .bolder: return .bold
+        }
+    }
+
+    #if canImport(UIKit)
     private func uiFontWeight(for textRun: TextRun) -> UIFont.Weight {
         let fontWeightEnum = textRun.weight ?? .default
         let weightValue: Int
@@ -142,6 +156,7 @@ struct RichTextBlockView: View {
             return .heavy
         }
     }
+    #endif
 
     private func foregroundColor(for textRun: TextRun) -> Color {
         let color = textRun.color ?? .default

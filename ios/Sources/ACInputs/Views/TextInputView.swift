@@ -1,6 +1,8 @@
 import SwiftUI
 #if canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
+#endif
 #endif
 import ACCore
 import ACAccessibility
@@ -40,7 +42,7 @@ public struct TextInputView: View {
                     .scrollContentBackground(.hidden)
                     .frame(minHeight: 80)
                     .padding(8)
-                    .background(Color(uiColor: .systemBackground))
+                    .background(Color(white: 1.0))
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
                             .stroke(borderColor, lineWidth: 1)
@@ -54,7 +56,7 @@ public struct TextInputView: View {
                     TextField(input.placeholder ?? "", text: $value)
                         .textFieldStyle(.plain)
                         .padding(8)
-                        .background(Color(uiColor: .systemBackground))
+                        .background(Color(white: 1.0))
                         .overlay(
                             RoundedRectangle(cornerRadius: 4)
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
@@ -69,7 +71,7 @@ public struct TextInputView: View {
                     TextField(input.placeholder ?? "", text: $value)
                         .textFieldStyle(.plain)
                         .padding(8)
-                        .background(Color(uiColor: .systemBackground))
+                        .background(Color(white: 1.0))
                         .overlay(
                             RoundedRectangle(cornerRadius: 4)
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)

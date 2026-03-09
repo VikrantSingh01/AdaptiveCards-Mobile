@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import ACCore
 import ACAccessibility
 import ACFluentUI
@@ -140,7 +142,7 @@ public struct ActionButton: View {
 
         switch actionStyle {
         case .default:
-            return Color(uiColor: .systemBlue)
+            return .blue
         case .positive:
             return Color(hex: colors.accent.`default`)
         case .destructive:

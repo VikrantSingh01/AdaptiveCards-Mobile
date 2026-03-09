@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import ACCore
 import ACAccessibility
 import ACMarkdown
@@ -48,18 +50,25 @@ struct TextBlockView: View {
 
     private var font: Font {
         let size = CGFloat(fontSize)
-        let weight = uiFontWeight
 
-        // Use UIFont-backed Font for more accurate glyph metrics
-        // matching the legacy UIKit-based renderer
+        #if canImport(UIKit)
+        let weight = uiFontWeight
         if textBlock.fontType == .monospace {
             return Font(UIFont.monospacedSystemFont(ofSize: size, weight: weight))
         } else {
             return Font(UIFont.systemFont(ofSize: size, weight: weight))
         }
+        #else
+        let weight = swiftUIFontWeight
+        if textBlock.fontType == .monospace {
+            return .system(size: size, weight: weight, design: .monospaced)
+        } else {
+            return .system(size: size, weight: weight)
+        }
+        #endif
     }
 
-    /// UIFont.Weight for legacy parity — used to create UIFont-backed Font
+    #if canImport(UIKit)
     private var uiFontWeight: UIFont.Weight {
         let fontWeightEnum = textBlock.weight ?? .default
         let weightValue: Int
@@ -90,6 +99,16 @@ struct TextBlockView: View {
             return .bold
         default:
             return .heavy
+        }
+    }
+    #endif
+
+    private var swiftUIFontWeight: Font.Weight {
+        let fontWeightEnum = textBlock.weight ?? .default
+        switch fontWeightEnum {
+        case .lighter: return .light
+        case .default: return .regular
+        case .bolder: return .bold
         }
     }
 

@@ -53,7 +53,7 @@ public struct NumberInputView: View {
         let field = TextField(input.placeholder ?? "Enter number", text: $textValue)
             .textFieldStyle(.plain)
             .padding(8)
-            .background(Color(uiColor: .systemBackground))
+            .background(Color(white: 1.0))
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
