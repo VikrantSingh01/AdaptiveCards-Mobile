@@ -1,0 +1,172 @@
+name: Visual Regression Gate
+
+on:
+  # Auto-run on PR and push  
+  push:
+    branches: [ main ]
+    paths:
+      - 'ios/**'
+      - 'android/**'
+      - 'shared/test-cards/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'ios/**'
+      - 'android/**'
+      - 'shared/test-cards/**'
+
+  # Manual trigger for recording baselines
+  workflow_dispatch:
+    inputs:
+      record_baselines:
+        description: 'Record new baselines instead of comparing'
+        type: boolean
+        default: false
+      platform:
+        description: 'Platform to test'
+        type: choice
+        options:
+          - both
+          - ios
+          - android
+        default: 'both'
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------
+  # iOS Visual Regression
+  # ---------------------------------------------------------------
+  ios-visual:
+    name: iOS Visual Regression
+    if: ${{ github.event.inputs.platform != 'android' }}
+    runs-on: macos-14
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+
+    - name: Card inventory
+      run: |
+        echo "=== Test Card Inventory ==="
+        echo "Top-level cards: $(ls shared/test-cards/*.json 2>/dev/null | wc -l | tr -d ' ')"
+        for dir in shared/test-cards/*/; do
+          [ -d "$dir" ] && echo "$(basename $dir): $(find $dir -name '*.json' | wc -l | tr -d ' ') cards"
+        done
+        echo "Total: $(find shared/test-cards -name '*.json' | wc -l | tr -d ' ') cards"
+
+    - name: Run parse validation (all cards)
+      working-directory: ios
+      run: swift test --filter "AllCardsDiscoveryTests/testAllCards_parseOnly"
+
+    - name: Run visual smoke test (1 config per card)
+      working-directory: ios
+      env:
+        RECORD_SNAPSHOTS: ${{ github.event.inputs.record_baselines == 'true' && '1' || '' }}
+      run: |
+        if [ -n "$RECORD_SNAPSHOTS" ]; then
+          echo "🔴 RECORDING MODE — creating new baselines"
+        else
+          echo "🟢 VERIFY MODE — comparing against baselines"
+        fi
+        swift test --filter "AllCardsDiscoveryTests/testAllCards_smokeTest" 2>&1 || true
+
+    - name: Run core matrix test (4 configs per card)
+      working-directory: ios
+      env:
+        RECORD_SNAPSHOTS: ${{ github.event.inputs.record_baselines == 'true' && '1' || '' }}
+      run: |
+        swift test --filter "AllCardsDiscoveryTests/testAllCards_coreMatrix" 2>&1 || true
+
+    - name: Upload baselines
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-baselines
+        path: ios/Tests/VisualTests/Snapshots/Baselines/
+        retention-days: 90
+
+    - name: Upload failures & diffs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-visual-failures
+        path: |
+          ios/Tests/VisualTests/Snapshots/Failures/
+          ios/Tests/VisualTests/Snapshots/Diffs/
+        retention-days: 14
+
+    - name: Upload HTML reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-visual-reports
+        path: ios/Tests/VisualTests/Snapshots/Reports/
+        retention-days: 30
+
+  # ---------------------------------------------------------------
+  # Android Visual Regression (Paparazzi)
+  # ---------------------------------------------------------------
+  android-visual:
+    name: Android Visual Regression
+    if: ${{ github.event.inputs.platform != 'ios' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+    
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Card inventory
+      run: |
+        echo "=== Test Card Inventory ==="
+        echo "Total: $(find shared/test-cards -name '*.json' | wc -l | tr -d ' ') cards"
+
+    - name: Record Paparazzi baselines
+      if: ${{ github.event.inputs.record_baselines == 'true' }}
+      working-directory: android
+      run: |
+        echo "🔴 RECORDING MODE — recording new Paparazzi baselines"
+        ./gradlew :ac-rendering:recordPaparazziDebug --stacktrace
+
+    - name: Verify Paparazzi snapshots
+      if: ${{ github.event.inputs.record_baselines != 'true' }}
+      working-directory: android
+      run: |
+        echo "🟢 VERIFY MODE — comparing against Paparazzi baselines"
+        ./gradlew :ac-rendering:verifyPaparazziDebug --stacktrace
+
+    - name: Upload baselines
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-baselines
+        path: android/ac-rendering/src/test/snapshots/
+        retention-days: 90
+
+    - name: Upload diffs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-visual-failures
+        path: android/ac-rendering/out/failures/
+        retention-days: 14

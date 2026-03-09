@@ -13,16 +13,17 @@ struct ColumnView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let items = column.items {
-                ForEach(items) { element in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
                         ElementView(element: element, hostConfig: hostConfig)
+                            .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
-        .padding(column.bleed == true ? 0 : CGFloat(hostConfig.spacing.padding))
+        .padding(column.style != nil ? CGFloat(hostConfig.spacing.padding) : 0)
         .containerStyle(column.style, hostConfig: hostConfig)
         .selectAction(column.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
@@ -31,7 +32,7 @@ struct ColumnView: View {
 
     private var verticalContentAlignment: Alignment {
         guard let alignment = column.verticalContentAlignment else {
-            return .center
+            return .top
         }
 
         switch alignment {

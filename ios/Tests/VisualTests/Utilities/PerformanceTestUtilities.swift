@@ -210,12 +210,12 @@ public class CardPerformanceRunner {
         var count = 1
         switch element {
         case .container(let container):
-            for item in container.items {
+            for item in container.items ?? [] {
                 count += countElementsRecursive(item)
             }
         case .columnSet(let columnSet):
             for column in columnSet.columns {
-                for item in column.items {
+                for item in column.items ?? [] {
                     count += countElementsRecursive(item)
                 }
             }
