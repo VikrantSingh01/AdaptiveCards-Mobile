@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":ac-host-config"))
     implementation(project(":ac-markdown"))
     implementation(project(":ac-accessibility"))
+    implementation(project(":ac-templating"))
 
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)
