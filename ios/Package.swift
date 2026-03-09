@@ -68,7 +68,7 @@ let package = Package(
             dependencies: ["ACCore", "ACAccessibility"]),
         .target(
             name: "ACActions",
-            dependencies: ["ACCore", "ACAccessibility"]),
+            dependencies: ["ACCore", "ACAccessibility", "ACFluentUI"]),
         .target(
             name: "ACRendering",
             dependencies: ["ACCore", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI", "ACTemplating"]),
@@ -103,6 +103,6 @@ let package = Package(
             resources: [.copy("Resources")]),
         .testTarget(
             name: "VisualTests",
-            dependencies: ["ACCore", "ACRendering", "ACInputs", "ACActions", "ACAccessibility", "ACMarkdown", "ACCharts", "ACFluentUI"]),
+            dependencies: ["ACCore", "ACRendering", "ACInputs", "ACActions", "ACAccessibility", "ACTemplating", "ACMarkdown", "ACCharts", "ACFluentUI"]),
     ]
 )

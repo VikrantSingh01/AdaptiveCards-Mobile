@@ -398,11 +398,14 @@ final class CardPerformanceTests: CardSnapshotTestCase {
     /// Tests expression evaluation performance with singleton function registry.
     /// After optimization: Functions are registered once at app launch, not per evaluator.
     func testPerformance_expressionEvaluationWithSingleton() throws {
+        let parser = ExpressionParser()
         measure {
             for _ in 0..<1000 {
                 let context = DataContext(data: ["name": "John", "age": 30])
                 let evaluator = ExpressionEvaluator(context: context)
-                _ = try? evaluator.evaluate(expression: "concat('Hello, ', name, '! You are ', string(age), ' years old.')")
+                if let expr = try? parser.parse("concat('Hello, ', name, '! You are ', string(age), ' years old.')") {
+                    _ = try? evaluator.evaluate(expr)
+                }
             }
         }
     }

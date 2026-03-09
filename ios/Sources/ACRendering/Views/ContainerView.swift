@@ -13,16 +13,17 @@ struct ContainerView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let items = container.items {
-                ForEach(items) { element in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
                         ElementView(element: element, hostConfig: hostConfig)
+                            .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
-        .padding(container.bleed == true ? 0 : CGFloat(hostConfig.spacing.padding))
+        .padding(container.bleed == true ? 0 : (container.style != nil ? CGFloat(hostConfig.spacing.padding) : 0))
         .containerStyle(container.style, hostConfig: hostConfig)
         .spacing(container.spacing, hostConfig: hostConfig)
         .separator(container.separator, hostConfig: hostConfig)
@@ -34,7 +35,7 @@ struct ContainerView: View {
 
     private var verticalContentAlignment: Alignment {
         guard let alignment = container.verticalContentAlignment else {
-            return .center
+            return .top
         }
 
         switch alignment {
