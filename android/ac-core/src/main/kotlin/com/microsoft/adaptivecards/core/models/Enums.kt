@@ -173,3 +173,18 @@ enum class SpinnerSize {
     @SerialName("medium") MEDIUM,
     @SerialName("large") LARGE
 }
+
+// Layout Types
+
+@Serializable
+enum class LayoutType {
+    @SerialName("Layout.Stack") STACK,
+    @SerialName("Layout.Flow") FLOW,
+    @SerialName("Layout.AreaGrid") AREA_GRID
+}
+
+@Serializable
+enum class ItemFit {
+    @SerialName("Fit") FIT,
+    @SerialName("Fill") FILL
+}

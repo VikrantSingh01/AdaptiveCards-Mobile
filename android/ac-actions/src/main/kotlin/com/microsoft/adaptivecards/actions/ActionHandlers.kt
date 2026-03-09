@@ -48,7 +48,7 @@ object SubmitActionHandler {
             }
         }
         
-        delegate.onSubmit(submitData)
+        delegate.onSubmit(submitData, action.id)
     }
 }
 
@@ -75,7 +75,7 @@ object OpenUrlActionHandler {
             }
             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
             context.startActivity(intent)
-            delegate.onOpenUrl(action.url)
+            delegate.onOpenUrl(action.url, action.id)
         } catch (e: Exception) {
             // Handle error
         }
@@ -122,7 +122,7 @@ object ExecuteActionHandler {
             }
         }
         
-        delegate.onExecute(action.verb ?: "", executeData)
+        delegate.onExecute(action.verb ?: "", executeData, action.id)
     }
 }
 

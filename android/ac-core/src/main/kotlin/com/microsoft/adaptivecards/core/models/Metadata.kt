@@ -28,5 +28,7 @@ data class TokenExchangeResource(
 @Serializable
 data class Refresh(
     val action: CardAction,
-    val userIds: List<String>? = null
+    val userIds: List<String>? = null,
+    /** ISO-8601 timestamp indicating when the card content expires (v1.6) */
+    val expires: String? = null
 )

@@ -103,7 +103,9 @@ data class Container(
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,
     val targetWidth: String? = null,
-    val rtl: Boolean? = null
+    val rtl: Boolean? = null,
+    /** Layout descriptor (FlowLayout or AreaGridLayout). When null, uses default stack layout. */
+    val layout: Layout? = null
 ) : CardElement
 
 @Serializable(with = BackgroundImageSerializer::class)
