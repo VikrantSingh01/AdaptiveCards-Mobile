@@ -65,9 +65,9 @@ fun CompoundButtonView(
         onClick = {
             element.action?.let { action ->
                 when (action) {
-                    is com.microsoft.adaptivecards.core.models.ActionOpenUrl -> actionHandler.onOpenUrl(action.url)
-                    is com.microsoft.adaptivecards.core.models.ActionSubmit -> actionHandler.onSubmit(emptyMap())
-                    is com.microsoft.adaptivecards.core.models.ActionExecute -> actionHandler.onExecute(action.verb ?: "", emptyMap())
+                    is com.microsoft.adaptivecards.core.models.ActionOpenUrl -> actionHandler.onOpenUrl(action.url, action.id)
+                    is com.microsoft.adaptivecards.core.models.ActionSubmit -> actionHandler.onSubmit(emptyMap(), action.id)
+                    is com.microsoft.adaptivecards.core.models.ActionExecute -> actionHandler.onExecute(action.verb ?: "", emptyMap(), action.id)
                     else -> { /* Other action types */ }
                 }
             }
