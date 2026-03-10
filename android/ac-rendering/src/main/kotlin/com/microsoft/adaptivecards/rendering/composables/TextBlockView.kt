@@ -185,3 +185,33 @@ internal fun getTextColor(
         Color.Black
     }
 }
+
+/**
+ * Get highlight background color from host config based on color slot and subtle properties.
+ */
+internal fun getHighlightColor(
+    color: com.microsoft.adaptivecards.core.models.Color,
+    isSubtle: Boolean,
+    hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
+): Color {
+    val containerStyle = hostConfig.containerStyles.default
+    val foregroundColors = containerStyle.foregroundColors
+
+    val colorConfig = when (color) {
+        com.microsoft.adaptivecards.core.models.Color.Default -> foregroundColors.default
+        com.microsoft.adaptivecards.core.models.Color.Dark -> foregroundColors.dark
+        com.microsoft.adaptivecards.core.models.Color.Light -> foregroundColors.light
+        com.microsoft.adaptivecards.core.models.Color.Accent -> foregroundColors.accent
+        com.microsoft.adaptivecards.core.models.Color.Good -> foregroundColors.good
+        com.microsoft.adaptivecards.core.models.Color.Warning -> foregroundColors.warning
+        com.microsoft.adaptivecards.core.models.Color.Attention -> foregroundColors.attention
+    }
+
+    val colorString = if (isSubtle) colorConfig.highlightColors.subtle else colorConfig.highlightColors.default
+
+    return try {
+        Color(android.graphics.Color.parseColor(colorString))
+    } catch (e: Exception) {
+        Color(0x4DFFFF00) // Fallback: yellow at 30% opacity
+    }
+}

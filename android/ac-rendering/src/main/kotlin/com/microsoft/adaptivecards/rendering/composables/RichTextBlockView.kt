@@ -88,7 +88,11 @@ fun RichTextBlockView(
                     TextDecoration.None
                 },
                 background = if (textRun.highlight == true) {
-                    Color(0x4DFFFF00) // Yellow highlight at 30% opacity
+                    getHighlightColor(
+                        textRun.color ?: com.microsoft.adaptivecards.core.models.Color.Default,
+                        textRun.isSubtle ?: false,
+                        hostConfig
+                    )
                 } else {
                     Color.Transparent
                 }

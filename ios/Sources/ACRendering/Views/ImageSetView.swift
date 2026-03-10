@@ -7,9 +7,11 @@ struct ImageSetView: View {
     let hostConfig: HostConfig
 
     var body: some View {
-        LazyVGrid(columns: gridColumns, spacing: CGFloat(hostConfig.spacing.small)) {
+        LazyVGrid(columns: gridColumns, spacing: CGFloat(hostConfig.spacing.default)) {
             ForEach(imageSet.images, id: \.stableId) { image in
                 ImageView(image: image, hostConfig: hostConfig)
+                    .frame(maxHeight: CGFloat(hostConfig.imageSet.maxImageHeight))
+                    .clipped()
             }
         }
         .spacing(imageSet.spacing, hostConfig: hostConfig)
