@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct RatingDisplayView: View {
     let rating: RatingDisplay
@@ -14,7 +15,7 @@ struct RatingDisplayView: View {
             HStack(spacing: 2) {
                 ForEach(0..<maxStars, id: \.self) { index in
                     starImage(for: index)
-                        .foregroundColor(.yellow)
+                        .foregroundColor(starColor(for: index))
                         .font(starSize)
                         .accessibilityHidden(true)
                 }
@@ -23,14 +24,14 @@ struct RatingDisplayView: View {
             // Value text
             Text(String(format: "%.1f", rating.value))
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(hex: hostConfig.ratingLabel.ratingTextColor))
                 .accessibilityHidden(true)
 
             // Count if provided
             if let count = rating.count {
                 Text("(\(count))")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color(hex: hostConfig.ratingLabel.countTextColor))
                     .accessibilityHidden(true)
             }
         }
@@ -61,6 +62,13 @@ struct RatingDisplayView: View {
             return .title3
         }
         return baseSize
+    }
+
+    private func starColor(for index: Int) -> Color {
+        let starValue = Double(index + 1)
+        let isFilled = rating.value >= starValue - 0.5
+        let config = isFilled ? hostConfig.ratingLabel.filledStar : hostConfig.ratingLabel.emptyStar
+        return Color(hex: config.marigoldColor)
     }
 
     private func starImage(for index: Int) -> SwiftUI.Image {

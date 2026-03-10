@@ -2,6 +2,7 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -93,9 +94,14 @@ fun TableView(
     val gridBackground = parseColorSafe(gridStyleConfig?.backgroundColor)
     val gridLineColor = Color(0xFFE0E0E0)
 
+    val tableCornerRadius = hostConfig.cornerRadius.table
+
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (tableCornerRadius > 0) Modifier.clip(RoundedCornerShape(tableCornerRadius.dp)) else Modifier
+            )
             .then(
                 if (gridBackground != null) Modifier.background(gridBackground) else Modifier
             )

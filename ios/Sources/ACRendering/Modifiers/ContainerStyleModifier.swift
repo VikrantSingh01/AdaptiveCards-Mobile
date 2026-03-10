@@ -2,7 +2,7 @@ import SwiftUI
 import ACCore
 
 public extension View {
-    /// Applies container style background color
+    /// Applies container style background color and corner radius
     func containerStyle(_ style: ContainerStyle?, hostConfig: HostConfig) -> some View {
         self.modifier(ContainerStyleModifier(style: style, hostConfig: hostConfig))
     }
@@ -14,7 +14,11 @@ struct ContainerStyleModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(backgroundColor)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(backgroundColor)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
 
     private var backgroundColor: Color {
@@ -37,5 +41,27 @@ struct ContainerStyleModifier: ViewModifier {
         }
 
         return Color(hex: styleConfig.backgroundColor)
+    }
+
+    private var cornerRadius: CGFloat {
+        guard let containerStyle = style else { return 0 }
+        let key: String
+
+        switch containerStyle {
+        case .default:
+            key = "container"
+        case .emphasis:
+            key = "container"
+        case .good:
+            key = "container"
+        case .attention:
+            key = "container"
+        case .warning:
+            key = "container"
+        case .accent:
+            key = "container"
+        }
+
+        return CGFloat(hostConfig.cornerRadius[key] ?? 0)
     }
 }

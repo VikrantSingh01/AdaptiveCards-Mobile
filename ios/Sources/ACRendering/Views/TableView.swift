@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct TableView: View {
     let table: ACCore.Table
@@ -29,7 +30,7 @@ struct TableView: View {
                     }
                 }
                 .if(isHeaderRow) { view in
-                    view.background(Color(hex: "#F5F5F5"))
+                    view.background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                 }
 
                 if table.showGridLines == true && rowIndex < table.rows.count - 1 {
@@ -39,6 +40,7 @@ struct TableView: View {
                 }
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["table"] ?? 0)))
         .spacing(table.spacing, hostConfig: hostConfig)
         .separator(table.separator, hostConfig: hostConfig)
         .accessibilityContainer(label: "Table")
@@ -64,7 +66,7 @@ struct TableCellView: View {
                     if viewModel.isElementVisible(elementId: element.elementId) {
                         if isHeader {
                             ElementView(element: element, hostConfig: hostConfig)
-                                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: .bold))
+                                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
                         } else {
                             ElementView(element: element, hostConfig: hostConfig)
                         }
@@ -100,5 +102,19 @@ struct TableCellView: View {
     private var minHeight: CGFloat? {
         guard let minHeightStr = cell.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)
+    }
+
+    private var headerFontWeight: Font.Weight {
+        let weightValue = hostConfig.fontWeights.bolder
+        switch weightValue {
+        case 100...199: return .ultraLight
+        case 200...299: return .light
+        case 300...399: return .regular
+        case 400...499: return .regular
+        case 500...599: return .medium
+        case 600...699: return .semibold
+        case 700...799: return .bold
+        default: return .heavy
+        }
     }
 }

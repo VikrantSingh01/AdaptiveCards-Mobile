@@ -11,14 +11,15 @@ import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
 
 /**
- * Draws a separator line based on host config
+ * Draws a separator line based on host config.
+ * Supports the Figma separator token (#0D16233A light, #EEEEEE dark).
  */
 @Composable
 fun SeparatorLine() {
     val hostConfig = LocalHostConfig.current
-    val lineColor = parseColor(hostConfig.separator.lineColor)
+    val lineColor = parseSeparatorColor(hostConfig.separator.lineColor)
     val lineThickness = hostConfig.separator.lineThickness.dp
-    
+
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,9 +46,9 @@ fun Modifier.adaptiveSeparator(
 }
 
 /**
- * Parse color string to Compose Color
+ * Parse color string to Compose Color, supporting #AARRGGBB and #RRGGBB.
  */
-private fun parseColor(colorString: String): Color {
+private fun parseSeparatorColor(colorString: String): Color {
     return try {
         Color(android.graphics.Color.parseColor(colorString))
     } catch (e: Exception) {

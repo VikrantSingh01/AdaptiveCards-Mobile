@@ -6,6 +6,7 @@ import UIKit
 #endif
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct TabSetView: View {
     let tabSet: TabSet
@@ -46,7 +47,7 @@ struct TabSetView: View {
                 }
             }
             .frame(height: adaptiveTabBarHeight)
-            .background(Color.gray.opacity(0.1))
+            .background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Tab bar with \(tabSet.tabs.count) tabs")
 
@@ -90,17 +91,17 @@ struct TabButton: View {
                     .font(adaptiveTextSize)
                     .lineLimit(1)
             }
-            .foregroundColor(isSelected ? .blue : .primary)
+            .foregroundColor(isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default) : Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
             .padding(.horizontal, adaptiveHorizontalPadding)
             .padding(.vertical, adaptiveVerticalPadding)
             .frame(minWidth: 44, minHeight: 44)
             .background(
-                isSelected ? Color.blue.opacity(0.1) : Color.clear
+                isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default).opacity(0.1) : Color.clear
             )
             .overlay(
                 Rectangle()
                     .frame(height: 2)
-                    .foregroundColor(isSelected ? .blue : .clear),
+                    .foregroundColor(isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default) : .clear),
                 alignment: .bottom
             )
             .contentShape(Rectangle())
@@ -122,11 +123,11 @@ struct TabButton: View {
     }
 
     private var adaptiveHorizontalPadding: CGFloat {
-        sizeCategory.isAccessibilityCategory ? 20 : 16
+        sizeCategory.isAccessibilityCategory ? CGFloat(hostConfig.spacing.extraLarge) : CGFloat(hostConfig.spacing.large)
     }
 
     private var adaptiveVerticalPadding: CGFloat {
-        sizeCategory.isAccessibilityCategory ? 16 : 12
+        sizeCategory.isAccessibilityCategory ? CGFloat(hostConfig.spacing.large) : CGFloat(hostConfig.spacing.medium)
     }
 }
 

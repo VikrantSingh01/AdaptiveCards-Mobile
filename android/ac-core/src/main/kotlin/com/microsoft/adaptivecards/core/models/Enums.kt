@@ -27,6 +27,7 @@ enum class VerticalContentAlignment {
 @Serializable
 enum class Spacing {
     @SerialName("None") None,
+    @SerialName("ExtraSmall") ExtraSmall,
     @SerialName("Small") Small,
     @SerialName("Default") Default,
     @SerialName("Medium") Medium,

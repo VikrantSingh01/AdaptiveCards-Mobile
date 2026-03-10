@@ -1,8 +1,10 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.models.Column
 import com.microsoft.adaptivecards.core.models.ColumnSet
@@ -28,9 +30,12 @@ fun ColumnSetView(
     val columns = element.columns ?: emptyList()
     val spacing = hostConfig.spacing.default.dp
 
+    val cornerRadius = hostConfig.cornerRadius.columnSet
+
     Row(
         modifier = modifier
-            .containerStyle(element.style)
+            .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
+            .containerStyle(element.style, cornerRadius)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(spacing)
     ) {
@@ -59,12 +64,15 @@ fun ColumnView(
     viewModel: CardViewModel,
     actionHandler: ActionHandler
 ) {
+    val hostConfig = LocalHostConfig.current
     val items = column.items ?: emptyList()
     val minHeight = column.minHeight?.replace("px", "")?.toIntOrNull()?.dp
+    val cornerRadius = hostConfig.cornerRadius.column
 
     Column(
         modifier = modifier
-            .containerStyle(column.style)
+            .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
+            .containerStyle(column.style, cornerRadius)
             .then(if (minHeight != null) Modifier.heightIn(min = minHeight) else Modifier),
         verticalArrangement = when (column.verticalContentAlignment) {
             VerticalContentAlignment.Center -> Arrangement.Center
