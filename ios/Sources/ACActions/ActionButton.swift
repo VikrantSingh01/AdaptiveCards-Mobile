@@ -25,13 +25,22 @@ public struct ActionButton: View {
         Button(action: onTap) {
             HStack(spacing: 6) {
                 if let iconUrl = iconUrl {
-                    AsyncImage(url: URL(string: iconUrl)) { image in
-                        image
+                    if iconUrl.hasPrefix("icon:") {
+                        // Fluent icon name → SF Symbol mapping
+                        let iconName = String(iconUrl.dropFirst("icon:".count))
+                        Image(systemName: Self.sfSymbol(for: iconName))
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 16, height: 16)
-                    } placeholder: {
-                        EmptyView()
+                    } else {
+                        AsyncImage(url: URL(string: iconUrl)) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                        } placeholder: {
+                            EmptyView()
+                        }
                     }
                 }
 
@@ -153,6 +162,61 @@ public struct ActionButton: View {
             return Color(hex: colors.good.`default`)
         case .destructive:
             return Color(hex: colors.attention.`default`)
+        }
+    }
+
+    /// Maps Fluent UI icon names to SF Symbols
+    static func sfSymbol(for fluentIcon: String) -> String {
+        switch fluentIcon {
+        case "Calendar": return "calendar"
+        case "PeopleTeam": return "person.2"
+        case "ArrowDown": return "arrow.down"
+        case "ArrowUp": return "arrow.up"
+        case "Link": return "link"
+        case "Clock": return "clock"
+        case "Send": return "paperplane"
+        case "Edit": return "pencil"
+        case "Delete": return "trash"
+        case "Add": return "plus"
+        case "Search": return "magnifyingglass"
+        case "Share": return "square.and.arrow.up"
+        case "Star": return "star"
+        case "StarFilled": return "star.fill"
+        case "Heart": return "heart"
+        case "HeartFilled": return "heart.fill"
+        case "Bookmark": return "bookmark"
+        case "BookmarkFilled": return "bookmark.fill"
+        case "Comment": return "bubble.right"
+        case "ThumbLike": return "hand.thumbsup"
+        case "Eye": return "eye"
+        case "EyeOff": return "eye.slash"
+        case "CheckmarkCircle": return "checkmark.circle"
+        case "DismissCircle": return "xmark.circle"
+        case "Info": return "info.circle"
+        case "Warning": return "exclamationmark.triangle"
+        case "ErrorCircle": return "exclamationmark.circle"
+        case "ChevronRight": return "chevron.right"
+        case "ChevronDown": return "chevron.down"
+        case "ChevronUp": return "chevron.up"
+        case "Open": return "arrow.up.right.square"
+        case "Copy": return "doc.on.doc"
+        case "Receipt": return "doc.text"
+        case "Flag": return "flag"
+        case "FlagFilled": return "flag.fill"
+        case "Location": return "location"
+        case "Phone": return "phone"
+        case "Mail": return "envelope"
+        case "Video": return "video"
+        case "Camera": return "camera"
+        case "Attach": return "paperclip"
+        case "Document": return "doc"
+        case "Folder": return "folder"
+        case "Settings": return "gearshape"
+        case "Filter": return "line.3.horizontal.decrease"
+        case "MoreHorizontal": return "ellipsis"
+        case "Save": return "square.and.arrow.down"
+        case "Navigation": return "arrow.triangle.turn.up.right.diamond"
+        default: return "questionmark.square"
         }
     }
 }

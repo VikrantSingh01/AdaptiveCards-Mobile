@@ -37,6 +37,7 @@ struct PreParsedCardView: View {
         .environment(\.hostConfig, hostConfig)
         .environment(\.actionHandler, DefaultActionHandler())
         .environment(\.validationState, validationState)
+        .environment(\.widthCategory, .narrow)
         .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
     }
 }

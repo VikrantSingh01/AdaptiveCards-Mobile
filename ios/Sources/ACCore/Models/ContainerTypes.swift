@@ -75,6 +75,7 @@ public struct ColumnSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
     public var fallback: CardElement?
 
     public init(
@@ -90,6 +91,7 @@ public struct ColumnSet: Codable, Equatable {
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
+        targetWidth: String? = nil,
         fallback: CardElement? = nil
     ) {
         self.id = id
@@ -104,6 +106,7 @@ public struct ColumnSet: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
         self.fallback = fallback
     }
 }
@@ -310,6 +313,7 @@ public struct ActionSet: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
     public var fallback: CardElement?
 
     public init(
@@ -321,6 +325,7 @@ public struct ActionSet: Codable, Equatable {
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
+        targetWidth: String? = nil,
         fallback: CardElement? = nil
     ) {
         self.id = id
@@ -331,6 +336,7 @@ public struct ActionSet: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
         self.fallback = fallback
     }
 }
