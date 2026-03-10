@@ -102,7 +102,7 @@ struct ColumnSetView: View {
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
-        ProportionalColumnLayout(columns: columnSet.columns, columnSpacing: 0) {
+        ProportionalColumnLayout(columns: columnSet.columns, columnSpacing: CGFloat(hostConfig.spacing.default)) {
             ForEach(columnSet.columns, id: \.stableId) { column in
                 ColumnView(column: column, hostConfig: hostConfig)
             }
