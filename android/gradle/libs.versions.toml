@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.0.21"
-compose-bom = "2024.01.00"
+compose-bom = "2024.10.01"
 compose-compiler = "2.0.21"
 agp = "8.2.0"
 kotlinx-serialization = "1.6.2"

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -115,7 +115,7 @@ fun RatingInputView(
                         .size(starSize)
                         .clickable(
                             interactionSource = interactionSource,
-                            indication = rememberRipple(bounded = false, radius = starSize / 2),
+                            indication = ripple(bounded = false, radius = starSize / 2),
                             role = Role.RadioButton,
                             onClickLabel = "Rate $i stars"
                         ) {
