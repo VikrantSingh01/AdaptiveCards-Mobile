@@ -1,5 +1,5 @@
 {
-  "swift.path": "/usr/bin/swift",
+  "swift.path": "/Users/vikrant/.swiftly/bin/swift",
   "swift.buildPath": "${workspaceFolder}/ios/.build",
   "swift.autoGenerateLaunchConfigurations": true,
   
