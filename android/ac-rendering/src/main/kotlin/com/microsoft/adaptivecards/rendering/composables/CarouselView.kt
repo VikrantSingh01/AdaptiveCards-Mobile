@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
  * Accessibility: Announces current page and total pages, supports swipe gestures
  * Responsive: Adapts padding and card size for tablets
  */
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun CarouselView(
     element: Carousel,
