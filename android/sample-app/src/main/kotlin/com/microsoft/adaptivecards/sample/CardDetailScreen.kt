@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
@@ -21,7 +22,7 @@ import kotlin.system.measureTimeMillis
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(cardId: String, actionLogState: ActionLogState) {
+fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, navController: NavController) {
     var showJson by remember { mutableStateOf(false) }
     var parseTime by remember { mutableStateOf(0L) }
     var renderTime by remember { mutableStateOf(0L) }
@@ -46,7 +47,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState) {
             TopAppBar(
                 title = { Text(card?.title ?: "Card Detail") },
                 navigationIcon = {
-                    IconButton(onClick = { /* Navigate back */ }) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
