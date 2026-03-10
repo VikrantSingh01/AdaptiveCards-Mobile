@@ -1,9 +1,18 @@
 package com.microsoft.adaptivecards.core.models
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 @Serializable
 sealed interface CardAction {
@@ -102,11 +111,49 @@ data class ActionToggleVisibility(
     val targetElements: List<TargetElement>
 ) : CardAction
 
-@Serializable
+@Serializable(with = TargetElementSerializer::class)
 data class TargetElement(
     val elementId: String,
     val isVisible: Boolean? = null
 )
+
+/**
+ * Per the Adaptive Card spec, targetElements entries can be either:
+ * - A string: just the element ID (e.g., "myElement")
+ * - An object: { "elementId": "myElement", "isVisible": true }
+ */
+object TargetElementSerializer : KSerializer<TargetElement> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("TargetElement")
+
+    override fun deserialize(decoder: Decoder): TargetElement {
+        val jsonDecoder = decoder as JsonDecoder
+        val element = jsonDecoder.decodeJsonElement()
+        return when (element) {
+            is JsonPrimitive -> TargetElement(elementId = element.content)
+            else -> {
+                val obj = element.jsonObject
+                TargetElement(
+                    elementId = obj["elementId"]?.jsonPrimitive?.content ?: "",
+                    isVisible = obj["isVisible"]?.jsonPrimitive?.content?.toBooleanStrictOrNull()
+                )
+            }
+        }
+    }
+
+    override fun serialize(encoder: Encoder, value: TargetElement) {
+        val jsonEncoder = encoder as kotlinx.serialization.json.JsonEncoder
+        if (value.isVisible == null) {
+            jsonEncoder.encodeJsonElement(JsonPrimitive(value.elementId))
+        } else {
+            jsonEncoder.encodeJsonElement(
+                kotlinx.serialization.json.buildJsonObject {
+                    put("elementId", JsonPrimitive(value.elementId))
+                    put("isVisible", JsonPrimitive(value.isVisible))
+                }
+            )
+        }
+    }
+}
 
 @Serializable
 @SerialName("Action.Popover")
