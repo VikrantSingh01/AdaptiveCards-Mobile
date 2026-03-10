@@ -48,9 +48,9 @@ struct RichTextBlockView: View {
                 runText.underlineStyle = .single
             }
 
-            // Highlight support
+            // Highlight support — use HostConfig highlightColors for the active color slot
             if textRun.highlight == true {
-                runText.backgroundColor = Color.yellow.opacity(0.3)
+                runText.backgroundColor = highlightColor(for: textRun)
             }
 
             // Link styling for text runs with selectAction
@@ -157,6 +157,25 @@ struct RichTextBlockView: View {
         }
     }
     #endif
+
+    private func highlightColor(for textRun: TextRun) -> Color {
+        let color = textRun.color ?? .default
+        let styleConfig = hostConfig.containerStyles.default
+        let colorConfig: ColorConfig
+
+        switch color {
+        case .default: colorConfig = styleConfig.foregroundColors.default
+        case .dark: colorConfig = styleConfig.foregroundColors.dark
+        case .light: colorConfig = styleConfig.foregroundColors.light
+        case .accent: colorConfig = styleConfig.foregroundColors.accent
+        case .good: colorConfig = styleConfig.foregroundColors.good
+        case .warning: colorConfig = styleConfig.foregroundColors.warning
+        case .attention: colorConfig = styleConfig.foregroundColors.attention
+        }
+
+        let hex = textRun.isSubtle == true ? colorConfig.highlightColors.subtle : colorConfig.highlightColors.default
+        return Color(hex: hex)
+    }
 
     private func foregroundColor(for textRun: TextRun) -> Color {
         let color = textRun.color ?? .default

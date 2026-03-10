@@ -8,30 +8,45 @@ struct TableView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(table.rows) { row in
+            ForEach(Array(table.rows.enumerated()), id: \.element.id) { rowIndex, row in
+                let isHeaderRow = table.firstRowAsHeaders == true && rowIndex == 0
+
                 HStack(spacing: 0) {
-                    ForEach(row.cells) { cell in
+                    ForEach(Array(row.cells.enumerated()), id: \.element.id) { cellIndex, cell in
                         TableCellView(
                             cell: cell,
-                            isHeader: table.firstRowAsHeaders == true && table.rows.first?.id == row.id,
+                            isHeader: isHeaderRow,
                             hostConfig: hostConfig
                         )
                         .frame(maxWidth: .infinity)
+                        .if(hasColumnWeight(at: cellIndex)) { view in
+                            view.frame(maxWidth: .infinity)
+                        }
 
-                        if table.showGridLines == true && cell.id != row.cells.last?.id {
+                        if table.showGridLines == true && cellIndex < row.cells.count - 1 {
                             Divider()
                         }
                     }
                 }
+                .if(isHeaderRow) { view in
+                    view.background(Color(hex: "#F5F5F5"))
+                }
 
-                if table.showGridLines == true && row.id != table.rows.last?.id {
-                    Divider()
+                if table.showGridLines == true && rowIndex < table.rows.count - 1 {
+                    Rectangle()
+                        .fill(Color(hex: hostConfig.separator.lineColor))
+                        .frame(height: isHeaderRow ? 2 : CGFloat(hostConfig.separator.lineThickness))
                 }
             }
         }
         .spacing(table.spacing, hostConfig: hostConfig)
         .separator(table.separator, hostConfig: hostConfig)
         .accessibilityContainer(label: "Table")
+    }
+
+    private func hasColumnWeight(at index: Int) -> Bool {
+        guard let columns = table.columns, index < columns.count else { return true }
+        return columns[index].width != nil
     }
 }
 
@@ -47,18 +62,23 @@ struct TableCellView: View {
             if let items = cell.items {
                 ForEach(items) { element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
-                        ElementView(element: element, hostConfig: hostConfig)
+                        if isHeader {
+                            ElementView(element: element, hostConfig: hostConfig)
+                                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: .bold))
+                        } else {
+                            ElementView(element: element, hostConfig: hostConfig)
+                        }
                     }
                 }
             } else {
-                // Empty cell - render as blank space
                 Text("")
                     .frame(minHeight: 20)
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
-        .padding(8)
+        .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
+        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing / 2))
         .containerStyle(cell.style, hostConfig: hostConfig)
     }
 
