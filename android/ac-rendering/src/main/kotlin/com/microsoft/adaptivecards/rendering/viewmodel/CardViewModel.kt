@@ -330,8 +330,13 @@ class CardViewModel : ViewModel() {
     fun refreshData(newData: Map<String, Any?>) {
         val template = storedTemplate ?: return
         val savedInputs = inputValues.toMap()
+        val savedVisibility = visibilityState.toMap()
+        val savedShowCards = showCardState.toMap()
         parseCard(template, newData)
+        // Restore user state after re-parse
         inputValues.putAll(savedInputs)
+        visibilityState.putAll(savedVisibility)
+        showCardState.putAll(savedShowCards)
     }
 
     /**

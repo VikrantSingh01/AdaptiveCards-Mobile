@@ -9,6 +9,8 @@ public class CardViewModel: ObservableObject {
     @Published public var visibility: [String: Bool] = [:]
     @Published public var showCards: [String: Bool] = [:]
     @Published public var parsingError: Error?
+    /// Incremented each time a new parsing error occurs, used for change detection
+    @Published public var parsingErrorId: Int = 0
 
     private let parser: CardParser
     private let templateEngine: TemplateEngine
@@ -26,7 +28,7 @@ public class CardViewModel: ObservableObject {
     /// - Parameters:
     ///   - json: The card JSON string (may contain `${expression}` template syntax)
     ///   - templateData: Optional data context for template expansion
-    public func parseCard(json: String, templateData: [String: Any]? = nil) {
+    public func parseCard(json: String, templateData: [String: Any]? = nil, completion: (() -> Void)? = nil) {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
 
@@ -49,11 +51,14 @@ public class CardViewModel: ObservableObject {
                     self.parsingError = nil
                     self.initializeVisibility(for: parsedCard)
                     self.initializeInputValues(for: parsedCard)
+                    completion?()
                 }
             } catch {
                 DispatchQueue.main.async {
                     self.parsingError = error
+                    self.parsingErrorId += 1
                     print("Failed to parse card: \(error)")
+                    completion?()
                 }
             }
         }
@@ -193,13 +198,16 @@ public class CardViewModel: ObservableObject {
     public func refreshData(_ newData: [String: Any]) {
         guard let template = storedTemplate else { return }
         let savedInputs = inputValues
-        parseCard(json: template, templateData: newData)
-        // Restore user-entered input values after re-parse completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        let savedVisibility = visibility
+        let savedShowCards = showCards
+        parseCard(json: template, templateData: newData) { [weak self] in
             guard let self = self else { return }
+            // Restore user-entered state after re-parse completes
             for (key, value) in savedInputs {
                 self.inputValues[key] = value
             }
+            self.visibility.merge(savedVisibility) { _, kept in kept }
+            self.showCards.merge(savedShowCards) { _, kept in kept }
         }
     }
 
