@@ -91,7 +91,7 @@ fun MainScreen() {
             }
             composable("card_detail/{cardId}") { backStackEntry ->
                 val cardId = backStackEntry.arguments?.getString("cardId") ?: ""
-                CardDetailScreen(cardId, actionLogState)
+                CardDetailScreen(cardId, actionLogState, navController)
             }
             composable("action_log") {
                 ActionLogScreen(actionLogState)
