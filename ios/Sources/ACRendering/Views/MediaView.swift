@@ -41,7 +41,7 @@ struct MediaView: View {
                     .shadow(radius: 5)
             }
         }
-        .frame(height: 200)
+        .frame(minHeight: 150)
         .spacing(media.spacing, hostConfig: hostConfig)
         .separator(media.separator, hostConfig: hostConfig)
         .accessibilityElement(label: media.altText ?? "Media")
