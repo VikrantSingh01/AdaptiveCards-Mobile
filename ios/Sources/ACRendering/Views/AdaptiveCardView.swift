@@ -54,12 +54,15 @@ public struct AdaptiveCardView: View {
             .onAppear {
                 viewModel.parseCard(json: cardJson, templateData: templateData)
             }
+            .onChange(of: cardJson) { newJson in
+                viewModel.parseCard(json: newJson, templateData: templateData)
+            }
             .onChange(of: viewModel.card) { card in
                 if let card = card {
                     onCardParsed?(card)
                 }
             }
-            .onChange(of: viewModel.parsingError?.localizedDescription) { errorDesc in
+            .onChange(of: viewModel.parsingErrorId) { _ in
                 if let error = viewModel.parsingError {
                     onCardParseError?(error)
                 }
