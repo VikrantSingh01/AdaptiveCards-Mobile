@@ -93,7 +93,8 @@ struct ImageView: View {
         if image.style == .person {
             return AnyShape(Circle())
         } else {
-            return AnyShape(Rectangle())
+            let radius = CGFloat(hostConfig.cornerRadius["image"] ?? 0)
+            return AnyShape(RoundedRectangle(cornerRadius: radius))
         }
     }
 

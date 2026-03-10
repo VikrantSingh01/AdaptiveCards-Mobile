@@ -2,6 +2,7 @@ import SwiftUI
 import ACCore
 import ACActions
 import ACAccessibility
+import ACFluentUI
 
 struct ActionSetView: View {
     let actions: [CardAction]
@@ -78,11 +79,14 @@ struct ActionSetView: View {
             }
         } label: {
             Text("\u{2026}")
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.secondary.opacity(0.2))
-                .foregroundColor(.primary)
-                .cornerRadius(4)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 4))
         }
         .accessibilityLabel("More actions")
     }

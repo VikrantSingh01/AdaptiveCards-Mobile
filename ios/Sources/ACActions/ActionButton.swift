@@ -23,7 +23,7 @@ public struct ActionButton: View {
 
     public var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 if let iconUrl = iconUrl {
                     AsyncImage(url: URL(string: iconUrl)) { image in
                         image
@@ -40,12 +40,16 @@ public struct ActionButton: View {
                         .lineLimit(1)
                 }
             }
-            .font(.system(size: 15))
-            .frame(maxWidth: .infinity)
-            .padding(10)
+            .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: .medium))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .foregroundColor(buttonForegroundColor)
             .background(buttonBackgroundColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(buttonBorderColor, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 4))
         }
         .buttonStyle(.plain)
         .disabled(!(isEnabled ?? true))
@@ -117,7 +121,13 @@ public struct ActionButton: View {
         }
     }
 
-    private var backgroundColor: Color {
+    /// Outlined button background — transparent for all styles per Figma
+    private var buttonBackgroundColor: Color {
+        return .clear
+    }
+
+    /// Outlined button text color per Figma spec
+    private var buttonForegroundColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
 
@@ -131,33 +141,16 @@ public struct ActionButton: View {
         }
     }
 
-    private var foregroundColor: Color {
-        return .white
-    }
-
-    /// Background color for filled button style matching legacy renderer
-    private var buttonBackgroundColor: Color {
+    /// Outlined button border color per Figma spec
+    private var buttonBorderColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
 
         switch actionStyle {
         case .default:
-            return .blue
-        case .positive:
             return Color(hex: colors.accent.`default`)
-        case .destructive:
-            return .clear
-        }
-    }
-
-    /// Foreground text color matching legacy renderer
-    private var buttonForegroundColor: Color {
-        let actionStyle = style ?? .default
-        let colors = hostConfig.containerStyles.default.foregroundColors
-
-        switch actionStyle {
-        case .default, .positive:
-            return .white
+        case .positive:
+            return Color(hex: colors.good.`default`)
         case .destructive:
             return Color(hex: colors.attention.`default`)
         }

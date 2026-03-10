@@ -223,6 +223,7 @@ private fun parseFractionWeight(colDef: String): Float {
 private fun spacingToDp(spacing: Spacing, hostConfig: HostConfig): Dp {
     return when (spacing) {
         Spacing.None -> 0.dp
+        Spacing.ExtraSmall -> hostConfig.spacing.extraSmall.dp
         Spacing.Small -> hostConfig.spacing.small.dp
         Spacing.Default -> hostConfig.spacing.default.dp
         Spacing.Medium -> hostConfig.spacing.medium.dp

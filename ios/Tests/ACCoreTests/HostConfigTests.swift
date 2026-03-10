@@ -14,12 +14,55 @@ final class HostConfigTests: XCTestCase {
     func testTeamsHostConfig() {
         let config = TeamsHostConfig.create()
 
+        // Core spacing & typography
         XCTAssertEqual(config.spacing.default, 8)
+        XCTAssertEqual(config.spacing.small, 8)
+        XCTAssertEqual(config.spacing.medium, 12)
+        XCTAssertEqual(config.spacing.large, 16)
+        XCTAssertEqual(config.spacing.extraLarge, 20)
+        XCTAssertEqual(config.spacing.padding, 10)
+
+        XCTAssertEqual(config.fontSizes.small, 12)
         XCTAssertEqual(config.fontSizes.default, 14)
-        XCTAssertEqual(config.separator.lineColor, "#E1DFDD")
-        XCTAssertEqual(config.imageSizes.small, 40)
-        XCTAssertEqual(config.imageSizes.medium, 80)
-        XCTAssertEqual(config.imageSizes.large, 160)
+        XCTAssertEqual(config.fontSizes.medium, 14)
+        XCTAssertEqual(config.fontSizes.large, 16)
+        XCTAssertEqual(config.fontSizes.extraLarge, 20)
+
+        XCTAssertEqual(config.fontWeights.lighter, 400)
+        XCTAssertEqual(config.fontWeights.default, 400)
+        XCTAssertEqual(config.fontWeights.bolder, 500)
+
+        // Separator
+        XCTAssertEqual(config.separator.lineColor, "#0D16233A")
+        XCTAssertEqual(config.separator.lineThickness, 1)
+
+        // Image sizes
+        XCTAssertEqual(config.imageSizes.small, 32)
+        XCTAssertEqual(config.imageSizes.medium, 52)
+        XCTAssertEqual(config.imageSizes.large, 100)
+
+        // Actions
+        XCTAssertEqual(config.actions.maxActions, 6)
+        XCTAssertEqual(config.actions.buttonSpacing, 8)
+        XCTAssertEqual(config.actions.iconPlacement, "LeftOfTitle")
+
+        // Corner radius
+        XCTAssertEqual(config.cornerRadius["container"], 4)
+        XCTAssertEqual(config.cornerRadius["image"], 4)
+        XCTAssertEqual(config.cornerRadius["columnSet"], 4)
+
+        // Foreground colors (light theme)
+        let defaultColors = config.containerStyles.default.foregroundColors
+        XCTAssertEqual(defaultColors.default.default, "#212121")
+        XCTAssertEqual(defaultColors.default.subtle, "#6E6E6E")
+        XCTAssertEqual(defaultColors.accent.default, "#6264A7")
+        XCTAssertEqual(defaultColors.good.default, "#237B4B")
+        XCTAssertEqual(defaultColors.attention.default, "#C4314B")
+        XCTAssertEqual(defaultColors.warning.default, "#C50F1F")
+
+        // Container backgrounds
+        XCTAssertEqual(config.containerStyles.default.backgroundColor, "#FFFFFF")
+        XCTAssertEqual(config.containerStyles.emphasis.backgroundColor, "#F1F1F1")
     }
 
     func testHostConfigParser() throws {

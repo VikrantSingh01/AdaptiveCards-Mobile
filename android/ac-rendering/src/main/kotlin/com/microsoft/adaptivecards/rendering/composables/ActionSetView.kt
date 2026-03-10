@@ -1,6 +1,8 @@
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -54,6 +56,8 @@ fun ActionSetView(
         visibleActions = primaryActions
     }
 
+    val isLeftAligned = hostConfig.actions.actionAlignment == "left"
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(
@@ -65,7 +69,7 @@ fun ActionSetView(
                 action = action,
                 actionHandler = actionHandler,
                 viewModel = viewModel,
-                modifier = Modifier.weight(1f)
+                modifier = if (isLeftAligned) Modifier else Modifier.weight(1f)
             )
         }
 
@@ -120,7 +124,11 @@ private fun OverflowMenuButton(
 }
 
 /**
- * Renders a single action as a button
+ * Renders a single action as a button.
+ *
+ * Default style: outlined with accent border (matching Figma).
+ * Positive/Destructive: filled with semantic color.
+ * Icons placed to the left of title per HostConfig.actions.iconPlacement.
  */
 @Composable
 fun ActionButton(
@@ -129,43 +137,88 @@ fun ActionButton(
     viewModel: CardViewModel,
     modifier: Modifier = Modifier
 ) {
-    val buttonColors = when (action.style) {
-        ActionStyle.Positive -> ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF92C353)
+    val hostConfig = LocalHostConfig.current
+    val accentColor = Color(
+        android.graphics.Color.parseColor(
+            hostConfig.containerStyles.default.foregroundColors.accent.default
         )
-        ActionStyle.Destructive -> ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFC4314B)
-        )
-        else -> ButtonDefaults.buttonColors()
-    }
+    )
 
     // Use tooltip as content description for accessibility when available
     val tooltipText = action.tooltip
+    val buttonShape = RoundedCornerShape(4.dp)
 
-    Button(
-        onClick = {
-            handleAction(action, actionHandler, viewModel)
-        },
-        enabled = action.isEnabled,
-        colors = buttonColors,
-        modifier = modifier.buttonSemantics(
-            label = tooltipText ?: action.title ?: "Action",
-            enabled = action.isEnabled
-        )
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-        ) {
-            action.iconUrl?.let { iconUrl ->
-                AsyncImage(
-                    model = iconUrl,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+    when (action.style) {
+        ActionStyle.Positive -> {
+            Button(
+                onClick = { handleAction(action, actionHandler, viewModel) },
+                enabled = action.isEnabled,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF237B4B)),
+                shape = buttonShape,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = modifier.buttonSemantics(
+                    label = tooltipText ?: action.title ?: "Action",
+                    enabled = action.isEnabled
                 )
+            ) {
+                ActionButtonContent(action, hostConfig)
             }
-            Text(action.title ?: "")
         }
+        ActionStyle.Destructive -> {
+            Button(
+                onClick = { handleAction(action, actionHandler, viewModel) },
+                enabled = action.isEnabled,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC4314B)),
+                shape = buttonShape,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = modifier.buttonSemantics(
+                    label = tooltipText ?: action.title ?: "Action",
+                    enabled = action.isEnabled
+                )
+            ) {
+                ActionButtonContent(action, hostConfig)
+            }
+        }
+        else -> {
+            // Default style: outlined button with accent border
+            OutlinedButton(
+                onClick = { handleAction(action, actionHandler, viewModel) },
+                enabled = action.isEnabled,
+                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f)),
+                shape = buttonShape,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = accentColor
+                ),
+                modifier = modifier.buttonSemantics(
+                    label = tooltipText ?: action.title ?: "Action",
+                    enabled = action.isEnabled
+                )
+            ) {
+                ActionButtonContent(action, hostConfig)
+            }
+        }
+    }
+}
+
+/** Icon + title content shared by all button styles. */
+@Composable
+private fun ActionButtonContent(
+    action: CardAction,
+    hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+    ) {
+        action.iconUrl?.let { iconUrl ->
+            AsyncImage(
+                model = iconUrl,
+                contentDescription = null,
+                modifier = Modifier.size(hostConfig.actions.iconSize.dp)
+            )
+        }
+        Text(action.title ?: "")
     }
 }
 

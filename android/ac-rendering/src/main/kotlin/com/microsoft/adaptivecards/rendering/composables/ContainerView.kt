@@ -1,8 +1,10 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -47,9 +49,12 @@ fun ContainerView(
         0.dp
     }
 
+    val cornerRadius = hostConfig.cornerRadius.container
+
     Box(
         modifier = modifier
-            .containerStyle(element.style)
+            .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
+            .containerStyle(element.style, cornerRadius)
             .then(if (minHeight != null) Modifier.heightIn(min = minHeight) else Modifier)
             .selectAction(element.selectAction, actionHandler)
             .fillMaxWidth()

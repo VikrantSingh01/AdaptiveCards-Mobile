@@ -35,7 +35,26 @@ struct FactSetView: View {
     }
 
     private func resolveWeight(_ weightString: String) -> Font.Weight {
-        weightString == "Bolder" ? .bold : .regular
+        let weightValue: Int
+        switch weightString.lowercased() {
+        case "lighter":
+            weightValue = hostConfig.fontWeights.lighter
+        case "bolder":
+            weightValue = hostConfig.fontWeights.bolder
+        default:
+            weightValue = hostConfig.fontWeights.default
+        }
+
+        switch weightValue {
+        case 100...199: return .ultraLight
+        case 200...299: return .light
+        case 300...399: return .regular
+        case 400...499: return .regular
+        case 500...599: return .medium
+        case 600...699: return .semibold
+        case 700...799: return .bold
+        default: return .heavy
+        }
     }
 
     private func resolveFont(_ config: FactSetTextConfig) -> Font {

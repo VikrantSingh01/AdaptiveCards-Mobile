@@ -21,6 +21,7 @@ fun Modifier.adaptiveSpacing(
     
     val hostConfig = LocalHostConfig.current
     val spacingValue = when (spacing) {
+        Spacing.ExtraSmall -> hostConfig.spacing.extraSmall
         Spacing.Small -> hostConfig.spacing.small
         Spacing.Default -> hostConfig.spacing.default
         Spacing.Medium -> hostConfig.spacing.medium

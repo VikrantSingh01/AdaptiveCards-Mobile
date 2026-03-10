@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.microsoft.adaptivecards.core.models.FactSet
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
 import com.microsoft.adaptivecards.accessibility.scaledTextSize
@@ -23,6 +24,8 @@ fun FactSetView(
     val hostConfig = LocalHostConfig.current
     val titleSize = resolveFontSize(hostConfig.factSet.title.size, hostConfig)
     val valueSize = resolveFontSize(hostConfig.factSet.value.size, hostConfig)
+    val titleLineHeight = resolveLineHeight(hostConfig.factSet.title.size, hostConfig).sp
+    val valueLineHeight = resolveLineHeight(hostConfig.factSet.value.size, hostConfig).sp
     val titleWeight = resolveFontWeight(hostConfig.factSet.title.weight, hostConfig)
     val valueWeight = resolveFontWeight(hostConfig.factSet.value.weight, hostConfig)
     val titleColor = getTextColor(hostConfig.factSet.title.color, hostConfig.factSet.title.isSubtle, hostConfig)
@@ -43,6 +46,7 @@ fun FactSetView(
                     text = fact.title,
                     fontWeight = titleWeight,
                     fontSize = scaledTextSize(titleSize),
+                    lineHeight = titleLineHeight,
                     color = titleColor,
                     fontFamily = resolveFontFamily(hostConfig.factSet.title.fontType),
                     maxLines = if (hostConfig.factSet.title.wrap) Int.MAX_VALUE else 1,
@@ -59,6 +63,7 @@ fun FactSetView(
                     text = fact.value,
                     fontWeight = valueWeight,
                     fontSize = scaledTextSize(valueSize),
+                    lineHeight = valueLineHeight,
                     color = valueColor,
                     fontFamily = resolveFontFamily(hostConfig.factSet.value.fontType),
                     maxLines = if (hostConfig.factSet.value.wrap) Int.MAX_VALUE else 1,

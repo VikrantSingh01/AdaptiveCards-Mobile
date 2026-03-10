@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -20,7 +21,10 @@ import com.microsoft.adaptivecards.markdown.MarkdownRenderer
 import com.microsoft.adaptivecards.markdown.containsMarkdown
 
 /**
- * Renders a TextBlock element
+ * Renders a TextBlock element with Figma-aligned typography:
+ * - Font sizes and line heights from HostConfig
+ * - Font weights mapped through HostConfig (lighter=400, default=400, bolder=500)
+ * - Roboto font family on Android
  */
 @Composable
 fun TextBlockView(
@@ -28,36 +32,46 @@ fun TextBlockView(
     modifier: Modifier = Modifier
 ) {
     val hostConfig = LocalHostConfig.current
-    
+
+    val sizeEnum = element.size ?: FontSize.Default
+
     // Determine text size
-    val textSize = when (element.size ?: FontSize.Default) {
+    val textSize = when (sizeEnum) {
         FontSize.Small -> scaledTextSize(hostConfig.fontSizes.small)
         FontSize.Default -> scaledTextSize(hostConfig.fontSizes.default)
         FontSize.Medium -> scaledTextSize(hostConfig.fontSizes.medium)
         FontSize.Large -> scaledTextSize(hostConfig.fontSizes.large)
         FontSize.ExtraLarge -> scaledTextSize(hostConfig.fontSizes.extraLarge)
     }
-    
-    // Determine font weight
-    val fontWeight = when (element.weight ?: com.microsoft.adaptivecards.core.models.FontWeight.Default) {
-        com.microsoft.adaptivecards.core.models.FontWeight.Lighter -> FontWeight.Light
-        com.microsoft.adaptivecards.core.models.FontWeight.Default -> FontWeight.Normal
-        com.microsoft.adaptivecards.core.models.FontWeight.Bolder -> FontWeight.Bold
+
+    // Determine line height from HostConfig
+    val lineHeight = when (sizeEnum) {
+        FontSize.Small -> hostConfig.lineHeights.small.sp
+        FontSize.Default -> hostConfig.lineHeights.default.sp
+        FontSize.Medium -> hostConfig.lineHeights.medium.sp
+        FontSize.Large -> hostConfig.lineHeights.large.sp
+        FontSize.ExtraLarge -> hostConfig.lineHeights.extraLarge.sp
     }
-    
+
+    // Determine font weight via HostConfig weight mapping
+    val fontWeight = resolveFontWeight(
+        element.weight ?: com.microsoft.adaptivecards.core.models.FontWeight.Default,
+        hostConfig
+    )
+
     // Determine font family
     val fontFamily = when (element.fontType ?: FontType.Default) {
         FontType.Default -> FontFamily.Default
         FontType.Monospace -> FontFamily.Monospace
     }
-    
+
     // Determine text color
     val textColor = getTextColor(
         color = element.color ?: com.microsoft.adaptivecards.core.models.Color.Default,
         isSubtle = element.isSubtle ?: false,
         hostConfig = hostConfig
     )
-    
+
     // Determine text alignment
     val textAlign = when (element.horizontalAlignment) {
         HorizontalAlignment.Left -> TextAlign.Start
@@ -65,17 +79,17 @@ fun TextBlockView(
         HorizontalAlignment.Right -> TextAlign.End
         null -> TextAlign.Start
     }
-    
+
     val maxLines = (element.maxLines ?: if (element.wrap == true) Int.MAX_VALUE else 1).coerceAtLeast(1)
     val overflow = if (element.wrap == true) TextOverflow.Visible else TextOverflow.Ellipsis
-    
+
     // Check if text contains markdown
     if (element.text.containsMarkdown()) {
         // Render with markdown support
         val tokens = MarkdownParser.parse(element.text)
         val annotatedString = MarkdownRenderer.render(tokens, textSize, textColor)
         val uriHandler = LocalUriHandler.current
-        
+
         ClickableText(
             text = annotatedString,
             modifier = modifier,
@@ -84,7 +98,8 @@ fun TextBlockView(
                 fontWeight = fontWeight,
                 fontFamily = fontFamily,
                 color = textColor,
-                textAlign = textAlign
+                textAlign = textAlign,
+                lineHeight = lineHeight
             ),
             maxLines = maxLines,
             overflow = overflow,
@@ -111,6 +126,7 @@ fun TextBlockView(
             fontFamily = fontFamily,
             color = textColor,
             textAlign = textAlign,
+            lineHeight = lineHeight,
             maxLines = maxLines,
             overflow = overflow,
             modifier = modifier
@@ -130,6 +146,20 @@ internal fun resolveFontSize(
     com.microsoft.adaptivecards.core.models.FontSize.Medium -> hostConfig.fontSizes.medium
     com.microsoft.adaptivecards.core.models.FontSize.Large -> hostConfig.fontSizes.large
     com.microsoft.adaptivecards.core.models.FontSize.ExtraLarge -> hostConfig.fontSizes.extraLarge
+}
+
+/**
+ * Resolve a FontSize enum to the line height from HostConfig
+ */
+internal fun resolveLineHeight(
+    size: com.microsoft.adaptivecards.core.models.FontSize,
+    hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
+): Int = when (size) {
+    com.microsoft.adaptivecards.core.models.FontSize.Small -> hostConfig.lineHeights.small
+    com.microsoft.adaptivecards.core.models.FontSize.Default -> hostConfig.lineHeights.default
+    com.microsoft.adaptivecards.core.models.FontSize.Medium -> hostConfig.lineHeights.medium
+    com.microsoft.adaptivecards.core.models.FontSize.Large -> hostConfig.lineHeights.large
+    com.microsoft.adaptivecards.core.models.FontSize.ExtraLarge -> hostConfig.lineHeights.extraLarge
 }
 
 /**
@@ -166,7 +196,7 @@ internal fun getTextColor(
 ): Color {
     val containerStyle = hostConfig.containerStyles.default
     val foregroundColors = containerStyle.foregroundColors
-    
+
     val colorConfig = when (color) {
         com.microsoft.adaptivecards.core.models.Color.Default -> foregroundColors.default
         com.microsoft.adaptivecards.core.models.Color.Dark -> foregroundColors.dark
@@ -176,9 +206,9 @@ internal fun getTextColor(
         com.microsoft.adaptivecards.core.models.Color.Warning -> foregroundColors.warning
         com.microsoft.adaptivecards.core.models.Color.Attention -> foregroundColors.attention
     }
-    
+
     val colorString = if (isSubtle) colorConfig.subtle else colorConfig.default
-    
+
     return try {
         Color(android.graphics.Color.parseColor(colorString))
     } catch (e: Exception) {

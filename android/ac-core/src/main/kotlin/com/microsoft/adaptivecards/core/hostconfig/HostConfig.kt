@@ -29,24 +29,26 @@ data class HostConfig(
     val ratingInput: RatingElementConfig = RatingElementConfig(),
     val table: TableConfig = TableConfig(),
     val compoundButton: CompoundButtonConfig = CompoundButtonConfig(),
+    val lineHeights: LineHeightsConfig = LineHeightsConfig(),
     val borderWidth: Map<String, Int> = emptyMap(),
-    val cornerRadius: Map<String, Int> = emptyMap()
+    val cornerRadius: CornerRadiusConfig = CornerRadiusConfig()
 )
 
 @Serializable
 data class SpacingConfig(
-    val small: Int = 4,
-    val default: Int = 8,
+    val extraSmall: Int = 4,
+    val small: Int = 8,
+    val default: Int = 12,
     val medium: Int = 16,
-    val large: Int = 24,
-    val extraLarge: Int = 32,
-    val padding: Int = 16
+    val large: Int = 20,
+    val extraLarge: Int = 24,
+    val padding: Int = 12
 )
 
 @Serializable
 data class SeparatorConfig(
     val lineThickness: Int = 1,
-    val lineColor: String = "#B2B2B2"
+    val lineColor: String = "#EEEEEE"
 )
 
 @Serializable
@@ -57,7 +59,7 @@ data class FontTypesConfig(
 
 @Serializable
 data class FontTypeConfig(
-    val fontFamily: String = "system-ui, -apple-system, sans-serif",
+    val fontFamily: String = "Roboto, system-ui, sans-serif",
     val fontSizes: FontSizesConfig? = null,
     val fontWeights: FontWeightsConfig? = null
 )
@@ -66,26 +68,36 @@ data class FontTypeConfig(
 data class FontSizesConfig(
     val small: Int = 12,
     val default: Int = 14,
-    val medium: Int = 17,
-    val large: Int = 21,
-    val extraLarge: Int = 26
+    val medium: Int = 14,
+    val large: Int = 16,
+    val extraLarge: Int = 20
+)
+
+/** Line height configuration matching the Figma type ramp */
+@Serializable
+data class LineHeightsConfig(
+    val small: Int = 16,
+    val default: Int = 18,
+    val medium: Int = 18,
+    val large: Int = 24,
+    val extraLarge: Int = 24
 )
 
 @Serializable
 data class FontWeightsConfig(
-    val lighter: Int = 300,
+    val lighter: Int = 400,
     val default: Int = 400,
-    val bolder: Int = 700
+    val bolder: Int = 500
 )
 
 @Serializable
 data class ContainerStylesConfig(
     val default: ContainerStyleConfig = ContainerStyleConfig(),
-    val emphasis: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#F0F0F0"),
-    val good: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#E8F5E9"),
-    val attention: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#FFF3E0"),
-    val warning: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#FFF3E0"),
-    val accent: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#E3F2FD")
+    val emphasis: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#F1F1F1"),
+    val good: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#DFF6DD"),
+    val attention: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#FED9CC"),
+    val warning: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#FFF4CE"),
+    val accent: ContainerStyleConfig = ContainerStyleConfig(backgroundColor = "#E8E8F7")
 )
 
 @Serializable
@@ -97,13 +109,13 @@ data class ContainerStyleConfig(
 
 @Serializable
 data class ForegroundColorsConfig(
-    val default: ColorConfig = ColorConfig(default = "#333333", subtle = "#767676"),
-    val dark: ColorConfig = ColorConfig(default = "#000000", subtle = "#666666"),
-    val light: ColorConfig = ColorConfig(default = "#FFFFFF", subtle = "#CCCCCC"),
-    val accent: ColorConfig = ColorConfig(default = "#0078D4", subtle = "#88C6FF"),
-    val good: ColorConfig = ColorConfig(default = "#54A254", subtle = "#88C288"),
-    val warning: ColorConfig = ColorConfig(default = "#C4AB00", subtle = "#DDCC6C"),
-    val attention: ColorConfig = ColorConfig(default = "#C42B1C", subtle = "#DD6A5C")
+    val default: ColorConfig = ColorConfig(default = "#212121", subtle = "#6E6E6E"),
+    val dark: ColorConfig = ColorConfig(default = "#000000", subtle = "#212121"),
+    val light: ColorConfig = ColorConfig(default = "#FFFFFF", subtle = "#F1F1F1"),
+    val accent: ColorConfig = ColorConfig(default = "#6264A7", subtle = "#8B8CC7"),
+    val good: ColorConfig = ColorConfig(default = "#237B4B", subtle = "#217346"),
+    val warning: ColorConfig = ColorConfig(default = "#C50F1F", subtle = "#CC4A31"),
+    val attention: ColorConfig = ColorConfig(default = "#C4314B", subtle = "#B24782")
 )
 
 @Serializable
@@ -122,20 +134,20 @@ data class HighlightColorConfig(
 
 @Serializable
 data class ImageSizesConfig(
-    val small: Int = 40,
-    val medium: Int = 80,
-    val large: Int = 160
+    val small: Int = 32,
+    val medium: Int = 52,
+    val large: Int = 100
 )
 
 @Serializable
 data class ActionsConfig(
-    val maxActions: Int = 5,
-    val spacing: Spacing = Spacing.Default,
+    val maxActions: Int = 6,
+    val spacing: Spacing = Spacing.Medium,
     val buttonSpacing: Int = 8,
     val showCard: ShowCardConfig = ShowCardConfig(),
     val actionsOrientation: String = "horizontal",
-    val actionAlignment: String = "stretch",
-    val iconPlacement: String = "aboveTitle",
+    val actionAlignment: String = "left",
+    val iconPlacement: String = "leftOfTitle",
     val iconSize: Int = 24
 )
 
@@ -168,7 +180,7 @@ data class MediaConfig(
 data class FactSetConfig(
     val title: FactSetTextConfig = FactSetTextConfig(weight = FontWeight.Bolder),
     val value: FactSetTextConfig = FactSetTextConfig(),
-    val spacing: Int = 10
+    val spacing: Int = 32
 )
 
 @Serializable
@@ -217,9 +229,9 @@ data class InputErrorMessageConfig(
 /** Responsive breakpoints for host width */
 @Serializable
 data class HostWidthConfig(
-    val veryNarrow: Int = 0,
-    val narrow: Int = 0,
-    val standard: Int = 0
+    val veryNarrow: Int = 216,
+    val narrow: Int = 413,
+    val standard: Int = 500
 )
 
 /** TextBlock-specific configuration */
@@ -281,4 +293,14 @@ data class CompoundButtonConfig(
 @Serializable
 data class BadgeConfig(
     val backgroundColor: String = "#5B5FC7"
+)
+
+/** Corner radius configuration for containers and elements */
+@Serializable
+data class CornerRadiusConfig(
+    val columnSet: Int = 4,
+    val column: Int = 4,
+    val container: Int = 4,
+    val table: Int = 4,
+    val image: Int = 4
 )

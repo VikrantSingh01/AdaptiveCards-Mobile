@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,7 +22,10 @@ import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.accessibility.imageSemantics
 
 /**
- * Renders an Image element using Coil for async loading
+ * Renders an Image element using Coil for async loading.
+ *
+ * Sizes resolved from HostConfig.imageSizes (Figma: small=32, medium=52, large=100).
+ * Corner radius applied from HostConfig.cornerRadius.image (4dp) except for Person style.
  */
 @Composable
 fun ImageView(
@@ -30,7 +34,8 @@ fun ImageView(
     actionHandler: ActionHandler
 ) {
     val hostConfig = LocalHostConfig.current
-    
+    val cornerRadius = hostConfig.cornerRadius.image
+
     // Determine image size
     val imageModifier = when (element.size ?: ImageSize.Auto) {
         ImageSize.Small -> modifier.size(hostConfig.imageSizes.small.dp)
@@ -47,14 +52,14 @@ fun ImageView(
             }
         }
     }
-    
-    // Apply person style (circular crop)
-    val finalModifier = if (element.style == ImageStyle.Person) {
-        imageModifier.clip(CircleShape)
-    } else {
-        imageModifier
+
+    // Apply shape: Person → circle, otherwise rounded corners from HostConfig
+    val finalModifier = when {
+        element.style == ImageStyle.Person -> imageModifier.clip(CircleShape)
+        cornerRadius > 0 -> imageModifier.clip(RoundedCornerShape(cornerRadius.dp))
+        else -> imageModifier
     }
-    
+
     AsyncImage(
         model = element.url,
         contentDescription = element.altText,

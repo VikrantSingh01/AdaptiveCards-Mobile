@@ -39,6 +39,7 @@ struct TextBlockView: View {
             Text(textBlock.text)
                 .font(font)
                 .foregroundColor(foregroundColor)
+                .lineSpacing(lineSpacing)
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
@@ -126,6 +127,27 @@ struct TextBlockView: View {
         case .extraLarge:
             return hostConfig.fontSizes.extraLarge
         }
+    }
+
+    /// Line spacing derived from Figma type ramp (lineHeight - fontSize).
+    /// Figma spec: Small 12/16, Default 14/18, Large 16/24, ExtraLarge 20/24.
+    private var lineSpacing: CGFloat {
+        let size = CGFloat(fontSize)
+        let lineHeight: CGFloat
+
+        let fontSizeEnum = textBlock.size ?? .default
+        switch fontSizeEnum {
+        case .small:
+            lineHeight = 16
+        case .default, .medium:
+            lineHeight = 18
+        case .large:
+            lineHeight = 24
+        case .extraLarge:
+            lineHeight = 24
+        }
+
+        return max(lineHeight - size, 0)
     }
 
     private var fontWeight: Font.Weight {

@@ -78,6 +78,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, navControll
                 val startTime = remember { System.currentTimeMillis() }
                 AdaptiveCardView(
                     cardJson = card?.jsonString ?: "",
+                    hostConfig = com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig.createLight(),
                     modifier = Modifier.padding(12.dp),
                     viewModel = cardViewModel
                 )

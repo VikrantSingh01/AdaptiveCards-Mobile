@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct CompoundButtonView: View {
     let button: CompoundButton
@@ -14,7 +15,6 @@ struct CompoundButtonView: View {
         static let titleSubtitleSpacing: CGFloat = 4
         static let horizontalPadding: CGFloat = 16
         static let verticalPadding: CGFloat = 12
-        static let cornerRadius: CGFloat = 8
         static let minHeight: CGFloat = 44
         static let shadowRadius: CGFloat = 2
         static let shadowY: CGFloat = 1
@@ -26,7 +26,8 @@ struct CompoundButtonView: View {
         }
         .buttonStyle(CompoundButtonStyle(
             style: button.style ?? "default",
-            isDisabled: button.action == nil
+            isDisabled: button.action == nil,
+            hostConfig: hostConfig
         ))
         .disabled(button.action == nil)
         .accessibilityLabel(accessibilityLabel)
@@ -42,15 +43,15 @@ struct CompoundButtonView: View {
 
             VStack(alignment: .leading, spacing: Layout.titleSubtitleSpacing) {
                 Text(button.title)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .font(.system(size: CGFloat(hostConfig.fontSizes.large), weight: titleFontWeight))
+                    .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
                     .lineLimit(2)
                     .truncationMode(.tail)
 
                 if let subtitle = button.subtitle {
                     Text(subtitle)
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: CGFloat(hostConfig.fontSizes.default)))
+                        .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle))
                         .lineLimit(2)
                         .truncationMode(.tail)
                 }
@@ -63,12 +64,26 @@ struct CompoundButtonView: View {
 
             // Chevron indicator
             Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.secondary)
+                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: titleFontWeight))
+                .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle))
         }
         .padding(.horizontal, Layout.horizontalPadding)
         .padding(.vertical, Layout.verticalPadding)
         .frame(minHeight: Layout.minHeight)
+    }
+
+    private var titleFontWeight: Font.Weight {
+        let weightValue = hostConfig.fontWeights.bolder
+        switch weightValue {
+        case 100...199: return .ultraLight
+        case 200...299: return .light
+        case 300...399: return .regular
+        case 400...499: return .regular
+        case 500...599: return .medium
+        case 600...699: return .semibold
+        case 700...799: return .bold
+        default: return .heavy
+        }
     }
 
     @ViewBuilder
@@ -97,7 +112,7 @@ struct CompoundButtonView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: Layout.iconSize, height: Layout.iconSize)
-                    .foregroundColor(.primary)
+                    .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
             }
         }
     }
@@ -107,7 +122,7 @@ struct CompoundButtonView: View {
             .resizable()
             .scaledToFit()
             .frame(width: Layout.iconSize, height: Layout.iconSize)
-            .foregroundColor(.gray)
+            .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle))
     }
 
     private var accessibilityLabel: String {
@@ -149,31 +164,18 @@ struct CompoundButtonView: View {
     }
 }
 
-// Custom button style for different variants
+// Custom button style using hostConfig for theming
 struct CompoundButtonStyle: ButtonStyle {
     let style: String
     let isDisabled: Bool
-
-    private enum Colors {
-        #if os(iOS)
-        static let defaultBackground = Color(.systemBackground)
-        #else
-        static let defaultBackground = Color(nsColor: .windowBackgroundColor)
-        #endif
-        static let emphasisBackground = Color.accentColor
-        static let positiveBackground = Color.green
-        static let destructiveBackground = Color.red
-
-        static let defaultText = Color.primary
-        static let emphasisText = Color.white
-        static let positiveText = Color.white
-        static let destructiveText = Color.white
-    }
+    let hostConfig: HostConfig
 
     func makeBody(configuration: Configuration) -> some View {
+        let cornerRadius = CGFloat(hostConfig.cornerRadius["container"] ?? 4)
+
         configuration.label
             .background(backgroundColor.opacity(configuration.isPressed ? 0.8 : 1.0))
-            .cornerRadius(8)
+            .cornerRadius(cornerRadius)
             .shadow(
                 color: Color.black.opacity(isDisabled ? 0 : 0.1),
                 radius: 2,
@@ -182,21 +184,21 @@ struct CompoundButtonStyle: ButtonStyle {
             )
             .opacity(isDisabled ? 0.5 : 1.0)
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: style == "default" ? 1 : 0)
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Color(hex: hostConfig.compoundButton.borderColor), lineWidth: 1)
             )
     }
 
     private var backgroundColor: Color {
         switch style {
         case "emphasis":
-            return Colors.emphasisBackground
+            return Color(hex: hostConfig.containerStyles.accent.backgroundColor)
         case "positive":
-            return Colors.positiveBackground
+            return Color(hex: hostConfig.containerStyles.good.backgroundColor)
         case "destructive":
-            return Colors.destructiveBackground
+            return Color(hex: hostConfig.containerStyles.attention.backgroundColor)
         default:
-            return Colors.defaultBackground
+            return Color(hex: hostConfig.containerStyles.default.backgroundColor)
         }
     }
 }

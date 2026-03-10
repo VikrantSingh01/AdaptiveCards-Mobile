@@ -1,6 +1,7 @@
 import Foundation
 
 /// Pre-configured Microsoft Teams host config with Fluent UI design tokens
+/// aligned to the Adaptive Card specification Figma (Teams UI + Fluent Tokens).
 public class TeamsHostConfig {
     public static func create() -> HostConfig {
         return HostConfig(
@@ -8,28 +9,28 @@ public class TeamsHostConfig {
             supportsInteractivity: true,
             imageBaseUrl: "",
             spacing: SpacingConfig(
-                small: 4,
+                small: 8,
                 default: 8,
                 medium: 12,
                 large: 16,
-                extraLarge: 24,
-                padding: 16
+                extraLarge: 20,
+                padding: 10
             ),
             separator: SeparatorConfig(
                 lineThickness: 1,
-                lineColor: "#E1DFDD"
+                lineColor: "#0D16233A"
             ),
             fontSizes: FontSizesConfig(
                 small: 12,
                 default: 14,
-                medium: 16,
-                large: 20,
-                extraLarge: 26
+                medium: 14,
+                large: 16,
+                extraLarge: 20
             ),
             fontWeights: FontWeightsConfig(
-                lighter: 300,
+                lighter: 400,
                 default: 400,
-                bolder: 600
+                bolder: 500
             ),
             fontTypes: FontTypesConfig(
                 default: FontTypeDefinition(fontFamily: "Segoe UI"),
@@ -38,53 +39,53 @@ public class TeamsHostConfig {
             containerStyles: ContainerStylesConfig(
                 default: ContainerStyleConfig(
                     backgroundColor: "#FFFFFF",
-                    foregroundColors: teamsDefaultForegroundColors(),
-                    borderColor: "#E1DFDD"
+                    foregroundColors: teamsLightDefaultForegroundColors(),
+                    borderColor: "#E1E1E1"
                 ),
                 emphasis: ContainerStyleConfig(
-                    backgroundColor: "#F5F5F5",
-                    foregroundColors: teamsDefaultForegroundColors(),
-                    borderColor: "#E1DFDD"
+                    backgroundColor: "#F1F1F1",
+                    foregroundColors: teamsLightDefaultForegroundColors(),
+                    borderColor: "#E1E1E1"
                 ),
                 good: ContainerStyleConfig(
                     backgroundColor: "#DFF6DD",
-                    foregroundColors: teamsDefaultForegroundColors(),
+                    foregroundColors: teamsLightDefaultForegroundColors(),
                     borderColor: "#9FD89F"
                 ),
                 attention: ContainerStyleConfig(
                     backgroundColor: "#FFF4CE",
-                    foregroundColors: teamsDefaultForegroundColors(),
+                    foregroundColors: teamsLightDefaultForegroundColors(),
                     borderColor: "#F8D22A"
                 ),
                 warning: ContainerStyleConfig(
                     backgroundColor: "#FED9CC",
-                    foregroundColors: teamsDefaultForegroundColors(),
+                    foregroundColors: teamsLightDefaultForegroundColors(),
                     borderColor: "#E97548"
                 ),
                 accent: ContainerStyleConfig(
                     backgroundColor: "#E8F2FD",
-                    foregroundColors: teamsDefaultForegroundColors(),
+                    foregroundColors: teamsLightDefaultForegroundColors(),
                     borderColor: "#6264A7"
                 )
             ),
             imageSizes: ImageSizesConfig(
-                small: 40,
-                medium: 80,
-                large: 160
+                small: 32,
+                medium: 52,
+                large: 100
             ),
             actions: ActionsConfig(
                 actionsOrientation: "Horizontal",
                 actionAlignment: "Left",
                 buttonSpacing: 8,
-                maxActions: 5,
-                spacing: "Default",
+                maxActions: 6,
+                spacing: "Medium",
                 showCard: ShowCardConfig(
                     actionMode: "Inline",
                     style: "Emphasis",
-                    inlineTopMargin: 16
+                    inlineTopMargin: 8
                 ),
-                iconPlacement: "AboveTitle",
-                iconSize: 20
+                iconPlacement: "LeftOfTitle",
+                iconSize: 16
             ),
             adaptiveCard: AdaptiveCardConfig(
                 allowCustomStyle: true
@@ -96,7 +97,7 @@ public class TeamsHostConfig {
             factSet: FactSetConfig(
                 title: FactSetTextConfig(weight: "Bolder"),
                 value: FactSetTextConfig(weight: "Default"),
-                spacing: 8
+                spacing: 32
             ),
             media: MediaConfig(
                 defaultPoster: "",
@@ -128,8 +129,8 @@ public class TeamsHostConfig {
                 )
             ),
             hostWidth: HostWidthConfig(
-                veryNarrow: 250,
-                narrow: 350,
+                veryNarrow: 216,
+                narrow: 413,
                 standard: 500
             ),
             textBlock: TextBlockConfig(
@@ -154,35 +155,42 @@ public class TeamsHostConfig {
             image: ImageConfig(imageSize: "Auto"),
             ratingLabel: RatingElementConfig(
                 filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
-                emptyStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
-                ratingTextColor: "#242424",
-                countTextColor: "#616161"
+                emptyStar: RatingStarConfig(marigoldColor: "#F9E2AE", neutralColor: "#E1E1E1"),
+                ratingTextColor: "#000000",
+                countTextColor: "#000000"
             ),
             ratingInput: RatingElementConfig(
-                filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
-                emptyStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
-                ratingTextColor: "#242424",
-                countTextColor: "#616161"
+                filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#212121"),
+                emptyStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#212121"),
+                ratingTextColor: "#000000",
+                countTextColor: "#000000"
             ),
             table: TableConfig(cellSpacing: 8),
             compoundButton: CompoundButtonConfig(
-                badge: BadgeConfig(backgroundColor: "#6264A7"),
-                borderColor: "#E1DFDD"
+                badge: BadgeConfig(backgroundColor: "#5B5FC7"),
+                borderColor: "#E1E1E1"
             ),
             borderWidth: [:],
-            cornerRadius: [:]
+            cornerRadius: [
+                "columnSet": 4,
+                "column": 4,
+                "container": 4,
+                "table": 4,
+                "image": 4
+            ]
         )
     }
 
-    private static func teamsDefaultForegroundColors() -> ForegroundColorsConfig {
+    /// Foreground colors for light theme containers matching Figma spec
+    private static func teamsLightDefaultForegroundColors() -> ForegroundColorsConfig {
         return ForegroundColorsConfig(
-            default: ColorConfig(default: "#242424", subtle: "#616161"),
-            dark: ColorConfig(default: "#000000", subtle: "#666666"),
-            light: ColorConfig(default: "#FFFFFF", subtle: "#CCCCCC"),
-            accent: ColorConfig(default: "#6264A7", subtle: "#464775"),
-            good: ColorConfig(default: "#92C353", subtle: "#6EA02C"),
-            warning: ColorConfig(default: "#F8D22A", subtle: "#C5A300"),
-            attention: ColorConfig(default: "#C4314B", subtle: "#A72037")
+            default: ColorConfig(default: "#212121", subtle: "#6E6E6E"),
+            dark: ColorConfig(default: "#000000", subtle: "#212121"),
+            light: ColorConfig(default: "#FFFFFF", subtle: "#F1F1F1"),
+            accent: ColorConfig(default: "#6264A7", subtle: "#8B8CC7"),
+            good: ColorConfig(default: "#237B4B", subtle: "#217346"),
+            warning: ColorConfig(default: "#C50F1F", subtle: "#CC4A31"),
+            attention: ColorConfig(default: "#C4314B", subtle: "#B24782")
         )
     }
 }

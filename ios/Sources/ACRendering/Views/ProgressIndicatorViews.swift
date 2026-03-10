@@ -27,11 +27,11 @@ struct ProgressBarView: View {
         if let colorString = progressBar.color {
             return Color(hex: colorString)
         }
-        return .accentColor
+        return Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.small)) {
             if let label = progressBar.label {
                 HStack {
                     Text(label)
@@ -49,7 +49,7 @@ struct ProgressBarView: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(Color.gray.opacity(0.2))
+                        .fill(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                         .frame(height: barHeight)
 
                     Rectangle()

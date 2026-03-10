@@ -1,6 +1,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct AccordionView: View {
     let accordion: Accordion
@@ -89,7 +90,7 @@ struct AccordionPanelView: View {
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .padding(adaptivePadding)
-                .background(Color.gray.opacity(0.1))
+                .background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -113,13 +114,13 @@ struct AccordionPanelView: View {
         .overlay(
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(.gray.opacity(0.3)),
+                .foregroundColor(Color(hex: hostConfig.separator.lineColor)),
             alignment: .bottom
         )
     }
 
     private var adaptiveSpacing: CGFloat {
-        sizeCategory.isAccessibilityCategory ? 12 : 8
+        sizeCategory.isAccessibilityCategory ? CGFloat(hostConfig.spacing.medium) : CGFloat(hostConfig.spacing.small)
     }
 
     private var adaptivePadding: CGFloat {

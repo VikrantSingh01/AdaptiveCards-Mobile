@@ -9,6 +9,7 @@ import AppKit
 #endif
 import ACCore
 import ACAccessibility
+import ACFluentUI
 
 struct CodeBlockView: View {
     let codeBlock: CodeBlock
@@ -43,7 +44,7 @@ struct CodeBlockView: View {
                     Text(showCopied ? "Copied" : "Copy")
                         .font(.caption)
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default))
                 .frame(minWidth: 44, minHeight: 44)
             }
             .buttonStyle(.plain)
@@ -65,7 +66,7 @@ struct CodeBlockView: View {
             .padding(8)
         }
         .background(backgroundColor)
-        .cornerRadius(8)
+        .cornerRadius(CGFloat(hostConfig.cornerRadius["container"] ?? 4))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Code block")
         .accessibilityValue(codeBlock.code)
@@ -94,20 +95,20 @@ struct CodeBlockView: View {
     }
 
     private var backgroundColor: Color {
-        return Color.gray.opacity(0.1)
+        return Color(hex: hostConfig.containerStyles.emphasis.backgroundColor)
     }
 
     private var adaptiveFontSize: CGFloat {
         if sizeCategory.isAccessibilityCategory {
-            return 17
+            return CGFloat(hostConfig.fontSizes.large)
         } else {
             switch sizeCategory {
             case .extraSmall, .small:
-                return 12
+                return CGFloat(hostConfig.fontSizes.small)
             case .large, .extraLarge:
-                return 17
+                return CGFloat(hostConfig.fontSizes.large)
             default:
-                return 15
+                return CGFloat(hostConfig.fontSizes.default)
             }
         }
     }

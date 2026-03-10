@@ -8,20 +8,20 @@ class HostConfigTest {
     @Test
     fun `create default host config`() {
         val config = HostConfigParser.default()
-        
+
         assertNotNull(config)
         assertTrue(config.supportsInteractivity)
-        assertEquals(8, config.spacing.default)
-        assertEquals(5, config.actions.maxActions)
+        assertEquals(12, config.spacing.default)
+        assertEquals(6, config.actions.maxActions)
     }
-    
+
     @Test
     fun `create Teams host config`() {
         val config = HostConfigParser.teams()
-        
+
         assertNotNull(config)
         assertTrue(config.supportsInteractivity)
-        assertEquals("#E1DFDD", config.separator.lineColor)
+        assertEquals("#0D16233A", config.separator.lineColor)
         assertEquals("#6264A7", config.containerStyles.default.foregroundColors.accent.default)
     }
     
