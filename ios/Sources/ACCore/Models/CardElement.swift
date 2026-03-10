@@ -300,6 +300,20 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         }
     }
 
+    /// The targetWidth property from the underlying element, if any.
+    /// Used for responsive filtering — elements with targetWidth are only
+    /// shown when the card width matches the specified constraint.
+    public var targetWidth: String? {
+        switch self {
+        case .textBlock(let e): return e.targetWidth
+        case .image(let e): return e.targetWidth
+        case .container(let e): return e.targetWidth
+        case .columnSet(let e): return e.targetWidth
+        case .actionSet(let e): return e.targetWidth
+        default: return nil
+        }
+    }
+
     /// Returns the type string for this element
     public var typeString: String {
         switch self {

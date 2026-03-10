@@ -81,26 +81,29 @@ public struct AdaptiveCardView: View {
     }
 
     private func cardContent(card: AdaptiveCard) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                if let body = card.body, !body.isEmpty {
-                    ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
-                        if viewModel.isElementVisible(elementId: element.elementId) {
-                            ElementView(element: element, hostConfig: hostConfig)
-                                .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
+        GeometryReader { geometry in
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    if let body = card.body, !body.isEmpty {
+                        ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
+                            if viewModel.isElementVisible(elementId: element.elementId) {
+                                ElementView(element: element, hostConfig: hostConfig)
+                                    .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
+                            }
                         }
                     }
-                }
 
-                if let actions = card.actions, !actions.isEmpty {
-                    ActionSetView(actions: actions, hostConfig: hostConfig)
-                        .padding(.top, CGFloat(hostConfig.spacing.default))
+                    if let actions = card.actions, !actions.isEmpty {
+                        ActionSetView(actions: actions, hostConfig: hostConfig)
+                            .padding(.top, CGFloat(hostConfig.spacing.default))
+                    }
                 }
+                .padding(CGFloat(hostConfig.spacing.padding))
+                .containerStyle(.default, hostConfig: hostConfig)
             }
-            .padding(CGFloat(hostConfig.spacing.padding))
-            .containerStyle(.default, hostConfig: hostConfig)
+            .environment(\.widthCategory, WidthCategory.from(width: geometry.size.width, hostConfig: hostConfig))
+            .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
         }
-        .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
     }
 
     private func errorView(error: Error) -> some View {
@@ -136,7 +139,17 @@ private struct ValidationStateKey: EnvironmentKey {
     static let defaultValue: ValidationState = ValidationState()
 }
 
+private struct WidthCategoryKey: EnvironmentKey {
+    static let defaultValue: WidthCategory = .narrow
+}
+
 extension EnvironmentValues {
+    /// Current card width category for targetWidth responsive filtering.
+    public var widthCategory: WidthCategory {
+        get { self[WidthCategoryKey.self] }
+        set { self[WidthCategoryKey.self] = newValue }
+    }
+
     var hostConfig: HostConfig {
         get { self[HostConfigKey.self] }
         set { self[HostConfigKey.self] = newValue }

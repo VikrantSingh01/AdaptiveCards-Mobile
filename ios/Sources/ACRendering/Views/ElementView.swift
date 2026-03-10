@@ -13,14 +13,19 @@ struct ElementView: View {
     @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
 
+    @Environment(\.widthCategory) var widthCategory
+
     var body: some View {
         Group {
-            // Check custom renderer registry first
-            if let customRenderer = ElementRendererRegistry.shared.getRenderer(for: element.typeString) {
-                customRenderer(element)
-            } else {
-                // Fall back to built-in renderers
-                builtInRenderer
+            // Check targetWidth constraint — hide elements that don't match current width
+            if shouldShowForTargetWidth(element.targetWidth, currentCategory: widthCategory) {
+                // Check custom renderer registry first
+                if let customRenderer = ElementRendererRegistry.shared.getRenderer(for: element.typeString) {
+                    customRenderer(element)
+                } else {
+                    // Fall back to built-in renderers
+                    builtInRenderer
+                }
             }
         }
     }
