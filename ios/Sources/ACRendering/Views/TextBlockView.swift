@@ -105,12 +105,7 @@ struct TextBlockView: View {
     #endif
 
     private var swiftUIFontWeight: Font.Weight {
-        let fontWeightEnum = textBlock.weight ?? .default
-        switch fontWeightEnum {
-        case .lighter: return .light
-        case .default: return .regular
-        case .bolder: return .bold
-        }
+        return fontWeight
     }
 
     private var fontSize: Int {
