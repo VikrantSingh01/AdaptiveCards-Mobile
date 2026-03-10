@@ -1,13 +1,17 @@
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.microsoft.adaptivecards.core.hostconfig.HostConfig
 import com.microsoft.adaptivecards.core.models.*
@@ -20,6 +24,15 @@ import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import com.microsoft.adaptivecards.rendering.viewmodel.DefaultActionHandler
 import com.microsoft.adaptivecards.accessibility.RTLSupport
+import com.microsoft.adaptivecards.core.models.WidthCategory
+import com.microsoft.adaptivecards.core.models.shouldShowForTargetWidth
+import com.microsoft.adaptivecards.core.models.targetWidth
+
+/**
+ * CompositionLocal providing the current card width category for targetWidth filtering.
+ * Defaults to Narrow (typical phone width).
+ */
+val LocalWidthCategory = compositionLocalOf { WidthCategory.Narrow }
 
 /**
  * Main entry point for rendering an Adaptive Card
@@ -72,26 +85,34 @@ fun AdaptiveCardView(
     card?.let { adaptiveCard ->
         HostConfigProvider(hostConfig = hostConfig ?: com.microsoft.adaptivecards.core.hostconfig.HostConfigParser.default()) {
             RTLSupport(isRTL = adaptiveCard.rtl == true) {
-                Column(modifier = modifier.fillMaxWidth()) {
-                    // Render body elements
-                    adaptiveCard.body?.forEachIndexed { index, element ->
-                        RenderElement(
-                            element = element,
-                            isFirst = index == 0,
-                            viewModel = viewModel,
-                            actionHandler = actionHandler
-                        )
-                    }
-                    
-                    // Render actions
-                    adaptiveCard.actions?.let { actions ->
-                        if (actions.isNotEmpty()) {
-                            ActionSetView(
-                                actions = actions,
-                                actionHandler = actionHandler,
-                                viewModel = viewModel,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+                    val density = LocalDensity.current
+                    val widthDp = with(density) { constraints.maxWidth.toDp().value }
+                    val widthCategory = WidthCategory.fromDp(widthDp)
+
+                    CompositionLocalProvider(LocalWidthCategory provides widthCategory) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // Render body elements
+                            adaptiveCard.body?.forEachIndexed { index, element ->
+                                RenderElement(
+                                    element = element,
+                                    isFirst = index == 0,
+                                    viewModel = viewModel,
+                                    actionHandler = actionHandler
+                                )
+                            }
+
+                            // Render actions
+                            adaptiveCard.actions?.let { actions ->
+                                if (actions.isNotEmpty()) {
+                                    ActionSetView(
+                                        actions = actions,
+                                        actionHandler = actionHandler,
+                                        viewModel = viewModel,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -113,9 +134,15 @@ fun RenderElement(
 ) {
     // Check visibility
     if (!element.isVisible) return
-    
+
     val elementId = element.id
     if (elementId != null && !viewModel.isElementVisible(elementId)) {
+        return
+    }
+
+    // Check targetWidth constraint
+    val widthCategory = LocalWidthCategory.current
+    if (!shouldShowForTargetWidth(element.targetWidth, widthCategory)) {
         return
     }
     
