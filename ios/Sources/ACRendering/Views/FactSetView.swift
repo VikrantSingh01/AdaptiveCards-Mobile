@@ -11,12 +11,16 @@ struct FactSetView: View {
             ForEach(factSet.facts) { fact in
                 HStack(alignment: .top, spacing: 8) {
                     Text(fact.title)
-                        .font(.system(size: CGFloat(resolveFontSize(hostConfig.factSet.title.size))))
-                        .fontWeight(titleWeight)
+                        .font(resolveFont(hostConfig.factSet.title))
+                        .fontWeight(resolveWeight(hostConfig.factSet.title.weight))
+                        .foregroundColor(resolveColor(hostConfig.factSet.title))
+                        .lineLimit(hostConfig.factSet.title.wrap ? nil : 1)
                         .frame(width: titleMaxWidth > 0 ? CGFloat(titleMaxWidth) : nil, alignment: .leading)
                     Text(fact.value)
-                        .font(.system(size: CGFloat(resolveFontSize(hostConfig.factSet.value.size))))
-                        .fontWeight(valueWeight)
+                        .font(resolveFont(hostConfig.factSet.value))
+                        .fontWeight(resolveWeight(hostConfig.factSet.value.weight))
+                        .foregroundColor(resolveColor(hostConfig.factSet.value))
+                        .lineLimit(hostConfig.factSet.value.wrap ? nil : 1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -30,12 +34,34 @@ struct FactSetView: View {
         hostConfig.factSet.title.maxWidth
     }
 
-    private var titleWeight: Font.Weight {
-        hostConfig.factSet.title.weight == "Bolder" ? .bold : .regular
+    private func resolveWeight(_ weightString: String) -> Font.Weight {
+        weightString == "Bolder" ? .bold : .regular
     }
 
-    private var valueWeight: Font.Weight {
-        hostConfig.factSet.value.weight == "Bolder" ? .bold : .regular
+    private func resolveFont(_ config: FactSetTextConfig) -> Font {
+        let size = CGFloat(resolveFontSize(config.size))
+        if config.fontType.lowercased() == "monospace" {
+            return .system(size: size, design: .monospaced)
+        }
+        return .system(size: size)
+    }
+
+    private func resolveColor(_ config: FactSetTextConfig) -> Color {
+        let styleConfig = hostConfig.containerStyles.default
+        let colorConfig: ColorConfig
+
+        switch config.color.lowercased() {
+        case "dark": colorConfig = styleConfig.foregroundColors.dark
+        case "light": colorConfig = styleConfig.foregroundColors.light
+        case "accent": colorConfig = styleConfig.foregroundColors.accent
+        case "good": colorConfig = styleConfig.foregroundColors.good
+        case "warning": colorConfig = styleConfig.foregroundColors.warning
+        case "attention": colorConfig = styleConfig.foregroundColors.attention
+        default: colorConfig = styleConfig.foregroundColors.default
+        }
+
+        let hex = config.isSubtle ? colorConfig.subtle : colorConfig.default
+        return Color(hex: hex)
     }
 
     private func resolveFontSize(_ sizeString: String) -> Int {
