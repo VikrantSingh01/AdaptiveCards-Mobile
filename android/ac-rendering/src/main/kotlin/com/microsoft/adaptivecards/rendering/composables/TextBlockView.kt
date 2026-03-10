@@ -66,7 +66,7 @@ fun TextBlockView(
         null -> TextAlign.Start
     }
     
-    val maxLines = element.maxLines ?: if (element.wrap == true) Int.MAX_VALUE else 1
+    val maxLines = (element.maxLines ?: if (element.wrap == true) Int.MAX_VALUE else 1).coerceAtLeast(1)
     val overflow = if (element.wrap == true) TextOverflow.Visible else TextOverflow.Ellipsis
     
     // Check if text contains markdown

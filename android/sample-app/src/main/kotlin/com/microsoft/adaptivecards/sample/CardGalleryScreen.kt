@@ -1,6 +1,7 @@
 package com.microsoft.adaptivecards.sample
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -85,7 +86,7 @@ fun CardGalleryScreen(navController: NavController) {
             ) {
                 items(filteredCards, key = { it.filename }) { card ->
                     CardItem(card) {
-                        navController.navigate("card_detail/${card.filename}")
+                        navController.navigate("card_detail/${Uri.encode(card.filename)}")
                     }
                 }
             }
