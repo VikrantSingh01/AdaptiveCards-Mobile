@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.models.FactSet
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
@@ -42,6 +44,9 @@ fun FactSetView(
                     fontWeight = titleWeight,
                     fontSize = scaledTextSize(titleSize),
                     color = titleColor,
+                    fontFamily = resolveFontFamily(hostConfig.factSet.title.fontType),
+                    maxLines = if (hostConfig.factSet.title.wrap) Int.MAX_VALUE else 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = if (titleMaxWidth > 0) {
                         Modifier.widthIn(max = titleMaxWidth.dp)
                     } else {
@@ -55,9 +60,22 @@ fun FactSetView(
                     fontWeight = valueWeight,
                     fontSize = scaledTextSize(valueSize),
                     color = valueColor,
+                    fontFamily = resolveFontFamily(hostConfig.factSet.value.fontType),
+                    maxLines = if (hostConfig.factSet.value.wrap) Int.MAX_VALUE else 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
+    }
+}
+
+/**
+ * Resolve a font type string to a Compose FontFamily
+ */
+private fun resolveFontFamily(fontType: String): FontFamily {
+    return when (fontType.lowercase()) {
+        "monospace" -> FontFamily.Monospace
+        else -> FontFamily.Default
     }
 }
