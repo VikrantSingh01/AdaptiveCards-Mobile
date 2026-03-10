@@ -53,6 +53,9 @@ docs/session-artifacts/
 *.app
 Pods/
 
+# Screenshots
+screenshots/
+
 # Environment files
 .env
 .env.*
