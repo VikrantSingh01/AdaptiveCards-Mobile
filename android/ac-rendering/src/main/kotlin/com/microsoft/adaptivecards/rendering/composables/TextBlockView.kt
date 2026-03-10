@@ -119,9 +119,47 @@ fun TextBlockView(
 }
 
 /**
+ * Resolve a FontSize enum to the actual pixel value from HostConfig
+ */
+internal fun resolveFontSize(
+    size: com.microsoft.adaptivecards.core.models.FontSize,
+    hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
+): Int = when (size) {
+    com.microsoft.adaptivecards.core.models.FontSize.Small -> hostConfig.fontSizes.small
+    com.microsoft.adaptivecards.core.models.FontSize.Default -> hostConfig.fontSizes.default
+    com.microsoft.adaptivecards.core.models.FontSize.Medium -> hostConfig.fontSizes.medium
+    com.microsoft.adaptivecards.core.models.FontSize.Large -> hostConfig.fontSizes.large
+    com.microsoft.adaptivecards.core.models.FontSize.ExtraLarge -> hostConfig.fontSizes.extraLarge
+}
+
+/**
+ * Resolve a FontWeight enum to Compose FontWeight from HostConfig
+ */
+internal fun resolveFontWeight(
+    weight: com.microsoft.adaptivecards.core.models.FontWeight,
+    hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
+): FontWeight {
+    val value = when (weight) {
+        com.microsoft.adaptivecards.core.models.FontWeight.Lighter -> hostConfig.fontWeights.lighter
+        com.microsoft.adaptivecards.core.models.FontWeight.Default -> hostConfig.fontWeights.default
+        com.microsoft.adaptivecards.core.models.FontWeight.Bolder -> hostConfig.fontWeights.bolder
+    }
+    return when (value) {
+        in 100..199 -> FontWeight.Thin
+        in 200..299 -> FontWeight.Light
+        in 300..399 -> FontWeight.Normal
+        in 400..499 -> FontWeight.Normal
+        in 500..599 -> FontWeight.Medium
+        in 600..699 -> FontWeight.SemiBold
+        in 700..799 -> FontWeight.Bold
+        else -> FontWeight.ExtraBold
+    }
+}
+
+/**
  * Get text color from host config based on color and subtle properties
  */
-private fun getTextColor(
+internal fun getTextColor(
     color: com.microsoft.adaptivecards.core.models.Color,
     isSubtle: Boolean,
     hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
