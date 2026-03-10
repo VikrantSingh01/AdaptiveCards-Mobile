@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.microsoft.adaptivecards.core.models.*
 import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
@@ -152,7 +153,19 @@ fun ActionButton(
             enabled = action.isEnabled
         )
     ) {
-        Text(action.title ?: "")
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            action.iconUrl?.let { iconUrl ->
+                AsyncImage(
+                    model = iconUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            Text(action.title ?: "")
+        }
     }
 }
 

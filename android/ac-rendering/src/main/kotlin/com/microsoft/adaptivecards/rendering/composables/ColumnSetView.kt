@@ -4,14 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.microsoft.adaptivecards.core.models.ColumnSet
 import com.microsoft.adaptivecards.core.models.Column
+import com.microsoft.adaptivecards.core.models.ColumnSet
+import com.microsoft.adaptivecards.core.models.VerticalContentAlignment
+import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.modifiers.SeparatorLine
 import com.microsoft.adaptivecards.rendering.modifiers.containerStyle
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
 /**
- * Renders a ColumnSet element
+ * Renders a ColumnSet element with proportional column layout.
+ * Supports auto, stretch, weighted (numeric), and pixel (e.g. "100px") widths.
  */
 @Composable
 fun ColumnSetView(
@@ -20,22 +24,21 @@ fun ColumnSetView(
     viewModel: CardViewModel,
     actionHandler: ActionHandler
 ) {
+    val hostConfig = LocalHostConfig.current
     val columns = element.columns ?: emptyList()
-    
+    val spacing = hostConfig.spacing.default.dp
+
     Row(
         modifier = modifier
             .containerStyle(element.style)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(spacing)
     ) {
-        columns.forEach { column ->
-            val columnModifier = when {
-                column.width == "auto" -> Modifier // auto columns use intrinsic width (no weight)
-                else -> {
-                    val weight = getColumnWeight(column.width)
-                    if (weight > 0f) Modifier.weight(weight) else Modifier
-                }
+        columns.forEachIndexed { index, column ->
+            if (index > 0 && column.separator) {
+                SeparatorLine()
             }
+            val columnModifier = resolveColumnWidth(column.width)
             ColumnView(
                 column = column,
                 modifier = columnModifier,
@@ -47,7 +50,7 @@ fun ColumnSetView(
 }
 
 /**
- * Renders a single Column
+ * Renders a single Column with vertical alignment and minHeight.
  */
 @Composable
 fun ColumnView(
@@ -57,9 +60,17 @@ fun ColumnView(
     actionHandler: ActionHandler
 ) {
     val items = column.items ?: emptyList()
-    
+    val minHeight = column.minHeight?.replace("px", "")?.toIntOrNull()?.dp
+
     Column(
-        modifier = modifier.containerStyle(column.style)
+        modifier = modifier
+            .containerStyle(column.style)
+            .then(if (minHeight != null) Modifier.heightIn(min = minHeight) else Modifier),
+        verticalArrangement = when (column.verticalContentAlignment) {
+            VerticalContentAlignment.Center -> Arrangement.Center
+            VerticalContentAlignment.Bottom -> Arrangement.Bottom
+            else -> Arrangement.Top
+        }
     ) {
         items.forEachIndexed { index, item ->
             RenderElement(
@@ -73,16 +84,21 @@ fun ColumnView(
 }
 
 /**
- * Calculate column weight from width string
+ * Resolve column width string to a Modifier.
+ * Supports: "auto", "stretch", numeric weights (e.g. "2"), pixel widths (e.g. "100px").
  */
-private fun getColumnWeight(width: String?): Float {
-    return when (width) {
-        "auto" -> 0f
-        "stretch" -> 1f
-        null -> 1f
+@Composable
+private fun RowScope.resolveColumnWidth(width: String?): Modifier {
+    return when {
+        width == null || width == "stretch" -> Modifier.weight(1f)
+        width == "auto" -> Modifier
+        width.endsWith("px") -> {
+            val pixels = width.removeSuffix("px").toIntOrNull()
+            if (pixels != null) Modifier.width(pixels.dp) else Modifier.weight(1f)
+        }
         else -> {
-            // Try to parse as number
-            width.toFloatOrNull() ?: 1f
+            val weight = width.toFloatOrNull()
+            if (weight != null && weight > 0f) Modifier.weight(weight) else Modifier.weight(1f)
         }
     }
 }
