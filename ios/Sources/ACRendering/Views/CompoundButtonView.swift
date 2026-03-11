@@ -185,7 +185,7 @@ struct CompoundButtonStyle: ButtonStyle {
             .opacity(isDisabled ? 0.5 : 1.0)
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color(hex: hostConfig.compoundButton.borderColor), lineWidth: 1)
+                    .stroke(Color(hex: hostConfig.compoundButton.borderColor), lineWidth: CGFloat(hostConfig.separator.lineThickness))
             )
     }
 

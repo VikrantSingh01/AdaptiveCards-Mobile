@@ -79,14 +79,14 @@ struct ActionSetView: View {
             }
         } label: {
             Text("\u{2026}")
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.horizontal, CGFloat(hostConfig.spacing.medium))
+                .padding(.vertical, CGFloat(hostConfig.spacing.small) * 0.75)
                 .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["container"] ?? 4))
+                        .stroke(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle), lineWidth: CGFloat(hostConfig.separator.lineThickness))
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["container"] ?? 4)))
         }
         .accessibilityLabel("More actions")
     }
