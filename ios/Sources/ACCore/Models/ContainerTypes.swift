@@ -19,6 +19,10 @@ public struct Container: Codable, Equatable {
     public var requires: [String: String]?
     public var targetWidth: String?
     public var fallback: CardElement?
+    /// When true, render a border stroke around the container using the style's borderColor.
+    public var showBorder: Bool?
+    /// When true, apply rounded corners from hostConfig cornerRadius.
+    public var roundedCorners: Bool?
     /// Layout descriptor (FlowLayout or AreaGridLayout). When nil, uses default stack layout.
     public var layout: Layout?
 
@@ -38,6 +42,8 @@ public struct Container: Codable, Equatable {
         requires: [String: String]? = nil,
         targetWidth: String? = nil,
         fallback: CardElement? = nil,
+        showBorder: Bool? = nil,
+        roundedCorners: Bool? = nil,
         layout: Layout? = nil
     ) {
         self.id = id
@@ -55,6 +61,8 @@ public struct Container: Codable, Equatable {
         self.requires = requires
         self.targetWidth = targetWidth
         self.fallback = fallback
+        self.showBorder = showBorder
+        self.roundedCorners = roundedCorners
         self.layout = layout
     }
 }
@@ -128,6 +136,7 @@ public struct Column: Codable, Equatable, Identifiable {
     public var selectAction: CardAction?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
 
     // Stable identifier using id property or combined items IDs as fallback
     public var stableId: String {
@@ -154,7 +163,8 @@ public struct Column: Codable, Equatable, Identifiable {
         spacing: Spacing? = nil,
         selectAction: CardAction? = nil,
         isVisible: Bool? = nil,
-        requires: [String: String]? = nil
+        requires: [String: String]? = nil,
+        targetWidth: String? = nil
     ) {
         self.id = id
         self.items = items
@@ -169,6 +179,7 @@ public struct Column: Codable, Equatable, Identifiable {
         self.selectAction = selectAction
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
     }
 }
 
@@ -358,6 +369,7 @@ public struct Table: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var requires: [String: String]?
+    public var targetWidth: String?
     public var fallback: CardElement?
 
     public init(
@@ -374,6 +386,7 @@ public struct Table: Codable, Equatable {
         height: BlockElementHeight? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
+        targetWidth: String? = nil,
         fallback: CardElement? = nil
     ) {
         self.id = id
@@ -389,6 +402,7 @@ public struct Table: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+        self.targetWidth = targetWidth
         self.fallback = fallback
     }
 }

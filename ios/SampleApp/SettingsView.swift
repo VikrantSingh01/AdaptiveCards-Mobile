@@ -2,72 +2,128 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var settings: AppSettings
+    @State private var showResetConfirmation = false
 
     var body: some View {
         Form {
-            Section("Appearance") {
-                Picker("Theme", selection: $settings.theme) {
+            Section {
+                Picker(selection: $settings.theme) {
                     ForEach(AppSettings.Theme.allCases, id: \.self) { theme in
                         Text(theme.rawValue).tag(theme)
                     }
+                } label: {
+                    Label("Theme", systemImage: "paintbrush.fill")
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Font Scale")
+                        Label("Font Scale", systemImage: "textformat.size")
                         Spacer()
                         Text(String(format: "%.0f%%", settings.fontScale * 100))
-                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
                     }
-
                     Slider(value: $settings.fontScale, in: 0.8...1.5, step: 0.1)
+                        .tint(.blue)
                 }
-            }
-
-            Section("Accessibility") {
-                Toggle("Enhanced Accessibility", isOn: $settings.enableAccessibility)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Voice Over Support")
-                    Text("Enables enhanced screen reader support")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            Section("Developer") {
-                Toggle("Performance Metrics", isOn: $settings.enablePerformanceMetrics)
-
-                NavigationLink("Performance Dashboard") {
-                    PerformanceDashboardView()
-                }
-
-                NavigationLink("Action Log") {
-                    ActionLogView()
-                }
-            }
-
-            Section("About") {
-                LabeledContent("SDK Version", value: "1.0.0")
-                LabeledContent("Build", value: "1")
-
-                Button("View Documentation") {
-                    openDocumentation()
-                }
-
-                Button("Report Issue") {
-                    reportIssue()
-                }
+            } header: {
+                Label("Appearance", systemImage: "paintpalette")
+                    .textCase(nil)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
             }
 
             Section {
-                Button("Reset to Defaults") {
-                    resetSettings()
+                Toggle(isOn: $settings.enableAccessibility) {
+                    Label("Enhanced Accessibility", systemImage: "accessibility")
                 }
-                .foregroundColor(.red)
+
+                HStack(spacing: 12) {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                    Text("Enables enhanced screen reader and VoiceOver support for card content.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Label("Accessibility", systemImage: "figure.arms.open")
+                    .textCase(nil)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+            }
+
+            Section {
+                Toggle(isOn: $settings.enablePerformanceMetrics) {
+                    Label("Performance Metrics", systemImage: "gauge.with.dots.needle.33percent")
+                }
+
+                NavigationLink {
+                    PerformanceDashboardView()
+                } label: {
+                    Label("Performance Dashboard", systemImage: "chart.xyaxis.line")
+                }
+
+                NavigationLink {
+                    ActionLogView()
+                } label: {
+                    Label("Action Log", systemImage: "list.bullet.clipboard")
+                }
+            } header: {
+                Label("Developer", systemImage: "wrench.and.screwdriver")
+                    .textCase(nil)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+            }
+
+            Section {
+                LabeledContent {
+                    Text("1.0.0")
+                        .foregroundStyle(.secondary)
+                } label: {
+                    Label("SDK Version", systemImage: "shippingbox")
+                }
+
+                LabeledContent {
+                    Text("1")
+                        .foregroundStyle(.secondary)
+                } label: {
+                    Label("Build", systemImage: "hammer")
+                }
+
+                LabeledContent {
+                    Text("1.6")
+                        .foregroundStyle(.secondary)
+                } label: {
+                    Label("Schema", systemImage: "doc.text")
+                }
+            } header: {
+                Label("About", systemImage: "info.circle")
+                    .textCase(nil)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+            }
+
+            Section {
+                Button(role: .destructive) {
+                    showResetConfirmation = true
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                        Spacer()
+                    }
+                }
             }
         }
         .navigationTitle("Settings")
+        .confirmationDialog("Reset all settings to defaults?", isPresented: $showResetConfirmation) {
+            Button("Reset", role: .destructive) {
+                resetSettings()
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 
     private func resetSettings() {
@@ -75,15 +131,5 @@ struct SettingsView: View {
         settings.fontScale = 1.0
         settings.enableAccessibility = true
         settings.enablePerformanceMetrics = false
-    }
-
-    private func openDocumentation() {
-        // Open documentation URL
-        print("Opening documentation...")
-    }
-
-    private func reportIssue() {
-        // Open issue reporting
-        print("Reporting issue...")
     }
 }

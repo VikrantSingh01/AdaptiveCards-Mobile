@@ -3,7 +3,12 @@ import Foundation
 /// Pre-configured Microsoft Teams host config with Fluent UI design tokens
 /// aligned to the Adaptive Card specification Figma (iOS page — Light mode).
 public class TeamsHostConfig {
-    public static func create() -> HostConfig {
+    /// Cached singleton — HostConfig is immutable, no need to recreate per card.
+    private static let shared: HostConfig = buildLight()
+
+    public static func create() -> HostConfig { shared }
+
+    private static func buildLight() -> HostConfig {
         return HostConfig(
             fontFamily: ".SF UI Text",
             supportsInteractivity: true,

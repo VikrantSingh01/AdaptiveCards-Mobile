@@ -10,11 +10,15 @@ import com.microsoft.adaptivecards.core.models.*
  */
 object TeamsHostConfig {
 
-    /** Creates the standard Teams light-theme HostConfig. */
-    fun create(): HostConfig = createLight()
+    /** Creates the standard Teams light-theme HostConfig (cached singleton). */
+    fun create(): HostConfig = lightInstance
 
-    /** Teams light theme — white card surface. */
-    fun createLight(): HostConfig = HostConfig(
+    /** Teams light theme — white card surface (cached singleton). */
+    fun createLight(): HostConfig = lightInstance
+
+    private val lightInstance: HostConfig by lazy { buildLight() }
+
+    private fun buildLight(): HostConfig = HostConfig(
         fontFamily = "Roboto",
         supportsInteractivity = true,
         imageBaseUrl = "",
@@ -29,7 +33,7 @@ object TeamsHostConfig {
         ),
         separator = SeparatorConfig(
             lineThickness = 1,
-            lineColor = "#0D16233A"  // ~5 % opacity dark stroke
+            lineColor = "#3A0D1623"  // Figma #0D16233A (RRGGBBAA) → AARRGGBB: ~23% opacity dark stroke
         ),
         fontTypes = FontTypesConfig(
             default = FontTypeConfig(
@@ -239,8 +243,12 @@ object TeamsHostConfig {
         pageControl = PageControlConfig(selectedTintColor = "#5B5FC7")
     )
 
-    /** Teams dark theme — dark card surface. */
-    fun createDark(): HostConfig = HostConfig(
+    /** Teams dark theme — dark card surface (cached singleton). */
+    fun createDark(): HostConfig = darkInstance
+
+    private val darkInstance: HostConfig by lazy { buildDark() }
+
+    private fun buildDark(): HostConfig = HostConfig(
         fontFamily = "Roboto",
         supportsInteractivity = true,
         imageBaseUrl = "",

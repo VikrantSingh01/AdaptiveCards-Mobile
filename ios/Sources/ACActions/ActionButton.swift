@@ -194,7 +194,11 @@ public struct ActionButton: View {
         "Document": "doc", "Folder": "folder", "Settings": "gearshape",
         "Filter": "line.3.horizontal.decrease", "MoreHorizontal": "ellipsis",
         "Save": "square.and.arrow.down",
-        "Navigation": "arrow.triangle.turn.up.right.diamond"
+        "Navigation": "arrow.triangle.turn.up.right.diamond",
+        "AlertUrgent": "bell.badge",
+        "Alert": "exclamationmark.triangle",
+        "Bell": "bell",
+        "BellOff": "bell.slash"
     ]
 
     /// Maps Fluent UI icon names to SF Symbols

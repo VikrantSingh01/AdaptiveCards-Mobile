@@ -8,6 +8,7 @@ public struct TimeInputView: View {
     @Binding var value: String?
     @ObservedObject var validationState: ValidationState
     @State private var date: Date = Date()
+    @State private var hasSelection: Bool = false
 
     private let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -29,26 +30,42 @@ public struct TimeInputView: View {
         if let value = value.wrappedValue,
            let time = timeFormatter.date(from: value) {
             _date = State(initialValue: time)
+            _hasSelection = State(initialValue: true)
         }
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let label = input.label {
-                Text(label)
+                let suffix = (input.isRequired == true) ? (hostConfig.inputs.label.requiredInputs.suffix) : ""
+                Text(label + suffix)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
 
-            DatePicker(
-                input.placeholder ?? "Select time",
-                selection: $date,
-                displayedComponents: [.hourAndMinute]
-            )
-            .datePickerStyle(.compact)
-            .tint(.blue)
-            .onChange(of: date) { newDate in
-                updateValue(from: newDate)
+            if hasSelection {
+                DatePicker(
+                    input.placeholder ?? "Select time",
+                    selection: $date,
+                    displayedComponents: [.hourAndMinute]
+                )
+                .datePickerStyle(.compact)
+                .tint(.blue)
+                .onChange(of: date) { newDate in
+                    updateValue(from: newDate)
+                }
+            } else {
+                Button {
+                    hasSelection = true
+                    updateValue(from: date)
+                } label: {
+                    HStack {
+                        Text(input.placeholder ?? "Select time")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
             }
 
             if let error = validationState.getError(for: input.id) {

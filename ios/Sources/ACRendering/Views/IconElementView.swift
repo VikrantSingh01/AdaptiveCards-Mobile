@@ -148,6 +148,16 @@ struct IconElementView: View {
             "database": "cylinder",
             "cloud": "cloud",
             "server": "server.rack",
+            "megaphone": "megaphone",
+            "receipt": "doc.plaintext",
+            "cart": "cart",
+            "design": "pencil.and.ruler",
+            "paintbrush": "paintbrush",
+            "alerturgent": "bell.badge",
+            "belloff": "bell.slash",
+            "heartpulse": "heart.circle",
+            "leafone": "leaf",
+            "peopleteam": "person.2",
         ]
 
         let lowered = fluentName.lowercased()

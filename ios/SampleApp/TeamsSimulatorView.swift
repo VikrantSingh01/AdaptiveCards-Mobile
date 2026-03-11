@@ -11,54 +11,76 @@ struct TeamsSimulatorView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Chat messages
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(messages) { message in
-                            ChatBubbleView(message: message)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(messages) { message in
+                                ChatBubbleView(message: message)
+                                    .id(message.id)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                    }
+                    .onChange(of: messages.count) { _, _ in
+                        if let last = messages.last {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                proxy.scrollTo(last.id, anchor: .bottom)
+                            }
                         }
                     }
-                    .padding()
                 }
-
-                Divider()
 
                 // Input bar
-                HStack(spacing: 12) {
-                    TextField("Type a message...", text: $messageText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                VStack(spacing: 0) {
+                    Divider()
+                    HStack(spacing: 10) {
+                        Menu {
+                            Button { sendCard(.simple) } label: {
+                                Label("Simple Card", systemImage: "doc.text")
+                            }
+                            Button { sendCard(.form) } label: {
+                                Label("Form Card", systemImage: "list.clipboard")
+                            }
+                            Button { sendCard(.chart) } label: {
+                                Label("Chart Card", systemImage: "chart.bar")
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.blue)
+                        }
 
-                    Button(action: sendMessage) {
-                        Image(systemName: "paperplane.fill")
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(Circle().fill(Color.blue))
-                    }
-                    .disabled(messageText.isEmpty)
+                        TextField("Message...", text: $messageText)
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .background(
+                                Capsule()
+                                    .fill(Color(.tertiarySystemFill))
+                            )
 
-                    Menu {
-                        Button("Send Simple Card") {
-                            sendCard(.simple)
+                        Button(action: sendMessage) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(messageText.isEmpty ? Color(.tertiaryLabel) : .blue)
                         }
-                        Button("Send Form Card") {
-                            sendCard(.form)
-                        }
-                        Button("Send Chart Card") {
-                            sendCard(.chart)
-                        }
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.title2)
+                        .disabled(messageText.isEmpty)
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial)
                 }
-                .padding()
             }
             .navigationTitle("Teams Simulator")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Clear") {
-                        messages = []
+                    Button(action: { withAnimation { messages = [] } }) {
+                        Image(systemName: "trash")
+                            .font(.subheadline)
                     }
+                    .disabled(messages.isEmpty)
                 }
             }
         }
@@ -66,13 +88,14 @@ struct TeamsSimulatorView: View {
 
     private func sendMessage() {
         guard !messageText.isEmpty else { return }
-
         let message = ChatMessage(
             sender: "You",
             content: .text(messageText),
             isFromUser: true
         )
-        messages.append(message)
+        withAnimation(.easeOut(duration: 0.2)) {
+            messages.append(message)
+        }
         messageText = ""
     }
 
@@ -82,7 +105,9 @@ struct TeamsSimulatorView: View {
             content: .card(type.json),
             isFromUser: false
         )
-        messages.append(message)
+        withAnimation(.easeOut(duration: 0.2)) {
+            messages.append(message)
+        }
     }
 }
 
@@ -91,36 +116,69 @@ struct ChatBubbleView: View {
     @EnvironmentObject var actionLog: ActionLogStore
 
     var body: some View {
-        HStack {
-            if message.isFromUser { Spacer() }
+        HStack(alignment: .top, spacing: 8) {
+            if message.isFromUser { Spacer(minLength: 48) }
 
-            VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
+            if !message.isFromUser {
+                // Avatar
+                Circle()
+                    .fill(Color.blue.gradient)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Text(String(message.sender.prefix(1)))
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    )
+            }
+
+            VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 3) {
                 Text(message.sender)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
 
                 switch message.content {
                 case .text(let text):
                     Text(text)
-                        .padding(12)
-                        .background(message.isFromUser ? Color.blue : Color.gray.opacity(0.2))
+                        .font(.body)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(
+                            message.isFromUser
+                                ? AnyShapeStyle(Color.blue.gradient)
+                                : AnyShapeStyle(Color(.tertiarySystemFill))
+                        )
                         .foregroundColor(message.isFromUser ? .white : .primary)
-                        .cornerRadius(16)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
 
                 case .card(let json):
                     AdaptiveCardView(cardJson: json, hostConfig: TeamsHostConfig.create())
                         .frame(maxWidth: 300)
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 2)
+                        .padding(8)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
                 }
 
                 Text(formatTime(message.timestamp))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.tertiary)
             }
 
-            if !message.isFromUser { Spacer() }
+            if message.isFromUser {
+                Circle()
+                    .fill(Color(.systemGray4))
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Text("Y")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.secondary)
+                    )
+            }
+
+            if !message.isFromUser { Spacer(minLength: 48) }
         }
     }
 

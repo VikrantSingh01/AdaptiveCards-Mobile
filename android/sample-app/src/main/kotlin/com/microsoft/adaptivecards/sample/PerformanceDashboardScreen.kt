@@ -1,6 +1,9 @@
 package com.microsoft.adaptivecards.sample
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -8,117 +11,140 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerformanceDashboardScreen() {
-    var isRecording by remember { mutableStateOf(false) }
-    val metrics = remember { PerformanceMetrics.sample() }
-
+fun PerformanceDashboardScreen(
+    navController: androidx.navigation.NavController,
+    perfStore: PerformanceStore,
+    actionLogState: ActionLogState
+) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Performance Dashboard") })
+            TopAppBar(
+                title = { Text("Performance") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, "Back")
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Parse Performance
-            MetricsSection("Parse Performance") {
-                MetricRow("Average Parse Time", "${String.format("%.2f", metrics.avgParseTime)}ms", Trend.STABLE)
-                MetricRow("Min Parse Time", "${String.format("%.2f", metrics.minParseTime)}ms", Trend.DOWN)
-                MetricRow("Max Parse Time", "${String.format("%.2f", metrics.maxParseTime)}ms", Trend.UP)
-                MetricRow("Cards Parsed", "${metrics.cardsParsed}", Trend.STABLE)
-            }
-
-            // Render Performance
-            MetricsSection("Render Performance") {
-                MetricRow("Average Render Time", "${String.format("%.2f", metrics.avgRenderTime)}ms", Trend.STABLE)
-                MetricRow("Min Render Time", "${String.format("%.2f", metrics.minRenderTime)}ms", Trend.DOWN)
-                MetricRow("Max Render Time", "${String.format("%.2f", metrics.maxRenderTime)}ms", Trend.UP)
-                MetricRow("Cards Rendered", "${metrics.cardsRendered}", Trend.STABLE)
-            }
-
-            // Memory Usage
-            MetricsSection("Memory Usage") {
-                MetricRow("Current Usage", "${String.format("%.1f", metrics.currentMemoryMB)} MB", Trend.STABLE)
-                MetricRow("Peak Usage", "${String.format("%.1f", metrics.peakMemoryMB)} MB", Trend.UP)
-                MetricRow("Average Usage", "${String.format("%.1f", metrics.avgMemoryMB)} MB", Trend.STABLE)
-            }
-
-            // Actions
-            MetricsSection("Actions") {
-                MetricRow("Total Actions", "${metrics.totalActions}", Trend.UP)
-                MetricRow("Success Rate", "${String.format("%.1f", metrics.actionSuccessRate * 100)}%", Trend.STABLE)
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Controls
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = { isRecording = !isRecording },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isRecording) 
-                            MaterialTheme.colorScheme.error 
-                        else 
-                            MaterialTheme.colorScheme.primary
-                    )
+            if (perfStore.cardsParsed == 0) {
+                // Empty state
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        if (isRecording) Icons.Default.Stop else Icons.Default.PlayArrow,
-                        null
+                        Icons.Default.BarChart,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isRecording) "Stop Recording" else "Start Recording")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("No data yet", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Browse cards in the gallery to collect real parse and render metrics.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                PerfMetricsSection("Parse Performance", Icons.Default.Description, Color(0xFF1976D2)) {
+                    PerfMetricRow("Average", "${String.format("%.2f", perfStore.avgParseTimeMs)}ms", Trend.STABLE)
+                    PerfMetricRow("Min", "${String.format("%.2f", perfStore.minParseTimeMs)}ms", Trend.DOWN)
+                    PerfMetricRow("Max", "${String.format("%.2f", perfStore.maxParseTimeMs)}ms", Trend.UP)
+                    PerfMetricRow("Total Parsed", "${perfStore.cardsParsed}", Trend.STABLE)
                 }
 
-                OutlinedButton(
-                    onClick = { /* Reset metrics */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Reset Metrics")
+                PerfMetricsSection("Render Performance", Icons.Default.Brush, Color(0xFF7B1FA2)) {
+                    PerfMetricRow("Average", "${String.format("%.2f", perfStore.avgRenderTimeMs)}ms", Trend.STABLE)
+                    PerfMetricRow("Min", "${String.format("%.2f", perfStore.minRenderTimeMs)}ms", Trend.DOWN)
+                    PerfMetricRow("Max", "${String.format("%.2f", perfStore.maxRenderTimeMs)}ms", Trend.UP)
+                    PerfMetricRow("Total Rendered", "${perfStore.cardsRendered}", Trend.STABLE)
                 }
 
-                OutlinedButton(
-                    onClick = { /* Export report */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Export Report")
+                PerfMetricsSection("Memory Usage", Icons.Default.Memory, Color(0xFFFF9800)) {
+                    PerfMetricRow("Current", "${String.format("%.1f", perfStore.currentMemoryMB)} MB", Trend.STABLE)
+                    PerfMetricRow("Peak", "${String.format("%.1f", perfStore.peakMemoryMB)} MB", Trend.UP)
                 }
+
+                PerfMetricsSection("Actions", Icons.Default.FlashOn, Color(0xFF388E3C)) {
+                    PerfMetricRow("Total", "${actionLogState.actions.size}", Trend.STABLE)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Reset button
+            OutlinedButton(
+                onClick = { perfStore.reset() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Reset All Metrics")
             }
         }
     }
 }
 
 @Composable
-fun MetricsSection(
+fun PerfMetricsSection(
     title: String,
+    icon: ImageVector,
+    color: Color,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 10.dp)
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = color
+                )
+            }
             content()
         }
     }
 }
 
 @Composable
-fun MetricRow(label: String, value: String, trend: Trend) {
+fun PerfMetricRow(label: String, value: String, trend: Trend) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -128,10 +154,11 @@ fun MetricRow(label: String, value: String, trend: Trend) {
     ) {
         Text(
             label,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -147,7 +174,7 @@ fun MetricRow(label: String, value: String, trend: Trend) {
                 contentDescription = null,
                 tint = when (trend) {
                     Trend.UP -> Color.Red
-                    Trend.DOWN -> Color.Green
+                    Trend.DOWN -> Color(0xFF388E3C)
                     Trend.STABLE -> Color.Gray
                 },
                 modifier = Modifier.size(16.dp)
@@ -158,38 +185,4 @@ fun MetricRow(label: String, value: String, trend: Trend) {
 
 enum class Trend {
     UP, DOWN, STABLE
-}
-
-data class PerformanceMetrics(
-    val avgParseTime: Double,
-    val minParseTime: Double,
-    val maxParseTime: Double,
-    val avgRenderTime: Double,
-    val minRenderTime: Double,
-    val maxRenderTime: Double,
-    val cardsParsed: Int,
-    val cardsRendered: Int,
-    val totalActions: Int,
-    val actionSuccessRate: Double,
-    val currentMemoryMB: Double,
-    val peakMemoryMB: Double,
-    val avgMemoryMB: Double
-) {
-    companion object {
-        fun sample() = PerformanceMetrics(
-            avgParseTime = 2.3,
-            minParseTime = 1.2,
-            maxParseTime = 4.5,
-            avgRenderTime = 8.7,
-            minRenderTime = 3.4,
-            maxRenderTime = 15.6,
-            cardsParsed = 127,
-            cardsRendered = 127,
-            totalActions = 45,
-            actionSuccessRate = 0.978,
-            currentMemoryMB = 18.5,
-            peakMemoryMB = 24.3,
-            avgMemoryMB = 16.8
-        )
-    }
 }
