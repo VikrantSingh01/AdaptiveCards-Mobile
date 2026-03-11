@@ -302,7 +302,7 @@ final class RenderingParityTests: XCTestCase {
         var foundLongText = false
         for element in card.body ?? [] {
             if case .textBlock(let textBlock) = element {
-                if textBlock.text.count > 500 {
+                if (textBlock.text ?? "").count > 500 {
                     foundLongText = true
                 }
             }
