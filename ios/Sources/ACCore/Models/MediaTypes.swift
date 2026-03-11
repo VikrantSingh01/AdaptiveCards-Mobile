@@ -5,7 +5,7 @@ import Foundation
 public struct TextBlock: Codable, Equatable {
     public let type: String = "TextBlock"
     public var id: String?
-    public var text: String
+    public var text: String?
     public var color: ForegroundColor?
     public var fontType: FontType?
     public var size: FontSize?
@@ -25,7 +25,7 @@ public struct TextBlock: Codable, Equatable {
 
     public init(
         id: String? = nil,
-        text: String,
+        text: String? = nil,
         color: ForegroundColor? = nil,
         fontType: FontType? = nil,
         size: FontSize? = nil,
@@ -61,6 +61,34 @@ public struct TextBlock: Codable, Equatable {
         self.requires = requires
         self.targetWidth = targetWidth
         self.fallback = fallback
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type, id, text, color, fontType, size, weight, isSubtle, wrap
+        case maxLines, horizontalAlignment, style, spacing, separator
+        case height, isVisible, requires, targetWidth, fallback
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id)
+        self.text = try container.decodeIfPresent(String.self, forKey: .text)
+        self.color = try container.decodeIfPresent(ForegroundColor.self, forKey: .color)
+        self.fontType = try container.decodeIfPresent(FontType.self, forKey: .fontType)
+        self.size = try container.decodeIfPresent(FontSize.self, forKey: .size)
+        self.weight = try container.decodeIfPresent(FontWeight.self, forKey: .weight)
+        self.isSubtle = try container.decodeIfPresent(Bool.self, forKey: .isSubtle)
+        self.wrap = try container.decodeIfPresent(Bool.self, forKey: .wrap)
+        self.maxLines = try container.decodeIfPresent(Int.self, forKey: .maxLines)
+        self.horizontalAlignment = try container.decodeIfPresent(HorizontalAlignment.self, forKey: .horizontalAlignment)
+        self.style = try container.decodeIfPresent(TextBlockStyle.self, forKey: .style)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.requires = try container.decodeIfPresent([String: String].self, forKey: .requires)
+        self.targetWidth = try container.decodeIfPresent(String.self, forKey: .targetWidth)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
     }
 }
 
@@ -141,6 +169,46 @@ public struct TextRun: Codable, Equatable {
         self.underline = underline
         self.highlight = highlight
         self.selectAction = selectAction
+    }
+
+    /// Custom decoder: accept both a plain string (shorthand) and a full TextRun object.
+    /// Per Adaptive Cards spec, inlines can contain plain strings as shorthand for
+    /// `{"type": "TextRun", "text": "<string>"}`.
+    public init(from decoder: Decoder) throws {
+        // Try as a plain string first (shorthand form)
+        if let container = try? decoder.singleValueContainer(),
+           let stringValue = try? container.decode(String.self) {
+            self.text = stringValue
+            self.color = nil
+            self.fontType = nil
+            self.size = nil
+            self.weight = nil
+            self.isSubtle = nil
+            self.italic = nil
+            self.strikethrough = nil
+            self.underline = nil
+            self.highlight = nil
+            self.selectAction = nil
+            return
+        }
+        // Otherwise decode as object
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.text = try container.decode(String.self, forKey: .text)
+        self.color = try container.decodeIfPresent(ForegroundColor.self, forKey: .color)
+        self.fontType = try container.decodeIfPresent(FontType.self, forKey: .fontType)
+        self.size = try container.decodeIfPresent(FontSize.self, forKey: .size)
+        self.weight = try container.decodeIfPresent(FontWeight.self, forKey: .weight)
+        self.isSubtle = try container.decodeIfPresent(Bool.self, forKey: .isSubtle)
+        self.italic = try container.decodeIfPresent(Bool.self, forKey: .italic)
+        self.strikethrough = try container.decodeIfPresent(Bool.self, forKey: .strikethrough)
+        self.underline = try container.decodeIfPresent(Bool.self, forKey: .underline)
+        self.highlight = try container.decodeIfPresent(Bool.self, forKey: .highlight)
+        self.selectAction = try container.decodeIfPresent(CardAction.self, forKey: .selectAction)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type, text, color, fontType, size, weight, isSubtle
+        case italic, strikethrough, underline, highlight, selectAction
     }
 }
 

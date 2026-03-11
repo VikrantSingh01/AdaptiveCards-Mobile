@@ -88,9 +88,9 @@ struct CompoundButtonView: View {
 
     @ViewBuilder
     private var iconView: some View {
-        if let iconString = button.icon {
-            if iconString.hasPrefix("http://") || iconString.hasPrefix("https://") {
-                AsyncImage(url: URL(string: iconString)) { phase in
+        if let iconName = button.iconName {
+            if iconName.hasPrefix("http://") || iconName.hasPrefix("https://") {
+                AsyncImage(url: URL(string: iconName)) { phase in
                     switch phase {
                     case .success(let image):
                         image
@@ -108,7 +108,7 @@ struct CompoundButtonView: View {
                 }
             } else {
                 // SF Symbol
-                Image(systemName: iconString)
+                Image(systemName: iconName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: Layout.iconSize, height: Layout.iconSize)
@@ -154,6 +154,8 @@ struct CompoundButtonView: View {
             return "Runs commands"
         case .openUrlDialog:
             return "Opens URL dialog"
+        case .unknown:
+            return ""
         }
     }
 

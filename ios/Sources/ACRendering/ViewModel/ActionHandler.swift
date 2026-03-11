@@ -63,6 +63,10 @@ public class DefaultActionHandler: ActionHandler {
 
         case .openUrlDialog(let openUrlDialogAction):
             OpenUrlDialogActionHandler.handle(action: openUrlDialogAction, delegate: delegate)
+
+        case .unknown:
+            // Silently ignore unknown action types
+            break
         }
     }
 }

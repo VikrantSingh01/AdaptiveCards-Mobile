@@ -14,6 +14,11 @@ public struct Carousel: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
 
+    enum CodingKeys: String, CodingKey {
+        case type, id, pages, timer, initialPage, spacing
+        case separator, height, isVisible, requires
+    }
+
     public init(
         id: String? = nil,
         pages: [CarouselPage],
@@ -34,6 +39,24 @@ public struct Carousel: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.requires = requires
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id)
+        // pages can be a template expression string; gracefully default to empty array
+        if let pagesArray = try? container.decode([CarouselPage].self, forKey: .pages) {
+            self.pages = pagesArray
+        } else {
+            self.pages = []
+        }
+        self.timer = try container.decodeIfPresent(Int.self, forKey: .timer)
+        self.initialPage = try container.decodeIfPresent(Int.self, forKey: .initialPage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.requires = try container.decodeIfPresent([String: String].self, forKey: .requires)
     }
 }
 
