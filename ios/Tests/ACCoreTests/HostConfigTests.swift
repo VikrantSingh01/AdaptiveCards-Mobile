@@ -14,26 +14,31 @@ final class HostConfigTests: XCTestCase {
     func testTeamsHostConfig() {
         let config = TeamsHostConfig.create()
 
-        // Core spacing & typography
-        XCTAssertEqual(config.spacing.default, 8)
+        // Font family — iOS uses SF system font per Figma iOS page
+        XCTAssertEqual(config.fontFamily, ".SF UI Text")
+
+        // Core spacing (Figma iOS Light)
         XCTAssertEqual(config.spacing.small, 8)
+        XCTAssertEqual(config.spacing.default, 10)
         XCTAssertEqual(config.spacing.medium, 12)
         XCTAssertEqual(config.spacing.large, 16)
         XCTAssertEqual(config.spacing.extraLarge, 20)
-        XCTAssertEqual(config.spacing.padding, 10)
+        XCTAssertEqual(config.spacing.padding, 8)
 
+        // Font sizes (Figma iOS: 12/15/15/17/22)
         XCTAssertEqual(config.fontSizes.small, 12)
-        XCTAssertEqual(config.fontSizes.default, 14)
-        XCTAssertEqual(config.fontSizes.medium, 14)
-        XCTAssertEqual(config.fontSizes.large, 16)
-        XCTAssertEqual(config.fontSizes.extraLarge, 20)
+        XCTAssertEqual(config.fontSizes.default, 15)
+        XCTAssertEqual(config.fontSizes.medium, 15)
+        XCTAssertEqual(config.fontSizes.large, 17)
+        XCTAssertEqual(config.fontSizes.extraLarge, 22)
 
-        XCTAssertEqual(config.fontWeights.lighter, 400)
+        // Font weights (Figma iOS: 300/400/600)
+        XCTAssertEqual(config.fontWeights.lighter, 300)
         XCTAssertEqual(config.fontWeights.default, 400)
-        XCTAssertEqual(config.fontWeights.bolder, 500)
+        XCTAssertEqual(config.fontWeights.bolder, 600)
 
-        // Separator
-        XCTAssertEqual(config.separator.lineColor, "#0D16233A")
+        // Separator (Figma iOS: #FFDFDEDE)
+        XCTAssertEqual(config.separator.lineColor, "#FFDFDEDE")
         XCTAssertEqual(config.separator.lineThickness, 1)
 
         // Image sizes
@@ -45,6 +50,10 @@ final class HostConfigTests: XCTestCase {
         XCTAssertEqual(config.actions.maxActions, 6)
         XCTAssertEqual(config.actions.buttonSpacing, 8)
         XCTAssertEqual(config.actions.iconPlacement, "LeftOfTitle")
+        XCTAssertEqual(config.actions.spacing, "Default")
+
+        // FactSet spacing (Figma iOS: 16)
+        XCTAssertEqual(config.factSet.spacing, 16)
 
         // Corner radius
         XCTAssertEqual(config.cornerRadius["container"], 4)
@@ -60,9 +69,18 @@ final class HostConfigTests: XCTestCase {
         XCTAssertEqual(defaultColors.attention.default, "#C4314B")
         XCTAssertEqual(defaultColors.warning.default, "#C50F1F")
 
-        // Container backgrounds
+        // Container backgrounds (Figma iOS Light)
         XCTAssertEqual(config.containerStyles.default.backgroundColor, "#FFFFFF")
         XCTAssertEqual(config.containerStyles.emphasis.backgroundColor, "#F1F1F1")
+        XCTAssertEqual(config.containerStyles.good.backgroundColor, "#E7F2DA")
+        XCTAssertEqual(config.containerStyles.warning.backgroundColor, "#FBF6D9")
+
+        // Rating
+        XCTAssertEqual(config.ratingLabel.filledStar.neutralColor, "#212121")
+
+        // Compound button
+        XCTAssertEqual(config.compoundButton.badge.backgroundColor, "#5B5FC7")
+        XCTAssertEqual(config.compoundButton.borderColor, "#E1E1E1")
     }
 
     func testHostConfigParser() throws {
