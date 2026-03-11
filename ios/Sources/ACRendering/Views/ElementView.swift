@@ -133,6 +133,8 @@ struct ElementView: View {
             LineChartView(chart: chart)
         case .pieChart(let chart):
             PieChartView(chart: chart)
+        case .icon(let icon):
+            IconElementView(icon: icon, hostConfig: hostConfig)
         case .unknown(let type):
             // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG

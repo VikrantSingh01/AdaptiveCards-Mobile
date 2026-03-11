@@ -132,6 +132,7 @@ public struct AreaGridLayoutView: View {
     private func spacingValue(_ spacing: Spacing) -> CGFloat {
         switch spacing {
         case .none: return 0
+        case .extraSmall: return 4
         case .small: return CGFloat(hostConfig.spacing.small)
         case .default: return CGFloat(hostConfig.spacing.`default`)
         case .medium: return CGFloat(hostConfig.spacing.medium)

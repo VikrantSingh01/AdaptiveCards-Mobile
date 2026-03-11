@@ -101,7 +101,7 @@ object TeamsHostConfig {
             buttonSpacing = 8,
             showCard = ShowCardConfig(
                 actionMode = "inline",
-                style = ContainerStyle.Emphasis,
+                style = ContainerStyle.Default,
                 inlineTopMargin = 8
             ),
             actionsOrientation = "horizontal",
@@ -205,7 +205,38 @@ object TeamsHostConfig {
             table = 4,
             image = 4
         ),
-        borderWidth = emptyMap()
+        borderWidth = emptyMap(),
+        badgeStyles = BadgeStylesConfig(
+            default = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#212121", strokeColor = "#212121", textColor = "#FFFFFF"),
+                tint = BadgeStyleDef(backgroundColor = "#F1F1F1", strokeColor = "#E1E1E1", textColor = "#212121")
+            ),
+            accent = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#5B5FC7", strokeColor = "#5B5FC7", textColor = "#FFFFFF"),
+                tint = BadgeStyleDef(backgroundColor = "#E8EBFA", strokeColor = "#E1E1E1", textColor = "#5B5FC7")
+            ),
+            attention = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#D92C2C", strokeColor = "#D92C2C", textColor = "#FFFFFF"),
+                tint = BadgeStyleDef(backgroundColor = "#FEF7F7", strokeColor = "#E1E1E1", textColor = "#D92C2C")
+            ),
+            good = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#0F7A0B", strokeColor = "#0F7A0B", textColor = "#FFFFFF"),
+                tint = BadgeStyleDef(backgroundColor = "#E7F2DA", strokeColor = "#E1E1E1", textColor = "#0F7A0B")
+            ),
+            informative = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#FFFFFF", strokeColor = "#FFFFFF", textColor = "#212121"),
+                tint = BadgeStyleDef(backgroundColor = "#FFFFFF", strokeColor = "#E1E1E1", textColor = "#6E6E6E")
+            ),
+            subtle = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#F8F8F8", strokeColor = "#F8F8F8", textColor = "#6E6E6E"),
+                tint = BadgeStyleDef(backgroundColor = "#F8F8F8", strokeColor = "#E1E1E1", textColor = "#6E6E6E")
+            ),
+            warning = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#835C00", strokeColor = "#835C00", textColor = "#FFFFFF"),
+                tint = BadgeStyleDef(backgroundColor = "#FBF6D9", strokeColor = "#E1E1E1", textColor = "#835C00")
+            )
+        ),
+        pageControl = PageControlConfig(selectedTintColor = "#5B5FC7")
     )
 
     /** Teams dark theme — dark card surface. */
@@ -296,7 +327,7 @@ object TeamsHostConfig {
             buttonSpacing = 8,
             showCard = ShowCardConfig(
                 actionMode = "inline",
-                style = ContainerStyle.Emphasis,
+                style = ContainerStyle.Default,
                 inlineTopMargin = 8
             ),
             actionsOrientation = "horizontal",
@@ -400,7 +431,38 @@ object TeamsHostConfig {
             table = 4,
             image = 4
         ),
-        borderWidth = emptyMap()
+        borderWidth = emptyMap(),
+        badgeStyles = BadgeStylesConfig(
+            default = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#e1e1e1", strokeColor = "#e1e1e1", textColor = "#000000"),
+                tint = BadgeStyleDef(backgroundColor = "#919191", strokeColor = "#919191", textColor = "#000000")
+            ),
+            accent = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#7f85f5", strokeColor = "#7f85f5", textColor = "#000000"),
+                tint = BadgeStyleDef(backgroundColor = "#2f2f4a", strokeColor = "#292929", textColor = "#7f85f5")
+            ),
+            attention = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#e83a3a", strokeColor = "#e83a3a", textColor = "#000000"),
+                tint = BadgeStyleDef(backgroundColor = "#250909", strokeColor = "#292929", textColor = "#e83a3a")
+            ),
+            good = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#0eb244", strokeColor = "#0eb244", textColor = "#000000"),
+                tint = BadgeStyleDef(backgroundColor = "#0d2e0d", strokeColor = "#292929", textColor = "#0eb244")
+            ),
+            informative = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#292929", strokeColor = "#292929", textColor = "#919191"),
+                tint = BadgeStyleDef(backgroundColor = "#212121", strokeColor = "#292929", textColor = "#919191")
+            ),
+            subtle = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#000000", strokeColor = "#000000", textColor = "#e1e1e1"),
+                tint = BadgeStyleDef(backgroundColor = "#000000", strokeColor = "#292929", textColor = "#e1e1e1")
+            ),
+            warning = BadgeStyleVariants(
+                filled = BadgeStyleDef(backgroundColor = "#ffb900", strokeColor = "#ffb900", textColor = "#000000"),
+                tint = BadgeStyleDef(backgroundColor = "#4d3a0c", strokeColor = "#292929", textColor = "#ffb900")
+            )
+        ),
+        pageControl = PageControlConfig(selectedTintColor = "#7F85F5")
     )
 
     /** Foreground colors for the Teams light theme. */

@@ -32,6 +32,8 @@ public struct HostConfig: Codable {
     public var compoundButton: CompoundButtonConfig
     public var borderWidth: [String: Int]
     public var cornerRadius: [String: Int]
+    public var badgeStyles: BadgeStylesConfig
+    public var pageControl: PageControlConfig
 
     public init(
         fontFamily: String = "",
@@ -59,7 +61,9 @@ public struct HostConfig: Codable {
         table: TableConfig = TableConfig(),
         compoundButton: CompoundButtonConfig = CompoundButtonConfig(),
         borderWidth: [String: Int] = [:],
-        cornerRadius: [String: Int] = [:]
+        cornerRadius: [String: Int] = [:],
+        badgeStyles: BadgeStylesConfig = BadgeStylesConfig(),
+        pageControl: PageControlConfig = PageControlConfig()
     ) {
         self.fontFamily = fontFamily
         self.supportsInteractivity = supportsInteractivity
@@ -87,6 +91,8 @@ public struct HostConfig: Codable {
         self.compoundButton = compoundButton
         self.borderWidth = borderWidth
         self.cornerRadius = cornerRadius
+        self.badgeStyles = badgeStyles
+        self.pageControl = pageControl
     }
 
     // Custom decoder for backward compatibility - missing keys get defaults
@@ -118,6 +124,8 @@ public struct HostConfig: Codable {
         compoundButton = try c.decodeIfPresent(CompoundButtonConfig.self, forKey: .compoundButton) ?? CompoundButtonConfig()
         borderWidth = try c.decodeIfPresent([String: Int].self, forKey: .borderWidth) ?? [:]
         cornerRadius = try c.decodeIfPresent([String: Int].self, forKey: .cornerRadius) ?? [:]
+        badgeStyles = try c.decodeIfPresent(BadgeStylesConfig.self, forKey: .badgeStyles) ?? BadgeStylesConfig()
+        pageControl = try c.decodeIfPresent(PageControlConfig.self, forKey: .pageControl) ?? PageControlConfig()
     }
 }
 
@@ -739,5 +747,74 @@ public struct BadgeConfig: Codable {
 
     public init(backgroundColor: String = "#5B5FC7") {
         self.backgroundColor = backgroundColor
+    }
+}
+
+// MARK: - Badge Styles Configuration (Figma spec)
+
+public struct BadgeStylesConfig: Codable {
+    public var `default`: BadgeStyleVariants
+    public var accent: BadgeStyleVariants
+    public var attention: BadgeStyleVariants
+    public var good: BadgeStyleVariants
+    public var informative: BadgeStyleVariants
+    public var subtle: BadgeStyleVariants
+    public var warning: BadgeStyleVariants
+
+    public init(
+        default: BadgeStyleVariants = BadgeStyleVariants(),
+        accent: BadgeStyleVariants = BadgeStyleVariants(),
+        attention: BadgeStyleVariants = BadgeStyleVariants(),
+        good: BadgeStyleVariants = BadgeStyleVariants(),
+        informative: BadgeStyleVariants = BadgeStyleVariants(),
+        subtle: BadgeStyleVariants = BadgeStyleVariants(),
+        warning: BadgeStyleVariants = BadgeStyleVariants()
+    ) {
+        self.default = `default`
+        self.accent = accent
+        self.attention = attention
+        self.good = good
+        self.informative = informative
+        self.subtle = subtle
+        self.warning = warning
+    }
+}
+
+public struct BadgeStyleVariants: Codable {
+    public var filled: BadgeStyleDef
+    public var tint: BadgeStyleDef
+
+    public init(
+        filled: BadgeStyleDef = BadgeStyleDef(),
+        tint: BadgeStyleDef = BadgeStyleDef()
+    ) {
+        self.filled = filled
+        self.tint = tint
+    }
+}
+
+public struct BadgeStyleDef: Codable {
+    public var backgroundColor: String
+    public var strokeColor: String
+    public var textColor: String
+
+    public init(
+        backgroundColor: String = "#212121",
+        strokeColor: String = "#212121",
+        textColor: String = "#FFFFFF"
+    ) {
+        self.backgroundColor = backgroundColor
+        self.strokeColor = strokeColor
+        self.textColor = textColor
+    }
+}
+
+// MARK: - Page Control Configuration
+
+public struct PageControlConfig: Codable {
+    public var selectedTintColor: String
+
+    public init(selectedTintColor: String = "#5B5FC7") {
+        self.selectedTintColor = selectedTintColor
     }
 }

@@ -31,7 +31,9 @@ data class HostConfig(
     val compoundButton: CompoundButtonConfig = CompoundButtonConfig(),
     val lineHeights: LineHeightsConfig = LineHeightsConfig(),
     val borderWidth: Map<String, Int> = emptyMap(),
-    val cornerRadius: CornerRadiusConfig = CornerRadiusConfig()
+    val cornerRadius: CornerRadiusConfig = CornerRadiusConfig(),
+    val badgeStyles: BadgeStylesConfig = BadgeStylesConfig(),
+    val pageControl: PageControlConfig = PageControlConfig()
 )
 
 @Serializable
@@ -303,4 +305,35 @@ data class CornerRadiusConfig(
     val container: Int = 4,
     val table: Int = 4,
     val image: Int = 4
+)
+
+/** Badge styles configuration from Figma spec */
+@Serializable
+data class BadgeStylesConfig(
+    val default: BadgeStyleVariants = BadgeStyleVariants(),
+    val accent: BadgeStyleVariants = BadgeStyleVariants(),
+    val attention: BadgeStyleVariants = BadgeStyleVariants(),
+    val good: BadgeStyleVariants = BadgeStyleVariants(),
+    val informative: BadgeStyleVariants = BadgeStyleVariants(),
+    val subtle: BadgeStyleVariants = BadgeStyleVariants(),
+    val warning: BadgeStyleVariants = BadgeStyleVariants()
+)
+
+@Serializable
+data class BadgeStyleVariants(
+    val filled: BadgeStyleDef = BadgeStyleDef(),
+    val tint: BadgeStyleDef = BadgeStyleDef()
+)
+
+@Serializable
+data class BadgeStyleDef(
+    val backgroundColor: String = "#212121",
+    val strokeColor: String = "#212121",
+    val textColor: String = "#FFFFFF"
+)
+
+/** Page control configuration */
+@Serializable
+data class PageControlConfig(
+    val selectedTintColor: String = "#5B5FC7"
 )

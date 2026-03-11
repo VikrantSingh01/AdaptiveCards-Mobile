@@ -264,6 +264,22 @@ public struct ToggleVisibilityAction: BaseAction {
             self.elementId = elementId
             self.isVisible = isVisible
         }
+
+        /// AC spec allows targetElements as either strings or objects:
+        /// `"targetElements": ["id1", {"elementId": "id2", "isVisible": true}]`
+        public init(from decoder: Decoder) throws {
+            // Try as a plain string first (shorthand: just the element ID)
+            if let container = try? decoder.singleValueContainer(),
+               let stringValue = try? container.decode(String.self) {
+                self.elementId = stringValue
+                self.isVisible = nil
+                return
+            }
+            // Otherwise decode as object
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.elementId = try container.decode(String.self, forKey: .elementId)
+            self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        }
     }
 }
 

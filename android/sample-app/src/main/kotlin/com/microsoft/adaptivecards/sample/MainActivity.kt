@@ -1,5 +1,6 @@
 package com.microsoft.adaptivecards.sample
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -36,8 +37,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val actionLogState = remember { ActionLogState() }
     val settingsState = remember { SettingsState() }
+    val bookmarkState = remember { BookmarkState(context) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -78,7 +81,7 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Gallery.route) {
-                CardGalleryScreen(navController)
+                CardGalleryScreen(navController, bookmarkState)
             }
             composable(Screen.Editor.route) {
                 CardEditorScreen(actionLogState)
@@ -87,11 +90,14 @@ fun MainScreen() {
                 TeamsSimulatorScreen(actionLogState)
             }
             composable(Screen.More.route) {
-                MoreScreen(navController, actionLogState, settingsState)
+                MoreScreen(navController, actionLogState, settingsState, bookmarkState)
             }
             composable("card_detail/{cardId}") { backStackEntry ->
                 val cardId = backStackEntry.arguments?.getString("cardId") ?: ""
-                CardDetailScreen(cardId, actionLogState, navController)
+                CardDetailScreen(cardId, actionLogState, bookmarkState, navController)
+            }
+            composable("bookmarks") {
+                BookmarksScreen(bookmarkState, navController)
             }
             composable("action_log") {
                 ActionLogScreen(actionLogState)
@@ -138,6 +144,29 @@ data class ActionLogEntry(
     val data: Map<String, Any>
 )
 
+class BookmarkState(context: Context) {
+    private val prefs = context.getSharedPreferences("bookmarks", Context.MODE_PRIVATE)
+    private val _bookmarkedFilenames = mutableStateListOf<String>().also {
+        it.addAll(prefs.getStringSet("filenames", emptySet()) ?: emptySet())
+    }
+    val bookmarkedFilenames: List<String> get() = _bookmarkedFilenames
+
+    fun toggle(filename: String) {
+        if (_bookmarkedFilenames.contains(filename)) {
+            _bookmarkedFilenames.remove(filename)
+        } else {
+            _bookmarkedFilenames.add(filename)
+        }
+        persist()
+    }
+
+    fun isBookmarked(filename: String): Boolean = _bookmarkedFilenames.contains(filename)
+
+    private fun persist() {
+        prefs.edit().putStringSet("filenames", _bookmarkedFilenames.toSet()).apply()
+    }
+}
+
 class SettingsState {
     var theme by mutableStateOf(Theme.SYSTEM)
     var fontScale by mutableFloatStateOf(1.0f)
@@ -153,7 +182,8 @@ class SettingsState {
 fun MoreScreen(
     navController: androidx.navigation.NavController,
     actionLogState: ActionLogState,
-    settingsState: SettingsState
+    settingsState: SettingsState,
+    bookmarkState: BookmarkState
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column {
@@ -162,6 +192,15 @@ fun MoreScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(16.dp)
             )
+
+            ListItem(
+                headlineContent = { Text("Bookmarks") },
+                supportingContent = { Text("${bookmarkState.bookmarkedFilenames.size} cards") },
+                leadingContent = { Icon(Icons.Default.Bookmark, null) },
+                modifier = Modifier.clickable { navController.navigate("bookmarks") }
+            )
+
+            HorizontalDivider()
 
             ListItem(
                 headlineContent = { Text("Action Log") },
