@@ -16,30 +16,31 @@ struct ActionLogView: View {
     }
 
     var body: some View {
-        List {
+        Group {
             if actionLog.actions.isEmpty {
                 VStack(spacing: 16) {
-                    Image(systemName: "list.bullet.rectangle")
-                        .font(.system(size: 60))
-                        .foregroundColor(.secondary)
+                    Spacer()
+                    Image(systemName: "list.bullet.clipboard")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.tertiary)
                     Text("No Actions Yet")
-                        .font(.headline)
-                    Text("Actions dispatched from adaptive cards will appear here")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Actions dispatched from adaptive cards\nwill appear here.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
+                    Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
-                .listRowBackground(Color.clear)
             } else {
-                ForEach(filteredActions) { action in
-                    Button(action: {
-                        selectedAction = action
-                    }) {
-                        ActionListRow(action: action)
+                List {
+                    ForEach(filteredActions) { action in
+                        Button(action: { selectedAction = action }) {
+                            ActionListRow(action: action)
+                        }
+                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                     }
-                    .listRowBackground(Color.clear)
                 }
             }
         }
@@ -48,15 +49,14 @@ struct ActionLogView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
-                    Button(action: {
+                    Button(role: .destructive) {
                         actionLog.clear()
-                    }) {
+                    } label: {
                         Label("Clear All", systemImage: "trash")
                     }
-
-                    Button(action: {
+                    Button {
                         exportLog()
-                    }) {
+                    } label: {
                         Label("Export Log", systemImage: "square.and.arrow.up")
                     }
                 } label: {
@@ -70,7 +70,6 @@ struct ActionLogView: View {
     }
 
     private func exportLog() {
-        // Export functionality would be implemented here
         print("Exporting action log...")
     }
 }
@@ -81,20 +80,19 @@ struct ActionListRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(action.actionType)
-                        .font(.headline)
-
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
                     Text(formatTime(action.timestamp))
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
-
                 Spacer()
-
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.caption2)
+                    .foregroundStyle(.quaternary)
             }
 
             if !action.data.isEmpty {
@@ -104,12 +102,18 @@ struct ActionListRow: View {
                     Text("\(action.data.count) properties")
                         .font(.caption2)
                 }
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Color(.tertiarySystemFill))
+                .clipShape(Capsule())
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private func formatTime(_ date: Date) -> String {
@@ -129,7 +133,8 @@ struct ActionDetailView: View {
             List {
                 Section("Action Type") {
                     Text(action.actionType)
-                        .font(.headline)
+                        .font(.body)
+                        .fontWeight(.medium)
                 }
 
                 Section("Timestamp") {
@@ -139,10 +144,10 @@ struct ActionDetailView: View {
                 if !action.data.isEmpty {
                     Section("Data") {
                         ForEach(Array(action.data.keys.sorted()), id: \.self) { key in
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 3) {
                                 Text(key)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                                 Text("\(action.data[key] ?? "nil")")
                                     .font(.body)
                             }
@@ -151,8 +156,10 @@ struct ActionDetailView: View {
                 }
 
                 Section {
-                    Button("Copy JSON") {
+                    Button {
                         copyJSON()
+                    } label: {
+                        Label("Copy JSON", systemImage: "doc.on.doc")
                     }
                 }
             }
@@ -160,9 +167,8 @@ struct ActionDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
+                    Button("Done") { dismiss() }
+                        .fontWeight(.medium)
                 }
             }
         }

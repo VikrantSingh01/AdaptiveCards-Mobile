@@ -30,7 +30,8 @@ public struct RatingInputView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let label = input.label {
-                Text(label)
+                let suffix = (input.isRequired == true) ? (hostConfig.inputs.label.requiredInputs.suffix) : ""
+                Text(label + suffix)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .accessibilityHidden(true)

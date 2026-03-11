@@ -81,7 +81,8 @@ enum class ImageSize {
 @Serializable
 enum class ImageStyle {
     @SerialName("Default") Default,
-    @SerialName("Person") Person
+    @SerialName("Person") Person,
+    @SerialName("RoundedCorners") RoundedCorners
 }
 
 @Serializable
@@ -135,10 +136,24 @@ enum class AssociatedInputs {
     @SerialName("None") None
 }
 
-@Serializable
+@Serializable(with = ActionModeSerializer::class)
 enum class ActionMode {
-    @SerialName("Primary") Primary,
-    @SerialName("Secondary") Secondary
+    Primary,
+    Secondary
+}
+
+/** Case-insensitive deserializer — handles both "secondary" and "Secondary". */
+object ActionModeSerializer : kotlinx.serialization.KSerializer<ActionMode> {
+    override val descriptor = kotlinx.serialization.descriptors.PrimitiveSerialDescriptor(
+        "ActionMode", kotlinx.serialization.descriptors.PrimitiveKind.STRING
+    )
+    override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: ActionMode) =
+        encoder.encodeString(value.name)
+    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): ActionMode =
+        when (decoder.decodeString().lowercase()) {
+            "secondary" -> ActionMode.Secondary
+            else -> ActionMode.Primary
+        }
 }
 
 @Serializable

@@ -16,12 +16,12 @@ struct ColumnView: View {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
                         ElementView(element: element, hostConfig: hostConfig)
-                            .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
+                            .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
                     }
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
         .padding(column.style != nil ? CGFloat(hostConfig.spacing.padding) : 0)
         .containerStyle(column.style, hostConfig: hostConfig)
@@ -48,5 +48,21 @@ struct ColumnView: View {
     private var minHeight: CGFloat? {
         guard let minHeightStr = column.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)
+    }
+
+    private func spacingValue(for spacing: Spacing?, hostConfig: HostConfig) -> CGFloat {
+        guard let spacing = spacing else {
+            return CGFloat(hostConfig.spacing.default)
+        }
+        switch spacing {
+        case .none: return 0
+        case .extraSmall: return 4
+        case .small: return CGFloat(hostConfig.spacing.small)
+        case .default: return CGFloat(hostConfig.spacing.default)
+        case .medium: return CGFloat(hostConfig.spacing.medium)
+        case .large: return CGFloat(hostConfig.spacing.large)
+        case .extraLarge: return CGFloat(hostConfig.spacing.extraLarge)
+        case .padding: return CGFloat(hostConfig.spacing.padding)
+        }
     }
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ACCore
 import ACRendering
 
@@ -9,59 +10,108 @@ struct CardDetailView: View {
     @State private var renderTime: TimeInterval = 0
     @EnvironmentObject var actionLog: ActionLogStore
     @EnvironmentObject var bookmarks: BookmarkStore
+    @EnvironmentObject var editorState: EditorState
+    @EnvironmentObject var perfStore: PerformanceStore
 
     var body: some View {
         VStack(spacing: 0) {
-            // Card Preview — AdaptiveCardView has its own GeometryReader+ScrollView
+            // Card Preview — fills remaining space
             AdaptiveCardView(
                 cardJson: card.jsonString,
                 templateData: card.dataJsonString.flatMap { parseTemplateData($0) },
                 hostConfig: TeamsHostConfig.create()
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .layoutPriority(1)
 
-            // Bottom bar with metrics and controls
-            VStack(spacing: 8) {
-                HStack(spacing: 20) {
-                    MetricView(title: "Parse", value: String(format: "%.2fms", parseTime * 1000))
-                    MetricView(title: "Render", value: String(format: "%.2fms", renderTime * 1000))
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
+            // Bottom bar — single row: JSON | Parse | Render | Copy
+            VStack(spacing: 0) {
+                Divider()
 
-                HStack {
-                    Toggle("JSON", isOn: $showJSON)
-                        .toggleStyle(.button)
-                        .controlSize(.small)
-                    Spacer()
-                    Button(action: copyJSON) {
-                        Label("Copy", systemImage: "doc.on.doc")
+                HStack(spacing: 0) {
+                    // JSON toggle
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { showJSON.toggle() }
+                    } label: {
+                        Image(systemName: "chevron.left.forwardslash.chevron.right")
                             .font(.caption)
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .padding(.leading, 12)
+                    .help("Show JSON")
+
+                    Spacer()
+
+                    // Parse metric
+                    HStack(spacing: 3) {
+                        Text("PARSE")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Text(String(format: "%.1f", parseTime * 1000))
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                        Text("ms")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Divider().frame(height: 20).padding(.horizontal, 10)
+
+                    // Render metric
+                    HStack(spacing: 3) {
+                        Text("RENDER")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Text(String(format: "%.1f", renderTime * 1000))
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                        Text("ms")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    // Copy button
+                    Button(action: copyJSON) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .padding(.trailing, 12)
+                    .help("Copy JSON")
                 }
-                .padding(.horizontal)
+                .padding(.vertical, 10)
 
                 if showJSON {
                     ScrollView {
                         Text(card.jsonString)
                             .font(.system(.caption2, design: .monospaced))
-                            .padding(8)
+                            .padding(10)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(maxHeight: 200)
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(8)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
-            .background(Color(UIColor.systemBackground))
+            .background(.ultraThinMaterial)
         }
         .navigationTitle(card.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 12) {
+                    Button {
+                        editorState.openInEditor(json: card.jsonString)
+                    } label: {
+                        Image(systemName: "pencil.and.outline")
+                    }
+                    .help("Edit in Editor")
                     Button {
                         bookmarks.toggle(card.filename)
                     } label: {
@@ -73,23 +123,34 @@ struct CardDetailView: View {
                 }
             }
         }
-        .onAppear {
+        .task {
             measurePerformance()
         }
     }
 
     private func measurePerformance() {
-        let start = CFAbsoluteTimeGetCurrent()
-        // Use the SDK's CardParser for accurate measurement
+        // Clear ViewModel parse cache so measurements reflect real work
+        CardViewModel.clearParseCache()
+
+        // Parse: synchronous JSON → AdaptiveCard model deserialization
+        let parseStart = CFAbsoluteTimeGetCurrent()
         let parser = CardParser()
         _ = try? parser.parse(card.jsonString)
-        parseTime = CFAbsoluteTimeGetCurrent() - start
+        parseTime = CFAbsoluteTimeGetCurrent() - parseStart
 
+        // Render: SwiftUI view creation + forced synchronous layout.
+        CardViewModel.clearParseCache()
         let renderStart = CFAbsoluteTimeGetCurrent()
-        if let data = card.jsonString.data(using: .utf8) {
-            _ = try? JSONSerialization.jsonObject(with: data)
-        }
+        let view = AdaptiveCardView(cardJson: card.jsonString, hostConfig: TeamsHostConfig.create())
+        let host = UIHostingController(rootView: view)
+        host.view.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        host.view.layoutIfNeeded()
+        _ = host.view.intrinsicContentSize
         renderTime = CFAbsoluteTimeGetCurrent() - renderStart
+
+        // Persist to store (accumulates across sessions)
+        perfStore.recordParse(parseTime)
+        perfStore.recordRender(renderTime)
     }
 
     private func parseTemplateData(_ json: String) -> [String: Any]? {
@@ -950,6 +1011,35 @@ struct MetricView: View {
                 .font(.title3)
                 .fontWeight(.semibold)
         }
+    }
+}
+
+struct PerformanceMetricPill: View {
+    let icon: String
+    let label: String
+    let value: String
+    let unit: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11))
+                .foregroundColor(.accentColor)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(value)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    Text(unit)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

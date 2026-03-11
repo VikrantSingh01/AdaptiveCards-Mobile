@@ -3,8 +3,17 @@ package com.microsoft.adaptivecards.core.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -17,6 +26,8 @@ import kotlinx.serialization.json.jsonPrimitive
 @Serializable(with = LayoutSerializer::class)
 sealed class Layout {
     abstract val type: LayoutType
+    /** Responsive width condition (e.g. "atLeast:Standard"). Null means always applies. */
+    abstract val targetWidth: String?
 }
 
 /**
@@ -53,6 +64,7 @@ object LayoutSerializer : JsonContentPolymorphicSerializer<Layout>(Layout::class
 @SerialName("Layout.Flow")
 data class FlowLayout(
     override val type: LayoutType = LayoutType.FLOW,
+    override val targetWidth: String? = null,
 
     /** How items should be sized: FIT (natural size) or FILL (stretch to fill row) */
     val itemFit: ItemFit? = null,
@@ -100,8 +112,10 @@ data class FlowLayout(
 @SerialName("Layout.AreaGrid")
 data class AreaGridLayout(
     override val type: LayoutType = LayoutType.AREA_GRID,
+    override val targetWidth: String? = null,
 
-    /** Column definitions (e.g., ["1fr", "2fr", "auto", "100px"]) */
+    /** Column definitions (e.g., ["1fr", "2fr", "auto", "100px", or numeric like 50]) */
+    @Serializable(with = FlexibleStringListSerializer::class)
     val columns: List<String> = emptyList(),
 
     /** Named grid areas that define placement regions */
@@ -137,3 +151,24 @@ data class GridArea(
     /** Number of columns this area spans */
     val columnSpan: Int? = null
 )
+
+/**
+ * Serializer that accepts both string and numeric JSON array elements,
+ * converting everything to String. Handles cases like `"columns": [50]` (numeric)
+ * or `"columns": ["1fr", "2fr"]` (string).
+ */
+object FlexibleStringListSerializer : KSerializer<List<String>> {
+    override val descriptor: SerialDescriptor =
+        ListSerializer(String.serializer()).descriptor
+
+    override fun deserialize(decoder: Decoder): List<String> {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return ListSerializer(String.serializer()).deserialize(decoder)
+        val array = jsonDecoder.decodeJsonElement().jsonArray
+        return array.map { it.jsonPrimitive.content }
+    }
+
+    override fun serialize(encoder: Encoder, value: List<String>) {
+        ListSerializer(String.serializer()).serialize(encoder, value)
+    }
+}

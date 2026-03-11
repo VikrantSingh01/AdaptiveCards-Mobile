@@ -4,19 +4,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActionLogScreen(actionLogState: ActionLogState) {
+fun ActionLogScreen(actionLogState: ActionLogState, navController: androidx.navigation.NavController) {
     var filterText by remember { mutableStateOf("") }
     var showMenu by remember { mutableStateOf(false) }
     var selectedAction by remember { mutableStateOf<ActionLogEntry?>(null) }
@@ -25,7 +26,7 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
         if (filterText.isEmpty()) {
             actionLogState.actions
         } else {
-            actionLogState.actions.filter { 
+            actionLogState.actions.filter {
                 it.actionType.contains(filterText, ignoreCase = true)
             }
         }
@@ -35,9 +36,14 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
         topBar = {
             TopAppBar(
                 title = { Text("Action Log") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, "Back")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.Delete, "Menu")
+                        Icon(Icons.Default.MoreVert, "Menu")
                     }
                     DropdownMenu(
                         expanded = showMenu,
@@ -45,6 +51,7 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
                     ) {
                         DropdownMenuItem(
                             text = { Text("Clear All") },
+                            leadingIcon = { Icon(Icons.Default.Delete, null) },
                             onClick = {
                                 actionLogState.clear()
                                 showMenu = false
@@ -52,10 +59,8 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
                         )
                         DropdownMenuItem(
                             text = { Text("Export Log") },
-                            onClick = {
-                                // Export functionality
-                                showMenu = false
-                            }
+                            leadingIcon = { Icon(Icons.Default.Share, null) },
+                            onClick = { showMenu = false }
                         )
                     }
                 }
@@ -71,39 +76,43 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
                     .fillMaxWidth()
                     .padding(16.dp),
                 placeholder = { Text("Filter actions...") },
-                singleLine = true
+                leadingIcon = { Icon(Icons.Default.Search, null) },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp)
             )
 
-            // Actions list
             if (actionLogState.actions.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "No Actions Yet",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        "Actions from cards will appear here",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.ListAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(56.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            "No Actions Yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Actions dispatched from adaptive cards\nwill appear here.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(filteredActions) { action ->
                         ActionLogItem(action) {
@@ -115,7 +124,6 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
         }
     }
 
-    // Detail dialog
     selectedAction?.let { action ->
         AlertDialog(
             onDismissRequest = { selectedAction = null },
@@ -125,10 +133,11 @@ fun ActionLogScreen(actionLogState: ActionLogState) {
                     DetailRow("Type", action.actionType)
                     DetailRow("Time", formatFullTime(action.timestamp))
                     if (action.data.isNotEmpty()) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         Text(
-                            "Data:",
+                            "Data",
                             style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(top = 8.dp)
+                            color = MaterialTheme.colorScheme.primary
                         )
                         action.data.forEach { (key, value) ->
                             DetailRow(key, value.toString())
@@ -151,16 +160,18 @@ fun ActionLogItem(action: ActionLogEntry, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     action.actionType,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
                     formatTime(action.timestamp),
@@ -169,19 +180,28 @@ fun ActionLogItem(action: ActionLogEntry, onClick: () -> Unit) {
                 )
             }
             if (action.data.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        "${action.data.size} properties",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Spacer(modifier = Modifier.height(6.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.DataObject,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "${action.data.size} properties",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

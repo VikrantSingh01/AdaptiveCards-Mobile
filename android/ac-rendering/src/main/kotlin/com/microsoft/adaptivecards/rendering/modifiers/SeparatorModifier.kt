@@ -48,7 +48,7 @@ fun Modifier.adaptiveSeparator(
 /**
  * Parse color string to Compose Color, supporting #AARRGGBB and #RRGGBB.
  */
-private fun parseSeparatorColor(colorString: String): Color {
+internal fun parseSeparatorColor(colorString: String): Color {
     return try {
         Color(android.graphics.Color.parseColor(colorString))
     } catch (e: Exception) {

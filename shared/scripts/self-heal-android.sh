@@ -292,7 +292,7 @@ phase1_parse() {
     if echo "$test_output" | grep -q "BUILD SUCCESSFUL"; then
         # Extract test counts
         local test_summary
-        test_summary=$(echo "$test_output" | grep -E "tests.*passed" | tail -1)
+        test_summary=$(echo "$test_output" | grep -E "tests.*passed" | tail -1 || true)
         echo "  ✅ All core unit tests pass"
         echo "**Result:** All core unit tests pass ${test_summary:+($test_summary)}" >> "$REPORT_FILE"
     else
@@ -448,6 +448,10 @@ phase2_visual() {
         fi
 
         # Multi-signal analysis
+        # Thresholds calibrated for 1080x2400 emulator:
+        #   <40KB  = navigation didn't work or blank error screen
+        #   <90KB  = card detail loaded but minimal/no card content rendered
+        #   >=90KB = card has rendered content (text-only cards ~90-200KB, image cards 300KB+)
         local status notes
         if ! $app_alive; then
             status="CRASH"
@@ -463,7 +467,7 @@ phase2_visual() {
             failed_cards+=("$card_path")
             card_diagnoses+=("$diagnosis")
             echo "  ❌ $card_name — $diagnosis"
-        elif [ "$size" -lt 80000 ]; then
+        elif [ "$size" -lt 40000 ]; then
             status="FAIL"
             notes="Blank/error (${size}B)"
             if [[ "$diagnosis" != "CLEAN" && "$diagnosis" != "NO_LOGS" ]]; then
@@ -473,13 +477,15 @@ phase2_visual() {
             failed_cards+=("$card_path")
             card_diagnoses+=("$diagnosis")
             echo "  ❌ $card_name — blank/error (${size}B) [$diagnosis]"
-        elif [ "$size" -lt 150000 ]; then
+        elif [ "$size" -lt 90000 ]; then
             status="WARN"
             notes="Low content (${size}B)"
             if [[ "$diagnosis" != "CLEAN" && "$diagnosis" != "NO_LOGS" ]]; then
                 notes="$notes | $diagnosis"
             fi
             warn=$((warn + 1))
+            failed_cards+=("$card_path")
+            card_diagnoses+=("$diagnosis")
             echo "  ⚠️  $card_name — low content (${size}B)"
         else
             status="PASS"
@@ -575,7 +581,7 @@ phase2_visual() {
                     size=$(stat -f%z "$local_screenshot" 2>/dev/null || stat -c%s "$local_screenshot" 2>/dev/null || echo "0")
                 fi
 
-                if $app_alive && [ "$size" -ge 80000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
+                if $app_alive && [ "$size" -ge 90000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
                     recovered=$((recovered + 1))
                     fail=$((fail - 1))
                     pass=$((pass + 1))
@@ -745,6 +751,80 @@ phase6_report() {
     echo ""
 
     cat "$REPORT_FILE"
+
+    # Publish failure outputs to a stable location for CI / downstream consumers
+    publish_failure_outputs
+}
+
+# =============================================================================
+# Publish failure outputs — copies failure artifacts to a stable, well-known
+# directory so CI pipelines and post-processing scripts can pick them up.
+# =============================================================================
+publish_failure_outputs() {
+    local publish_dir="$REPO_ROOT/shared/test-outputs/android-self-heal"
+    mkdir -p "$publish_dir"
+
+    # Copy the markdown report
+    cp "$REPORT_FILE" "$publish_dir/report.md"
+
+    # Copy failure screenshots (WARN/FAIL cards + retry screenshots)
+    local failure_count=0
+    for logfile in "$LOGCAT_DIR"/*.txt; do
+        [ -f "$logfile" ] || continue
+        local name
+        name=$(basename "$logfile" .txt)
+        # Skip retries for logcat — they have separate files
+        local diag
+        diag=$(diagnose_logcat "$logfile")
+        if [[ "$diag" != "CLEAN" && "$diag" != "NO_LOGS" ]]; then
+            failure_count=$((failure_count + 1))
+            # Copy screenshot and logcat for this failure
+            local screenshot="$REPORT_DIR/screenshots/${name}.png"
+            if [ -f "$screenshot" ]; then
+                cp "$screenshot" "$publish_dir/${name}.png"
+            fi
+            cp "$logfile" "$publish_dir/${name}-logcat.txt"
+        fi
+    done
+
+    # Also copy screenshots for cards that were WARN/FAIL by size (even if logcat was clean)
+    for screenshot in "$REPORT_DIR/screenshots"/*.png; do
+        [ -f "$screenshot" ] || continue
+        local size
+        size=$(stat -f%z "$screenshot" 2>/dev/null || stat -c%s "$screenshot" 2>/dev/null || echo "0")
+        if [ "$size" -lt 90000 ]; then
+            local base
+            base=$(basename "$screenshot")
+            if [ ! -f "$publish_dir/$base" ]; then
+                cp "$screenshot" "$publish_dir/$base"
+                failure_count=$((failure_count + 1))
+            fi
+        fi
+    done
+
+    # Write a machine-readable summary JSON for CI consumption
+    local summary_json="$publish_dir/summary.json"
+    cat > "$summary_json" << ENDJSON
+{
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "category": "$CATEGORY",
+  "mode": "$MODE",
+  "report_dir": "$REPORT_DIR",
+  "publish_dir": "$publish_dir",
+  "failure_count": $failure_count
+}
+ENDJSON
+
+    if [ "$failure_count" -gt 0 ]; then
+        echo ""
+        echo "━━━ Published $failure_count failure artifact(s) ━━━"
+        echo "  Output dir: $publish_dir"
+        echo "  Summary:    $summary_json"
+        ls -la "$publish_dir/"
+    else
+        echo ""
+        echo "  No failures to publish — all clean."
+    fi
 }
 
 # =============================================================================

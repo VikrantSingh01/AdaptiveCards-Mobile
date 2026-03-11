@@ -99,11 +99,19 @@ struct ColumnSetView: View {
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
+    @Environment(\.widthCategory) var widthCategory
     @EnvironmentObject var viewModel: CardViewModel
 
+    /// Columns filtered by targetWidth constraint for responsive layout.
+    private var visibleColumns: [Column] {
+        columnSet.columns.filter { column in
+            shouldShowForTargetWidth(column.targetWidth, currentCategory: widthCategory)
+        }
+    }
+
     var body: some View {
-        ProportionalColumnLayout(columns: columnSet.columns, columnSpacing: CGFloat(hostConfig.spacing.default)) {
-            ForEach(columnSet.columns, id: \.stableId) { column in
+        ProportionalColumnLayout(columns: visibleColumns, columnSpacing: CGFloat(hostConfig.spacing.default)) {
+            ForEach(visibleColumns, id: \.stableId) { column in
                 ColumnView(column: column, hostConfig: hostConfig)
             }
         }
