@@ -730,7 +730,7 @@ final class AdvancedElementsParserTests: XCTestCase {
             XCTAssertEqual(button.id, "btn_default")
             XCTAssertEqual(button.title, "Default Style Button")
             XCTAssertEqual(button.subtitle, "Leading icon with default styling")
-            XCTAssertEqual(button.icon, "checkmark.circle.fill")
+            XCTAssertEqual(button.iconName, "checkmark.circle.fill")
             XCTAssertEqual(button.iconPosition, "leading")
             XCTAssertNotNil(button.action)
         } else {
@@ -885,7 +885,7 @@ final class AdvancedElementsParserTests: XCTestCase {
             id: "testButton",
             title: "Test Button",
             subtitle: "Test subtitle",
-            icon: "star.fill",
+            icon: IconDescriptor(name: "star.fill"),
             iconPosition: "leading",
             action: CardAction.submit(SubmitAction(title: "Submit")),
             style: "emphasis"

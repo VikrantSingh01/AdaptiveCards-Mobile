@@ -78,8 +78,20 @@ public struct AdaptiveCard: Codable, Equatable {
         // version is optional in sub-cards, defaults to "1.6"
         self.version = try container.decodeIfPresent(String.self, forKey: .version) ?? "1.6"
         self.schema = try container.decodeIfPresent(String.self, forKey: .schema)
-        self.body = try container.decodeIfPresent([CardElement].self, forKey: .body)
-        self.actions = try container.decodeIfPresent([CardAction].self, forKey: .actions)
+        // body can be an array of CardElement, but template files may have
+        // "body" as a string expression. Gracefully skip non-array values.
+        if let bodyArray = try? container.decodeIfPresent([CardElement].self, forKey: .body) {
+            self.body = bodyArray
+        } else {
+            self.body = nil
+        }
+        // actions can be an array of CardAction objects, but hostConfig samples may
+        // have "actions" as a dictionary (config object). Gracefully skip non-array values.
+        if let actionsArray = try? container.decodeIfPresent([CardAction].self, forKey: .actions) {
+            self.actions = actionsArray
+        } else {
+            self.actions = nil
+        }
         self.selectAction = try container.decodeIfPresent(CardAction.self, forKey: .selectAction)
         self.fallbackText = try container.decodeIfPresent(String.self, forKey: .fallbackText)
         self.backgroundImage = try container.decodeIfPresent(BackgroundImage.self, forKey: .backgroundImage)
