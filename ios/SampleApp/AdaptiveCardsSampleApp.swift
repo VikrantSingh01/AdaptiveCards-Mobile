@@ -5,6 +5,7 @@ struct AdaptiveCardsSampleApp: App {
     @StateObject private var actionLog = ActionLogStore()
     @StateObject private var settings = AppSettings()
     @StateObject private var bookmarks = BookmarkStore()
+    @StateObject private var deepLink = DeepLinkRouter()
 
     var body: some Scene {
         WindowGroup {
@@ -12,7 +13,34 @@ struct AdaptiveCardsSampleApp: App {
                 .environmentObject(actionLog)
                 .environmentObject(settings)
                 .environmentObject(bookmarks)
+                .environmentObject(deepLink)
+                .onOpenURL { url in
+                    deepLink.handle(url)
+                }
         }
+    }
+}
+
+/// Deep link handler: adaptivecards://card/{filename}
+/// Enables automated test scripts to navigate directly to any card.
+class DeepLinkRouter: ObservableObject {
+    @Published var activeCard: TestCard?
+
+    func handle(_ url: URL) {
+        guard url.scheme == "adaptivecards", url.host == "card" else { return }
+        let filename = url.pathComponents.dropFirst().joined(separator: "/")
+        guard !filename.isEmpty else { return }
+        let allCards = TestCardLoader.loadAllCards()
+        // Match with or without .json extension
+        activeCard = allCards.first {
+            $0.filename == filename ||
+            $0.filename == "\(filename).json" ||
+            $0.filename.replacingOccurrences(of: ".json", with: "") == filename
+        }
+    }
+
+    func dismiss() {
+        activeCard = nil
     }
 }
 
