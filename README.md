@@ -18,7 +18,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - 📝 **Templating Engine**: Full expression support with 60+ built-in functions
 - ♿ **Accessibility**: WCAG 2.1 AA compliant with VoiceOver/TalkBack support
 - 📱 **Responsive Design**: Adapts to phone/tablet, portrait/landscape, Dynamic Type/font scaling
-- 🎭 **Theming**: Host-configurable styles and Fluent UI support
+- 🎭 **Theming**: Host-configurable styles, Fluent UI support, platform-specific design tokens from Figma
 - 🧪 **Well-Tested**: Comprehensive unit tests and integration tests
 
 ## 📊 Platform Status
@@ -28,12 +28,12 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 | **iOS** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
 | **Android** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
 
-### Build & Test Status (Verified 2026-02-12)
+### Build & Test Status (Verified 2026-03-10)
 
 | Platform | Modules Built | Tests | Sample App |
 |----------|---------------|-------|------------|
-| **iOS** | 11/11 | All passing | Running on iPhone 17 Pro Simulator (iOS 26) |
-| **Android** | 12/12 | 150 passed (100%) | Running on Android Emulator API 36 |
+| **iOS** | 11/11 | 235 passed (100%) | Running on iPhone 16e Simulator |
+| **Android** | 12/12 | All passing (100%) | Running on Pixel 10 AVD (API 36) |
 
 ### Module Overview
 
@@ -569,6 +569,17 @@ The templating engine supports powerful data binding:
 - [x] Android sample app: Fixed 9 compilation errors, card loading, assets configuration
 - [x] Both sample apps verified running on simulators/emulators (2026-02-12)
 
+#### 🎨 Phase 6A.1: Figma Design Alignment (Complete — 2026-03-10)
+- [x] Extracted platform-specific HostConfigs from Figma AC-Evolution design file
+- [x] iOS TeamsHostConfig aligned to Figma iOS page (`.SF UI Text`, sizes 12/15/15/17/22, weights 300/400/600)
+- [x] Android TeamsHostConfig aligned to Figma Android page (`Roboto`, sizes 12/14/14/16/20, weights 400/400/500)
+- [x] Container backgrounds, separator colors, spacing, and corner radii aligned per-platform
+- [x] Rendering views updated to use hostConfig values instead of hardcoded styles
+- [x] targetWidth responsive filtering implemented on both platforms
+- [x] `icon:` URL protocol support added for iOS
+- [x] All 235 iOS tests + Android tests passing
+- [x] Visual snapshot baselines updated
+
 #### 📦 Phase 6B: CI/CD Validation & Green Build
 - [ ] Audit and fix iOS workflow (Xcode 15+, macos-14)
 - [ ] Audit and fix Android workflow (JDK 17, AGP, Compose)
@@ -655,7 +666,7 @@ Located in `ios/SampleApp/`, features:
 - **Performance Dashboard**: Parse/render metrics, memory usage
 - **Settings**: Theme, font scale, accessibility options
 
-**Status**: Running on iPhone 17 Pro Simulator (iOS 26). Card rendering displays actual Adaptive Card content with proper element layout.
+**Status**: Running on iPhone 16e Simulator. Card rendering aligned to Figma iOS design spec with platform-native `.SF UI Text` typography.
 
 Build and run:
 ```bash
@@ -675,7 +686,7 @@ Located in `android/sample-app/`, features:
 - **Performance Dashboard**: Comprehensive metrics tracking
 - **Settings**: Material You theming support
 
-**Status**: Running on Android Emulator API 36. Card rendering uses `AdaptiveCardView` composable with proper JSON parsing and element display.
+**Status**: Running on Pixel 10 AVD (API 36). Card rendering aligned to Figma Android design spec with `Roboto` typography.
 
 Build and run:
 ```bash
@@ -866,4 +877,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Version**: 1.1.0-dev
 **Status**: Production Ready ✅
-**Last Verified**: 2026-02-12 (iOS 11/11 modules, Android 12/12 modules, all tests passing, both sample apps running)
+**Last Verified**: 2026-03-10 (iOS 11/11 modules, 235 tests passing; Android 12/12 modules, all tests passing; both sample apps running; HostConfigs aligned to Figma AC-Evolution design spec)
