@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var settings: AppSettings
+    @EnvironmentObject var deepLink: DeepLinkRouter
 
     var body: some View {
         TabView {
@@ -48,6 +49,16 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(colorScheme)
+        .fullScreenCover(item: $deepLink.activeCard) { card in
+            NavigationStack {
+                CardDetailView(card: card)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Close") { deepLink.dismiss() }
+                        }
+                    }
+            }
+        }
     }
 
     private var colorScheme: ColorScheme? {
