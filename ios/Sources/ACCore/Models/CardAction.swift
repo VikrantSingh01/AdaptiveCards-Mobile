@@ -9,6 +9,7 @@ public indirect enum CardAction: Codable, Equatable {
     case popover(PopoverAction)
     case runCommands(RunCommandsAction)
     case openUrlDialog(OpenUrlDialogAction)
+    case unknown(type: String)
 
     enum CodingKeys: String, CodingKey {
         case type
@@ -36,11 +37,8 @@ public indirect enum CardAction: Codable, Equatable {
         case "Action.OpenUrlDialog":
             self = .openUrlDialog(try OpenUrlDialogAction(from: decoder))
         default:
-            throw DecodingError.dataCorruptedError(
-                forKey: .type,
-                in: container,
-                debugDescription: "Unknown action type: \(type)"
-            )
+            // Gracefully handle unknown action types per Adaptive Cards spec
+            self = .unknown(type: type)
         }
     }
 
@@ -62,6 +60,9 @@ public indirect enum CardAction: Codable, Equatable {
             try action.encode(to: encoder)
         case .openUrlDialog(let action):
             try action.encode(to: encoder)
+        case .unknown(let type):
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
         }
     }
 }
@@ -295,7 +296,7 @@ public struct PopoverAction: BaseAction {
     public var isEnabled: Bool?
     public var mode: ActionMode?
     public var popoverTitle: String?
-    public var popoverBody: [CardElement]
+    public var popoverBody: [CardElement]?
     public var dismissBehavior: String?
 
     public init(
@@ -307,7 +308,7 @@ public struct PopoverAction: BaseAction {
         isEnabled: Bool? = nil,
         mode: ActionMode? = nil,
         popoverTitle: String? = nil,
-        popoverBody: [CardElement],
+        popoverBody: [CardElement]? = nil,
         dismissBehavior: String? = nil
     ) {
         self.id = id
@@ -481,6 +482,7 @@ extension CardAction {
         case .popover(let a): return a.title
         case .runCommands(let a): return a.title
         case .openUrlDialog(let a): return a.title
+        case .unknown: return nil
         }
     }
 
@@ -495,6 +497,7 @@ extension CardAction {
         case .popover(let a): return a.iconUrl
         case .runCommands(let a): return a.iconUrl
         case .openUrlDialog(let a): return a.iconUrl
+        case .unknown: return nil
         }
     }
 
@@ -509,6 +512,7 @@ extension CardAction {
         case .popover(let a): return a.mode
         case .runCommands(let a): return a.mode
         case .openUrlDialog(let a): return a.mode
+        case .unknown: return nil
         }
     }
 }
@@ -547,6 +551,9 @@ extension CardAction: Identifiable {
         case .openUrlDialog(let action):
             actionId = action.id
             actionTitle = action.title
+        case .unknown(let type):
+            actionId = nil
+            actionTitle = type
         }
 
         if let actionId = actionId, !actionId.isEmpty {
@@ -568,6 +575,7 @@ extension CardAction: Identifiable {
         case .popover: return "popover"
         case .runCommands: return "runCommands"
         case .openUrlDialog: return "openUrlDialog"
+        case .unknown(let type): return type
         }
     }
 }

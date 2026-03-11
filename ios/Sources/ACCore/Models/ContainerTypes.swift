@@ -575,6 +575,13 @@ public struct Image: Codable, Equatable, Identifiable {
     public var backgroundColor: String?
     public var fallback: CardElement?
 
+    enum CodingKeys: String, CodingKey {
+        case type, id, url, altText, size, style, width, height
+        case horizontalAlignment, selectAction, spacing, separator
+        case isVisible, requires, targetWidth, themedUrls
+        case backgroundColor, fallback
+    }
+
     // Stable identifier using id property or url as fallback
     public var stableId: String {
         if let id = id, !id.isEmpty {
@@ -619,5 +626,32 @@ public struct Image: Codable, Equatable, Identifiable {
         self.themedUrls = themedUrls
         self.backgroundColor = backgroundColor
         self.fallback = fallback
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id)
+        self.url = try container.decodeIfPresent(String.self, forKey: .url) ?? ""
+        self.altText = try container.decodeIfPresent(String.self, forKey: .altText)
+        self.size = try container.decodeIfPresent(ImageSize.self, forKey: .size)
+        self.style = try container.decodeIfPresent(ImageStyle.self, forKey: .style)
+        self.width = try container.decodeIfPresent(String.self, forKey: .width)
+        self.height = try container.decodeIfPresent(String.self, forKey: .height)
+        self.horizontalAlignment = try container.decodeIfPresent(HorizontalAlignment.self, forKey: .horizontalAlignment)
+        self.selectAction = try container.decodeIfPresent(CardAction.self, forKey: .selectAction)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.requires = try container.decodeIfPresent([String: String].self, forKey: .requires)
+        self.targetWidth = try container.decodeIfPresent(String.self, forKey: .targetWidth)
+        // themedUrls is expected as [String: String] dict, but some cards have it as array.
+        // Gracefully skip non-dict values.
+        if let dict = try? container.decodeIfPresent([String: String].self, forKey: .themedUrls) {
+            self.themedUrls = dict
+        } else {
+            self.themedUrls = nil
+        }
+        self.backgroundColor = try container.decodeIfPresent(String.self, forKey: .backgroundColor)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
     }
 }

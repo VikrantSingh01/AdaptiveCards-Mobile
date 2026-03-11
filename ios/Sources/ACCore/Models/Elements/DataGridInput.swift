@@ -15,6 +15,11 @@ public struct DataGridInput: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
 
+    enum CodingKeys: String, CodingKey {
+        case type, id, label, columns, rows, maxRows, isRequired
+        case errorMessage, spacing, separator, height, isVisible
+    }
+
     public init(
         id: String,
         label: String? = nil,
@@ -39,6 +44,21 @@ public struct DataGridInput: Codable, Equatable {
         self.separator = separator
         self.height = height
         self.isVisible = isVisible
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.label = try container.decodeIfPresent(String.self, forKey: .label)
+        self.columns = try container.decode([DataGridColumn].self, forKey: .columns)
+        self.rows = try container.decodeIfPresent([[DataGridCellValue]].self, forKey: .rows)
+        self.maxRows = try container.decodeIfPresent(Int.self, forKey: .maxRows)
+        self.isRequired = try container.decodeBoolFromStringIfPresent(forKey: .isRequired)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
     }
 }
 

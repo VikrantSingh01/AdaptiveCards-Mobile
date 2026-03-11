@@ -113,6 +113,12 @@ public struct TextInput: Codable, Equatable {
     public var inlineAction: CardAction?
     public var fallback: CardElement?
 
+    enum CodingKeys: String, CodingKey {
+        case type, id, isRequired, label, placeholder, value, maxLength
+        case isMultiline, style, regex, errorMessage, spacing, separator
+        case height, isVisible, inlineAction, fallback
+    }
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -148,6 +154,26 @@ public struct TextInput: Codable, Equatable {
         self.inlineAction = inlineAction
         self.fallback = fallback
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.isRequired = try container.decodeBoolFromStringIfPresent(forKey: .isRequired)
+        self.label = try container.decodeIfPresent(String.self, forKey: .label)
+        self.placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
+        self.value = try container.decodeIfPresent(String.self, forKey: .value)
+        self.maxLength = try container.decodeIfPresent(Int.self, forKey: .maxLength)
+        self.isMultiline = try container.decodeIfPresent(Bool.self, forKey: .isMultiline)
+        self.style = try container.decodeIfPresent(TextInputStyle.self, forKey: .style)
+        self.regex = try container.decodeIfPresent(String.self, forKey: .regex)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.inlineAction = try container.decodeIfPresent(CardAction.self, forKey: .inlineAction)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
+    }
 }
 
 // MARK: - Input.Number
@@ -167,6 +193,11 @@ public struct NumberInput: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var fallback: CardElement?
+
+    enum CodingKeys: String, CodingKey {
+        case type, id, isRequired, label, placeholder, value, min, max
+        case errorMessage, spacing, separator, height, isVisible, fallback
+    }
 
     public init(
         id: String,
@@ -197,6 +228,23 @@ public struct NumberInput: Codable, Equatable {
         self.isVisible = isVisible
         self.fallback = fallback
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.isRequired = try container.decodeBoolFromStringIfPresent(forKey: .isRequired)
+        self.label = try container.decodeIfPresent(String.self, forKey: .label)
+        self.placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
+        self.value = try container.decodeIfPresent(Double.self, forKey: .value)
+        self.min = try container.decodeIfPresent(Double.self, forKey: .min)
+        self.max = try container.decodeIfPresent(Double.self, forKey: .max)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
+    }
 }
 
 // MARK: - Input.Date
@@ -216,6 +264,11 @@ public struct DateInput: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var fallback: CardElement?
+
+    enum CodingKeys: String, CodingKey {
+        case type, id, isRequired, label, placeholder, value, min, max
+        case errorMessage, spacing, separator, height, isVisible, fallback
+    }
 
     public init(
         id: String,
@@ -246,6 +299,23 @@ public struct DateInput: Codable, Equatable {
         self.isVisible = isVisible
         self.fallback = fallback
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.isRequired = try container.decodeBoolFromStringIfPresent(forKey: .isRequired)
+        self.label = try container.decodeIfPresent(String.self, forKey: .label)
+        self.placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
+        self.value = try container.decodeIfPresent(String.self, forKey: .value)
+        self.min = try container.decodeIfPresent(String.self, forKey: .min)
+        self.max = try container.decodeIfPresent(String.self, forKey: .max)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
+    }
 }
 
 // MARK: - Input.Time
@@ -265,6 +335,11 @@ public struct TimeInput: Codable, Equatable {
     public var height: BlockElementHeight?
     public var isVisible: Bool?
     public var fallback: CardElement?
+
+    enum CodingKeys: String, CodingKey {
+        case type, id, isRequired, label, placeholder, value, min, max
+        case errorMessage, spacing, separator, height, isVisible, fallback
+    }
 
     public init(
         id: String,
@@ -294,6 +369,23 @@ public struct TimeInput: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.fallback = fallback
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.isRequired = try container.decodeBoolFromStringIfPresent(forKey: .isRequired)
+        self.label = try container.decodeIfPresent(String.self, forKey: .label)
+        self.placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
+        self.value = try container.decodeIfPresent(String.self, forKey: .value)
+        self.min = try container.decodeIfPresent(String.self, forKey: .min)
+        self.max = try container.decodeIfPresent(String.self, forKey: .max)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
     }
 }
 
@@ -366,6 +458,12 @@ public struct ChoiceSetInput: Codable, Equatable {
     public var isVisible: Bool?
     public var fallback: CardElement?
 
+    enum CodingKeys: String, CodingKey {
+        case type, id, isRequired, label, choices, value, style
+        case isMultiSelect, placeholder, wrap, errorMessage
+        case spacing, separator, height, isVisible, fallback
+    }
+
     public init(
         id: String,
         isRequired: Bool? = nil,
@@ -398,6 +496,25 @@ public struct ChoiceSetInput: Codable, Equatable {
         self.height = height
         self.isVisible = isVisible
         self.fallback = fallback
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.isRequired = try container.decodeBoolFromStringIfPresent(forKey: .isRequired)
+        self.label = try container.decodeIfPresent(String.self, forKey: .label)
+        self.choices = try container.decodeIfPresent([Choice].self, forKey: .choices) ?? []
+        self.value = try container.decodeIfPresent(String.self, forKey: .value)
+        self.style = try container.decodeIfPresent(ChoiceInputStyle.self, forKey: .style)
+        self.isMultiSelect = try container.decodeIfPresent(Bool.self, forKey: .isMultiSelect)
+        self.placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
+        self.wrap = try container.decodeIfPresent(Bool.self, forKey: .wrap)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
+        self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
+        self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
+        self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
     }
 
     public struct Choice: Codable, Equatable {

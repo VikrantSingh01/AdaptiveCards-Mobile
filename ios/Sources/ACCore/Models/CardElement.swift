@@ -39,8 +39,21 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
     }
 
     public init(from decoder: Decoder) throws {
+        // Handle fallback shorthand: "drop" is a valid string value per AC spec
+        if let singleContainer = try? decoder.singleValueContainer(),
+           let stringValue = try? singleContainer.decode(String.self),
+           stringValue.lowercased() == "drop" {
+            self = .unknown(type: "drop")
+            return
+        }
+
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(String.self, forKey: .type)
+
+        // Handle elements without a "type" key gracefully (#9)
+        guard let type = try container.decodeIfPresent(String.self, forKey: .type) else {
+            self = .unknown(type: "_missing_type")
+            return
+        }
 
         switch type {
         case "TextBlock":

@@ -23,10 +23,41 @@ extension CaseInsensitiveCodable {
             return
         }
 
+        // For template expressions like ${...} or unknown values, fall back to
+        // the first case (typically "Default") instead of throwing.
+        // This is critical for Adaptive Cards that use template expressions in
+        // enum fields — they should degrade gracefully, not crash.
+        if let defaultCase = Self.allCases.first {
+            self = defaultCase
+            return
+        }
+
         throw DecodingError.dataCorruptedError(
             in: container,
             debugDescription: "Cannot initialize \(Self.self) from invalid String value \(rawValue)"
         )
+    }
+}
+
+// MARK: - Resilient Bool Decoding Helper
+
+/// Decodes a Bool that may arrive as a JSON boolean or a string "true"/"false".
+/// Returns nil if the key is absent or the value is null.
+extension KeyedDecodingContainer {
+    public func decodeBoolFromStringIfPresent(forKey key: Key) throws -> Bool? {
+        // Try Bool first
+        if let boolVal = try? decodeIfPresent(Bool.self, forKey: key) {
+            return boolVal
+        }
+        // Try String "true"/"false"
+        if let stringVal = try? decodeIfPresent(String.self, forKey: key) {
+            switch stringVal.lowercased() {
+            case "true", "1", "yes": return true
+            case "false", "0", "no": return false
+            default: return nil
+            }
+        }
+        return nil
     }
 }
 
@@ -127,6 +158,7 @@ public enum ActionStyle: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case `default` = "Default"
     case positive = "Positive"
     case destructive = "Destructive"
+    case other = "Other"
 }
 
 public enum ActionMode: String, Codable, CaseIterable, CaseInsensitiveCodable {

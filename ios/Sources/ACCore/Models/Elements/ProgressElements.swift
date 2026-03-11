@@ -4,7 +4,7 @@ import Foundation
 public struct ProgressBar: Codable, Equatable {
     public let type: String = "ProgressBar"
     public var id: String?
-    public var value: Double
+    public var value: Double?
     public var label: String?
     public var color: String?
     public var spacing: Spacing?
@@ -15,7 +15,7 @@ public struct ProgressBar: Codable, Equatable {
 
     public init(
         id: String? = nil,
-        value: Double,
+        value: Double? = nil,
         label: String? = nil,
         color: String? = nil,
         spacing: Spacing? = nil,
