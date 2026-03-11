@@ -1,40 +1,40 @@
 import Foundation
 
 /// Pre-configured Microsoft Teams host config with Fluent UI design tokens
-/// aligned to the Adaptive Card specification Figma (Teams UI + Fluent Tokens).
+/// aligned to the Adaptive Card specification Figma (iOS page — Light mode).
 public class TeamsHostConfig {
     public static func create() -> HostConfig {
         return HostConfig(
-            fontFamily: "Segoe UI",
+            fontFamily: ".SF UI Text",
             supportsInteractivity: true,
             imageBaseUrl: "",
             spacing: SpacingConfig(
                 small: 8,
-                default: 8,
+                default: 10,
                 medium: 12,
                 large: 16,
                 extraLarge: 20,
-                padding: 10
+                padding: 8
             ),
             separator: SeparatorConfig(
                 lineThickness: 1,
-                lineColor: "#0D16233A"
+                lineColor: "#FFDFDEDE"
             ),
             fontSizes: FontSizesConfig(
                 small: 12,
-                default: 14,
-                medium: 14,
-                large: 16,
-                extraLarge: 20
+                default: 15,
+                medium: 15,
+                large: 17,
+                extraLarge: 22
             ),
             fontWeights: FontWeightsConfig(
-                lighter: 400,
+                lighter: 300,
                 default: 400,
-                bolder: 500
+                bolder: 600
             ),
             fontTypes: FontTypesConfig(
-                default: FontTypeDefinition(fontFamily: "Segoe UI"),
-                monospace: FontTypeDefinition(fontFamily: "Courier New")
+                default: FontTypeDefinition(fontFamily: ".SF UI Text"),
+                monospace: FontTypeDefinition(fontFamily: "Menlo")
             ),
             containerStyles: ContainerStylesConfig(
                 default: ContainerStyleConfig(
@@ -45,22 +45,22 @@ public class TeamsHostConfig {
                 emphasis: ContainerStyleConfig(
                     backgroundColor: "#F1F1F1",
                     foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#E1E1E1"
+                    borderColor: "#00FFFFFF"
                 ),
                 good: ContainerStyleConfig(
-                    backgroundColor: "#DFF6DD",
+                    backgroundColor: "#E7F2DA",
                     foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#9FD89F"
+                    borderColor: "#E1E1E1"
                 ),
                 attention: ContainerStyleConfig(
                     backgroundColor: "#FFF4CE",
                     foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#F8D22A"
+                    borderColor: "#E1E1E1"
                 ),
                 warning: ContainerStyleConfig(
-                    backgroundColor: "#FED9CC",
+                    backgroundColor: "#FBF6D9",
                     foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#E97548"
+                    borderColor: "#E1E1E1"
                 ),
                 accent: ContainerStyleConfig(
                     backgroundColor: "#E8F2FD",
@@ -78,11 +78,11 @@ public class TeamsHostConfig {
                 actionAlignment: "Left",
                 buttonSpacing: 8,
                 maxActions: 6,
-                spacing: "Medium",
+                spacing: "Default",
                 showCard: ShowCardConfig(
                     actionMode: "Inline",
-                    style: "Emphasis",
-                    inlineTopMargin: 8
+                    style: "Default",
+                    inlineTopMargin: 10
                 ),
                 iconPlacement: "LeftOfTitle",
                 iconSize: 16
@@ -97,7 +97,7 @@ public class TeamsHostConfig {
             factSet: FactSetConfig(
                 title: FactSetTextConfig(weight: "Bolder"),
                 value: FactSetTextConfig(weight: "Default"),
-                spacing: 32
+                spacing: 16
             ),
             media: MediaConfig(
                 defaultPoster: "",
@@ -154,7 +154,7 @@ public class TeamsHostConfig {
             ),
             image: ImageConfig(imageSize: "Auto"),
             ratingLabel: RatingElementConfig(
-                filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#242424"),
+                filledStar: RatingStarConfig(marigoldColor: "#EAA300", neutralColor: "#212121"),
                 emptyStar: RatingStarConfig(marigoldColor: "#F9E2AE", neutralColor: "#E1E1E1"),
                 ratingTextColor: "#000000",
                 countTextColor: "#000000"
