@@ -87,6 +87,34 @@ xcrun simctl install "iPhone 16e" <derived-data-path>/AdaptiveCardsSampleApp.app
 xcrun simctl launch "iPhone 16e" com.microsoft.adaptivecards.sampleapp
 ```
 
+### iOS Sample App — Deep Links for Testing
+
+The iOS sample app supports `adaptivecards://` deep links for automated testing:
+
+```bash
+# Navigate directly to a specific card (no manual tapping needed)
+xcrun simctl openurl "iPhone 16e" "adaptivecards://card/teams-official-samples/cafe-menu"
+
+# Return to gallery
+xcrun simctl openurl "iPhone 16e" "adaptivecards://gallery"
+
+# Take a screenshot for visual verification
+xcrun simctl io "iPhone 16e" screenshot /tmp/card-screenshot.png
+```
+
+### Automated Visual Test Loop
+
+```bash
+# Run the self-healing visual test loop on all Teams Official cards
+bash shared/scripts/visual-test-loop.sh teams-official
+
+# Run card parsing regression tests (catches Codable decoder failures)
+cd ios && swift test --filter CardParsingRegressionTests
+
+# Run card JSON validation (checks for unknown element types)
+bash shared/scripts/test-ios-cards-ui.sh teams-official
+```
+
 ### Android
 
 ```bash
