@@ -12,10 +12,14 @@ struct TextBlockView: View {
 
     @Environment(\.layoutDirection) var layoutDirection
 
+    private var displayText: String {
+        textBlock.text ?? ""
+    }
+
     var body: some View {
-        if textBlock.text.containsMarkdown {
+        if displayText.containsMarkdown {
             // Render with markdown support
-            let tokens = MarkdownParser.parse(textBlock.text)
+            let tokens = MarkdownParser.parse(displayText)
             let attributedString = MarkdownRenderer.render(
                 tokens: tokens,
                 font: font,
@@ -33,10 +37,10 @@ struct TextBlockView: View {
                 }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
-                .accessibilityElement(label: textBlock.text)
+                .accessibilityElement(label: displayText)
         } else {
             // Render plain text
-            Text(textBlock.text)
+            Text(displayText)
                 .font(font)
                 .foregroundColor(foregroundColor)
                 .lineSpacing(lineSpacing)
@@ -45,7 +49,7 @@ struct TextBlockView: View {
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
-                .accessibilityElement(label: textBlock.text)
+                .accessibilityElement(label: displayText)
         }
     }
 

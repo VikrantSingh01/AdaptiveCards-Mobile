@@ -1,12 +1,38 @@
 import Foundation
 // MARK: - CompoundButton
 
+/// Icon descriptor that can be decoded from either a plain string or an object
+/// like `{"name": "Calendar", "size": "Small"}`.
+public struct IconDescriptor: Codable, Equatable {
+    public var name: String
+    public var size: String?
+
+    public init(name: String, size: String? = nil) {
+        self.name = name
+        self.size = size
+    }
+
+    public init(from decoder: Decoder) throws {
+        // Try as a plain string first
+        if let container = try? decoder.singleValueContainer(),
+           let stringValue = try? container.decode(String.self) {
+            self.name = stringValue
+            self.size = nil
+            return
+        }
+        // Otherwise decode as object with name/size
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.size = try container.decodeIfPresent(String.self, forKey: .size)
+    }
+}
+
 public struct CompoundButton: Codable, Equatable {
     public let type: String = "CompoundButton"
     public var id: String?
     public var title: String
     public var subtitle: String?
-    public var icon: String?
+    public var icon: IconDescriptor?
     public var iconPosition: String?
     public var action: CardAction?
     public var style: String?
@@ -16,11 +42,16 @@ public struct CompoundButton: Codable, Equatable {
     public var height: BlockElementHeight?
     public var requires: [String: String]?
 
+    /// Convenience accessor: the icon name as a string regardless of how it was encoded
+    public var iconName: String? {
+        return icon?.name
+    }
+
     public init(
         id: String? = nil,
         title: String,
         subtitle: String? = nil,
-        icon: String? = nil,
+        icon: IconDescriptor? = nil,
         iconPosition: String? = nil,
         action: CardAction? = nil,
         style: String? = nil,

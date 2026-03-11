@@ -24,9 +24,9 @@ public struct Authentication: Codable, Equatable {
         public var type: String
         public var title: String
         public var image: String?
-        public var value: String
+        public var value: String?
 
-        public init(type: String, title: String, image: String? = nil, value: String) {
+        public init(type: String, title: String, image: String? = nil, value: String? = nil) {
             self.type = type
             self.title = title
             self.image = image
