@@ -1,4 +1,6 @@
 import SwiftUI
+import ACCore
+import ACRendering
 
 struct CardDetailView: View {
     let card: TestCard
@@ -6,97 +8,68 @@ struct CardDetailView: View {
     @State private var parseTime: TimeInterval = 0
     @State private var renderTime: TimeInterval = 0
     @EnvironmentObject var actionLog: ActionLogStore
+    @EnvironmentObject var bookmarks: BookmarkStore
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Card Preview
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Preview")
-                        .font(.headline)
+        VStack(spacing: 0) {
+            // Card Preview — AdaptiveCardView has its own GeometryReader+ScrollView
+            AdaptiveCardView(
+                cardJson: card.jsonString,
+                templateData: card.dataJsonString.flatMap { parseTemplateData($0) },
+                hostConfig: TeamsHostConfig.create()
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .layoutPriority(1)
 
-                    CardPreviewPlaceholder(json: card.jsonString)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                }
-
-                // Performance Metrics
+            // Bottom bar with metrics and controls
+            VStack(spacing: 8) {
                 HStack(spacing: 20) {
                     MetricView(title: "Parse", value: String(format: "%.2fms", parseTime * 1000))
                     MetricView(title: "Render", value: String(format: "%.2fms", renderTime * 1000))
                 }
-                .padding()
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(12)
+                .padding(.horizontal)
+                .padding(.top, 8)
 
-                // JSON Toggle
-                Toggle("Show JSON", isOn: $showJSON)
-                    .padding(.horizontal)
+                HStack {
+                    Toggle("JSON", isOn: $showJSON)
+                        .toggleStyle(.button)
+                        .controlSize(.small)
+                    Spacer()
+                    Button(action: copyJSON) {
+                        Label("Copy", systemImage: "doc.on.doc")
+                            .font(.caption)
+                    }
+                }
+                .padding(.horizontal)
 
                 if showJSON {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("JSON Payload")
-                                .font(.headline)
-                            Spacer()
-                            Button(action: copyJSON) {
-                                Label("Copy", systemImage: "doc.on.doc")
-                                    .font(.caption)
-                            }
-                        }
-
-                        ScrollView(.horizontal, showsIndicators: true) {
-                            Text(card.jsonString)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-
-                        if let dataJson = card.dataJsonString {
-                            HStack {
-                                Text("Data JSON")
-                                    .font(.headline)
-                                Spacer()
-                            }
-
-                            ScrollView(.horizontal, showsIndicators: true) {
-                                Text(dataJson)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(8)
-                        }
+                    ScrollView {
+                        Text(card.jsonString)
+                            .font(.system(.caption2, design: .monospaced))
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }
-
-                // Recent Actions
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Recent Actions")
-                        .font(.headline)
-
-                    if actionLog.actions.isEmpty {
-                        Text("No actions yet")
-                            .foregroundColor(.secondary)
-                            .padding()
-                    } else {
-                        ForEach(actionLog.actions.prefix(5)) { action in
-                            ActionRowView(action: action)
-                        }
-                    }
+                    .frame(maxHeight: 200)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    .padding(.horizontal)
                 }
             }
-            .padding()
+            .background(Color(UIColor.systemBackground))
         }
         .navigationTitle(card.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: reloadCard) {
-                    Image(systemName: "arrow.clockwise")
+                HStack(spacing: 12) {
+                    Button {
+                        bookmarks.toggle(card.filename)
+                    } label: {
+                        Image(systemName: bookmarks.isBookmarked(card.filename) ? "bookmark.fill" : "bookmark")
+                    }
+                    Button(action: reloadCard) {
+                        Image(systemName: "arrow.clockwise")
+                    }
                 }
             }
         }
@@ -107,16 +80,24 @@ struct CardDetailView: View {
 
     private func measurePerformance() {
         let start = CFAbsoluteTimeGetCurrent()
-        // Actual JSON parsing
-        _ = CardJSONParser.parse(card.jsonString)
+        // Use the SDK's CardParser for accurate measurement
+        let parser = CardParser()
+        _ = try? parser.parse(card.jsonString)
         parseTime = CFAbsoluteTimeGetCurrent() - start
 
         let renderStart = CFAbsoluteTimeGetCurrent()
-        // Measure JSON deserialization (representative of render prep)
         if let data = card.jsonString.data(using: .utf8) {
             _ = try? JSONSerialization.jsonObject(with: data)
         }
         renderTime = CFAbsoluteTimeGetCurrent() - renderStart
+    }
+
+    private func parseTemplateData(_ json: String) -> [String: Any]? {
+        guard let data = json.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        return obj
     }
 
     private func reloadCard() {
@@ -248,10 +229,46 @@ enum CardJSONParser {
         let bodyArray = root["body"] as? [[String: Any]] ?? []
         let actionsArray = root["actions"] as? [[String: Any]] ?? []
 
-        let body = bodyArray.map { parseElement($0) }
+        let body = bodyArray.compactMap { parseElementIfVisible($0) }
         let actions = actionsArray.map { parseAction($0) }
 
         return ParsedCard(version: version, body: body, actions: actions)
+    }
+
+    /// Device width category name for targetWidth filtering.
+    /// iPhone = "narrow" (width 216-413pt per hostConfig breakpoints).
+    private static var deviceWidthCategory: String {
+        let w = UIScreen.main.bounds.width
+        if w <= 216 { return "verynarrow" }
+        if w <= 413 { return "narrow" }
+        if w <= 500 { return "standard" }
+        return "wide"
+    }
+
+    private static let categoryOrder = ["verynarrow": 0, "narrow": 1, "standard": 2, "wide": 3]
+
+    /// Returns nil if the element's targetWidth doesn't match the current device.
+    static func parseElementIfVisible(_ dict: [String: Any]) -> ParsedElement? {
+        guard matchesTargetWidth(dict["targetWidth"] as? String) else { return nil }
+        return parseElement(dict)
+    }
+
+    private static func matchesTargetWidth(_ tw: String?) -> Bool {
+        guard let tw = tw, !tw.isEmpty else { return true }
+        let trimmed = tw.trimmingCharacters(in: .whitespaces).lowercased()
+        let current = categoryOrder[deviceWidthCategory] ?? 1
+        if trimmed.hasPrefix("atleast:") {
+            let name = String(trimmed.dropFirst("atleast:".count))
+            guard let threshold = categoryOrder[name] else { return true }
+            return current >= threshold
+        }
+        if trimmed.hasPrefix("atmost:") {
+            let name = String(trimmed.dropFirst("atmost:".count))
+            guard let threshold = categoryOrder[name] else { return true }
+            return current <= threshold
+        }
+        guard let exact = categoryOrder[trimmed] else { return true }
+        return current == exact
     }
 
     static func parseElement(_ dict: [String: Any]) -> ParsedElement {
@@ -275,11 +292,12 @@ enum CardJSONParser {
                 style: dict["style"] as? String
             )
         case "Container":
-            let items = (dict["items"] as? [[String: Any]] ?? []).map { parseElement($0) }
+            let items = (dict["items"] as? [[String: Any]] ?? []).compactMap { parseElementIfVisible($0) }
             return .container(items: items, style: dict["style"] as? String)
         case "ColumnSet":
-            let columns = (dict["columns"] as? [[String: Any]] ?? []).map { colDict -> ParsedColumn in
-                let items = (colDict["items"] as? [[String: Any]] ?? []).map { parseElement($0) }
+            let columns = (dict["columns"] as? [[String: Any]] ?? []).compactMap { colDict -> ParsedColumn? in
+                guard matchesTargetWidth(colDict["targetWidth"] as? String) else { return nil }
+                let items = (colDict["items"] as? [[String: Any]] ?? []).compactMap { parseElementIfVisible($0) }
                 let width = colDict["width"] as? String ?? "stretch"
                 return ParsedColumn(width: width, items: items)
             }
@@ -833,6 +851,26 @@ struct CardElementPreview: View {
         }
     }
 
+    /// Maps Adaptive Card icon: URLs to SF Symbol names.
+    private static let iconToSFSymbol: [String: String] = [
+        "calendar": "calendar", "clock": "clock", "people": "person.2",
+        "person": "person", "mail": "envelope", "chat": "bubble.left",
+        "call": "phone", "video": "video", "location": "mappin",
+        "link": "link", "attach": "paperclip", "image": "photo",
+        "document": "doc", "folder": "folder", "star": "star",
+        "heart": "heart", "flag": "flag", "bookmark": "bookmark",
+        "checkmark": "checkmark.circle", "alert": "exclamationmark.triangle",
+        "info": "info.circle", "settings": "gearshape", "search": "magnifyingglass",
+        "add": "plus.circle", "edit": "pencil", "delete": "trash",
+        "share": "square.and.arrow.up", "download": "arrow.down.circle",
+        "upload": "arrow.up.circle", "refresh": "arrow.clockwise",
+        "home": "house", "list": "list.bullet", "grid": "square.grid.2x2",
+        "notification": "bell", "lock": "lock", "unlock": "lock.open",
+        "eye": "eye", "gift": "gift", "airplane": "airplane",
+        "flashlight": "flashlight.on.fill", "approve": "checkmark.circle.fill",
+        "forward": "arrowshape.turn.up.right", "reply": "arrowshape.turn.up.left"
+    ]
+
     @ViewBuilder
     private func imagePreview(url: String, size: String?, altText: String?, style: String?) -> some View {
         let dimension: CGFloat = {
@@ -844,21 +882,30 @@ struct CardElementPreview: View {
             }
         }()
 
-        AsyncImage(url: URL(string: url)) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: dimension, height: dimension)
-                    .clipShape(style?.lowercased() == "person" ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 4)))
-            case .failure:
-                imagePlaceholder(dimension: dimension, altText: altText)
-            case .empty:
-                ProgressView()
-                    .frame(width: dimension, height: dimension)
-            @unknown default:
-                imagePlaceholder(dimension: dimension, altText: altText)
+        if url.lowercased().hasPrefix("icon:") {
+            let iconName = String(url.dropFirst("icon:".count)).trimmingCharacters(in: .whitespaces)
+            let sfSymbol = Self.iconToSFSymbol[iconName.lowercased()] ?? "questionmark.square"
+            Image(systemName: sfSymbol)
+                .font(.system(size: dimension * 0.4))
+                .foregroundColor(.accentColor)
+                .frame(width: dimension, height: dimension)
+        } else {
+            AsyncImage(url: URL(string: url)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: dimension, height: dimension)
+                        .clipShape(style?.lowercased() == "person" ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: 4)))
+                case .failure:
+                    imagePlaceholder(dimension: dimension, altText: altText)
+                case .empty:
+                    ProgressView()
+                        .frame(width: dimension, height: dimension)
+                @unknown default:
+                    imagePlaceholder(dimension: dimension, altText: altText)
+                }
             }
         }
     }

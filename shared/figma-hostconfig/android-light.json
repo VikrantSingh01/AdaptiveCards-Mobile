@@ -1,0 +1,77 @@
+{
+  "fontFamily": "Roboto",
+  "fontSizes": {
+    "small": 12,
+    "default": 14,
+    "medium": 14,
+    "large": 16,
+    "extraLarge": 20
+  },
+  "fontWeights": {
+    "lighter": 400,
+    "default": 400,
+    "bolder": 500
+  },
+  "separator": {
+    "lineThickness": 1,
+    "lineColor": "#0D16233A"
+  },
+  "spacing": {
+    "extraSmall": 4,
+    "small": 8,
+    "default": 8,
+    "medium": 12,
+    "large": 16,
+    "extraLarge": 20,
+    "padding": 10
+  },
+  "imageSizes": {
+    "small": 32,
+    "medium": 52,
+    "large": 100
+  },
+  "cornerRadius": {
+    "columnSet": 4,
+    "column": 4,
+    "container": 4,
+    "table": 4,
+    "image": 4
+  },
+  "hostWidthBreakpoints": {
+    "veryNarrow": 216,
+    "narrow": 413,
+    "standard": 500
+  },
+  "actions": {
+    "maxActions": 6,
+    "spacing": "medium",
+    "buttonSpacing": 8,
+    "iconPlacement": "leftOfTitle"
+  },
+  "factSet": {
+    "spacing": 32
+  },
+  "containerStyles": {
+    "default": {
+      "backgroundColor": "#FFFFFF",
+      "foregroundColors": {
+        "default": {
+          "default": "#212121",
+          "subtle": "#6E6E6E"
+        },
+        "accent": {
+          "default": "#6264A7"
+        }
+      }
+    },
+    "emphasis": {
+      "backgroundColor": "#F1F1F1"
+    }
+  },
+  "compoundButton": {
+    "badge": {
+      "backgroundColor": "#5B5FC7"
+    },
+    "borderColor": "#E1E1E1"
+  }
+}

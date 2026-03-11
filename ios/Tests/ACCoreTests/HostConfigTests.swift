@@ -74,6 +74,8 @@ final class HostConfigTests: XCTestCase {
         XCTAssertEqual(config.containerStyles.emphasis.backgroundColor, "#F1F1F1")
         XCTAssertEqual(config.containerStyles.good.backgroundColor, "#E7F2DA")
         XCTAssertEqual(config.containerStyles.warning.backgroundColor, "#FBF6D9")
+        XCTAssertEqual(config.containerStyles.attention.backgroundColor, "#F7E9E9")
+        XCTAssertEqual(config.containerStyles.accent.backgroundColor, "#DCE5F7")
 
         // Rating
         XCTAssertEqual(config.ratingLabel.filledStar.neutralColor, "#212121")
@@ -81,6 +83,16 @@ final class HostConfigTests: XCTestCase {
         // Compound button
         XCTAssertEqual(config.compoundButton.badge.backgroundColor, "#5B5FC7")
         XCTAssertEqual(config.compoundButton.borderColor, "#E1E1E1")
+
+        // Badge styles (Figma iOS Light)
+        XCTAssertEqual(config.badgeStyles.accent.filled.backgroundColor, "#5b5fc7")
+        XCTAssertEqual(config.badgeStyles.accent.filled.textColor, "#ffffff")
+        XCTAssertEqual(config.badgeStyles.accent.tint.textColor, "#5b5fc7")
+        XCTAssertEqual(config.badgeStyles.good.filled.backgroundColor, "#0f7a0b")
+        XCTAssertEqual(config.badgeStyles.warning.tint.backgroundColor, "#fbf6d9")
+
+        // Page control (Figma iOS)
+        XCTAssertEqual(config.pageControl.selectedTintColor, "#5B5FC7")
     }
 
     func testHostConfigParser() throws {

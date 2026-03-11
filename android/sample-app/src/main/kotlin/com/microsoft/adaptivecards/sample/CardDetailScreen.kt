@@ -5,6 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,7 +24,7 @@ import kotlin.system.measureTimeMillis
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, navController: NavController) {
+fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkState: BookmarkState, navController: NavController) {
     var showJson by remember { mutableStateOf(false) }
     var parseTime by remember { mutableStateOf(0L) }
     var renderTime by remember { mutableStateOf(0L) }
@@ -52,6 +54,13 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, navControll
                     }
                 },
                 actions = {
+                    IconButton(onClick = { bookmarkState.toggle(cardId) }) {
+                        Icon(
+                            if (bookmarkState.isBookmarked(cardId)) Icons.Default.Bookmark
+                            else Icons.Default.BookmarkBorder,
+                            "Bookmark"
+                        )
+                    }
                     IconButton(onClick = {
                         refreshKey++
                     }) {

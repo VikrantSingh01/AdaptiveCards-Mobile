@@ -1,4 +1,6 @@
 import SwiftUI
+import ACCore
+import ACRendering
 
 struct CardEditorView: View {
     @State private var jsonText: String = defaultCardJSON
@@ -52,7 +54,7 @@ struct CardEditorView: View {
 
                                 ScrollView {
                                     if isValid {
-                                        CardPreviewPlaceholder(json: jsonText)
+                                        AdaptiveCardView(cardJson: jsonText, hostConfig: TeamsHostConfig.create())
                                             .padding()
                                     } else {
                                         VStack(spacing: 12) {
@@ -91,7 +93,7 @@ struct CardEditorView: View {
 
                         ScrollView {
                             if isValid {
-                                CardPreviewPlaceholder(json: jsonText)
+                                AdaptiveCardView(cardJson: jsonText, hostConfig: TeamsHostConfig.create())
                                     .padding()
                             } else {
                                 VStack(spacing: 12) {
