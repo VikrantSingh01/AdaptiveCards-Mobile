@@ -1,4 +1,6 @@
 import SwiftUI
+import ACCore
+import ACRendering
 
 struct TeamsSimulatorView: View {
     @State private var messages: [ChatMessage] = ChatMessage.sampleMessages
@@ -106,7 +108,7 @@ struct ChatBubbleView: View {
                         .cornerRadius(16)
 
                 case .card(let json):
-                    CardPreviewPlaceholder(json: json)
+                    AdaptiveCardView(cardJson: json, hostConfig: TeamsHostConfig.create())
                         .frame(maxWidth: 300)
                         .background(Color.white)
                         .cornerRadius(12)

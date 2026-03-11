@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CardGalleryView: View {
+    @EnvironmentObject var bookmarks: BookmarkStore
     @State private var searchText = ""
     @State private var selectedCategory: CardCategory = .all
     @State private var showGrouped = true
@@ -91,34 +92,53 @@ struct CardGalleryView: View {
 
     private func cardRow(_ card: TestCard) -> some View {
         NavigationLink(destination: CardDetailView(card: card)) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(card.title)
-                    .font(.headline)
-                Text(card.description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                HStack(spacing: 6) {
-                    categoryBadge(card.category)
-                    if card.isAdvanced {
-                        Text("Advanced")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.purple.opacity(0.2))
-                            .cornerRadius(4)
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(card.title)
+                        .font(.headline)
+                    Text(card.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                    HStack(spacing: 6) {
+                        categoryBadge(card.category)
+                        if card.isAdvanced {
+                            Text("Advanced")
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.purple.opacity(0.2))
+                                .cornerRadius(4)
+                        }
+                        if card.dataJsonString != nil {
+                            Text("Templated")
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.teal.opacity(0.2))
+                                .cornerRadius(4)
+                        }
                     }
-                    if card.dataJsonString != nil {
-                        Text("Templated")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.teal.opacity(0.2))
-                            .cornerRadius(4)
-                    }
+                }
+                Spacer()
+                if bookmarks.isBookmarked(card.filename) {
+                    Image(systemName: "bookmark.fill")
+                        .foregroundColor(.accentColor)
+                        .font(.caption)
                 }
             }
             .padding(.vertical, 4)
+        }
+        .swipeActions(edge: .trailing) {
+            Button {
+                bookmarks.toggle(card.filename)
+            } label: {
+                Label(
+                    bookmarks.isBookmarked(card.filename) ? "Remove" : "Bookmark",
+                    systemImage: bookmarks.isBookmarked(card.filename) ? "bookmark.slash" : "bookmark.fill"
+                )
+            }
+            .tint(.orange)
         }
     }
 

@@ -22,6 +22,8 @@ struct SpacingModifier: ViewModifier {
         switch spacing {
         case .none:
             return 0
+        case .extraSmall:
+            return 4
         case .small:
             return hostConfig.spacing.small
         case .default:

@@ -4,12 +4,14 @@ import SwiftUI
 struct AdaptiveCardsSampleApp: App {
     @StateObject private var actionLog = ActionLogStore()
     @StateObject private var settings = AppSettings()
+    @StateObject private var bookmarks = BookmarkStore()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(actionLog)
                 .environmentObject(settings)
+                .environmentObject(bookmarks)
         }
     }
 }
@@ -38,6 +40,35 @@ struct ActionLogEntry: Identifiable {
     let timestamp: Date
     let actionType: String
     let data: [String: Any]
+}
+
+class BookmarkStore: ObservableObject {
+    private static let storageKey = "bookmarkedCardFilenames"
+
+    @Published var bookmarkedFilenames: Set<String> {
+        didSet { save() }
+    }
+
+    init() {
+        let saved = UserDefaults.standard.stringArray(forKey: Self.storageKey) ?? []
+        bookmarkedFilenames = Set(saved)
+    }
+
+    func toggle(_ filename: String) {
+        if bookmarkedFilenames.contains(filename) {
+            bookmarkedFilenames.remove(filename)
+        } else {
+            bookmarkedFilenames.insert(filename)
+        }
+    }
+
+    func isBookmarked(_ filename: String) -> Bool {
+        bookmarkedFilenames.contains(filename)
+    }
+
+    private func save() {
+        UserDefaults.standard.set(Array(bookmarkedFilenames), forKey: Self.storageKey)
+    }
 }
 
 class AppSettings: ObservableObject {

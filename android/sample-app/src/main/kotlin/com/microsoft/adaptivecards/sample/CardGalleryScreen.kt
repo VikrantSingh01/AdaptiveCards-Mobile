@@ -6,9 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -22,7 +26,7 @@ import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardGalleryScreen(navController: NavController) {
+fun CardGalleryScreen(navController: NavController, bookmarkState: BookmarkState) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(CardCategory.ALL) }
     var showFilterMenu by remember { mutableStateOf(false) }
@@ -78,14 +82,16 @@ fun CardGalleryScreen(navController: NavController) {
                 singleLine = true
             )
 
-            // Cards list
+            // Cards list — rememberLazyListState preserves scroll position across navigation
+            val listState = rememberLazyListState()
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredCards, key = { it.filename }) { card ->
-                    CardItem(card) {
+                    CardItem(card, bookmarkState) {
                         navController.navigate("card_detail/${Uri.encode(card.filename)}")
                     }
                 }
@@ -95,7 +101,7 @@ fun CardGalleryScreen(navController: NavController) {
 }
 
 @Composable
-fun CardItem(card: TestCard, onClick: () -> Unit) {
+fun CardItem(card: TestCard, bookmarkState: BookmarkState, onClick: () -> Unit) {
     val cardViewModel: CardViewModel = viewModel(key = "gallery_${card.filename}")
 
     Card(
@@ -105,10 +111,27 @@ fun CardItem(card: TestCard, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = card.title,
-                style = MaterialTheme.typography.titleMedium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = card.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { bookmarkState.toggle(card.filename) }) {
+                    Icon(
+                        if (bookmarkState.isBookmarked(card.filename)) Icons.Default.Bookmark
+                        else Icons.Default.BookmarkBorder,
+                        contentDescription = "Bookmark",
+                        tint = if (bookmarkState.isBookmarked(card.filename))
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = card.description,

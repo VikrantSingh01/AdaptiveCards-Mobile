@@ -23,6 +23,13 @@ struct ContentView: View {
             NavigationStack {
                 List {
                     Section {
+                        NavigationLink {
+                            BookmarksView()
+                        } label: {
+                            Label("Bookmarks", systemImage: "bookmark.fill")
+                        }
+                    }
+                    Section {
                         NavigationLink("Action Log") {
                             ActionLogView()
                         }

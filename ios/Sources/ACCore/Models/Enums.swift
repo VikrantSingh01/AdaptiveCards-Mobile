@@ -52,6 +52,7 @@ public enum VerticalAlignment: String, Codable, CaseIterable, CaseInsensitiveCod
 
 public enum Spacing: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case none = "None"
+    case extraSmall = "ExtraSmall"
     case small = "Small"
     case `default` = "Default"
     case medium = "Medium"
@@ -106,6 +107,7 @@ public enum ImageSize: String, Codable, CaseIterable, CaseInsensitiveCodable {
 public enum ImageStyle: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case `default` = "Default"
     case person = "Person"
+    case roundedCorners = "RoundedCorners"
 }
 
 // MARK: - Container

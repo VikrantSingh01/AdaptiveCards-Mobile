@@ -39,8 +39,7 @@ public class TeamsHostConfig {
             containerStyles: ContainerStylesConfig(
                 default: ContainerStyleConfig(
                     backgroundColor: "#FFFFFF",
-                    foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#E1E1E1"
+                    foregroundColors: teamsLightDefaultForegroundColors()
                 ),
                 emphasis: ContainerStyleConfig(
                     backgroundColor: "#F1F1F1",
@@ -49,23 +48,19 @@ public class TeamsHostConfig {
                 ),
                 good: ContainerStyleConfig(
                     backgroundColor: "#E7F2DA",
-                    foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#E1E1E1"
+                    foregroundColors: teamsLightDefaultForegroundColors()
                 ),
                 attention: ContainerStyleConfig(
-                    backgroundColor: "#FFF4CE",
-                    foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#E1E1E1"
+                    backgroundColor: "#F7E9E9",
+                    foregroundColors: teamsLightDefaultForegroundColors()
                 ),
                 warning: ContainerStyleConfig(
                     backgroundColor: "#FBF6D9",
-                    foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#E1E1E1"
+                    foregroundColors: teamsLightDefaultForegroundColors()
                 ),
                 accent: ContainerStyleConfig(
-                    backgroundColor: "#E8F2FD",
-                    foregroundColors: teamsLightDefaultForegroundColors(),
-                    borderColor: "#6264A7"
+                    backgroundColor: "#DCE5F7",
+                    foregroundColors: teamsLightDefaultForegroundColors()
                 )
             ),
             imageSizes: ImageSizesConfig(
@@ -177,7 +172,38 @@ public class TeamsHostConfig {
                 "container": 4,
                 "table": 4,
                 "image": 4
-            ]
+            ],
+            badgeStyles: BadgeStylesConfig(
+                default: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#212121", strokeColor: "#212121", textColor: "#ffffff"),
+                    tint: BadgeStyleDef(backgroundColor: "#6e6e6e", strokeColor: "#6e6e6e", textColor: "#ffffff")
+                ),
+                accent: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#5b5fc7", strokeColor: "#5b5fc7", textColor: "#ffffff"),
+                    tint: BadgeStyleDef(backgroundColor: "#e8b8fa", strokeColor: "#e1e1e1", textColor: "#5b5fc7")
+                ),
+                attention: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#d92c2c", strokeColor: "#d92c2c", textColor: "#ffffff"),
+                    tint: BadgeStyleDef(backgroundColor: "#f9d9d9", strokeColor: "#e1e1e1", textColor: "#d92c2c")
+                ),
+                good: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#0f7a0b", strokeColor: "#0f7a0b", textColor: "#ffffff"),
+                    tint: BadgeStyleDef(backgroundColor: "#e7f2da", strokeColor: "#e1e1e1", textColor: "#0f7a0b")
+                ),
+                informative: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#ffffff", strokeColor: "#ffffff", textColor: "#212121"),
+                    tint: BadgeStyleDef(backgroundColor: "#ffffff", strokeColor: "#e1e1e1", textColor: "#212121")
+                ),
+                subtle: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#f1f1f1", strokeColor: "#f1f1f1", textColor: "#6e6e6e"),
+                    tint: BadgeStyleDef(backgroundColor: "#f1f1f1", strokeColor: "#e1e1e1", textColor: "#6e6e6e")
+                ),
+                warning: BadgeStyleVariants(
+                    filled: BadgeStyleDef(backgroundColor: "#835c00", strokeColor: "#835c00", textColor: "#ffffff"),
+                    tint: BadgeStyleDef(backgroundColor: "#fbf6d9", strokeColor: "#e1e1e1", textColor: "#835C00")
+                )
+            ),
+            pageControl: PageControlConfig(selectedTintColor: "#5B5FC7")
         )
     }
 
