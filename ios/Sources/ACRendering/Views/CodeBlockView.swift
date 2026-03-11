@@ -19,7 +19,7 @@ struct CodeBlockView: View {
     @Environment(\.sizeCategory) var sizeCategory
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.small)) {
             headerView
             codeContentView
         }
@@ -52,8 +52,8 @@ struct CodeBlockView: View {
             .accessibilityHint("Double tap to copy code")
             .accessibilityAddTraits(.isButton)
         }
-        .padding(.horizontal, 8)
-        .padding(.top, 8)
+        .padding(.horizontal, CGFloat(hostConfig.spacing.small))
+        .padding(.top, CGFloat(hostConfig.spacing.small))
     }
 
     private var codeContentView: some View {
@@ -63,7 +63,7 @@ struct CodeBlockView: View {
                     codeLineView(index: index, line: line)
                 }
             }
-            .padding(8)
+            .padding(CGFloat(hostConfig.spacing.small))
         }
         .background(backgroundColor)
         .cornerRadius(CGFloat(hostConfig.cornerRadius["container"] ?? 4))

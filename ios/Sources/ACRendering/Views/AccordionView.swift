@@ -113,7 +113,7 @@ struct AccordionPanelView: View {
         }
         .overlay(
             Rectangle()
-                .frame(height: 1)
+                .frame(height: CGFloat(hostConfig.separator.lineThickness))
                 .foregroundColor(Color(hex: hostConfig.separator.lineColor)),
             alignment: .bottom
         )

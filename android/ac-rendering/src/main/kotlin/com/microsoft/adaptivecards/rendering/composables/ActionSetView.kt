@@ -146,16 +146,19 @@ fun ActionButton(
 
     // Use tooltip as content description for accessibility when available
     val tooltipText = action.tooltip
-    val buttonShape = RoundedCornerShape(4.dp)
+    val cornerRadius = hostConfig.cornerRadius.container.dp
+    val buttonShape = RoundedCornerShape(cornerRadius)
+    val buttonPadding = PaddingValues(horizontal = hostConfig.spacing.medium.dp, vertical = (hostConfig.spacing.small * 0.75f).dp)
 
     when (action.style) {
         ActionStyle.Positive -> {
+            val goodColor = Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.good.default))
             Button(
                 onClick = { handleAction(action, actionHandler, viewModel) },
                 enabled = action.isEnabled,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF237B4B)),
+                colors = ButtonDefaults.buttonColors(containerColor = goodColor),
                 shape = buttonShape,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                contentPadding = buttonPadding,
                 modifier = modifier.buttonSemantics(
                     label = tooltipText ?: action.title ?: "Action",
                     enabled = action.isEnabled
@@ -165,12 +168,13 @@ fun ActionButton(
             }
         }
         ActionStyle.Destructive -> {
+            val attentionColor = Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.attention.default))
             Button(
                 onClick = { handleAction(action, actionHandler, viewModel) },
                 enabled = action.isEnabled,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC4314B)),
+                colors = ButtonDefaults.buttonColors(containerColor = attentionColor),
                 shape = buttonShape,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                contentPadding = buttonPadding,
                 modifier = modifier.buttonSemantics(
                     label = tooltipText ?: action.title ?: "Action",
                     enabled = action.isEnabled
@@ -184,9 +188,9 @@ fun ActionButton(
             OutlinedButton(
                 onClick = { handleAction(action, actionHandler, viewModel) },
                 enabled = action.isEnabled,
-                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f)),
+                border = BorderStroke(hostConfig.separator.lineThickness.dp, accentColor.copy(alpha = 0.4f)),
                 shape = buttonShape,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                contentPadding = buttonPadding,
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = accentColor
                 ),
@@ -208,7 +212,7 @@ private fun ActionButtonContent(
     hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(hostConfig.spacing.small.dp),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
     ) {
         action.iconUrl?.let { iconUrl ->

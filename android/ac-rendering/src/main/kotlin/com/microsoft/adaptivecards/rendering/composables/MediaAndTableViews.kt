@@ -92,7 +92,7 @@ fun TableView(
     // Resolve grid style background
     val gridStyleConfig = resolveContainerStyle(element.gridStyle, hostConfig)
     val gridBackground = parseColorSafe(gridStyleConfig?.backgroundColor)
-    val gridLineColor = Color(0xFFE0E0E0)
+    val gridLineColor = parseColorSafe(hostConfig.separator.lineColor) ?: Color(0xFFE0E0E0)
 
     val tableCornerRadius = hostConfig.cornerRadius.table
 
@@ -114,7 +114,7 @@ fun TableView(
             // Header separator
             if (showGridLines && rowIndex > 0) {
                 @Suppress("DEPRECATION") Divider(
-                    thickness = if (isHeader || (firstRowAsHeaders && rowIndex == 1)) 2.dp else 1.dp,
+                    thickness = if (isHeader || (firstRowAsHeaders && rowIndex == 1)) (hostConfig.separator.lineThickness * 2).dp else hostConfig.separator.lineThickness.dp,
                     color = gridLineColor
                 )
             }
