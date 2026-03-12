@@ -180,7 +180,7 @@ struct MoreMenuView: View {
                             )
 
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Adaptive Cards Mobile SDK")
+                            Text("AC Visualizer")
                                 .font(.footnote)
                                 .fontWeight(.semibold)
                             Text("v1.0.0 (Build 1) \u{00B7} Schema v1.6")

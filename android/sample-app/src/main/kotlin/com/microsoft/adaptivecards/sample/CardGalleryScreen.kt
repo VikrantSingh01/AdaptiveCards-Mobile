@@ -191,7 +191,7 @@ fun HeroHeader(cards: List<TestCard>, bookmarkState: BookmarkState) {
                 }
                 Column {
                     Text(
-                        "Adaptive Cards",
+                        "AC Visualizer",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )

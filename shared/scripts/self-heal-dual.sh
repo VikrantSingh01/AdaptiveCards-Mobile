@@ -278,7 +278,7 @@ if $IOS_READY; then
     echo "  🍎 Building iOS sample app..."
     (
         xcodebuild -project "$REPO_ROOT/ios/SampleApp.xcodeproj" \
-            -scheme AdaptiveCardsSampleApp \
+            -scheme ACVisualizer \
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,name=$IOS_SIMULATOR" \
             build 2>&1 && echo "__BUILD_OK__"
@@ -299,7 +299,7 @@ if $IOS_READY; then
     wait "$IOS_BUILD_PID" 2>/dev/null || true
     if grep -q "__BUILD_OK__" "$IOS_BUILD_LOG" 2>/dev/null; then
         # Install on simulator
-        local_app=$(find ~/Library/Developer/Xcode/DerivedData/SampleApp-*/Build/Products/Debug-iphonesimulator -name "AdaptiveCardsSampleApp.app" -maxdepth 1 2>/dev/null | head -1)
+        local_app=$(find ~/Library/Developer/Xcode/DerivedData/SampleApp-*/Build/Products/Debug-iphonesimulator -name "ACVisualizer.app" -maxdepth 1 2>/dev/null | head -1)
         if [ -n "$local_app" ]; then
             xcrun simctl install "$SIM_UDID" "$local_app" &>/dev/null
             IOS_BUILD_OK=true

@@ -404,7 +404,7 @@ fun MoreScreen(
                 }
                 Column {
                     Text(
-                        "Adaptive Cards Mobile SDK",
+                        "AC Visualizer",
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(

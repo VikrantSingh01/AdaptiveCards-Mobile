@@ -4,7 +4,7 @@
 #
 # Prerequisites:
 #   - iOS Simulator booted with iPhone 16e
-#   - AdaptiveCardsSampleApp installed and running
+#   - ACVisualizer installed and running
 #
 # Usage: bash test-ios-cards-ui.sh [category]
 #   category: teams-official (default), all
