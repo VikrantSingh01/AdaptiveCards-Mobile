@@ -30,7 +30,7 @@ class SchemaValidator {
             "Carousel", "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
             "TabSet", "List",
             // v1.6 elements
-            "Table", "CompoundButton",
+            "Table", "CompoundButton", "Badge", "Icon",
             // Custom chart extensions
             "DonutChart", "BarChart", "LineChart", "PieChart"
         )

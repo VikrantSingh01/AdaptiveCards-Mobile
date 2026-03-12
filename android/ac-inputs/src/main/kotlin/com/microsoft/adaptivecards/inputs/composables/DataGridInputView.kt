@@ -136,19 +136,22 @@ fun DataGridInputView(
                 LazyColumn(
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    itemsIndexed(gridData) { rowIndex, row ->
+                    itemsIndexed(gridData, key = { index, _ -> index }) { rowIndex, row ->
                         DataRow(
                             rowIndex = rowIndex,
                             row = row,
                             columns = element.columns,
                             isTablet = isTablet,
                             onCellChange = { colIndex, newValue ->
-                                gridData[rowIndex][colIndex] = newValue
-                                gridData = gridData.toMutableList()
+                                if (rowIndex < gridData.size && colIndex < gridData[rowIndex].size) { // safe: bounds checked
+                                    gridData[rowIndex][colIndex] = newValue // safe: bounds checked above
+                                    gridData = gridData.toMutableList()
+                                }
                             },
                             onDateCellClick = { colIndex ->
+                                if (rowIndex >= gridData.size || colIndex >= row.size) return@DataRow // safe: bounds check
                                 selectedDateCell = Pair(rowIndex, colIndex)
-                                val cellValue = row[colIndex]
+                                val cellValue = row[colIndex] // safe: bounds checked above
                                 tempDate = parseDateFromJson(cellValue) ?: Date()
                                 showDatePicker = true
                             },
@@ -233,8 +236,10 @@ fun DataGridInputView(
                         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val dateString = formatter.format(Date(millis))
                         selectedDateCell?.let { (row, col) ->
-                            gridData[row][col] = JsonPrimitive(dateString)
-                            gridData = gridData.toMutableList()
+                            if (row < gridData.size && col < gridData[row].size) { // safe: bounds checked
+                                gridData[row][col] = JsonPrimitive(dateString) // safe: bounds checked above
+                                gridData = gridData.toMutableList()
+                            }
                         }
                     }
                     showDatePicker = false

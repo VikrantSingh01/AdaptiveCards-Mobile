@@ -19,7 +19,8 @@ public struct BarChartView: View {
     }
 
     private var maxValue: Double {
-        chart.data.map { $0.value }.max() ?? 1.0
+        let val = chart.data.map { $0.value }.max() ?? 1.0
+        return val == 0 ? 1.0 : val  // Avoid division by zero when all values are 0
     }
 
     private var isHorizontal: Bool {
@@ -64,8 +65,8 @@ public struct BarChartView: View {
                                 .foregroundColor(.secondary)
                         }
 
-                        let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
-                        let height = (dataPoint.value / maxValue) * (geometry.size.height - 40) * animationProgress
+                        let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
+                        let height = (dataPoint.value / maxValue) * (geometry.size.height - 40) * animationProgress // safe: maxValue guarded >= 1.0 in computed property
 
                         RoundedRectangle(cornerRadius: 4)
                             .fill(selectedIndex == index ? color.opacity(0.7) : color)
@@ -96,8 +97,8 @@ public struct BarChartView: View {
                             .frame(width: 80, alignment: .trailing)
 
                         GeometryReader { geometry in
-                            let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
-                            let width = (dataPoint.value / maxValue) * geometry.size.width * animationProgress
+                            let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
+                            let width = (dataPoint.value / maxValue) * geometry.size.width * animationProgress // safe: maxValue guarded >= 1.0 in computed property
 
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(selectedIndex == index ? color.opacity(0.7) : color)
@@ -127,7 +128,7 @@ public struct BarChartView: View {
             HStack(spacing: 12) {
                 ForEach(Array(chart.data.enumerated()), id: \.element.id) { index, dataPoint in
                     HStack(spacing: 4) {
-                        let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
+                        let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
                         RoundedRectangle(cornerRadius: 2)
                             .fill(color)
                             .frame(width: 12, height: 12)

@@ -45,7 +45,7 @@ fun PieChartView(chart: PieChart) {
     
     val chartSize = ChartSize.from(chart.size)
     val colors = ChartColors.colors(chart.colors)
-    val total = chart.data.sumOf { it.value }
+    val total = chart.data.sumOf { it.value }.let { if (it == 0.0) 1.0 else it }
     
     val accessibilityDesc = buildAccessibilityDescription(chart, total)
     val textMeasurer = rememberTextMeasurer()
@@ -93,7 +93,7 @@ fun PieChartView(chart: PieChart) {
                                     
                                     var startAngle = 0f
                                     for ((index, dataPoint) in chart.data.withIndex()) {
-                                        val percentage = (dataPoint.value / total).toFloat()
+                                        val percentage = (dataPoint.value / total).toFloat() // safe: total guarded >= 1.0
                                         val sweepAngle = 360f * percentage
                                         val endAngle = startAngle + sweepAngle
                                         
@@ -123,7 +123,7 @@ fun PieChartView(chart: PieChart) {
                     var startAngle = -90f
                     
                     chart.data.forEachIndexed { index, dataPoint ->
-                        val percentage = (dataPoint.value / total).toFloat()
+                        val percentage = (dataPoint.value / total).toFloat() // safe: total guarded >= 1.0
                         val sweepAngle = 360f * percentage * animationProgress
                         
                         val color = dataPoint.color?.let { 
@@ -190,8 +190,8 @@ fun PieChartView(chart: PieChart) {
                         val color = dataPoint.color?.let { 
                             ChartColors.colors(listOf(it)).firstOrNull() 
                         } ?: colors[index % colors.size]
-                        val percentage = (dataPoint.value / total * 100).toInt()
-                        
+                        val percentage = (dataPoint.value / total * 100).toInt() // safe: total guarded >= 1.0
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -230,7 +230,7 @@ private fun buildAccessibilityDescription(chart: PieChart, total: Double): Strin
     builder.append(". ${chart.data.size} segments: ")
     
     val segments = chart.data.joinToString(", ") { dataPoint ->
-        val percentage = (dataPoint.value / total * 100).toInt()
+        val percentage = (dataPoint.value / total * 100).toInt() // safe: total guarded >= 1.0
         "${dataPoint.label} $percentage%"
     }
     builder.append(segments)

@@ -231,11 +231,18 @@ public enum ColumnWidth: Codable, Equatable {
 
 // MARK: - ImageSet
 
+public enum ImageSetStyle: String, Codable, Equatable, Sendable {
+    case grid = "Grid"
+    case stacked = "Stacked"
+}
+
 public struct ImageSet: Codable, Equatable {
     public let type: String = "ImageSet"
     public var id: String?
     public var images: [Image]
     public var imageSize: ImageSize?
+    public var style: ImageSetStyle?
+    public var offset: Int?
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
@@ -247,6 +254,8 @@ public struct ImageSet: Codable, Equatable {
         id: String? = nil,
         images: [Image],
         imageSize: ImageSize? = nil,
+        style: ImageSetStyle? = nil,
+        offset: Int? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -257,6 +266,8 @@ public struct ImageSet: Codable, Equatable {
         self.id = id
         self.images = images
         self.imageSize = imageSize
+        self.style = style
+        self.offset = offset
         self.spacing = spacing
         self.separator = separator
         self.height = height

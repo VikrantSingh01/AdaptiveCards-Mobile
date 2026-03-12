@@ -1,0 +1,947 @@
+#!/usr/bin/env bash
+# =============================================================================
+# AdaptiveCards-Mobile Pre-Commit Hook
+# =============================================================================
+#
+# PURPOSE
+#   Catches crash-prone patterns, memory leaks, threading issues, security
+#   risks, parity gaps, and code smells BEFORE they reach the repo.
+#
+# INSTALL
+#   git config core.hooksPath .githooks
+#
+# SEVERITY LEVELS
+#   ERROR  — Blocks the commit. Must be fixed before committing.
+#            These are patterns that cause crashes, security issues, or
+#            data loss in production.
+#   WARN   — Advisory. Commit proceeds but the developer should review.
+#            These are code-smell patterns that may be intentional but
+#            are risky in most contexts.
+#
+# BYPASS (use sparingly, with justification in the commit message)
+#   git commit --no-verify
+#
+# FALSE POSITIVES
+#   If a rule is flagging code that is correct, add an inline comment:
+#     // pre-commit:allow — <reason>
+#   or suppress a specific check with a trailing `// safe: <explanation>`
+#
+# ADDING NEW RULES
+#   1. Add the check inside the appropriate section (Swift/Kotlin/Gradle/All)
+#   2. Use error() for patterns that always crash or are security risks
+#   3. Use warn() for patterns that are risky but may be intentional
+#   4. Include file:line in the message so the dev can jump directly to it
+#   5. End the message with a concrete "Fix:" instruction
+#
+# RULE INDEX (quick reference)
+#   Swift:  S1  Force unwrap (!)           S2  Force try (try!)
+#           S3  Force cast (as!)           S4  Division by zero
+#           S4b Div by total/max/range     S4c Timer not stored
+#           S4d Array subscript in sort    S5  fatalError()
+#           S6  Missing [weak self]        S7  print() in production
+#           S8  @Published without @MainActor
+#           S9  Hardcoded color            S10 File too large (>800 lines)
+#           S11 Observer without remove    S14 Hardcoded secrets
+#
+#   Kotlin: K1  Not-null assertion (!!)    K2  Unsafe cast (as Type)
+#           K3  Dynamic array index        K4  Collection mutation in loop
+#           K5  .first()/.last()           K6  Div by total/max
+#           K7  Singleton mutable state    K9  Toast in Compose
+#           K10 Unsafe numeric parse       K11 startActivity uncaught
+#           K12 GlobalScope               K13 runBlocking
+#           K14 mutableStateOf w/o remember
+#           K15 Debug logging             K16 Hardcoded colors (>5)
+#           K17 File too large            K18 Context in singleton
+#           K19 Hardcoded secrets         K20 LazyColumn without key
+#
+#   Gradle: G1  compileSdk mismatch       G2  java.time without desugaring
+#           G3  Missing targetSdk
+#
+#   All:    A1  Merge conflict markers     A2  Sensitive files staged
+#           A3  Large non-asset files
+#
+#   JSON:   J1  Invalid JSON syntax        J2  Missing type/version
+#
+#   Parity: P1  SchemaValidator            P2  Rendering views
+#           P3  HostConfig                 P4  Action handlers
+#           P5  URL allowedSchemes
+# =============================================================================
+
+set -euo pipefail
+
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+ERRORS=0
+WARNINGS=0
+
+# Only check staged files (added/modified), not deleted
+STAGED_SWIFT=$(git diff --cached --name-only --diff-filter=ACM | grep '\.swift$' || true)
+STAGED_KOTLIN=$(git diff --cached --name-only --diff-filter=ACM | grep '\.kt$' || true)
+STAGED_GRADLE=$(git diff --cached --name-only --diff-filter=ACM | grep '\.gradle\.kts$' || true)
+
+error() {
+    echo -e "${RED}ERROR:${NC} $1"
+    ERRORS=$((ERRORS + 1))
+}
+
+warn() {
+    echo -e "${YELLOW}WARN:${NC} $1"
+    WARNINGS=$((WARNINGS + 1))
+}
+
+# =============================================================================
+# SWIFT (iOS) CHECKS
+# =============================================================================
+if [ -n "$STAGED_SWIFT" ]; then
+    echo -e "${CYAN}Running iOS pattern checks...${NC}"
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        RAW_CONTENT=$(git show ":$file" 2>/dev/null) || continue
+        # Strip lines with inline suppression comments before checking
+        CONTENT=$(echo "$RAW_CONTENT" | grep -v '// safe:\|// pre-commit:allow' || true)
+
+        # ── S1. Force unwrap on optionals ──
+        # WHY:   `variable!` crashes with "unexpectedly found nil" at runtime.
+        # WHEN:  Any optional that could be nil when the line executes.
+        # FIX:   Replace `foo!` with one of:
+        #          guard let foo = foo else { return }
+        #          let value = foo ?? defaultValue
+        #          foo?.method()
+        # SKIP:  Test files, IBOutlets, XCTest assertions (these are expected).
+        if [[ "$file" != *Tests* && "$file" != *Test.swift ]]; then
+            FORCE_UNWRAPS=$(echo "$CONTENT" | grep -n '[a-zA-Z0-9_)\]]\!' | \
+                grep -v '// ' | grep -v 'IBOutlet' | grep -v 'IBAction' | \
+                grep -v 'XCT' | grep -v 'try!' | grep -v 'as!' | \
+                grep -v '!=' | grep -v '!~' | grep -v 'import ' | \
+                grep -v '#if' | grep -v '#available' || true)
+            if [ -n "$FORCE_UNWRAPS" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[S1] $file:$LINENUM — Force unwrap detected. Fix: Use 'guard let', '??' nil-coalescing, or optional chaining '?.' instead."
+                done <<< "$FORCE_UNWRAPS"
+            fi
+        fi
+
+        # ── S2. Force try (try!) ──
+        # WHY:   Crashes immediately if the function throws. No chance to recover.
+        # WHEN:  Any throwable call wrapped in try! instead of proper error handling.
+        # FIX:   Replace with:
+        #          do { try riskyCall() } catch { handleError(error) }
+        #          let result = try? riskyCall()  // returns nil on failure
+        FORCE_TRY=$(echo "$CONTENT" | grep -n 'try!' | grep -v '// ' || true)
+        if [ -n "$FORCE_TRY" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[S2] $file:$LINENUM — Force try (try!) crashes if the call throws. Fix: Wrap in do/catch or use 'try?' to return nil on failure."
+            done <<< "$FORCE_TRY"
+        fi
+
+        # ── S3. Force cast (as!) ──
+        # WHY:   Crashes with "Could not cast value of type X to Y" at runtime.
+        # WHEN:  The actual type at runtime differs from the expected type.
+        # FIX:   Replace `obj as! MyType` with:
+        #          guard let typed = obj as? MyType else { return }
+        #          if let typed = obj as? MyType { ... }
+        FORCE_CAST=$(echo "$CONTENT" | grep -n ' as!' | grep -v '// ' || true)
+        if [ -n "$FORCE_CAST" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[S3] $file:$LINENUM — Force cast (as!) crashes on type mismatch. Fix: Use 'as?' with 'guard let' or 'if let' instead."
+            done <<< "$FORCE_CAST"
+        fi
+
+        # ── S4. Division by (count - 1) ──
+        # WHY:   When array has exactly 1 element, count-1 = 0 -> division by zero.
+        #        Result is inf/nan in Swift (no crash), but renders corrupt UI.
+        # WHEN:  Charts, layouts, or spacing calculations with single-item arrays.
+        # FIX:   Add guard: `guard array.count > 1 else { return }`
+        #        Or use: `max(array.count - 1, 1)`
+        DIV_ZERO=$(echo "$CONTENT" | grep -n 'count - 1)' | grep '/' | grep -v '// ' || true)
+        if [ -n "$DIV_ZERO" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[S4] $file:$LINENUM — Division by (count-1) is zero when count=1. Fix: Add 'guard count > 1 else { return }' or use 'max(count - 1, 1)'."
+            done <<< "$DIV_ZERO"
+        fi
+
+        # ── S4b. Division by total/maxValue/valueRange ──
+        # WHY:   When chart data is empty or all values are 0, these computed
+        #        values are 0. Dividing by 0 produces inf/nan, corrupting
+        #        the entire chart layout.
+        # WHEN:  Pie, donut, bar, line charts with empty or zero-only data.
+        # FIX:   Guard the computed value:
+        #          let total = data.reduce(0, +); guard total > 0 else { return }
+        #          let safe = max(valueRange, Double.leastNonzeroMagnitude)
+        #          val total = data.sumOf { it.value }.coerceAtLeast(1.0)
+        DIV_TOTAL=$(echo "$CONTENT" | grep -n '/ total\b\|/ maxValue\b\|/ valueRange\b\|/ range\b' | grep -v '// ' | grep -v 'guard\|== 0\|> 0\|leastNonzero' || true)
+        if [ -n "$DIV_TOTAL" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[S4b] $file:$LINENUM — Division by computed value (total/maxValue/range) can be zero with empty data. Fix: Guard with 'total > 0', default to 1, or use 'max(..., .leastNonzeroMagnitude)'."
+            done <<< "$DIV_TOTAL"
+        fi
+
+        # ── S4c. Timer.scheduledTimer without stored reference ──
+        # WHY:   If the timer is not stored, it cannot be invalidated when the
+        #        view disappears. The timer fires after deallocation, causing
+        #        crashes or zombie state updates.
+        # WHEN:  Any repeating timer in a SwiftUI view.
+        # FIX:   1. Add @State private var timer: Timer?
+        #        2. Assign: timer = Timer.scheduledTimer(...)
+        #        3. Add .onDisappear { timer?.invalidate(); timer = nil }
+        TIMER_LEAK=$(echo "$CONTENT" | grep -n 'Timer\.scheduledTimer' | grep -v '// ' || true)
+        if [ -n "$TIMER_LEAK" ]; then
+            TIMER_UNSTORED=$(echo "$CONTENT" | grep -n 'Timer\.scheduledTimer' | grep -v '=' | grep -v '// ' || true)
+            if [ -n "$TIMER_UNSTORED" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[S4c] $file:$LINENUM — Timer.scheduledTimer not assigned to a stored property. Fix: Store in @State var, invalidate in .onDisappear { timer?.invalidate() }."
+                done <<< "$TIMER_UNSTORED"
+            fi
+        fi
+
+        # ── S4d. Array subscript in sort closures ──
+        # WHY:   Sort closures execute on every comparison. If rows have
+        #        different column counts (jagged data), an out-of-bounds
+        #        subscript crashes the app.
+        # WHEN:  DataGrid sorting by column index from user input.
+        # FIX:   Add bounds check inside the sort closure:
+        #          guard colIndex < row1.count, colIndex < row2.count else { return false }
+        SORT_INDEX=$(echo "$CONTENT" | grep -n '\.sort\b' -A5 | grep '\[colIndex\]\|\[sortIndex\]\|\[column\]' | grep -v 'guard\|< .*.count' || true)
+        if [ -n "$SORT_INDEX" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[S4d] $file:$LINENUM — Array subscript in sort closure without bounds check. Fix: Add 'guard colIndex < row.count else { return false }' inside the closure."
+            done <<< "$SORT_INDEX"
+        fi
+
+        # ── S5. fatalError() in production code ──
+        # WHY:   Terminates the app immediately. Cannot be caught or recovered.
+        # WHEN:  Used as a placeholder during development that leaks into prod.
+        # FIX:   Replace with one of:
+        #          return defaultValue  // graceful degradation
+        #          throw MyError.unsupported  // let caller handle
+        #          assertionFailure("msg")  // only fires in DEBUG builds
+        if [[ "$file" != *Tests* && "$file" != *Test.swift ]]; then
+            FATAL=$(echo "$CONTENT" | grep -n 'fatalError(' | grep -v '// ' || true)
+            if [ -n "$FATAL" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[S5] $file:$LINENUM — fatalError() terminates the app in production. Fix: Return a default value, throw an error, or use assertionFailure() (DEBUG-only)."
+                done <<< "$FATAL"
+            fi
+        fi
+
+        # ── S6. Missing [weak self] in escaping closures ──
+        # WHY:   DispatchQueue.async captures self strongly. If the object is
+        #        deallocated while the closure is pending, the closure keeps
+        #        it alive (retain cycle) or worse, mutates stale state.
+        # WHEN:  DispatchQueue.main.async { self.property = ... }
+        # FIX:   Add [weak self] capture list:
+        #          DispatchQueue.main.async { [weak self] in
+        #              guard let self else { return }
+        #              self.property = value
+        #          }
+        if [[ "$file" != *Tests* && "$file" != *Test.swift ]]; then
+            DISPATCH_STRONG=$(echo "$CONTENT" | grep -n 'DispatchQueue\.\|\.async\s*{' | grep -v '\[weak self\]' | grep -v '// ' || true)
+            if [ -n "$DISPATCH_STRONG" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[S6] $file:$LINENUM — Dispatch/async closure without [weak self] — retain cycle risk. Fix: Add '[weak self]' and 'guard let self else { return }' inside the closure."
+                done <<< "$DISPATCH_STRONG"
+            fi
+        fi
+
+        # ── S7. print() in production code ──
+        # WHY:   print() writes to stdout, which is visible in device console
+        #        logs. Can leak PII, slow performance, and is not filterable.
+        # WHEN:  Debug print() statements left after development.
+        # FIX:   Remove the print(), or replace with structured logging:
+        #          import os
+        #          let logger = Logger(subsystem: "com.microsoft.adaptivecards", category: "rendering")
+        #          logger.debug("message")
+        # SKIP:  Test files, SampleApp (allowed for demo purposes).
+        if [[ "$file" != *Tests* && "$file" != *Test.swift && "$file" != *SampleApp* ]]; then
+            DEBUG_PRINT=$(echo "$CONTENT" | grep -n '^\s*print(' | grep -v '// ' || true)
+            if [ -n "$DEBUG_PRINT" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[S7] $file:$LINENUM — print() in production code. Fix: Remove it, or replace with os.Logger for structured, filterable logging."
+                done <<< "$DEBUG_PRINT"
+            fi
+        fi
+
+        # ── S8. @Published without @MainActor ──
+        # WHY:   SwiftUI requires @Published properties to be set on the main
+        #        thread. Setting from a background thread causes a purple
+        #        runtime warning in Xcode and can crash in iOS 17+.
+        # WHEN:  ObservableObject classes that do async work and update state.
+        # FIX:   Add @MainActor to the class declaration:
+        #          @MainActor class MyViewModel: ObservableObject { ... }
+        #        Or dispatch updates explicitly:
+        #          await MainActor.run { self.property = value }
+        PUBLISHED_BG=$(echo "$CONTENT" | grep -n '@Published' || true)
+        if [ -n "$PUBLISHED_BG" ]; then
+            HAS_MAINACTOR=$(echo "$CONTENT" | grep '@MainActor' || true)
+            if [ -z "$HAS_MAINACTOR" ]; then
+                PUB_COUNT=$(echo "$PUBLISHED_BG" | wc -l | tr -d ' ')
+                if [ "$PUB_COUNT" -gt 0 ]; then
+                    warn "[S8] $file — Has @Published properties but class is not @MainActor. Fix: Add '@MainActor' to the class, or use 'await MainActor.run { }' for background updates."
+                fi
+            fi
+        fi
+
+        # ── S9. Hardcoded colors ──
+        # WHY:   Hardcoded colors break dark mode, high-contrast, and theming.
+        # WHEN:  Using Color(red:...) or Color(hex:...) outside of theme code.
+        # FIX:   Use HostConfig colors: hostConfig.foregroundColors.default.default
+        #        Or SwiftUI semantic colors: .primary, .secondary
+        #        Or define in asset catalog with dark mode variant.
+        HARDCODED_COLOR=$(echo "$CONTENT" | grep -n 'Color(red:\|UIColor(red:\|Color(#\|Color(hex' | grep -v '// ' | grep -v 'hostConfig\|HostConfig\|FluentUI\|theme\|Theme' || true)
+        if [ -n "$HARDCODED_COLOR" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[S9] $file:$LINENUM — Hardcoded color bypasses theming/dark mode. Fix: Use HostConfig colors, SwiftUI semantic colors (.primary), or asset catalog with dark variant."
+            done <<< "$HARDCODED_COLOR"
+        fi
+
+        # ── S10. File exceeds 800 lines ──
+        # WHY:   Large files are hard to navigate, review, and test. They tend
+        #        to accumulate more bugs and resist refactoring.
+        # FIX:   Extract view components into separate files.
+        #        Move helpers/extensions to dedicated files.
+        #        Split large views using ViewBuilder helper properties.
+        LINE_COUNT=$(echo "$CONTENT" | wc -l | tr -d ' ')
+        if [ "$LINE_COUNT" -gt 800 ]; then
+            warn "[S10] $file — File is $LINE_COUNT lines (threshold: 800). Fix: Extract subviews, helpers, or extensions into separate files."
+        fi
+
+        # ── S11. NotificationCenter observer without removeObserver ──
+        # WHY:   Unreleased observers accumulate, causing duplicate callbacks
+        #        and memory leaks. In UIKit, this can crash after dealloc.
+        # FIX:   Store the observer token and remove in deinit:
+        #          let token = NotificationCenter.default.addObserver(...)
+        #          deinit { NotificationCenter.default.removeObserver(token) }
+        #        Or use Combine: NotificationCenter.default.publisher(for:)
+        ADD_OBSERVER=$(echo "$CONTENT" | grep -n 'NotificationCenter.*addObserver' | grep -v '// ' || true)
+        if [ -n "$ADD_OBSERVER" ]; then
+            REMOVE_OBSERVER=$(echo "$CONTENT" | grep 'removeObserver' || true)
+            if [ -z "$REMOVE_OBSERVER" ]; then
+                warn "[S11] $file — NotificationCenter.addObserver without removeObserver. Fix: Store the token and call removeObserver in deinit, or use Combine's .publisher(for:) instead."
+            fi
+        fi
+
+        # ── S14. Hardcoded secrets / API keys ──
+        # WHY:   Secrets in source code are exposed to anyone with repo access,
+        #        including CI logs and git history. Rotating is expensive.
+        # FIX:   Move to Keychain, environment variables, or .xcconfig files
+        #        that are .gitignored. For CI, use GitHub Secrets.
+        SECRETS=$(echo "$CONTENT" | grep -in 'api_key\|apikey\|secret_key\|password\s*=\s*"[^"]\+"\|token\s*=\s*"[^"]\+"' | grep -v '// ' | grep -v 'protocol\|func\|struct\|class\|enum\|var.*:.*String' || true)
+        if [ -n "$SECRETS" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[S14] $file:$LINENUM — Possible hardcoded secret/API key. Fix: Move to Keychain, environment variables, or a .gitignored .xcconfig file."
+            done <<< "$SECRETS"
+        fi
+
+    done <<< "$STAGED_SWIFT"
+fi
+
+# =============================================================================
+# KOTLIN (Android) CHECKS
+# =============================================================================
+if [ -n "$STAGED_KOTLIN" ]; then
+    echo -e "${CYAN}Running Android pattern checks...${NC}"
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        RAW_CONTENT=$(git show ":$file" 2>/dev/null) || continue
+        # Strip lines with inline suppression comments before checking
+        CONTENT=$(echo "$RAW_CONTENT" | grep -v '// safe:\|// pre-commit:allow' || true)
+
+        # ── K1. Not-null assertion (!!) ──
+        # WHY:   `value!!` throws NullPointerException if value is null.
+        #        This is the #1 cause of Kotlin crashes in production.
+        # FIX:   Replace with safe alternatives:
+        #          value?.let { use(it) }           // skip if null
+        #          value ?: defaultValue             // provide fallback
+        #          val safe = value ?: return        // early return
+        if [[ "$file" != *Test* && "$file" != *test* ]]; then
+            BANG_BANG=$(echo "$CONTENT" | grep -n '!!' | grep -v '// ' | grep -v 'import ' || true)
+            if [ -n "$BANG_BANG" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[K1] $file:$LINENUM — Not-null assertion (!!) throws NPE if null. Fix: Use '?.let { }', '?: default', or '?: return' instead."
+                done <<< "$BANG_BANG"
+            fi
+        fi
+
+        # ── K2. Unsafe cast (as Type without ?) ──
+        # WHY:   `obj as MyType` throws ClassCastException if types don't match.
+        #        Common when deserializing JSON or handling polymorphic types.
+        # FIX:   Use safe cast with null check:
+        #          val typed = obj as? MyType ?: return
+        #          (obj as? MyType)?.let { use(it) }
+        UNSAFE_CAST=$(echo "$CONTENT" | grep -n ' as [A-Z]' | grep -v ' as? ' | grep -v '// \| \* \|^\s*/\*' | grep -v 'import ' | grep -v 'UNCHECKED_CAST\|@Suppress' || true)
+        if [ -n "$UNSAFE_CAST" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                # Check if previous line has @Suppress("UNCHECKED_CAST") — intentional unsafe cast
+                PREV_LINE=$(echo "$RAW_CONTENT" | sed -n "$((LINENUM - 1))p" || true)
+                if echo "$PREV_LINE" | grep -q 'UNCHECKED_CAST\|@Suppress'; then
+                    continue
+                fi
+                warn "[K2] $file:$LINENUM — Unsafe cast (as Type) throws ClassCastException on mismatch. Fix: Use 'as? Type ?: return' or 'as? Type ?: defaultValue'."
+            done <<< "$UNSAFE_CAST"
+        fi
+
+        # ── K3. Dynamic array index without bounds check ──
+        # WHY:   `list[dynamicIndex]` throws IndexOutOfBoundsException.
+        # WHEN:  Indices from JSON data, user input, or computed values.
+        # FIX:   Use getOrNull() or getOrElse():
+        #          list.getOrNull(index) ?: fallback
+        #          list.getOrElse(index) { defaultValue }
+        # SCOPE: Only flagged in risky files (DataGrid, Carousel, TabSet).
+        if [[ "$file" == *"DataGrid"* || "$file" == *"Carousel"* || "$file" == *"TabSet"* ]]; then
+            UNSAFE_INDEX=$(echo "$CONTENT" | grep -n '\[[a-zA-Z_][a-zA-Z0-9_]*\]' | \
+                grep -v 'getOrNull' | grep -v 'getOrElse' | grep -v '// ' | \
+                grep -v 'import ' | grep -v 'Map' | grep -v 'HashMap' | \
+                grep -v 'mutableMapOf' | grep -v 'mapOf' | \
+                grep -v 'annotation' | grep -v '@' || true)
+            if [ -n "$UNSAFE_INDEX" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[K3] $file:$LINENUM — Dynamic array index without bounds check. Fix: Use 'list.getOrNull(index) ?: fallback' or 'list.getOrElse(index) { default }'."
+                done <<< "$UNSAFE_INDEX"
+            fi
+        fi
+
+        # ── K4. Collection modification during iteration ──
+        # WHY:   Modifying a Map/List while iterating throws
+        #        ConcurrentModificationException at runtime.
+        # FIX:   Snapshot before iterating:
+        #          map.keys.toList().forEach { key -> map.remove(key) }
+        #        Or use iterator.remove() pattern.
+        CONCURRENT_MOD=$(echo "$CONTENT" | grep -n '\.forEach\|\.forEachIndexed' | grep -v '// ' || true)
+        if [ -n "$CONCURRENT_MOD" ]; then
+            MOD_IN_LOOP=$(echo "$CONTENT" | grep -B2 -A5 '\.keys\.forEach\|\.values\.forEach' | \
+                grep '\[.*\] =' || true)
+            if [ -n "$MOD_IN_LOOP" ]; then
+                warn "[K4] $file — Possible collection modification during iteration. Fix: Snapshot with '.keys.toList().forEach { }' before modifying the collection."
+            fi
+        fi
+
+        # ── K5. .first()/.last()/.single() on potentially empty collection ──
+        # WHY:   These throw NoSuchElementException on empty collections.
+        #        Common with API responses, filtered lists, or database queries.
+        # FIX:   Use the nullable variants:
+        #          list.firstOrNull() ?: fallback
+        #          list.lastOrNull()
+        #          list.singleOrNull() ?: throw CustomException("...")
+        UNSAFE_FIRST=$(echo "$CONTENT" | grep -n '\.first()\|\.last()\|\.single()' | \
+            grep -v 'firstOrNull\|lastOrNull\|singleOrNull' | \
+            grep -v '// ' | grep -v 'import ' || true)
+        if [ -n "$UNSAFE_FIRST" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[K5] $file:$LINENUM — .first()/.last()/.single() throws on empty collection. Fix: Use 'firstOrNull()', 'lastOrNull()', or 'singleOrNull()' instead."
+            done <<< "$UNSAFE_FIRST"
+        fi
+
+        # ── K6. Division by total/maxValue/valueRange ──
+        # WHY:   Same as S4b — computed denominators from data can be zero.
+        # FIX:   Use .coerceAtLeast(1.0) on the computed value:
+        #          val total = data.sumOf { it.value }.coerceAtLeast(1.0)
+        #        Or check explicitly:
+        #          if (total == 0.0) return
+        KT_DIV_TOTAL=$(echo "$CONTENT" | grep -n '/ total\b\|/ maxValue\b\|/ valueRange\b' | grep -v '// ' | grep -v 'coerceAtLeast\|if.*== 0\|if.*> 0' || true)
+        if [ -n "$KT_DIV_TOTAL" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[K6] $file:$LINENUM — Division by computed value can be zero. Fix: Use '.coerceAtLeast(1.0)' on the denominator, or add 'if (total == 0.0) return'."
+            done <<< "$KT_DIV_TOTAL"
+        fi
+
+        # ── K7. Mutable var in object singleton without thread-safety ──
+        # WHY:   Kotlin object singletons are accessed from any thread.
+        #        Unsynchronized reads/writes can cause data races, stale
+        #        reads, torn writes, or lost updates.
+        # FIX:   Add thread-safety:
+        #          @Volatile private var cached: T? = null   // visibility
+        #          @Synchronized fun getOrLoad(): T { ... }  // atomicity
+        #        Or use AtomicReference, Mutex, or ConcurrentHashMap.
+        if [[ "$file" != *Test* ]]; then
+            OBJECT_VAR=$(echo "$CONTENT" | grep -n 'private var ' || true)
+            IS_OBJECT=$(echo "$CONTENT" | grep '^object ' || true)
+            if [ -n "$IS_OBJECT" ] && [ -n "$OBJECT_VAR" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    LINE_CONTENT=$(echo "$line" | cut -d: -f2-)
+                    if ! echo "$LINE_CONTENT" | grep -q '@Volatile\|@Synchronized\|AtomicReference\|Mutex\|synchronized'; then
+                        # Check if the previous line has @Volatile annotation
+                        PREV_LINE=$(echo "$RAW_CONTENT" | sed -n "$((LINENUM - 1))p" || true)
+                        if ! echo "$PREV_LINE" | grep -q '@Volatile\|@Synchronized'; then
+                            warn "[K7] $file:$LINENUM — Mutable var in object singleton without thread-safety. Fix: Add @Volatile for visibility + @Synchronized for atomicity, or use AtomicReference/Mutex."
+                        fi
+                    fi
+                done <<< "$OBJECT_VAR"
+            fi
+        fi
+
+        # ── K9. Toast.makeText in Compose ──
+        # WHY:   Toast stacks up across recompositions and ignores Compose
+        #        lifecycle. Shows even after the user navigates away.
+        # FIX:   Use Compose-aware Snackbar:
+        #          val snackbarHostState = remember { SnackbarHostState() }
+        #          LaunchedEffect(key) { snackbarHostState.showSnackbar("msg") }
+        TOAST=$(echo "$CONTENT" | grep -n 'Toast\.makeText' | grep -v '// ' || true)
+        if [ -n "$TOAST" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[K9] $file:$LINENUM — Toast in Compose stacks and ignores lifecycle. Fix: Use SnackbarHostState.showSnackbar() inside a LaunchedEffect instead."
+            done <<< "$TOAST"
+        fi
+
+        # ── K10. Unsafe numeric parse — NumberFormatException ──
+        # WHY:   .toInt(), .toDouble() on a non-numeric string throws
+        #        NumberFormatException, crashing the app.
+        # WHEN:  Parsing user input, JSON string fields, or URL parameters.
+        # FIX:   Use safe variants that return null on failure:
+        #          str.toIntOrNull() ?: 0
+        #          str.toDoubleOrNull() ?: 0.0
+        UNSAFE_PARSE=$(echo "$CONTENT" | grep -n '\.toInt()$\|\.toDouble()$\|\.toLong()$\|\.toFloat()$' | \
+            grep -v '// ' | grep -v 'OrNull' || true)
+        if [ -n "$UNSAFE_PARSE" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                LINE_CONTENT=$(echo "$line" | cut -d: -f2-)
+                if echo "$LINE_CONTENT" | grep -q 'String\|str\|text\|content\|value\|removeSuffix\|removePrefix'; then
+                    warn "[K10] $file:$LINENUM — Unsafe numeric parse on string throws NumberFormatException. Fix: Use 'toIntOrNull() ?: 0' or 'toDoubleOrNull() ?: 0.0'."
+                fi
+            done <<< "$UNSAFE_PARSE"
+        fi
+
+        # ── K11. startActivity without try-catch ──
+        # WHY:   Throws ActivityNotFoundException if no app can handle the intent.
+        #        Common with ACTION_VIEW on URLs when no browser is installed.
+        # FIX:   Wrap in try-catch:
+        #          try { startActivity(intent) }
+        #          catch (e: ActivityNotFoundException) { showError("No app found") }
+        START_ACTIVITY=$(echo "$CONTENT" | grep -n 'startActivity(' | grep -v 'try' | grep -v '// ' || true)
+        if [ -n "$START_ACTIVITY" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[K11] $file:$LINENUM — startActivity() without try-catch. Fix: Wrap in try/catch(ActivityNotFoundException) to handle missing apps gracefully."
+            done <<< "$START_ACTIVITY"
+        fi
+
+        # ── K12. GlobalScope.launch ──
+        # WHY:   GlobalScope is not lifecycle-aware. Coroutines survive Activity
+        #        destruction, causing memory leaks, stale UI updates, and
+        #        work that continues after the user navigated away.
+        # FIX:   Use a lifecycle-scoped alternative:
+        #          viewModelScope.launch { ... }     // ViewModel
+        #          lifecycleScope.launch { ... }     // Activity/Fragment
+        #          rememberCoroutineScope()          // Composable
+        GLOBAL_SCOPE=$(echo "$CONTENT" | grep -n 'GlobalScope\.' | grep -v '// ' || true)
+        if [ -n "$GLOBAL_SCOPE" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[K12] $file:$LINENUM — GlobalScope leaks work past lifecycle. Fix: Use viewModelScope.launch, lifecycleScope.launch, or rememberCoroutineScope() instead."
+            done <<< "$GLOBAL_SCOPE"
+        fi
+
+        # ── K13. runBlocking on main thread ──
+        # WHY:   runBlocking blocks the calling thread. On the main thread,
+        #        this causes ANR (Application Not Responding) after 5 seconds.
+        # FIX:   Convert to a suspend function and call from a coroutine:
+        #          suspend fun doWork() { ... }
+        #          viewModelScope.launch { doWork() }
+        #        If you must bridge sync/async, use withContext(Dispatchers.IO).
+        RUN_BLOCKING=$(echo "$CONTENT" | grep -n 'runBlocking' | grep -v '// ' | grep -v 'test\|Test' || true)
+        if [ -n "$RUN_BLOCKING" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[K13] $file:$LINENUM — runBlocking blocks the thread (ANR risk on main). Fix: Convert to a suspend function and call from viewModelScope.launch { }."
+            done <<< "$RUN_BLOCKING"
+        fi
+
+        # ── K14. mutableStateOf without remember ──
+        # WHY:   In a @Composable function, mutableStateOf() without remember
+        #        creates a NEW state on every recomposition, resetting the value.
+        # WHEN:  Local state in composables, not class-level properties.
+        # FIX:   Wrap in remember:
+        #          var count by remember { mutableStateOf(0) }
+        UNREMEMBERED_STATE=$(echo "$CONTENT" | grep -n 'mutableStateOf\|mutableStateListOf\|mutableStateMapOf' | \
+            grep -v 'remember' | grep -v '// ' | grep -v 'import ' || true)
+        if [ -n "$UNREMEMBERED_STATE" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                LINE_CONTENT=$(echo "$line" | cut -d: -f2-)
+                if ! echo "$LINE_CONTENT" | grep -q 'val \|var \|private \|internal '; then
+                    # Check if previous line(s) contain 'remember {' (multi-line pattern)
+                    PREV_LINES=$(echo "$RAW_CONTENT" | sed -n "$((LINENUM > 2 ? LINENUM - 2 : 1)),$((LINENUM - 1))p" || true)
+                    if ! echo "$PREV_LINES" | grep -q 'remember'; then
+                        warn "[K14] $file:$LINENUM — mutableStateOf without remember resets on every recomposition. Fix: Wrap in 'remember { mutableStateOf(...) }'."
+                    fi
+                fi
+            done <<< "$UNREMEMBERED_STATE"
+        fi
+
+        # ── K15. Debug logging in production code ──
+        # WHY:   println() and Log.d/Log.v are visible in logcat on any device.
+        #        Can leak PII and clutters logs. Not stripped in release builds.
+        # FIX:   Remove the log, or replace with Log.w/Log.e for important
+        #        messages that should survive in production.
+        #        For debug-only: if (BuildConfig.DEBUG) Log.d(...)
+        # SKIP:  Test files, sample app.
+        if [[ "$file" != *Test* && "$file" != *test* && "$file" != *sample* && "$file" != *Sample* ]]; then
+            DEBUG_LOG=$(echo "$CONTENT" | grep -n '^\s*println(\|^\s*Log\.d(\|^\s*Log\.v(' | grep -v '// ' || true)
+            if [ -n "$DEBUG_LOG" ]; then
+                while IFS= read -r line; do
+                    [ -z "$line" ] && continue
+                    LINENUM=$(echo "$line" | cut -d: -f1)
+                    warn "[K15] $file:$LINENUM — Debug logging in production. Fix: Remove it, or guard with 'if (BuildConfig.DEBUG)', or use Log.w/Log.e for important messages."
+                done <<< "$DEBUG_LOG"
+            fi
+        fi
+
+        # ── K16. Excessive hardcoded colors ──
+        # WHY:   Hardcoded Color(0x...) ignores dark mode and HostConfig theming.
+        # FIX:   Use MaterialTheme.colorScheme.primary (etc.) or HostConfig colors.
+        HARDCODED_COLOR=$(echo "$CONTENT" | grep -n 'Color(0x' | grep -v '// ' | grep -v 'hostConfig\|HostConfig\|Fluent\|theme\|Theme\|Preview' || true)
+        if [ -n "$HARDCODED_COLOR" ]; then
+            HC_COUNT=$(echo "$HARDCODED_COLOR" | wc -l | tr -d ' ')
+            if [ "$HC_COUNT" -gt 5 ]; then
+                warn "[K16] $file — $HC_COUNT hardcoded Color(0x...) values. Fix: Use MaterialTheme.colorScheme or HostConfig colors for dark mode/theming support."
+            fi
+        fi
+
+        # ── K17. File exceeds 800 lines ──
+        LINE_COUNT=$(echo "$CONTENT" | wc -l | tr -d ' ')
+        if [ "$LINE_COUNT" -gt 800 ]; then
+            warn "[K17] $file — File is $LINE_COUNT lines (threshold: 800). Fix: Extract composables into separate files, move helpers to utility files."
+        fi
+
+        # ── K18. Context/Activity stored in singleton ──
+        # WHY:   Storing Activity context in a companion object or object
+        #        singleton prevents garbage collection of the entire Activity
+        #        (including its view hierarchy). Severe memory leak.
+        # FIX:   Use applicationContext (lives for app lifetime):
+        #          context.applicationContext
+        #        Or use WeakReference:
+        #          private var contextRef = WeakReference(context)
+        CONTEXT_LEAK=$(echo "$CONTENT" | grep -n 'companion object\|^object ' -A20 | \
+            grep 'Context\|Activity' | grep 'var \|lateinit' | grep -v '// ' || true)
+        if [ -n "$CONTEXT_LEAK" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[K18] $file:$LINENUM — Context/Activity in singleton leaks the entire Activity. Fix: Use context.applicationContext or WeakReference<Context>."
+            done <<< "$CONTEXT_LEAK"
+        fi
+
+        # ── K19. Hardcoded secrets / API keys ──
+        # WHY:   Same as S14 — secrets in code are a security incident.
+        # FIX:   Use BuildConfig fields from local.properties (gitignored):
+        #          buildConfigField("String", "API_KEY", "\"${project.property("apiKey")}\"")
+        #        Or EncryptedSharedPreferences for runtime secrets.
+        #        For CI, use GitHub Secrets -> gradle.properties.
+        SECRETS=$(echo "$CONTENT" | grep -in 'api_key\|apikey\|secret_key\|password\s*=\s*"[^"]\+"\|token\s*=\s*"[^"]\+"' | grep -v '// ' | grep -v 'interface\|fun\|class\|enum\|val.*:.*String\|sealed' || true)
+        if [ -n "$SECRETS" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[K19] $file:$LINENUM — Possible hardcoded secret/API key. Fix: Move to BuildConfig field (from local.properties) or EncryptedSharedPreferences."
+            done <<< "$SECRETS"
+        fi
+
+        # ── K20. LazyColumn items() without key parameter ──
+        # WHY:   Without keys, Compose uses index-based identity. Adding or
+        #        removing items causes all items below to recompose, and
+        #        item state (scroll position, text input) is lost.
+        # FIX:   Add a stable key:
+        #          items(list, key = { it.id }) { item -> ... }
+        LAZY_NO_KEY=$(echo "$CONTENT" | grep -n 'items(\|itemsIndexed(' | grep -v 'key =' | grep -v '// ' || true)
+        if [ -n "$LAZY_NO_KEY" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                warn "[K20] $file:$LINENUM — LazyColumn items() without key. Fix: Add 'key = { it.id }' for stable identity and correct state preservation."
+            done <<< "$LAZY_NO_KEY"
+        fi
+
+    done <<< "$STAGED_KOTLIN"
+fi
+
+# =============================================================================
+# GRADLE BUILD CONFIG CHECKS
+# =============================================================================
+if [ -n "$STAGED_GRADLE" ]; then
+    echo -e "${CYAN}Running build config checks...${NC}"
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        CONTENT=$(git show ":$file" 2>/dev/null) || continue
+
+        # ── G1. compileSdk mismatch ──
+        # WHY:   Inconsistent compileSdk across modules causes build warnings
+        #        and can hide API availability issues.
+        # FIX:   Set compileSdk = 34 in all module build.gradle.kts files.
+        #        Or define in root build.gradle.kts and reference via project property.
+        COMPILE_SDK=$(echo "$CONTENT" | grep -o 'compileSdk = [0-9]*' | grep -o '[0-9]*' || true)
+        if [ -n "$COMPILE_SDK" ] && [ "$COMPILE_SDK" != "34" ]; then
+            error "[G1] $file — compileSdk = $COMPILE_SDK (expected 34). Fix: Update to compileSdk = 34 to match all other modules."
+        fi
+
+        # ── G2. java.time without core library desugaring ──
+        # WHY:   java.time APIs require API 26+. Without desugaring, the app
+        #        crashes on API 25 and below with NoClassDefFoundError.
+        # FIX:   In the module's build.gradle.kts:
+        #          compileOptions { isCoreLibraryDesugaringEnabled = true }
+        #          dependencies { coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4") }
+        if echo "$CONTENT" | grep -q 'java\.time\.' 2>/dev/null; then
+            if ! echo "$CONTENT" | grep -q 'isCoreLibraryDesugaringEnabled' 2>/dev/null; then
+                MODULE_DIR=$(dirname "$file")
+                BUILD_FILE="$MODULE_DIR/build.gradle.kts"
+                if [ -f "$BUILD_FILE" ]; then
+                    if ! grep -q 'isCoreLibraryDesugaringEnabled' "$BUILD_FILE" 2>/dev/null; then
+                        error "[G2] $file — Uses java.time without desugaring (crashes on API <26). Fix: Add isCoreLibraryDesugaringEnabled = true and coreLibraryDesugaring dependency."
+                    fi
+                fi
+            fi
+        fi
+
+        # ── G3. Missing targetSdk in library modules ──
+        # WHY:   Without targetSdk, the module inherits the default, which may
+        #        differ from the app module and cause unexpected behavior.
+        # FIX:   Add targetSdk = 34 in the android.defaultConfig block.
+        if echo "$CONTENT" | grep -q 'com.android.library' 2>/dev/null; then
+            if echo "$CONTENT" | grep -q 'minSdk' 2>/dev/null; then
+                if ! echo "$CONTENT" | grep -q 'targetSdk' 2>/dev/null; then
+                    warn "[G3] $file — Library module missing targetSdk. Fix: Add targetSdk = 34 in android.defaultConfig for consistency with the app module."
+                fi
+            fi
+        fi
+
+    done <<< "$STAGED_GRADLE"
+fi
+
+# =============================================================================
+# ALL-FILES CHECKS (language-agnostic)
+# =============================================================================
+STAGED_ALL=$(git diff --cached --name-only --diff-filter=ACM || true)
+
+if [ -n "$STAGED_ALL" ]; then
+
+    # ── A1. Merge conflict markers left in staged files ──
+    # WHY:   Leftover markers (<<<<<<<, =======, >>>>>>>) break compilation
+    #        and indicate an unresolved merge.
+    # FIX:   Open the file, resolve the conflict, then re-stage:
+    #          git add <file>
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        CONTENT=$(git show ":$file" 2>/dev/null) || continue
+        CONFLICT=$(echo "$CONTENT" | grep -n '^<<<<<<<\|^>>>>>>>\|^=======$' || true)
+        if [ -n "$CONFLICT" ]; then
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                LINENUM=$(echo "$line" | cut -d: -f1)
+                error "[A1] $file:$LINENUM — Merge conflict marker found. Fix: Open the file, resolve the conflict between <<<<<<< and >>>>>>>, then 'git add $file'."
+            done <<< "$CONFLICT"
+        fi
+    done <<< "$STAGED_ALL"
+
+    # ── A2. Sensitive files staged for commit ──
+    # WHY:   Secrets, keystores, and credentials in git history are permanent
+    #        even after deletion. Rotating leaked credentials is expensive.
+    # FIX:   1. git reset HEAD <file>
+    #        2. Add to .gitignore: echo "<pattern>" >> .gitignore
+    #        3. Store secrets in environment variables or a secrets manager.
+    SENSITIVE=$(echo "$STAGED_ALL" | grep -i '\.env$\|\.env\.\|credentials\|\.keystore\|\.jks\|\.p12\|\.pem\|\.key$\|secrets\.\|google-services\.json$' || true)
+    if [ -n "$SENSITIVE" ]; then
+        while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            error "[A2] $file — Sensitive file staged. Fix: Run 'git reset HEAD $file', then add the pattern to .gitignore."
+        done <<< "$SENSITIVE"
+    fi
+
+    # ── A3. Large non-asset files accidentally staged ──
+    # WHY:   Large binaries bloat the repo permanently (git stores all history).
+    #        Clone times increase for every contributor.
+    # FIX:   If it's a build artifact: add to .gitignore.
+    #        If it must be versioned: use Git LFS (git lfs track "*.zip").
+    #        If it's a one-time asset: commit to a separate assets branch.
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        if [[ "$file" == *"test-cards"* || "$file" == *"Snapshots"* || "$file" == *".png" || "$file" == *".jpg" ]]; then
+            continue
+        fi
+        FILE_SIZE=$(git cat-file -s ":$file" 2>/dev/null || echo "0")
+        if [ "$FILE_SIZE" -gt 512000 ]; then
+            SIZE_KB=$((FILE_SIZE / 1024))
+            warn "[A3] $file — Large file (${SIZE_KB}KB). Fix: Add to .gitignore if generated, or use Git LFS ('git lfs track') for large assets."
+        fi
+    done <<< "$STAGED_ALL"
+fi
+
+# =============================================================================
+# JSON TEST CARD VALIDATION
+# =============================================================================
+STAGED_JSON=$(git diff --cached --name-only --diff-filter=ACM | grep 'shared/test-cards/.*\.json$' || true)
+if [ -n "$STAGED_JSON" ]; then
+    echo -e "${CYAN}Validating test card JSON...${NC}"
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        JSON_CONTENT=$(git show ":$file" 2>/dev/null) || continue
+
+        # ── J1. Invalid JSON syntax ──
+        # FIX: Run 'python3 -m json.tool <file>' to see the parse error.
+        #      Common issues: trailing commas, missing quotes, unescaped chars.
+        if ! echo "$JSON_CONTENT" | python3 -m json.tool > /dev/null 2>&1; then
+            error "[J1] $file — Invalid JSON syntax. Fix: Run 'python3 -m json.tool $file' to see the exact parse error (trailing commas, missing quotes, etc.)."
+            continue
+        fi
+
+        # ── J2. Missing required Adaptive Card fields ──
+        # FIX: Every Adaptive Card JSON must have:
+        #        { "type": "AdaptiveCard", "version": "1.5", "body": [...] }
+        HAS_TYPE=$(echo "$JSON_CONTENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('type',''))" 2>/dev/null || true)
+        HAS_VERSION=$(echo "$JSON_CONTENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('version',''))" 2>/dev/null || true)
+
+        if [ "$HAS_TYPE" != "AdaptiveCard" ]; then
+            error "[J2] $file — Missing or wrong 'type' field. Fix: Add '\"type\": \"AdaptiveCard\"' at the root of the JSON object."
+        fi
+        if [ -z "$HAS_VERSION" ]; then
+            warn "[J2] $file — Missing 'version' field. Fix: Add '\"version\": \"1.5\"' (or \"1.6\") at the root of the JSON object."
+        fi
+    done <<< "$STAGED_JSON"
+fi
+
+# =============================================================================
+# CROSS-PLATFORM PARITY CHECKS
+# =============================================================================
+# These checks ensure iOS and Android stay in sync. This project requires
+# strict feature parity — see CLAUDE.md "Cross-Platform Parity" section.
+
+# ── P1. SchemaValidator modified on one platform only ──
+# FIX: When adding/removing element types in SchemaValidator, update BOTH:
+#        ios/Sources/ACCore/SchemaValidator.swift
+#        android/ac-core/.../core/SchemaValidator.kt
+SCHEMA_IOS=$(echo "$STAGED_SWIFT" | grep 'SchemaValidator' || true)
+SCHEMA_ANDROID=$(echo "$STAGED_KOTLIN" | grep 'SchemaValidator' || true)
+if [ -n "$SCHEMA_IOS" ] && [ -z "$SCHEMA_ANDROID" ]; then
+    warn "[P1] SchemaValidator.swift modified but SchemaValidator.kt was not. Fix: Update android/ac-core/.../SchemaValidator.kt to match."
+fi
+if [ -z "$SCHEMA_IOS" ] && [ -n "$SCHEMA_ANDROID" ]; then
+    warn "[P1] SchemaValidator.kt modified but SchemaValidator.swift was not. Fix: Update ios/Sources/ACCore/SchemaValidator.swift to match."
+fi
+
+# ── P2. Rendering view added/modified on one platform only ──
+# FIX: When adding or changing a SwiftUI view, also update the corresponding
+#      Jetpack Compose composable (and vice versa).
+NEW_IOS_VIEW=$(echo "$STAGED_SWIFT" | grep 'ACRendering/Views/' || true)
+NEW_ANDROID_VIEW=$(echo "$STAGED_KOTLIN" | grep 'ac-rendering.*composables/' || true)
+if [ -n "$NEW_IOS_VIEW" ] && [ -z "$NEW_ANDROID_VIEW" ]; then
+    warn "[P2] iOS rendering view modified without matching Android composable. Fix: Update the corresponding composable in android/ac-rendering/.../composables/."
+fi
+if [ -z "$NEW_IOS_VIEW" ] && [ -n "$NEW_ANDROID_VIEW" ]; then
+    warn "[P2] Android composable modified without matching iOS view. Fix: Update the corresponding view in ios/Sources/ACRendering/Views/."
+fi
+
+# ── P3. HostConfig modified on one platform only ──
+# FIX: HostConfig defines theming/spacing/fonts. Both platforms must render
+#      identically, so changes must be mirrored.
+HOSTCONFIG_IOS=$(echo "$STAGED_SWIFT" | grep 'HostConfig' || true)
+HOSTCONFIG_ANDROID=$(echo "$STAGED_KOTLIN" | grep -i 'hostconfig\|HostConfig' || true)
+if [ -n "$HOSTCONFIG_IOS" ] && [ -z "$HOSTCONFIG_ANDROID" ]; then
+    warn "[P3] iOS HostConfig modified without Android. Fix: Mirror changes in android/ac-core/.../hostconfig/."
+fi
+if [ -z "$HOSTCONFIG_IOS" ] && [ -n "$HOSTCONFIG_ANDROID" ]; then
+    warn "[P3] Android HostConfig modified without iOS. Fix: Mirror changes in ios/Sources/ACCore/HostConfig/."
+fi
+
+# ── P4. Action handlers modified on one platform only ──
+# FIX: Action logic (submit, openUrl, etc.) must behave identically.
+ACTIONS_IOS=$(echo "$STAGED_SWIFT" | grep 'ACActions/' || true)
+ACTIONS_ANDROID=$(echo "$STAGED_KOTLIN" | grep 'ac-actions/' || true)
+if [ -n "$ACTIONS_IOS" ] && [ -z "$ACTIONS_ANDROID" ]; then
+    warn "[P4] iOS action handlers modified without Android. Fix: Update android/ac-actions/ to match behavioral changes."
+fi
+if [ -z "$ACTIONS_IOS" ] && [ -n "$ACTIONS_ANDROID" ]; then
+    warn "[P4] Android action handlers modified without iOS. Fix: Update ios/Sources/ACActions/ to match behavioral changes."
+fi
+
+# ── P5. URL allowedSchemes must be updated in all 5 locations ──
+# WHY: URL validation is defense-in-depth. Missing one location creates a
+#      security gap (see CLAUDE.md "Security — URL Scheme Allowlist").
+# FIX: Grep for 'allowedSchemes' / 'ALLOWED_SCHEMES' and update ALL matches.
+SCHEME_FILES=""
+for f in $STAGED_SWIFT $STAGED_KOTLIN; do
+    [ -z "$f" ] && continue
+    if git show ":$f" 2>/dev/null | grep -q 'allowedSchemes\|ALLOWED_SCHEMES' 2>/dev/null; then
+        SCHEME_FILES="$SCHEME_FILES $f"
+    fi
+done
+SCHEME_COUNT=$(echo "$SCHEME_FILES" | wc -w | tr -d ' ')
+if [ "$SCHEME_COUNT" -gt 0 ] && [ "$SCHEME_COUNT" -lt 5 ]; then
+    warn "[P5] URL allowedSchemes modified in $SCHEME_COUNT of 5 required locations. Fix: grep -r 'allowedSchemes\\|ALLOWED_SCHEMES' ios/ android/ and update ALL matches. See CLAUDE.md Security section."
+fi
+
+# =============================================================================
+# SUMMARY
+# =============================================================================
+echo ""
+if [ "$ERRORS" -gt 0 ]; then
+    echo -e "${RED}${BOLD}Pre-commit check FAILED: $ERRORS error(s), $WARNINGS warning(s)${NC}"
+    echo ""
+    echo -e "${BOLD}What to do:${NC}"
+    echo "  1. Fix all ERROR items above (they have [Fix:] instructions)"
+    echo "  2. Warnings are advisory — review but commit can proceed"
+    echo "  3. Re-stage fixed files: git add <file>"
+    echo "  4. Commit again: git commit"
+    echo ""
+    echo -e "${BOLD}Need help?${NC}"
+    echo "  - Rule details: Read the comments in .githooks/pre-commit"
+    echo "  - Rule index:   Search for [S1], [K5], etc. in this file"
+    echo "  - Suppress once: git commit --no-verify (add justification in commit msg)"
+    echo "  - False positive: Add '// pre-commit:allow' comment on the flagged line"
+    exit 1
+fi
+
+if [ "$WARNINGS" -gt 0 ]; then
+    echo -e "${YELLOW}Pre-commit: $WARNINGS warning(s) — review recommended, commit proceeding${NC}"
+fi
+
+echo -e "${CYAN}Pre-commit checks passed.${NC}"
+exit 0

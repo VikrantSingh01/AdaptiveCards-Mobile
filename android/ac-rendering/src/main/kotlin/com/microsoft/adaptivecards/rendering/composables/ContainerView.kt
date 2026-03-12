@@ -63,16 +63,17 @@ fun ContainerView(
     val shape = if (cornerRadius > 0) RoundedCornerShape(cornerRadius.dp) else RoundedCornerShape(0.dp)
 
     // Resolve border color from container style config
-    val borderColor = if (element.showBorder == true && element.style != null) {
-        val styleConfig = when (element.style!!) {
+    val borderColor = if (element.showBorder == true) {
+        val styleConfig = when (element.style) {
             ContainerStyle.Default -> hostConfig.containerStyles.default
             ContainerStyle.Emphasis -> hostConfig.containerStyles.emphasis
             ContainerStyle.Good -> hostConfig.containerStyles.good
             ContainerStyle.Attention -> hostConfig.containerStyles.attention
             ContainerStyle.Warning -> hostConfig.containerStyles.warning
             ContainerStyle.Accent -> hostConfig.containerStyles.accent
+            null -> null
         }
-        parseColor(styleConfig.borderColor)
+        styleConfig?.let { parseColor(it.borderColor) }
     } else null
 
     Box(

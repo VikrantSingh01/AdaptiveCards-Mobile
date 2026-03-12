@@ -2,8 +2,6 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -14,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import com.microsoft.adaptivecards.core.models.CodeBlock
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 
@@ -41,31 +42,34 @@ fun CodeBlockView(
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
-    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     val scrollState = rememberScrollState()
     val horizontalScrollState = rememberScrollState()
     
     val fontSize = if (isTablet) 16.sp else 14.sp
     val lineNumberFontSize = if (isTablet) 15.sp else 13.sp
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics {
-                contentDescription = buildString {
-                    append("Code block")
-                    element.language?.let { append(" in $it") }
-                    append(", ${element.code.split("\n").size} lines")
-                }
-            },
-        shape = RoundedCornerShape(if (isTablet) 10.dp else 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E1E)
-        )
-    ) {
-        Column {
-            // Header with language and copy button
-            Row(
+    Box(modifier = modifier) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = buildString {
+                        append("Code block")
+                        element.language?.let { append(" in $it") }
+                        append(", ${element.code.split("\n").size} lines")
+                    }
+                },
+            shape = RoundedCornerShape(if (isTablet) 10.dp else 8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF1E1E1E)
+            )
+        ) {
+            Column {
+                // Header with language and copy button
+                Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF2D2D30))
@@ -90,12 +94,17 @@ fun CodeBlockView(
 
                 IconButton(
                     onClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clipboard = context.getSystemService(ClipboardManager::class.java)
                         val clip = ClipData.newPlainText("code", element.code)
                         clipboard.setPrimaryClip(clip)
-                        
-                        // Show toast feedback
-                        Toast.makeText(context, "Code copied to clipboard", Toast.LENGTH_SHORT).show()
+
+                        coroutineScope.launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            snackbarHostState.showSnackbar(
+                                message = "Code copied to clipboard",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
                     },
                     modifier = Modifier
                         .size(if (isTablet) 36.dp else 32.dp)
@@ -159,5 +168,11 @@ fun CodeBlockView(
                 }
             }
         }
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

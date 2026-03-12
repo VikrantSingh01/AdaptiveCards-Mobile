@@ -71,7 +71,7 @@ fun CarouselView(
                     contentDescription = "Page ${pagerState.currentPage + 1} of ${element.pages.size}"
                 }
         ) { page ->
-            val carouselPage = element.pages[page]
+            val carouselPage = element.pages.getOrNull(page) ?: return@HorizontalPager
             
             Card(
                 modifier = Modifier

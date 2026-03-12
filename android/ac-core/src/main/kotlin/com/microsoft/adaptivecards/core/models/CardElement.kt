@@ -187,6 +187,12 @@ data class Fact(
 )
 
 @Serializable
+enum class ImageSetStyle {
+    @SerialName("Grid") Grid,
+    @SerialName("Stacked") Stacked
+}
+
+@Serializable
 @SerialName("ImageSet")
 data class ImageSet(
     @Transient override val type: String = "ImageSet",
@@ -198,7 +204,9 @@ data class ImageSet(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     val images: List<Image>,
-    val imageSize: ImageSize? = null
+    val imageSize: ImageSize? = null,
+    val style: ImageSetStyle? = null,
+    val offset: Int? = null
 ) : CardElement
 
 @Serializable
