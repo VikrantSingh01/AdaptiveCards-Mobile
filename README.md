@@ -23,7 +23,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 
 ## 🎬 Demo
 
-[📹 Watch the demo video](download/AC_Mobile_FHL.mov)
+<video src="https://github.com/VikrantSingh01/AdaptiveCards-Mobile/raw/main/download/AC_Mobile_FHL.mov" controls width="100%"></video>
 
 ## 📊 Platform Status
 
