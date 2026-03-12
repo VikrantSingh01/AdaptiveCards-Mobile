@@ -13,7 +13,7 @@ Adaptive Cards Mobile SDK — cross-platform (iOS + Android) rendering library f
 
 ```
 AdaptiveCards-Mobile/
-├── android/          # Kotlin + Jetpack Compose (12 modules)
+├── android/          # Kotlin + Jetpack Compose (11 modules)
 ├── ios/              # Swift + SwiftUI (11 modules via SPM)
 ├── shared/           # Test cards, schema, scripts
 ├── docs/             # Architecture docs, guides
@@ -48,7 +48,6 @@ Build: `android/settings.gradle.kts` + `android/build.gradle.kts` (Gradle, JDK 1
 | ac-rendering | Compose composables |
 | ac-inputs | Input composables |
 | ac-actions | Action delegates |
-| ac-host-config | Theme/config management |
 | ac-accessibility | Accessibility semantics |
 | ac-templating | Template engine (50+ functions) |
 | ac-markdown | Markdown rendering |

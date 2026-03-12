@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.models.ProgressBar
 import com.microsoft.adaptivecards.core.models.Spinner
 import com.microsoft.adaptivecards.core.models.SpinnerSize
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 
 /**
  * Renders a ProgressBar element
