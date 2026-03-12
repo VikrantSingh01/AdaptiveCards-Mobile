@@ -431,7 +431,7 @@ private fun PopoverBottomSheet(
 /**
  * Handle action execution
  */
-private fun handleAction(
+fun handleAction(
     action: CardAction,
     actionHandler: ActionHandler,
     viewModel: CardViewModel

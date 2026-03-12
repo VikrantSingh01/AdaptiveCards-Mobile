@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -54,6 +55,7 @@ val LocalCardViewModel = compositionLocalOf<CardViewModel?> { null }
  * @param actionHandler Handler for card actions
  * @param modifier Modifier for the card container
  * @param viewModel Optional ViewModel for state management
+ * @param pendingActionTitle Mutable state to trigger an action by title (for test automation)
  * @param onCardParsed Called when the card is successfully parsed
  * @param onCardParseError Called when card parsing fails
  */
@@ -65,6 +67,7 @@ fun AdaptiveCardView(
     actionHandler: ActionHandler = DefaultActionHandler(),
     modifier: Modifier = Modifier,
     viewModel: CardViewModel = viewModel(),
+    pendingActionTitle: MutableState<String?>? = null,
     onCardParsed: ((AdaptiveCard) -> Unit)? = null,
     onCardParseError: ((String) -> Unit)? = null
 ) {
@@ -81,6 +84,19 @@ fun AdaptiveCardView(
     }
     LaunchedEffect(parseError) {
         parseError?.let { onCardParseError?.invoke(it) }
+    }
+
+    // Handle pending action trigger (for test automation deep links)
+    val pendingTitle = pendingActionTitle?.value
+    LaunchedEffect(pendingTitle, card) {
+        if (pendingTitle != null && card != null) {
+            val allActions = collectAllActions(card)
+            val matchingAction = allActions.firstOrNull { it.title == pendingTitle }
+            if (matchingAction != null) {
+                handleAction(matchingAction, actionHandler, viewModel)
+            }
+            pendingActionTitle?.value = null
+        }
     }
 
     // Display error if parsing failed
@@ -225,6 +241,37 @@ fun RenderElement(
                 if (customRenderer != null) {
                     customRenderer(element, elementModifier)
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Recursively collects all actions from a card (card-level + body ActionSets).
+ */
+fun collectAllActionsForCard(card: AdaptiveCard): List<CardAction> {
+    val actions = mutableListOf<CardAction>()
+    card.actions?.let { actions.addAll(it) }
+    card.body?.let { body -> collectActionsFromElements(body, actions) }
+    return actions
+}
+
+private fun collectAllActions(card: AdaptiveCard?): List<CardAction> {
+    if (card == null) return emptyList()
+    return collectAllActionsForCard(card)
+}
+
+private fun collectActionsFromElements(elements: List<CardElement>, actions: MutableList<CardAction>) {
+    for (element in elements) {
+        if (element is ActionSet) {
+            actions.addAll(element.actions)
+        }
+        if (element is Container) {
+            element.items?.let { collectActionsFromElements(it, actions) }
+        }
+        if (element is ColumnSet) {
+            element.columns?.forEach { column ->
+                column.items?.let { collectActionsFromElements(it, actions) }
             }
         }
     }
