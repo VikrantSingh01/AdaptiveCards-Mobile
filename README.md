@@ -14,7 +14,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 ### Key Features
 
 - 🚀 **Native Rendering**: SwiftUI for iOS, Jetpack Compose for Android
-- 🎨 **Advanced Elements**: Carousel, Accordion, CodeBlock, Rating, TabSet, Progress Indicators, and more
+- 🎨 **Advanced Elements**: Carousel, Accordion, CodeBlock, Rating, TabSet, Badge, Icon, Progress Indicators, and more
 - 📝 **Templating Engine**: Full expression support with 60+ built-in functions
 - ♿ **Accessibility**: WCAG 2.1 AA compliant with VoiceOver/TalkBack support
 - 📱 **Responsive Design**: Adapts to phone/tablet, portrait/landscape, Dynamic Type/font scaling
@@ -41,7 +41,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - ✅ **ACCore**: Card parsing, models, host configuration
 - ✅ **ACRendering**: Card rendering with SwiftUI views
 - ✅ **ACInputs**: Input controls (text, number, date, rating, etc.)
-- ✅ **ACActions**: Action handling (submit, open URL, show card, etc.)
+- ✅ **ACActions**: Action handling (submit, open URL, show card, cart icon, etc.)
 - ✅ **ACAccessibility**: Accessibility helpers and modifiers
 - ✅ **ACTemplating**: Template engine with 60+ expression functions
 - ✅ **ACMarkdown**: Markdown rendering
@@ -54,7 +54,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - ✅ **ac-core**: Card parsing, models, host configuration
 - ✅ **ac-rendering**: Card rendering with Compose views
 - ✅ **ac-inputs**: Input controls with validation
-- ✅ **ac-actions**: Action handling and delegation
+- ✅ **ac-actions**: Action handling and delegation (cart icon support)
 - ✅ **ac-accessibility**: Accessibility semantics
 - ✅ **ac-host-config**: Theme and configuration management
 - ✅ **ac-templating**: Template engine with 50+ expression functions
@@ -903,4 +903,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Version**: 1.1.0-dev
 **Status**: Production Ready ✅
-**Last Verified**: 2026-03-11 (iOS 11/11 modules, 235 tests passing; Android 12/12 modules, all tests passing; both sample apps running; HostConfigs aligned to Figma AC-Evolution design spec; deep link navigation with gallery filtering on both platforms)
+**Last Verified**: 2026-03-11 (iOS 11/11 modules, 235 tests passing; Android 12/12 modules, all tests passing; both sample apps running; HostConfigs aligned to Figma AC-Evolution design spec; extended deep link routing with gallery category filters, cart icon support, and dual-platform demo scripts)

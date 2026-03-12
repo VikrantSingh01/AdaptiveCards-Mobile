@@ -99,7 +99,7 @@ shared/
 └── README.md
 ```
 
-## Current Parity Baseline (February 2026)
+## Current Parity Baseline (March 2026)
 
 | Card | Diff % | Notes |
 |------|--------|-------|
@@ -177,3 +177,7 @@ comment on the PR with the diff percentages.
 
 - Legacy repo: [`microsoft/Teams-AdaptiveCards-Mobile`](https://dev.azure.com/nicktalk/nicktalk/_git/Teams-AdaptiveCards-Mobile) branch `feature/hggz/visual-parity-baselines`
 - Shared infrastructure docs: [shared/README.md](shared/README.md)
+
+---
+
+*Last updated: March 11, 2026*
