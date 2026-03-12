@@ -199,11 +199,16 @@ public struct ActionButton: View {
         "AlertUrgent": "bell.badge",
         "Alert": "exclamationmark.triangle",
         "Bell": "bell",
-        "BellOff": "bell.slash"
+        "BellOff": "bell.slash",
+        "ArrowReset": "arrow.counterclockwise",
+        "ToggleLeft": "switch.2"
     ]
 
-    /// Maps Fluent UI icon names to SF Symbols
+    /// Maps Fluent UI icon names to SF Symbols.
+    /// Handles style suffixes like "Open,Filled" or "Send,Regular" by stripping the comma-separated style.
     static func sfSymbol(for fluentIcon: String) -> String {
-        fluentToSFSymbol[fluentIcon] ?? "questionmark.square"
+        // Strip style suffix (e.g., ",Filled", ",Regular") if present
+        let name = fluentIcon.split(separator: ",").first.map(String.init) ?? fluentIcon
+        return fluentToSFSymbol[name] ?? "questionmark.square"
     }
 }

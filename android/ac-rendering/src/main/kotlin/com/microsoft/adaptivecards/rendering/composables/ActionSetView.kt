@@ -143,7 +143,7 @@ fun ActionSetView(
         // Render popover bottom sheets for any ActionPopover actions that are showing
         val popoverActions = actions.filterIsInstance<ActionPopover>()
         popoverActions.forEach { popoverAction ->
-            val actionId = popoverAction.id ?: return@forEach
+            val actionId = popoverAction.id ?: "popover_${popoverAction.title ?: "unknown"}"
             if (viewModel.isPopoverShowing(actionId)) {
                 PopoverBottomSheet(
                     action = popoverAction,
@@ -310,9 +310,11 @@ private fun ActionButtonContent(
     }
 }
 
-/** Maps Fluent UI icon names to Material icons. */
+/** Maps Fluent UI icon names to Material icons. Strips style suffixes like ",Filled" or ",Regular". */
 private fun resolveFluentIcon(name: String): ImageVector? {
-    return when (name.lowercase()) {
+    // Strip style suffix (e.g., ",Filled", ",Regular") before lookup
+    val baseName = name.split(",").first().lowercase()
+    return when (baseName) {
         "alerturgent" -> Icons.Filled.Notifications
         "alert", "bell" -> Icons.Outlined.Notifications
         "belloff" -> Icons.Outlined.Notifications
@@ -361,6 +363,8 @@ private fun resolveFluentIcon(name: String): ImageVector? {
         "chevronup" -> Icons.Filled.ExpandLess
         "navigation" -> Icons.Filled.Navigation
         "receipt" -> Icons.Filled.Receipt
+        "arrowreset" -> Icons.Filled.Refresh
+        "toggleleft" -> Icons.Filled.ToggleOn
         else -> null
     }
 }
@@ -451,7 +455,7 @@ private fun handleAction(
             actionHandler.onOpenUrl(action.url, action.id)
         }
         is ActionPopover -> {
-            val actionId = action.id ?: return
+            val actionId = action.id ?: "popover_${action.title ?: "unknown"}"
             viewModel.togglePopover(actionId)
         }
         is ActionRunCommands -> {
