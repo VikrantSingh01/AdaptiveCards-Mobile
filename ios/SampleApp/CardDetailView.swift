@@ -44,6 +44,7 @@ struct CardDetailView: View {
     @EnvironmentObject var bookmarks: BookmarkStore
     @EnvironmentObject var editorState: EditorState
     @EnvironmentObject var perfStore: PerformanceStore
+    @EnvironmentObject var deepLink: DeepLinkRouter
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,7 +53,8 @@ struct CardDetailView: View {
                 cardJson: card.jsonString,
                 templateData: card.dataJsonString.flatMap { parseTemplateData($0) },
                 hostConfig: TeamsHostConfig.create(),
-                actionDelegate: SampleActionDelegate(actionLog: actionLog)
+                actionDelegate: SampleActionDelegate(actionLog: actionLog),
+                pendingActionTitle: $deepLink.pendingActionTitle
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 

@@ -68,6 +68,7 @@ fun MainScreen() {
     val perfStore = remember { PerformanceStore(context) }
     val galleryListState = rememberLazyListState()
     var pendingGalleryFilter by remember { mutableStateOf<String?>(null) }
+    val pendingActionTitle = remember { mutableStateOf<String?>(null) }
 
     val activity = context as? MainActivity
     LaunchedEffect(Unit) {
@@ -77,6 +78,10 @@ fun MainScreen() {
                 // Extract gallery filter before navigation
                 if (uri.host == "gallery" && uri.pathSegments.isNotEmpty()) {
                     pendingGalleryFilter = uri.pathSegments.first()
+                }
+                // Extract action title for tap-action deep links
+                if (uri.host == "tap-action" && uri.pathSegments.isNotEmpty()) {
+                    pendingActionTitle.value = uri.pathSegments.joinToString("/")
                 }
                 handleDeepLink(uri, navController)
             } catch (e: Exception) {
@@ -147,7 +152,7 @@ fun MainScreen() {
             }
             composable("card_detail/{cardId}") { backStackEntry ->
                 val cardId = backStackEntry.arguments?.getString("cardId") ?: ""
-                CardDetailScreen(cardId, actionLogState, bookmarkState, navController, editorState, perfStore)
+                CardDetailScreen(cardId, actionLogState, bookmarkState, navController, editorState, perfStore, pendingActionTitle)
             }
             composable("bookmarks") {
                 BookmarksScreen(bookmarkState, navController)
@@ -535,6 +540,9 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 launchSingleTop = true
                 restoreState = true
             }
+        }
+        "tap-action" -> {
+            // Handled by pendingActionTitle state in MainScreen — no navigation needed
         }
     }
 }

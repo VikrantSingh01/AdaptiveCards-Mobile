@@ -12,6 +12,7 @@ public struct AdaptiveCardView: View {
     let actionDelegate: ActionDelegate?
     let onCardParsed: ((AdaptiveCard) -> Void)?
     let onCardParseError: ((Error) -> Void)?
+    var pendingActionTitle: Binding<String?>?
 
     @StateObject private var viewModel = CardViewModel()
     @StateObject private var validationState = ValidationState()
@@ -24,6 +25,7 @@ public struct AdaptiveCardView: View {
     ///   - hostConfig: Host configuration for theming and layout
     ///   - actionDelegate: Delegate for handling card actions
     ///   - actionHandler: Internal action dispatcher
+    ///   - pendingActionTitle: Binding to trigger an action by title (for test automation)
     ///   - onCardParsed: Called when the card is successfully parsed
     ///   - onCardParseError: Called when card parsing fails
     public init(
@@ -32,6 +34,7 @@ public struct AdaptiveCardView: View {
         hostConfig: HostConfig = TeamsHostConfig.create(),
         actionDelegate: ActionDelegate? = nil,
         actionHandler: ActionHandler = DefaultActionHandler(),
+        pendingActionTitle: Binding<String?>? = nil,
         onCardParsed: ((AdaptiveCard) -> Void)? = nil,
         onCardParseError: ((Error) -> Void)? = nil
     ) {
@@ -40,6 +43,7 @@ public struct AdaptiveCardView: View {
         self.hostConfig = hostConfig
         self.actionDelegate = actionDelegate
         self.actionHandler = actionHandler
+        self.pendingActionTitle = pendingActionTitle
         self.onCardParsed = onCardParsed
         self.onCardParseError = onCardParseError
     }
@@ -60,6 +64,13 @@ public struct AdaptiveCardView: View {
             .onChange(of: viewModel.card) { card in
                 if let card = card {
                     onCardParsed?(card)
+                    // Handle pending action that arrived before the card was parsed
+                    if let title = pendingActionTitle?.wrappedValue {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            self.triggerAction(byTitle: title, in: card)
+                            self.pendingActionTitle?.wrappedValue = nil
+                        }
+                    }
                 }
             }
             .onChange(of: viewModel.parsingErrorId) { _ in
@@ -67,6 +78,50 @@ public struct AdaptiveCardView: View {
                     onCardParseError?(error)
                 }
             }
+            .onChange(of: pendingActionTitle?.wrappedValue) { title in
+                guard let title = title, let card = viewModel.card else { return }
+                triggerAction(byTitle: title, in: card)
+                pendingActionTitle?.wrappedValue = nil
+            }
+    }
+
+    /// Finds an action by title in the card and triggers it via the action handler.
+    @MainActor
+    private func triggerAction(byTitle title: String, in card: AdaptiveCard) {
+        let allActions = Self.collectAllActions(from: card)
+        if let action = allActions.first(where: { $0.title == title }) {
+            actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
+        }
+    }
+
+    /// Recursively collects all actions from the card (card-level + body ActionSets).
+    private static func collectAllActions(from card: AdaptiveCard) -> [CardAction] {
+        var actions: [CardAction] = card.actions ?? []
+        if let body = card.body {
+            actions.append(contentsOf: collectActionsFromElements(body))
+        }
+        return actions
+    }
+
+    private static func collectActionsFromElements(_ elements: [CardElement]) -> [CardAction] {
+        var actions: [CardAction] = []
+        for element in elements {
+            if case .actionSet(let actionSet) = element {
+                actions.append(contentsOf: actionSet.actions)
+            }
+            // Recurse into containers
+            if case .container(let container) = element, let items = container.items {
+                actions.append(contentsOf: collectActionsFromElements(items))
+            }
+            if case .columnSet(let columnSet) = element {
+                for column in columnSet.columns {
+                    if let items = column.items {
+                        actions.append(contentsOf: collectActionsFromElements(items))
+                    }
+                }
+            }
+        }
+        return actions
     }
 
     @ViewBuilder

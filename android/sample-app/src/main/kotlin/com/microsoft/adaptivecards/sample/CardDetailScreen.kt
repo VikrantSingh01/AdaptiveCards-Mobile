@@ -32,7 +32,7 @@ import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkState: BookmarkState, navController: NavController, editorState: EditorState? = null, perfStore: PerformanceStore? = null) {
+fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkState: BookmarkState, navController: NavController, editorState: EditorState? = null, perfStore: PerformanceStore? = null, pendingActionTitle: MutableState<String?>? = null) {
     var showJson by remember { mutableStateOf(false) }
     var parseTimeMs by remember { mutableStateOf(0.0) }
     var renderTimeMs by remember { mutableStateOf(0.0) }
@@ -44,6 +44,21 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
         CardCache.getCards(context).find { it.filename == cardId }
     }
     val cardViewModel: CardViewModel = viewModel(key = "detail_${cardId}_$refreshKey")
+    val actionHandler = remember(actionLogState) { LoggingActionHandler(actionLogState) }
+
+    // Handle pending action trigger (for test automation deep links)
+    val pendingTitle = pendingActionTitle?.value
+    val parsedCard by cardViewModel.card.collectAsState()
+    LaunchedEffect(pendingTitle, parsedCard) {
+        if (pendingTitle != null && parsedCard != null) {
+            val allActions = com.microsoft.adaptivecards.rendering.composables.collectAllActionsForCard(parsedCard!!)
+            val matchingAction = allActions.firstOrNull { it.title == pendingTitle }
+            if (matchingAction != null) {
+                com.microsoft.adaptivecards.rendering.composables.handleAction(matchingAction, actionHandler, cardViewModel)
+            }
+            pendingActionTitle?.value = null
+        }
+    }
 
     LaunchedEffect(card, refreshKey) {
         card?.let {
@@ -139,11 +154,12 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                     AdaptiveCardView(
                         cardJson = card?.jsonString ?: "",
                         hostConfig = com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig.createLight(),
-                        actionHandler = LoggingActionHandler(actionLogState),
+                        actionHandler = actionHandler,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp),
-                        viewModel = cardViewModel
+                        viewModel = cardViewModel,
+                        pendingActionTitle = pendingActionTitle
                     )
                 }
             }

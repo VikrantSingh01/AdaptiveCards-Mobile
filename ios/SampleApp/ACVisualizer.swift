@@ -35,12 +35,15 @@ struct ACVisualizer: App {
 ///   adaptivecards://performance             — open performance dashboard
 ///   adaptivecards://bookmarks               — open bookmarks screen
 ///   adaptivecards://settings                — open settings screen
+///   adaptivecards://tap-action/{title}       — programmatically trigger action by title
 class DeepLinkRouter: ObservableObject {
     @Published var activeCard: TestCard?
     /// Set by deep link to request a screen navigation
     @Published var pendingScreen: String?
     /// Set by deep link to request a gallery filter (e.g. "teams-official")
     @Published var pendingFilter: String?
+    /// Set by deep link to trigger an action by title on the currently displayed card
+    @Published var pendingActionTitle: String?
 
     func handle(_ url: URL) {
         guard url.scheme == "adaptivecards" else { return }
@@ -75,6 +78,13 @@ class DeepLinkRouter: ObservableObject {
         case "more":
             activeCard = nil
             pendingScreen = "more"
+        case "tap-action":
+            // adaptivecards://tap-action/{title} — trigger action on the current card
+            let title = url.pathComponents.dropFirst().joined(separator: "/")
+                .removingPercentEncoding ?? ""
+            if !title.isEmpty {
+                pendingActionTitle = title
+            }
         default:
             break
         }
