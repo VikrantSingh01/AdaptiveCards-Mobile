@@ -79,11 +79,11 @@ Build: `android/settings.gradle.kts` + `android/build.gradle.kts` (Gradle, JDK 1
 cd ios && swift build
 
 # Build sample app for simulator
-xcodebuild -project ios/SampleApp.xcodeproj -scheme AdaptiveCardsSampleApp \
+xcodebuild -project ios/SampleApp.xcodeproj -scheme ACVisualizer \
   -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16e' build
 
 # Install & launch sample app
-xcrun simctl install "iPhone 16e" <derived-data-path>/AdaptiveCardsSampleApp.app
+xcrun simctl install "iPhone 16e" <derived-data-path>/ACVisualizer.app
 xcrun simctl launch "iPhone 16e" com.microsoft.adaptivecards.sampleapp
 ```
 

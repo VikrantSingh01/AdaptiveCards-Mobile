@@ -879,7 +879,7 @@ The iOS Sample App (`ios/SampleApp/`) demonstrates best practices for integratin
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              AdaptiveCardsSampleApp                     │
+│              ACVisualizer                     │
 │                   (@main App)                           │
 └───────────────────┬─────────────────────────────────────┘
                     │

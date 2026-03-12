@@ -5,7 +5,7 @@
 #
 # Prerequisites:
 #   - iOS Simulator booted with iPhone 16e
-#   - AdaptiveCardsSampleApp installed and on the Gallery screen
+#   - ACVisualizer installed and on the Gallery screen
 #   - Simulator window visible (not minimized)
 #
 # Usage: bash test-ios-cards-visual.sh [card-name]
