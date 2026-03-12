@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Author: Vikrant Singh (github.com/VikrantSingh01)
+# Licensed under the MIT License.
+
 # iOS Card UI Smoke Test
 # Takes screenshots of each card in the iOS simulator and checks for rendering errors.
 #

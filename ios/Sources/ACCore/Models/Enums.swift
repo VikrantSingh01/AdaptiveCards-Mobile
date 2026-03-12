@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Author: Vikrant Singh (github.com/VikrantSingh01)
+// Licensed under the MIT License.
+
 import Foundation
 
 // MARK: - Case-Insensitive Codable Helper
@@ -200,7 +204,7 @@ public enum TextInputStyle: String, Codable, CaseIterable, CaseInsensitiveCodabl
     case tel = "Tel"
     case url = "Url"
     case email = "Email"
-    case password = "Password"
+    case password = "Password" // pre-commit:allow — enum value for TextInputStyle, not a secret
 }
 
 // MARK: - Associated Inputs

@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Author: Vikrant Singh (github.com/VikrantSingh01)
+// Licensed under the MIT License.
+
 import Foundation
 
 /// Width categories for responsive targetWidth filtering per Adaptive Cards spec.
