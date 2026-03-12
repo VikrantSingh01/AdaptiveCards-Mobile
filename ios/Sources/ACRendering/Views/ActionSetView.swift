@@ -13,19 +13,51 @@ struct ActionSetView: View {
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
-        Group {
-            if orientation == .horizontal {
-                HStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
-                    actionContent
+        VStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
+            Group {
+                if orientation == .horizontal {
+                    HStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
+                        actionContent
+                    }
+                } else {
+                    VStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
+                        actionContent
+                    }
                 }
-            } else {
-                VStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
-                    actionContent
+            }
+            .frame(maxWidth: .infinity, alignment: alignment)
+
+            // Render expanded ShowCard sub-cards inline
+            ForEach(showCardActions, id: \.id) { action in
+                if case .showCard(let showCardAction) = action,
+                   viewModel.isShowCardExpanded(actionId: action.id) {
+                    VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.default)) {
+                        ForEach(Array((showCardAction.card.body ?? []).enumerated()), id: \.offset) { _, element in
+                            ElementView(element: element, hostConfig: hostConfig)
+                        }
+                        // Render sub-card actions if present
+                        if let subActions = showCardAction.card.actions, !subActions.isEmpty {
+                            ActionSetView(actions: subActions, hostConfig: hostConfig)
+                        }
+                    }
+                    .padding(CGFloat(hostConfig.spacing.padding))
+                    .background(
+                        RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["container"] ?? 4))
+                            .fill(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
+                    )
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: alignment)
         .accessibilityContainer(label: "Actions")
+    }
+
+    /// All ShowCard actions from the action list
+    private var showCardActions: [CardAction] {
+        actions.filter {
+            if case .showCard = $0 { return true }
+            return false
+        }
     }
 
     // MARK: - Overflow logic
@@ -56,16 +88,38 @@ struct ActionSetView: View {
     @ViewBuilder
     private var actionContent: some View {
         ForEach(visibleActions) { action in
-            ActionButton(action: action, hostConfig: hostConfig) {
-                actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
-            }
-            .if(isStretch) { view in
-                view.frame(maxWidth: .infinity)
-            }
+            actionButtonView(for: action)
+                .if(isStretch) { view in
+                    view.frame(maxWidth: .infinity)
+                }
         }
 
         if !overflowActions.isEmpty {
             overflowMenu
+        }
+    }
+
+    @ViewBuilder
+    private func actionButtonView(for action: CardAction) -> some View {
+        if case .popover(let popoverAction) = action {
+            let actionId = popoverAction.id ?? "popover_\(popoverAction.title ?? action.id)"
+            ActionButton(action: action, hostConfig: hostConfig) {
+                actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
+            }
+            .sheet(isPresented: viewModel.popoverBinding(actionId: actionId)) {
+                PopoverContentView(
+                    content: popoverAction.content,
+                    title: popoverAction.title,
+                    hostConfig: hostConfig
+                )
+                .environmentObject(viewModel)
+                .environment(\.actionHandler, actionHandler)
+                .environment(\.actionDelegate, actionDelegate)
+            }
+        } else {
+            ActionButton(action: action, hostConfig: hostConfig) {
+                actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
+            }
         }
     }
 

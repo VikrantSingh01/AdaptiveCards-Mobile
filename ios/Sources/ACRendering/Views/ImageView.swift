@@ -1,7 +1,42 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+import WebKit
+#endif
 import ACCore
 import ACAccessibility
 import ACFluentUI
+
+#if canImport(UIKit)
+/// A SwiftUI wrapper that renders SVG content via WKWebView
+private struct SVGWebView: UIViewRepresentable {
+    let svgSource: String
+    let width: CGFloat?
+    let height: CGFloat?
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.isOpaque = false
+        webView.backgroundColor = UIColor.clear
+        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.backgroundColor = UIColor.clear
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        let w = width.map { "\(Int($0))px" } ?? "100%"
+        let h = height.map { "\(Int($0))px" } ?? "auto"
+        let imgTag = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
+        let html = """
+        <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+        <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}</style></head>
+        <body>\(imgTag)</body></html>
+        """
+        webView.loadHTMLString(html, baseURL: nil)
+    }
+}
+#endif
 
 struct ImageView: View {
     let image: ACCore.Image
@@ -13,42 +48,48 @@ struct ImageView: View {
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
-        AsyncImage(url: URL(string: image.url)) { phase in
-            switch phase {
-            case .empty:
-                // Reserve expected size so LazyVGrid/ImageSet can compute row height.
-                // Uses target size if explicit, otherwise a minimal placeholder.
-                if let w = imageWidth, let h = imageHeight {
-                    ProgressView()
-                        .frame(width: w, height: h)
-                } else if shouldFillWidth {
-                    Color.clear
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 1)
-                } else {
-                    Color.clear
-                        .frame(width: 0, height: 0)
+        Group {
+            if isSymbolUrl {
+                // symbol: URLs are platform-specific; render as placeholder
+                Color.clear.frame(width: imageWidth ?? 40, height: imageHeight ?? 40)
+            } else if isSVG {
+                svgView
+            } else {
+                AsyncImage(url: URL(string: image.url)) { phase in
+                    switch phase {
+                    case .empty:
+                        if let w = imageWidth, let h = imageHeight {
+                            ProgressView()
+                                .frame(width: w, height: h)
+                        } else if shouldFillWidth {
+                            Color.clear
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 1)
+                        } else {
+                            Color.clear
+                                .frame(width: 0, height: 0)
+                        }
+                    case .success(let img):
+                        if shouldFillWidth {
+                            img
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: .infinity)
+                                .clipShape(imageShape)
+                        } else {
+                            img
+                                .resizable()
+                                .aspectRatio(contentMode: aspectRatio)
+                                .frame(width: imageWidth, height: imageHeight)
+                                .clipShape(imageShape)
+                        }
+                    case .failure:
+                        Color.clear
+                            .frame(width: 0, height: 0)
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
-            case .success(let img):
-                if shouldFillWidth {
-                    img
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: .infinity)
-                        .clipShape(imageShape)
-                } else {
-                    img
-                        .resizable()
-                        .aspectRatio(contentMode: aspectRatio)
-                        .frame(width: imageWidth, height: imageHeight)
-                        .clipShape(imageShape)
-                }
-            case .failure:
-                // Match Android: silently hide failed images instead of showing placeholder
-                Color.clear
-                    .frame(width: 0, height: 0)
-            @unknown default:
-                EmptyView()
             }
         }
         .background(backgroundColorValue)
@@ -60,6 +101,43 @@ struct ImageView: View {
         }
         .accessibilityElement(label: image.altText ?? "Image")
     }
+
+    // MARK: - SVG Detection & Rendering
+
+    /// True if the URL is SVG content (data URI or .svg URL)
+    private var isSVG: Bool {
+        image.url.hasPrefix("data:image/svg+xml") || {
+            guard let url = URL(string: image.url) else { return false }
+            return url.pathExtension.lowercased() == "svg"
+        }()
+    }
+
+    /// True if the URL uses the symbol: scheme
+    private var isSymbolUrl: Bool {
+        image.url.hasPrefix("symbol:")
+    }
+
+    @ViewBuilder
+    private var svgView: some View {
+        #if canImport(UIKit)
+        SVGWebView(
+            svgSource: image.url,
+            width: imageWidth,
+            height: imageHeight
+        )
+        .frame(
+            width: imageWidth ?? (shouldFillWidth ? nil : 100),
+            height: imageHeight ?? (shouldFillWidth ? 200 : 100)
+        )
+        .frame(maxWidth: shouldFillWidth ? .infinity : nil)
+        .clipShape(imageShape)
+        #else
+        // Fallback for non-UIKit platforms: show placeholder
+        Color.clear.frame(width: imageWidth ?? 100, height: imageHeight ?? 100)
+        #endif
+    }
+
+    // MARK: - Sizing
 
     private var backgroundColorValue: Color {
         if let bgColor = image.backgroundColor, !bgColor.isEmpty {
@@ -114,9 +192,12 @@ struct ImageView: View {
     }
 
     private var imageShape: AnyShape {
-        if image.style == .person {
+        switch image.style {
+        case .person:
             return AnyShape(Circle())
-        } else {
+        case .roundedCorners:
+            return AnyShape(RoundedRectangle(cornerRadius: 8))
+        default:
             let radius = CGFloat(hostConfig.cornerRadius["image"] ?? 0)
             return AnyShape(RoundedRectangle(cornerRadius: radius))
         }

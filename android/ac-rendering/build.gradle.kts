@@ -66,6 +66,7 @@ dependencies {
     
     // Image Loading
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
 
     debugImplementation(libs.compose.ui.tooling)
 

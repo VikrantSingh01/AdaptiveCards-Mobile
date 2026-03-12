@@ -6,6 +6,56 @@ public final class TemplateEngine {
 
     public init() {}
 
+    // MARK: - String Resources
+
+    /// Resolve `${rs:key}` string resource references in a raw JSON string.
+    /// Must be called **before** template expansion or JSON parsing.
+    ///
+    /// - Parameters:
+    ///   - json: Raw card JSON string (may contain `${rs:key}` references)
+    ///   - locale: Preferred locale for localized values (e.g. "en-US"). Falls back to `defaultValue`.
+    /// - Returns: JSON string with all valid `${rs:key}` patterns replaced
+    public func resolveStringResources(_ json: String, locale: String? = nil) -> String {
+        // Extract the "resources" object from the raw JSON
+        guard let data = json.data(using: .utf8),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let resources = root["resources"] as? [String: Any],
+              let strings = resources["strings"] as? [String: Any] else {
+            return json
+        }
+
+        // Build a flat lookup: key -> resolved string
+        var lookup: [String: String] = [:]
+        for (key, value) in strings {
+            guard let entry = value as? [String: Any] else { continue }
+            let defaultValue = entry["defaultValue"] as? String ?? ""
+
+            if let locale = locale,
+               let localizedValues = entry["localizedValues"] as? [String: String] {
+                // Case-insensitive locale match
+                let resolved = localizedValues.first(where: {
+                    $0.key.caseInsensitiveCompare(locale) == .orderedSame
+                })?.value
+                lookup[key] = resolved ?? defaultValue
+            } else {
+                lookup[key] = defaultValue
+            }
+        }
+
+        guard !lookup.isEmpty else { return json }
+
+        // Replace all ${rs:key} patterns (case-sensitive: only lowercase "rs:" is valid)
+        var result = json
+        for (key, value) in lookup {
+            let escapedValue = value
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+            result = result.replacingOccurrences(of: "${rs:\(key)}", with: escapedValue)
+        }
+
+        return result
+    }
+
     /// Expand a template string with data binding
     /// - Parameters:
     ///   - template: Template string containing ${...} expressions

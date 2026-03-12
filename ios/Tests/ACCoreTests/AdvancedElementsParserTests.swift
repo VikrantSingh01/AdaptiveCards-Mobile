@@ -729,10 +729,10 @@ final class AdvancedElementsParserTests: XCTestCase {
         if case .compoundButton(let button) = defaultButton {
             XCTAssertEqual(button.id, "btn_default")
             XCTAssertEqual(button.title, "Default Style Button")
-            XCTAssertEqual(button.subtitle, "Leading icon with default styling")
+            XCTAssertEqual(button.description, "Leading icon with default styling")
             XCTAssertEqual(button.iconName, "checkmark.circle.fill")
             XCTAssertEqual(button.iconPosition, "leading")
-            XCTAssertNotNil(button.action)
+            XCTAssertNotNil(button.selectAction)
         } else {
             XCTFail("Expected CompoundButton element")
         }
@@ -752,7 +752,7 @@ final class AdvancedElementsParserTests: XCTestCase {
 
         if case .compoundButton(let button) = emphasisButton {
             XCTAssertEqual(button.style, "emphasis")
-            XCTAssertNotNil(button.action)
+            XCTAssertNotNil(button.selectAction)
         } else {
             XCTFail("Expected CompoundButton with emphasis style")
         }
@@ -773,7 +773,7 @@ final class AdvancedElementsParserTests: XCTestCase {
         if case .compoundButton(let button) = positiveButton {
             XCTAssertEqual(button.style, "positive")
             XCTAssertEqual(button.title, "Approve Request")
-            XCTAssertNotNil(button.action)
+            XCTAssertNotNil(button.selectAction)
         } else {
             XCTFail("Expected CompoundButton with positive style")
         }
@@ -794,7 +794,7 @@ final class AdvancedElementsParserTests: XCTestCase {
         if case .compoundButton(let button) = destructiveButton {
             XCTAssertEqual(button.style, "destructive")
             XCTAssertEqual(button.title, "Delete Item")
-            XCTAssertNotNil(button.action)
+            XCTAssertNotNil(button.selectAction)
         } else {
             XCTFail("Expected CompoundButton with destructive style")
         }
@@ -834,7 +834,7 @@ final class AdvancedElementsParserTests: XCTestCase {
 
         if case .compoundButton(let button) = noIconButton {
             XCTAssertNil(button.icon)
-            XCTAssertNotNil(button.subtitle)
+            XCTAssertNotNil(button.description)
         } else {
             XCTFail("Expected CompoundButton without icon")
         }
@@ -853,9 +853,9 @@ final class AdvancedElementsParserTests: XCTestCase {
         }
 
         if case .compoundButton(let button) = noSubtitleButton {
-            XCTAssertNil(button.subtitle)
+            XCTAssertNil(button.description)
             XCTAssertNotNil(button.icon)
-            XCTAssertNotNil(button.action)
+            XCTAssertNotNil(button.selectAction)
         } else {
             XCTFail("Expected CompoundButton without subtitle")
         }
@@ -874,7 +874,7 @@ final class AdvancedElementsParserTests: XCTestCase {
         }
 
         if case .compoundButton(let button) = disabledButton {
-            XCTAssertNil(button.action)
+            XCTAssertNil(button.selectAction)
         } else {
             XCTFail("Expected CompoundButton without action")
         }
@@ -884,10 +884,10 @@ final class AdvancedElementsParserTests: XCTestCase {
         let button = CompoundButton(
             id: "testButton",
             title: "Test Button",
-            subtitle: "Test subtitle",
+            description: "Test subtitle",
             icon: IconDescriptor(name: "star.fill"),
             iconPosition: "leading",
-            action: CardAction.submit(SubmitAction(title: "Submit")),
+            selectAction: CardAction.submit(SubmitAction(title: "Submit")),
             style: "emphasis"
         )
 
@@ -899,7 +899,7 @@ final class AdvancedElementsParserTests: XCTestCase {
 
         XCTAssertEqual(decoded.id, button.id)
         XCTAssertEqual(decoded.title, button.title)
-        XCTAssertEqual(decoded.subtitle, button.subtitle)
+        XCTAssertEqual(decoded.description, button.description)
         XCTAssertEqual(decoded.icon, button.icon)
         XCTAssertEqual(decoded.iconPosition, button.iconPosition)
         XCTAssertEqual(decoded.style, button.style)

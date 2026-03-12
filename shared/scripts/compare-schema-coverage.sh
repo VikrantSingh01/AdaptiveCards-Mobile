@@ -29,15 +29,15 @@ ANDROID_ACTIONS="/tmp/android-actions.txt"
 # Extract element types from iOS
 echo "Extracting iOS element types..."
 if [ -f "$IOS_VALIDATOR" ]; then
-    # Extract from validElementTypes set - stop at closing bracket
-    grep -A 20 "validElementTypes" "$IOS_VALIDATOR" | \
+    # Extract element types: only lines between "validElementTypes" set declaration and its closing "]"
+    awk '/static let validElementTypes/,/^    \]/' "$IOS_VALIDATOR" | \
         grep -o '"[^"]*"' | \
         tr -d '"' | \
         grep -E "^[A-Z]|^Input\." | \
         sort -u > "$IOS_ELEMENTS"
-    
-    # Extract action types
-    grep -A 10 "validActionTypes" "$IOS_VALIDATOR" | \
+
+    # Extract action types: only lines between "validActionTypes" set declaration and its closing "]"
+    awk '/static let validActionTypes/,/^    \]/' "$IOS_VALIDATOR" | \
         grep -o '"Action\.[^"]*"' | \
         tr -d '"' | \
         sort -u > "$IOS_ACTIONS"
@@ -49,15 +49,15 @@ fi
 # Extract element types from Android
 echo "Extracting Android element types..."
 if [ -f "$ANDROID_VALIDATOR" ]; then
-    # Extract from VALID_ELEMENT_TYPES set - stop at closing paren
-    grep -A 20 "VALID_ELEMENT_TYPES" "$ANDROID_VALIDATOR" | \
+    # Extract element types: only lines between "VALID_ELEMENT_TYPES" set declaration and its closing ")"
+    awk '/val VALID_ELEMENT_TYPES/,/^        \)/' "$ANDROID_VALIDATOR" | \
         grep -o '"[^"]*"' | \
         tr -d '"' | \
         grep -E "^[A-Z]|^Input\." | \
         sort -u > "$ANDROID_ELEMENTS"
-    
-    # Extract action types
-    grep -A 10 "VALID_ACTION_TYPES" "$ANDROID_VALIDATOR" | \
+
+    # Extract action types: only lines between "VALID_ACTION_TYPES" set declaration and its closing ")"
+    awk '/val VALID_ACTION_TYPES/,/^        \)/' "$ANDROID_VALIDATOR" | \
         grep -o '"Action\.[^"]*"' | \
         tr -d '"' | \
         sort -u > "$ANDROID_ACTIONS"

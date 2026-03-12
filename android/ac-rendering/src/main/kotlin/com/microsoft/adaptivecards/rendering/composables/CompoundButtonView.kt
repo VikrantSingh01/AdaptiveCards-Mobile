@@ -1,6 +1,8 @@
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,10 +32,11 @@ private object CompoundButtonLayout {
     val CornerRadius = 8.dp
     val MinHeight = 48.dp
     val Elevation = 2.dp
+    val BadgeFontSize = 10.sp
 }
 
 /**
- * Renders a CompoundButton element with icon, title, and subtitle
+ * Renders a CompoundButton element with icon, title, description, and badge
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -44,26 +47,26 @@ fun CompoundButtonView(
 ) {
     val containerColor = when (element.style) {
         "emphasis" -> MaterialTheme.colorScheme.primary
-        "positive" -> Color(0xFF4CAF50) // Green
-        "destructive" -> Color(0xFFF44336) // Red
+        "positive" -> Color(0xFF4CAF50)
+        "destructive" -> Color(0xFFF44336)
         else -> MaterialTheme.colorScheme.surface
     }
-    
+
     val contentColor = when (element.style) {
         "emphasis", "positive", "destructive" -> Color.White
         else -> MaterialTheme.colorScheme.onSurface
     }
-    
-    val isEnabled = element.action != null
-    
+
+    val isEnabled = element.selectAction != null
+
     val contentDesc = buildString {
         append(element.title)
-        element.subtitle?.let { append(". $it") }
+        element.description?.let { append(". $it") }
     }
-    
+
     Card(
         onClick = {
-            element.action?.let { action ->
+            element.selectAction?.let { action ->
                 when (action) {
                     is com.microsoft.adaptivecards.core.models.ActionOpenUrl -> actionHandler.onOpenUrl(action.url, action.id)
                     is com.microsoft.adaptivecards.core.models.ActionSubmit -> actionHandler.onSubmit(emptyMap(), action.id)
@@ -100,24 +103,46 @@ fun CompoundButtonView(
             if (element.iconPosition != "trailing") {
                 IconView(element.iconName, contentColor)
             }
-            
-            // Title and subtitle
+
+            // Title, badge, and description
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(CompoundButtonLayout.TitleSubtitleSpacing)
             ) {
-                Text(
-                    text = element.title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = contentColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                element.subtitle?.let { subtitle ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = subtitle,
+                        text = element.title,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = contentColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+
+                    element.badge?.let { badge ->
+                        Text(
+                            text = badge,
+                            fontSize = CompoundButtonLayout.BadgeFontSize,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                element.description?.let { description ->
+                    Text(
+                        text = description,
                         fontSize = 14.sp,
                         color = contentColor.copy(alpha = 0.7f),
                         maxLines = 2,
@@ -125,12 +150,12 @@ fun CompoundButtonView(
                     )
                 }
             }
-            
+
             // Trailing icon
             if (element.iconPosition == "trailing") {
                 IconView(element.iconName, contentColor)
             }
-            
+
             // Chevron indicator
             Icon(
                 painter = painterResource(android.R.drawable.ic_menu_more),
@@ -145,9 +170,8 @@ fun CompoundButtonView(
 @Composable
 private fun IconView(iconString: String?, tintColor: Color) {
     if (iconString == null) return
-    
+
     if (iconString.startsWith("http://") || iconString.startsWith("https://")) {
-        // Load from URL
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(iconString)
@@ -160,8 +184,6 @@ private fun IconView(iconString: String?, tintColor: Color) {
             placeholder = painterResource(android.R.drawable.ic_menu_gallery)
         )
     } else {
-        // Material Icon - for now show a placeholder
-        // In a real app, you'd map icon names to Material Icons
         Icon(
             painter = painterResource(android.R.drawable.ic_menu_info_details),
             contentDescription = null,

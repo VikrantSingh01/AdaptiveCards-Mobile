@@ -22,5 +22,19 @@ data class AdaptiveCard(
     val rtl: Boolean? = null,
     val refresh: Refresh? = null,
     val authentication: Authentication? = null,
-    val metadata: JsonElement? = null
+    val metadata: JsonElement? = null,
+    val references: List<DocumentReference>? = null
+)
+
+/**
+ * A reference entry for CitationRun inlines.
+ * Parsed from the top-level `references` array in an AdaptiveCard.
+ */
+@Serializable
+data class DocumentReference(
+    val type: String? = null,
+    val title: String? = null,
+    val icon: String? = null,
+    val url: String? = null,
+    val abstract: String? = null
 )

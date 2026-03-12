@@ -22,7 +22,14 @@ public struct AreaGridLayoutView: View {
     }
 
     public var body: some View {
-        if #available(iOS 16.0, *) {
+        if gridLayout.areas.isEmpty {
+            // No areas defined — fall back to vertical stack (graceful degradation)
+            VStack(spacing: spacingValue(gridLayout.rowSpacing ?? .default)) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    ElementView(element: item, hostConfig: hostConfig)
+                }
+            }
+        } else if #available(iOS 16.0, *) {
             nativeGridView
         } else {
             fallbackGridView

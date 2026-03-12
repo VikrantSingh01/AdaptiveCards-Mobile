@@ -20,10 +20,10 @@
       "type": "CompoundButton",
       "id": "btn_default",
       "title": "Default Style Button",
-      "subtitle": "Leading icon with default styling",
+      "description": "Leading icon with default styling",
       "icon": "checkmark.circle.fill",
       "iconPosition": "leading",
-      "action": {
+      "selectAction": {
         "type": "Action.Submit",
         "title": "Select",
         "data": {
@@ -35,10 +35,10 @@
       "type": "CompoundButton",
       "id": "btn_emphasis",
       "title": "Emphasis Style Button",
-      "subtitle": "With accent color background",
+      "description": "With accent color background",
       "icon": "star.fill",
       "style": "emphasis",
-      "action": {
+      "selectAction": {
         "type": "Action.Submit",
         "title": "Favorite",
         "data": {
@@ -50,10 +50,10 @@
       "type": "CompoundButton",
       "id": "btn_positive",
       "title": "Approve Request",
-      "subtitle": "Positive action with green styling",
+      "description": "Positive action with green styling",
       "icon": "checkmark.circle",
       "style": "positive",
-      "action": {
+      "selectAction": {
         "type": "Action.Submit",
         "title": "Approve",
         "data": {
@@ -66,10 +66,10 @@
       "type": "CompoundButton",
       "id": "btn_destructive",
       "title": "Delete Item",
-      "subtitle": "Destructive action with red styling",
+      "description": "Destructive action with red styling",
       "icon": "trash",
       "style": "destructive",
-      "action": {
+      "selectAction": {
         "type": "Action.Submit",
         "title": "Delete",
         "data": {
@@ -82,10 +82,10 @@
       "type": "CompoundButton",
       "id": "btn_trailing_icon",
       "title": "Trailing Icon Button",
-      "subtitle": "Icon positioned on the right side",
+      "description": "Icon positioned on the right side",
       "icon": "arrow.right.circle",
       "iconPosition": "trailing",
-      "action": {
+      "selectAction": {
         "type": "Action.OpenUrl",
         "title": "Navigate",
         "url": "https://adaptivecards.io"
@@ -95,8 +95,8 @@
       "type": "CompoundButton",
       "id": "btn_no_icon",
       "title": "Button Without Icon",
-      "subtitle": "Only title and subtitle, no icon",
-      "action": {
+      "description": "Only title and subtitle, no icon",
+      "selectAction": {
         "type": "Action.Submit",
         "title": "Submit",
         "data": {
@@ -109,7 +109,7 @@
       "id": "btn_no_subtitle",
       "title": "Button Without Subtitle",
       "icon": "info.circle",
-      "action": {
+      "selectAction": {
         "type": "Action.ShowCard",
         "title": "Show Details",
         "card": {
@@ -128,9 +128,9 @@
       "type": "CompoundButton",
       "id": "btn_url_icon",
       "title": "Button with URL Icon",
-      "subtitle": "Icon loaded from a remote URL",
+      "description": "Icon loaded from a remote URL",
       "icon": "https://adaptivecards.io/content/cats/1.png",
-      "action": {
+      "selectAction": {
         "type": "Action.OpenUrl",
         "title": "Open",
         "url": "https://adaptivecards.io"
@@ -140,9 +140,9 @@
       "type": "CompoundButton",
       "id": "btn_long_text",
       "title": "Button with Very Long Title That Should Truncate Properly with Ellipsis",
-      "subtitle": "And a very long subtitle that also should truncate gracefully when it exceeds the available space in the layout",
+      "description": "And a very long subtitle that also should truncate gracefully when it exceeds the available space in the layout",
       "icon": "ellipsis.circle",
-      "action": {
+      "selectAction": {
         "type": "Action.Submit",
         "title": "Continue",
         "data": {
@@ -154,7 +154,7 @@
       "type": "CompoundButton",
       "id": "btn_disabled",
       "title": "Button Without Action",
-      "subtitle": "This button has no action and should appear disabled",
+      "description": "This button has no action and should appear disabled",
       "icon": "xmark.circle"
     }
   ]

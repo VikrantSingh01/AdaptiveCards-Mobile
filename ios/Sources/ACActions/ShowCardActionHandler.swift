@@ -9,8 +9,9 @@ public class ShowCardActionHandler {
     }
 
     public func handle(_ action: ShowCardAction) {
-        // Generate a unique ID for this show card action
-        let cardId = action.id ?? UUID().uuidString
+        // Use action.id if available, otherwise generate a stable fallback
+        // matching the CardAction.Identifiable.id pattern
+        let cardId = action.id ?? "showCard_\(action.title ?? "unknown")"
         toggleCard(cardId)
     }
 }

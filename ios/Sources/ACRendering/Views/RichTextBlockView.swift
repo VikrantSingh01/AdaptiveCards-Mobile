@@ -23,46 +23,76 @@ struct RichTextBlockView: View {
     private var attributedText: AttributedString {
         var result = AttributedString()
 
-        for textRun in richTextBlock.inlines {
-            var runText = AttributedString(textRun.text)
-
-            let size = fontSize(for: textRun)
-            #if canImport(UIKit)
-            let weight = uiFontWeight(for: textRun)
-            runText.font = Font(UIFont.systemFont(ofSize: CGFloat(size), weight: weight))
-            #else
-            runText.font = .system(size: CGFloat(size), weight: swiftUIFontWeight(for: textRun))
-            #endif
-
-            // Apply color
-            runText.foregroundColor = foregroundColor(for: textRun)
-
-            // Apply text styling
-            if textRun.italic == true {
-                runText.font = runText.font?.italic()
+        for inline in richTextBlock.inlines {
+            switch inline {
+            case .textRun(let textRun):
+                result.append(attributedString(for: textRun))
+            case .citationRun(let citationRun):
+                result.append(attributedString(for: citationRun))
             }
-            if textRun.strikethrough == true {
-                runText.strikethroughStyle = .single
-            }
-            if textRun.underline == true {
-                runText.underlineStyle = .single
-            }
-
-            // Highlight support — use HostConfig highlightColors for the active color slot
-            if textRun.highlight == true {
-                runText.backgroundColor = highlightColor(for: textRun)
-            }
-
-            // Link styling for text runs with selectAction
-            if textRun.selectAction != nil {
-                runText.underlineStyle = .single
-                runText.foregroundColor = foregroundColor(for: TextRun(text: textRun.text, color: .accent))
-            }
-
-            result.append(runText)
         }
 
         return result
+    }
+
+    private func attributedString(for textRun: TextRun) -> AttributedString {
+        var runText = AttributedString(textRun.text)
+
+        let size = fontSize(for: textRun)
+        #if canImport(UIKit)
+        let weight = uiFontWeight(for: textRun)
+        runText.font = Font(UIFont.systemFont(ofSize: CGFloat(size), weight: weight))
+        #else
+        runText.font = .system(size: CGFloat(size), weight: swiftUIFontWeight(for: textRun))
+        #endif
+
+        // Apply color
+        runText.foregroundColor = foregroundColor(for: textRun)
+
+        // Apply text styling
+        if textRun.italic == true {
+            runText.font = runText.font?.italic()
+        }
+        if textRun.strikethrough == true {
+            runText.strikethroughStyle = .single
+        }
+        if textRun.underline == true {
+            runText.underlineStyle = .single
+        }
+
+        // Highlight support — use HostConfig highlightColors for the active color slot
+        if textRun.highlight == true {
+            runText.backgroundColor = highlightColor(for: textRun)
+        }
+
+        // Link styling for text runs with selectAction
+        if textRun.selectAction != nil {
+            runText.underlineStyle = .single
+            runText.foregroundColor = foregroundColor(for: TextRun(text: textRun.text, color: .accent))
+        }
+
+        return runText
+    }
+
+    private func attributedString(for citationRun: CitationRun) -> AttributedString {
+        let badgeText = "[\(citationRun.referenceIndex)]"
+        var runText = AttributedString(badgeText)
+
+        // Render as a small superscript-style badge with accent color
+        let accentColor = hostConfig.containerStyles.default.foregroundColors.accent
+        let hex = accentColor.default
+        runText.foregroundColor = Color(hex: hex)
+
+        let smallSize = hostConfig.fontSizes.small
+        #if canImport(UIKit)
+        runText.font = Font(UIFont.systemFont(ofSize: CGFloat(smallSize), weight: .semibold))
+        #else
+        runText.font = .system(size: CGFloat(smallSize), weight: .semibold)
+        #endif
+
+        runText.baselineOffset = 4.0
+
+        return runText
     }
 
     private func fontSize(for textRun: TextRun) -> Int {
@@ -217,5 +247,10 @@ struct RichTextBlockView: View {
 
     private var plainText: String {
         richTextBlock.inlines.map { $0.text }.joined()
+    }
+
+    private func textRunForFontCalc(_ inline: InlineElement) -> TextRun? {
+        if case .textRun(let run) = inline { return run }
+        return nil
     }
 }

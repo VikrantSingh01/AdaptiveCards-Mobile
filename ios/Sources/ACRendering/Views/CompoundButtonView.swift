@@ -7,6 +7,8 @@ struct CompoundButtonView: View {
     let button: CompoundButton
     let hostConfig: HostConfig
 
+    @Environment(\.actionHandler) var actionHandler
+    @Environment(\.actionDelegate) var actionDelegate
     @EnvironmentObject var viewModel: CardViewModel
 
     private enum Layout {
@@ -16,8 +18,7 @@ struct CompoundButtonView: View {
         static let horizontalPadding: CGFloat = 16
         static let verticalPadding: CGFloat = 12
         static let minHeight: CGFloat = 44
-        static let shadowRadius: CGFloat = 2
-        static let shadowY: CGFloat = 1
+        static let badgeFontSize: CGFloat = 10
     }
 
     var body: some View {
@@ -26,10 +27,10 @@ struct CompoundButtonView: View {
         }
         .buttonStyle(CompoundButtonStyle(
             style: button.style ?? "default",
-            isDisabled: button.action == nil,
+            isDisabled: button.selectAction == nil,
             hostConfig: hostConfig
         ))
-        .disabled(button.action == nil)
+        .disabled(button.selectAction == nil)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint(accessibilityHint)
     }
@@ -42,14 +43,27 @@ struct CompoundButtonView: View {
             }
 
             VStack(alignment: .leading, spacing: Layout.titleSubtitleSpacing) {
-                Text(button.title)
-                    .font(.system(size: CGFloat(hostConfig.fontSizes.large), weight: titleFontWeight))
-                    .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
-                    .lineLimit(2)
-                    .truncationMode(.tail)
+                HStack {
+                    Text(button.title)
+                        .font(.system(size: CGFloat(hostConfig.fontSizes.large), weight: titleFontWeight))
+                        .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
+                        .lineLimit(2)
+                        .truncationMode(.tail)
 
-                if let subtitle = button.subtitle {
-                    Text(subtitle)
+                    if let badge = button.badge {
+                        Text(badge)
+                            .font(.system(size: Layout.badgeFontSize, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color(hex: hostConfig.containerStyles.accent.backgroundColor))
+                            .cornerRadius(4)
+                            .lineLimit(1)
+                    }
+                }
+
+                if let description = button.description {
+                    Text(description)
                         .font(.system(size: CGFloat(hostConfig.fontSizes.default)))
                         .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle))
                         .lineLimit(2)
@@ -126,14 +140,14 @@ struct CompoundButtonView: View {
     }
 
     private var accessibilityLabel: String {
-        if let subtitle = button.subtitle {
-            return "\(button.title). \(subtitle)"
+        if let description = button.description {
+            return "\(button.title). \(description)"
         }
         return button.title
     }
 
     private var accessibilityHint: String {
-        guard let action = button.action else {
+        guard let action = button.selectAction else {
             return ""
         }
 
@@ -160,9 +174,8 @@ struct CompoundButtonView: View {
     }
 
     private func handleAction() {
-        guard let action = button.action else { return }
-        // TODO: Implement action handling through CardViewModel
-        print("CompoundButton action triggered: \(action)")
+        guard let action = button.selectAction else { return }
+        actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
     }
 }
 

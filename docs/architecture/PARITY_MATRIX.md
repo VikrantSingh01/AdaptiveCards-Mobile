@@ -57,6 +57,7 @@ This document provides a comprehensive feature-by-feature matrix tracking implem
 | **Input.Toggle** | ✅ | ✅ | ✅ iOS: ACInputsTests<br>✅ Android: ToggleInputTests | Toggle switch/checkbox with custom value mapping |
 | **Input.ChoiceSet** | ✅ | ✅ | ✅ iOS: ACInputsTests<br>✅ Android: ChoiceSetInputTests | Compact (dropdown), expanded (radio/checkbox), filtered styles; single/multi-select |
 | **Input.Rating** | ✅ | ✅ | ✅ iOS: ACInputsTests<br>✅ Android: RatingInputTests | Star rating input with max rating, size, color customization |
+| **Input.DataGrid** | ✅ | ✅ | ✅ iOS: ACInputsTests<br>✅ Android: DataGridInputTests | Editable data grid with columns, rows, sorting (v1.5+) |
 
 ---
 
@@ -98,6 +99,9 @@ This document provides a comprehensive feature-by-feature matrix tracking implem
 | **Action.ShowCard** | ✅ | ✅ | ✅ iOS: ACActionsTests<br>✅ Android: ShowCardActionTests | Inline card expansion with animation (v1.0) |
 | **Action.ToggleVisibility** | ✅ | ✅ | ✅ iOS: ACActionsTests<br>✅ Android: ToggleVisibilityTests | Show/hide elements by ID with animation (v1.2) |
 | **Action.Execute** | ✅ | ✅ | ✅ iOS: ACActionsTests<br>✅ Android: ExecuteActionTests | Universal action handler for bot operations (v1.4), enhanced in v1.6 with verb and associatedInputs |
+| **Action.Popover** | ✅ | ✅ | ✅ iOS: ACActionsTests<br>✅ Android: ActionTests | Popover with title, body elements, dismiss behavior (Teams extension) |
+| **Action.RunCommands** | ✅ | ✅ | ✅ iOS: ACActionsTests<br>✅ Android: ActionTests | Execute commands with type, id, data (Teams extension) |
+| **Action.OpenUrlDialog** | ✅ | ✅ | ✅ iOS: ACActionsTests<br>✅ Android: ActionTests | Open URL in dialog with title (Teams extension) |
 
 ---
 

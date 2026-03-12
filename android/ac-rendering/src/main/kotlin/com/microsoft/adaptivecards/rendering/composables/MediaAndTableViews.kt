@@ -166,21 +166,43 @@ fun TableView(
                             else -> Alignment.Start
                         }
                     ) {
-                        cell.items?.forEachIndexed { index, item ->
-                            // Apply bold for header cells
-                            if (isHeader && item is TextBlock) {
-                                Text(
-                                    text = item.text,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            } else {
-                                RenderElement(
-                                    element = item,
-                                    isFirst = index == 0,
+                        val cellLayout = cell.layout
+                        val cellItems = cell.items
+                        if (cellLayout != null && cellItems != null) {
+                            // Render with the cell's layout
+                            when (cellLayout) {
+                                is FlowLayout -> FlowLayoutView(
+                                    items = cellItems,
+                                    flowLayout = cellLayout,
+                                    hostConfig = hostConfig,
                                     viewModel = viewModel,
                                     actionHandler = actionHandler
                                 )
+                                is AreaGridLayout -> AreaGridLayoutView(
+                                    items = cellItems,
+                                    gridLayout = cellLayout,
+                                    hostConfig = hostConfig,
+                                    viewModel = viewModel,
+                                    actionHandler = actionHandler
+                                )
+                            }
+                        } else {
+                            cell.items?.forEachIndexed { index, item ->
+                                // Apply bold for header cells
+                                if (isHeader && item is TextBlock) {
+                                    Text(
+                                        text = item.text,
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                } else {
+                                    RenderElement(
+                                        element = item,
+                                        isFirst = index == 0,
+                                        viewModel = viewModel,
+                                        actionHandler = actionHandler
+                                    )
+                                }
                             }
                         }
                     }

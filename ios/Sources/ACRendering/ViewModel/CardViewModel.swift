@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 import ACCore
 import ACTemplating
 
@@ -8,6 +9,7 @@ public class CardViewModel: ObservableObject {
     @Published public var inputValues: [String: Any] = [:]
     @Published public var visibility: [String: Bool] = [:]
     @Published public var showCards: [String: Bool] = [:]
+    @Published public var popoverState: [String: Bool] = [:]
     @Published public var parsingError: Error?
     /// Incremented each time a new parsing error occurs, used for change detection
     @Published public var parsingErrorId: Int = 0
@@ -64,13 +66,14 @@ public class CardViewModel: ObservableObject {
             guard let self = self else { return }
 
             do {
-                var cardJson = json
+                // Resolve ${rs:key} string resources before any other processing
+                var cardJson = self.templateEngine.resolveStringResources(json)
 
                 // If template data provided, expand template first
                 if let data = templateData {
                     self.storedTemplate = json
                     self.storedTemplateData = data
-                    cardJson = try self.templateEngine.expand(template: json, data: data)
+                    cardJson = try self.templateEngine.expand(template: cardJson, data: data)
                 } else {
                     self.storedTemplate = nil
                     self.storedTemplateData = nil
@@ -158,6 +161,24 @@ public class CardViewModel: ObservableObject {
     /// Checks if a show card is expanded
     public func isShowCardExpanded(actionId: String) -> Bool {
         return showCards[actionId] ?? false
+    }
+
+    /// Toggles popover visibility for a given action
+    public func togglePopover(actionId: String) {
+        popoverState[actionId] = !(popoverState[actionId] ?? false)
+    }
+
+    /// Checks if a popover is currently showing for an action
+    public func isPopoverShowing(actionId: String) -> Bool {
+        return popoverState[actionId] ?? false
+    }
+
+    /// Returns a binding for the popover showing state for a given action ID
+    public func popoverBinding(actionId: String) -> Binding<Bool> {
+        Binding(
+            get: { [weak self] in self?.popoverState[actionId] ?? false },
+            set: { [weak self] newValue in self?.popoverState[actionId] = newValue }
+        )
     }
 
     // MARK: - Validation

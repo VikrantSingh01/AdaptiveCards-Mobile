@@ -23,8 +23,12 @@ public struct Container: Codable, Equatable {
     public var showBorder: Bool?
     /// When true, apply rounded corners from hostConfig cornerRadius.
     public var roundedCorners: Bool?
-    /// Layout descriptor (FlowLayout or AreaGridLayout). When nil, uses default stack layout.
-    public var layout: Layout?
+    /// Layout descriptors (FlowLayout or AreaGridLayout). When nil/empty, uses default stack layout.
+    /// JSON uses `layouts` (plural array); the first layout is the active one.
+    public var layouts: [Layout]?
+
+    /// Convenience: the active layout (first in the `layouts` array)
+    public var layout: Layout? { layouts?.first }
 
     public init(
         id: String? = nil,
@@ -44,7 +48,7 @@ public struct Container: Codable, Equatable {
         fallback: CardElement? = nil,
         showBorder: Bool? = nil,
         roundedCorners: Bool? = nil,
-        layout: Layout? = nil
+        layouts: [Layout]? = nil
     ) {
         self.id = id
         self.items = items
@@ -63,7 +67,7 @@ public struct Container: Codable, Equatable {
         self.fallback = fallback
         self.showBorder = showBorder
         self.roundedCorners = roundedCorners
-        self.layout = layout
+        self.layouts = layouts
     }
 }
 
@@ -461,6 +465,11 @@ public struct TableCell: Codable, Equatable, Identifiable {
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
     public var selectAction: CardAction?
+    /// Layout descriptors for this cell (e.g., Flow layout)
+    public var layouts: [Layout]?
+
+    /// Convenience: the active layout (first in the `layouts` array)
+    public var layout: Layout? { layouts?.first }
 
     // Generate stable ID from items IDs
     public var id: String {
@@ -476,7 +485,8 @@ public struct TableCell: Codable, Equatable, Identifiable {
         bleed: Bool? = nil,
         backgroundImage: BackgroundImage? = nil,
         minHeight: String? = nil,
-        selectAction: CardAction? = nil
+        selectAction: CardAction? = nil,
+        layouts: [Layout]? = nil
     ) {
         self.items = items
         self.style = style
@@ -485,6 +495,7 @@ public struct TableCell: Codable, Equatable, Identifiable {
         self.backgroundImage = backgroundImage
         self.minHeight = minHeight
         self.selectAction = selectAction
+        self.layouts = layouts
     }
 }
 
