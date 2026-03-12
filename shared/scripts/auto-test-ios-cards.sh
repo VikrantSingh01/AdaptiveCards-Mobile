@@ -5,7 +5,7 @@
 #
 # Prerequisites:
 #   - iOS Simulator booted and visible (not minimized)
-#   - AdaptiveCardsSampleApp installed
+#   - ACVisualizer installed
 #   - Accessibility permissions granted to Terminal
 #
 # Usage: bash auto-test-ios-cards.sh

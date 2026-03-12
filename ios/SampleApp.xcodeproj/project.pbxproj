@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA000001 /* AdaptiveCardsSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000001 /* AdaptiveCardsSampleApp.swift */; };
+		AA000001 /* ACVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000001 /* ACVisualizer.swift */; };
 		AA000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000002 /* ContentView.swift */; };
 		AA000003 /* CardGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000003 /* CardGalleryView.swift */; };
 		AA000004 /* CardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000004 /* CardDetailView.swift */; };
@@ -23,7 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AB000001 /* AdaptiveCardsSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveCardsSampleApp.swift; sourceTree = "<group>"; };
+		AB000001 /* ACVisualizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACVisualizer.swift; sourceTree = "<group>"; };
 		AB000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AB000003 /* CardGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGalleryView.swift; sourceTree = "<group>"; };
 		AB000004 /* CardDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
@@ -34,7 +34,7 @@
 		AB000009 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AB000010 /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
 		AB000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AC000001 /* AdaptiveCardsSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AdaptiveCardsSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC000001 /* ACVisualizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ACVisualizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,7 +61,7 @@
 		AE000002 /* SampleApp */ = {
 			isa = PBXGroup;
 			children = (
-				AB000001 /* AdaptiveCardsSampleApp.swift */,
+				AB000001 /* ACVisualizer.swift */,
 				AB000002 /* ContentView.swift */,
 				AB000003 /* CardGalleryView.swift */,
 				AB000004 /* CardDetailView.swift */,
@@ -79,7 +79,7 @@
 		AE000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AC000001 /* AdaptiveCardsSampleApp.app */,
+				AC000001 /* ACVisualizer.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,9 +87,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AF000001 /* AdaptiveCardsSampleApp */ = {
+		AF000001 /* ACVisualizer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B1000001 /* Build configuration list for PBXNativeTarget "AdaptiveCardsSampleApp" */;
+			buildConfigurationList = B1000001 /* Build configuration list for PBXNativeTarget "ACVisualizer" */;
 			buildPhases = (
 				B0000001 /* Sources */,
 				AD000001 /* Frameworks */,
@@ -99,13 +99,13 @@
 			);
 			dependencies = (
 			);
-			name = AdaptiveCardsSampleApp;
+			name = ACVisualizer;
 			packageProductDependencies = (
 				AB100001 /* ACRendering */,
 				AB100002 /* ACCore */,
 			);
-			productName = AdaptiveCardsSampleApp;
-			productReference = AC000001 /* AdaptiveCardsSampleApp.app */;
+			productName = ACVisualizer;
+			productReference = AC000001 /* ACVisualizer.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -139,7 +139,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AF000001 /* AdaptiveCardsSampleApp */,
+				AF000001 /* ACVisualizer */,
 			);
 		};
 /* End PBXProject section */
@@ -160,7 +160,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000001 /* AdaptiveCardsSampleApp.swift in Sources */,
+				AA000001 /* ACVisualizer.swift in Sources */,
 				AA000002 /* ContentView.swift in Sources */,
 				AA000003 /* CardGalleryView.swift in Sources */,
 				AA000004 /* CardDetailView.swift in Sources */,
@@ -356,7 +356,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B1000001 /* Build configuration list for PBXNativeTarget "AdaptiveCardsSampleApp" */ = {
+		B1000001 /* Build configuration list for PBXNativeTarget "ACVisualizer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B3000003 /* Debug */,

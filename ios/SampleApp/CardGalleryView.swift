@@ -133,7 +133,7 @@ struct CardGalleryView: View {
                     .shadow(color: Color.blue.opacity(0.3), radius: 8, y: 4)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Adaptive Cards")
+                    Text("AC Visualizer")
                         .font(.title3)
                         .fontWeight(.bold)
                     Text("v1.6 Mobile SDK")

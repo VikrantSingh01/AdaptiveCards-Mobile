@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct AdaptiveCardsSampleApp: App {
+struct ACVisualizer: App {
     @StateObject private var actionLog = ActionLogStore()
     @StateObject private var settings = AppSettings()
     @StateObject private var bookmarks = BookmarkStore()

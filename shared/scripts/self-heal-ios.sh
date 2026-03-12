@@ -150,7 +150,7 @@ is_app_running() {
         return 0
     fi
     # Fallback: check if we can get the app's PID via the process list
-    xcrun simctl spawn "$SIM_UDID" ps aux 2>/dev/null | grep -q "AdaptiveCardsSampleApp" 2>/dev/null
+    xcrun simctl spawn "$SIM_UDID" ps aux 2>/dev/null | grep -q "ACVisualizer" 2>/dev/null
 }
 
 # Force restart the app (recovery action)
@@ -180,7 +180,7 @@ capture_logs() {
     # Primary: capture ONLY logs from our app process (strict filter)
     xcrun simctl spawn "$SIM_UDID" log show \
         --start "$start_time" \
-        --predicate "processImagePath CONTAINS 'AdaptiveCardsSampleApp'" \
+        --predicate "processImagePath CONTAINS 'ACVisualizer'" \
         --style compact \
         --last 30s \
         > "$output_file" 2>/dev/null &
@@ -477,7 +477,7 @@ phase2_visual() {
     cd "$REPO_ROOT"
     local build_output
     build_output=$(xcodebuild -project "$REPO_ROOT/ios/SampleApp.xcodeproj" \
-        -scheme AdaptiveCardsSampleApp \
+        -scheme ACVisualizer \
         -sdk iphonesimulator \
         -destination "platform=iOS Simulator,name=$SIMULATOR" \
         build 2>&1)
@@ -497,7 +497,7 @@ phase2_visual() {
 
     # Install and launch
     local app_path
-    app_path=$(find ~/Library/Developer/Xcode/DerivedData/SampleApp-*/Build/Products/Debug-iphonesimulator -name "AdaptiveCardsSampleApp.app" -maxdepth 1 2>/dev/null | head -1)
+    app_path=$(find ~/Library/Developer/Xcode/DerivedData/SampleApp-*/Build/Products/Debug-iphonesimulator -name "ACVisualizer.app" -maxdepth 1 2>/dev/null | head -1)
     if [ -z "$app_path" ]; then
         echo "  ❌ Could not find built app"
         return 1
