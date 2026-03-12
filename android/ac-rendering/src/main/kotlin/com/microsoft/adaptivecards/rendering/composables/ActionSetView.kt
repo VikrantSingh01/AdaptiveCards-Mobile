@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Author: Vikrant Singh (github.com/VikrantSingh01)
+// Licensed under the MIT License.
+
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.BorderStroke
@@ -312,6 +316,7 @@ private fun ActionButtonContent(
 
 /** Maps Fluent UI icon names to Material icons. Strips style suffixes like ",Filled" or ",Regular". */
 private fun resolveFluentIcon(name: String): ImageVector? {
+    // Strip style suffix (e.g., ",Filled", ",Regular") before lookup
     val baseName = name.split(",").firstOrNull()?.lowercase() ?: return null
     return when (baseName) {
         "alerturgent" -> Icons.Filled.Notifications

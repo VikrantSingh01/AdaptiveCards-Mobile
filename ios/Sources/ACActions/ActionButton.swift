@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Author: Vikrant Singh (github.com/VikrantSingh01)
+// Licensed under the MIT License.
+
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
@@ -207,6 +211,7 @@ public struct ActionButton: View {
     /// Maps Fluent UI icon names to SF Symbols.
     /// Handles style suffixes like "Open,Filled" or "Send,Regular" by stripping the comma-separated style.
     static func sfSymbol(for fluentIcon: String) -> String {
+        // Strip style suffix (e.g., ",Filled", ",Regular") if present
         let name = fluentIcon.split(separator: ",").first.map(String.init) ?? fluentIcon
         return fluentToSFSymbol[name] ?? "questionmark.square"
     }

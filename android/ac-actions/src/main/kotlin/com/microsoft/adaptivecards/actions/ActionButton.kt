@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Author: Vikrant Singh (github.com/VikrantSingh01)
+// Licensed under the MIT License.
+
 package com.microsoft.adaptivecards.actions
 
 import android.content.Context
@@ -76,6 +80,7 @@ fun ActionButton(
  */
 private fun resolveActionIcon(iconUrl: String): ImageVector? {
     if (!iconUrl.startsWith("icon:")) return null
+    // Strip style suffix (e.g., ",Filled", ",Regular") before lookup
     val name = iconUrl.removePrefix("icon:").split(",").firstOrNull()?.lowercase() ?: return null
     return when (name) {
         "alerturgent" -> Icons.Filled.Notifications
