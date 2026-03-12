@@ -2,6 +2,7 @@ package com.microsoft.adaptivecards.core.models
 
 import com.microsoft.adaptivecards.core.parsing.BackgroundImageSerializer
 import com.microsoft.adaptivecards.core.parsing.CardElementSerializer
+import com.microsoft.adaptivecards.core.parsing.TextRunSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -262,7 +263,7 @@ data class RichTextBlock(
     val horizontalAlignment: HorizontalAlignment? = null
 ) : CardElement
 
-@Serializable
+@Serializable(with = TextRunSerializer::class)
 data class TextRun(
     val type: String = "TextRun",
     val text: String,

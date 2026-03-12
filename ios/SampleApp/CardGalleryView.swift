@@ -340,6 +340,7 @@ enum CardSection: String, CaseIterable, Hashable {
     case teamsSamples = "Teams Templated Samples"
     case teamsOfficialSamples = "Teams Official Samples"
     case edgeCases = "Edge Cases"
+    case versioned = "Versioned Cards"
 
     var title: String { rawValue }
 
@@ -351,6 +352,7 @@ enum CardSection: String, CaseIterable, Hashable {
         case .teamsSamples: return "person.2.fill"
         case .teamsOfficialSamples: return "person.3.fill"
         case .edgeCases: return "exclamationmark.triangle"
+        case .versioned: return "clock.arrow.circlepath"
         }
     }
 
@@ -362,6 +364,7 @@ enum CardSection: String, CaseIterable, Hashable {
         case .teamsSamples: return .pink
         case .teamsOfficialSamples: return .indigo
         case .edgeCases: return .orange
+        case .versioned: return .gray
         }
     }
 
@@ -379,6 +382,8 @@ enum CardSection: String, CaseIterable, Hashable {
             return category == .teamsOfficialSamples
         case .edgeCases:
             return category == .edgeCases
+        case .versioned:
+            return category == .versioned
         }
     }
 }
@@ -397,6 +402,7 @@ enum CardCategory: String, CaseIterable, Identifiable {
     case teamsSamples = "Teams Templated"
     case teamsOfficialSamples = "Teams Official"
     case edgeCases = "Edge Cases"
+    case versioned = "Versioned"
 
     var id: String { rawValue }
 
@@ -415,6 +421,7 @@ enum CardCategory: String, CaseIterable, Identifiable {
         case .teamsSamples: return .pink
         case .teamsOfficialSamples: return .indigo
         case .edgeCases: return .orange
+        case .versioned: return .gray
         }
     }
 }
@@ -684,6 +691,7 @@ class TestCardLoader {
             case .teamsSamples: description = "Teams templated: \(title)"
             case .teamsOfficialSamples: description = "Teams official sample: \(title)"
             case .edgeCases: description = "Edge case: \(title)"
+            case .versioned: description = "Versioned card: \(title)"
             case .all: description = "Test card: \(title)"
             }
 
@@ -697,6 +705,9 @@ class TestCardLoader {
                 dataJsonString: dataJsonString
             )
         }
+
+        // Dynamically discover versioned cards from filesystem
+        cards.append(contentsOf: loadVersionedCards())
 
         return cards
     }
@@ -719,5 +730,39 @@ class TestCardLoader {
 
         print("Warning: Could not load test card file: \(filename)")
         return nil
+    }
+
+    /// Dynamically discover versioned cards from versioned/ subdirectories
+    private static func loadVersionedCards() -> [TestCard] {
+        guard let baseDir = testCardsDirectory else { return [] }
+        let versionedDir = (baseDir as NSString).appendingPathComponent("versioned")
+        guard FileManager.default.fileExists(atPath: versionedDir) else { return [] }
+
+        var cards: [TestCard] = []
+        let fm = FileManager.default
+
+        // Scan versioned/{version}/*.json
+        guard let versions = try? fm.contentsOfDirectory(atPath: versionedDir) else { return [] }
+        for version in versions.sorted() {
+            let versionPath = (versionedDir as NSString).appendingPathComponent(version)
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: versionPath, isDirectory: &isDir), isDir.boolValue else { continue }
+
+            guard let files = try? fm.contentsOfDirectory(atPath: versionPath) else { continue }
+            for file in files.sorted() where file.hasSuffix(".json") {
+                let relativePath = "versioned/\(version)/\(file)"
+                guard let jsonString = loadCardJSON(relativePath) else { continue }
+                let name = (file as NSString).deletingPathExtension
+                cards.append(TestCard(
+                    title: "\(version): \(name)",
+                    description: "Versioned card: \(name) (\(version))",
+                    filename: relativePath,
+                    category: .versioned,
+                    isAdvanced: false,
+                    jsonString: jsonString
+                ))
+            }
+        }
+        return cards
     }
 }
