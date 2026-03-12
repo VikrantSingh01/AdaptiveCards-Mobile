@@ -12,6 +12,9 @@ public class CardViewModel: ObservableObject {
     /// Incremented each time a new parsing error occurs, used for change detection
     @Published public var parsingErrorId: Int = 0
 
+    /// Duration of the last parse operation in milliseconds (0 if served from cache)
+    @Published public var lastParseTimeMs: Double = 0
+
     private let parser: CardParser
     private let templateEngine: TemplateEngine
 
@@ -19,12 +22,40 @@ public class CardViewModel: ObservableObject {
     private var storedTemplate: String?
     private var storedTemplateData: [String: Any]?
 
+    // MARK: - Parse Cache
+
+    /// Thread-safe in-memory cache for parsed AdaptiveCard objects.
+    /// Keyed by JSON string hash to avoid redundant parsing on re-renders.
+    private static let parseCache = NSCache<NSString, AdaptiveCardWrapper>()
+    private static let cacheLock = NSLock()
+
+    /// Wrapper to store AdaptiveCard in NSCache (requires NSObject subclass)
+    private class AdaptiveCardWrapper: NSObject {
+        let card: AdaptiveCard
+        init(_ card: AdaptiveCard) { self.card = card }
+    }
+
+    /// Returns a cache key for the given JSON string
+    private static func cacheKey(for json: String) -> NSString {
+        // Use a stable hash for cache lookup
+        let hash = json.hashValue
+        return NSString(string: String(hash))
+    }
+
+    /// Clears the parse cache. Call when memory warnings are received.
+    public static func clearParseCache() {
+        cacheLock.lock()
+        parseCache.removeAllObjects()
+        cacheLock.unlock()
+    }
+
     public init() {
         self.parser = CardParser()
         self.templateEngine = TemplateEngine()
     }
 
-    /// Parses a card from JSON string, optionally expanding template expressions with data
+    /// Parses a card from JSON string, optionally expanding template expressions with data.
+    /// Uses an in-memory cache to skip redundant parsing for the same JSON.
     /// - Parameters:
     ///   - json: The card JSON string (may contain `${expression}` template syntax)
     ///   - templateData: Optional data context for template expansion
@@ -45,8 +76,32 @@ public class CardViewModel: ObservableObject {
                     self.storedTemplateData = nil
                 }
 
-                let parsedCard = try self.parser.parse(cardJson)
+                let key = Self.cacheKey(for: cardJson)
+
+                // Check cache first
+                Self.cacheLock.lock()
+                let cached = Self.parseCache.object(forKey: key)
+                Self.cacheLock.unlock()
+
+                let parsedCard: AdaptiveCard
+                let parseTimeMs: Double
+
+                if let cached = cached {
+                    parsedCard = cached.card
+                    parseTimeMs = 0 // Cache hit — no parse cost
+                } else {
+                    let start = CFAbsoluteTimeGetCurrent()
+                    parsedCard = try self.parser.parse(cardJson)
+                    parseTimeMs = (CFAbsoluteTimeGetCurrent() - start) * 1000
+
+                    // Store in cache
+                    Self.cacheLock.lock()
+                    Self.parseCache.setObject(AdaptiveCardWrapper(parsedCard), forKey: key)
+                    Self.cacheLock.unlock()
+                }
+
                 DispatchQueue.main.async {
+                    self.lastParseTimeMs = parseTimeMs
                     self.card = parsedCard
                     self.parsingError = nil
                     self.initializeVisibility(for: parsedCard)

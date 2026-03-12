@@ -8,7 +8,9 @@ struct TableView: View {
     let hostConfig: HostConfig
 
     var body: some View {
-        VStack(spacing: 0) {
+        let rowSpacing: CGFloat = table.showGridLines == true ? 0 : CGFloat(hostConfig.table.cellSpacing / 2)
+
+        VStack(spacing: rowSpacing) {
             ForEach(Array(table.rows.enumerated()), id: \.element.id) { rowIndex, row in
                 let isHeaderRow = table.firstRowAsHeaders == true && rowIndex == 0
 
@@ -77,10 +79,10 @@ struct TableCellView: View {
                     .frame(minHeight: 20)
             }
         }
-        .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
-        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing / 2))
+        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
         .containerStyle(cell.style, hostConfig: hostConfig)
     }
 

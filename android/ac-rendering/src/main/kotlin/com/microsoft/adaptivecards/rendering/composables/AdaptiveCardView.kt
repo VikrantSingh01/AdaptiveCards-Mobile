@@ -35,6 +35,13 @@ import com.microsoft.adaptivecards.core.models.targetWidth
 val LocalWidthCategory = compositionLocalOf { WidthCategory.Narrow }
 
 /**
+ * CompositionLocal providing the CardViewModel to input renderers registered via the
+ * GlobalElementRendererRegistry. This avoids a circular dependency between ac-rendering
+ * and ac-inputs while allowing host apps to wire up actual input composables.
+ */
+val LocalCardViewModel = compositionLocalOf<CardViewModel?> { null }
+
+/**
  * Main entry point for rendering an Adaptive Card
  *
  * @param cardJson The JSON string of the adaptive card (may contain `${expression}` template syntax)
@@ -87,10 +94,19 @@ fun AdaptiveCardView(
             RTLSupport(isRTL = adaptiveCard.rtl == true) {
                 BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
                     val density = LocalDensity.current
+                    val hc = com.microsoft.adaptivecards.hostconfig.LocalHostConfig.current
                     val widthDp = with(density) { constraints.maxWidth.toDp().value }
-                    val widthCategory = WidthCategory.fromDp(widthDp)
+                    val widthCategory = WidthCategory.fromDp(
+                        widthDp,
+                        veryNarrowBreakpoint = hc.hostWidth.veryNarrow,
+                        narrowBreakpoint = hc.hostWidth.narrow,
+                        standardBreakpoint = hc.hostWidth.standard
+                    )
 
-                    CompositionLocalProvider(LocalWidthCategory provides widthCategory) {
+                    CompositionLocalProvider(
+                        LocalWidthCategory provides widthCategory,
+                        LocalCardViewModel provides viewModel
+                    ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             // Render body elements
                             adaptiveCard.body?.forEachIndexed { index, element ->
@@ -166,16 +182,23 @@ fun RenderElement(
             is RichTextBlock -> RichTextBlockView(element, elementModifier, actionHandler)
             is Media -> MediaView(element, elementModifier)
             is Table -> TableView(element, elementModifier, viewModel, actionHandler)
-            // Input elements - to be wired up by host application to avoid circular dependency
-            // The sample-app includes both ac-rendering and ac-inputs and can wire these up
+            is Icon -> IconView(element, elementModifier, actionHandler)
+            is Badge -> BadgeView(element, elementModifier)
+            // Input elements - check registry for host-provided renderers first
             is InputText, is InputNumber, is InputDate, is InputTime,
             is InputToggle, is InputChoiceSet, is InputDataGrid, is RatingInput -> {
-                // Placeholder rendering - host app should wire up actual input views
-                androidx.compose.material3.Text(
-                    text = "[Input: ${element::class.simpleName}]",
-                    modifier = elementModifier,
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.outline
-                )
+                val inputRenderer = GlobalElementRendererRegistry.getRenderer(element.type)
+                if (inputRenderer != null) {
+                    inputRenderer(element, elementModifier)
+                } else {
+                    // Fallback placeholder — register input renderers via
+                    // GlobalElementRendererRegistry to replace this
+                    androidx.compose.material3.Text(
+                        text = "[Input: ${element::class.simpleName}]",
+                        modifier = elementModifier,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.outline
+                    )
+                }
             }
             // Advanced elements
             is Carousel -> CarouselView(element, viewModel, actionHandler, elementModifier)

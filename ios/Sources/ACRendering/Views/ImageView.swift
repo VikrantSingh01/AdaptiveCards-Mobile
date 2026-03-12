@@ -54,7 +54,8 @@ struct ImageView: View {
 
     private var imageWidth: CGFloat? {
         if let width = image.width {
-            return CGFloat(Int(width) ?? 0)
+            let stripped = width.replacingOccurrences(of: "px", with: "")
+            return CGFloat(Int(stripped) ?? 0)
         }
 
         if let size = image.size {
@@ -77,7 +78,8 @@ struct ImageView: View {
 
     private var imageHeight: CGFloat? {
         if let height = image.height {
-            return CGFloat(Int(height) ?? 0)
+            let stripped = height.replacingOccurrences(of: "px", with: "")
+            return CGFloat(Int(stripped) ?? 0)
         }
         return nil
     }

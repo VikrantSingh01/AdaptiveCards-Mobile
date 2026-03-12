@@ -3,10 +3,14 @@ package com.microsoft.adaptivecards.rendering.composables
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -188,7 +193,7 @@ fun ActionButton(
             OutlinedButton(
                 onClick = { handleAction(action, actionHandler, viewModel) },
                 enabled = action.isEnabled,
-                border = BorderStroke(hostConfig.separator.lineThickness.dp, accentColor.copy(alpha = 0.4f)),
+                border = BorderStroke(hostConfig.separator.lineThickness.dp, accentColor),
                 shape = buttonShape,
                 contentPadding = buttonPadding,
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -216,13 +221,80 @@ private fun ActionButtonContent(
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
     ) {
         action.iconUrl?.let { iconUrl ->
-            AsyncImage(
-                model = iconUrl,
-                contentDescription = null,
-                modifier = Modifier.size(hostConfig.actions.iconSize.dp)
-            )
+            val iconSize = hostConfig.actions.iconSize.dp
+            if (iconUrl.startsWith("icon:")) {
+                val iconVector = resolveFluentIcon(iconUrl.removePrefix("icon:"))
+                if (iconVector != null) {
+                    Icon(
+                        imageVector = iconVector,
+                        contentDescription = null,
+                        modifier = Modifier.size(iconSize)
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = iconUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize)
+                )
+            }
         }
         Text(action.title ?: "")
+    }
+}
+
+/** Maps Fluent UI icon names to Material icons. */
+private fun resolveFluentIcon(name: String): ImageVector? {
+    return when (name.lowercase()) {
+        "alerturgent" -> Icons.Filled.Notifications
+        "alert", "bell" -> Icons.Outlined.Notifications
+        "belloff" -> Icons.Outlined.Notifications
+        "calendar" -> Icons.Outlined.DateRange
+        "send" -> Icons.Filled.Send
+        "edit" -> Icons.Outlined.Edit
+        "delete" -> Icons.Outlined.Delete
+        "add" -> Icons.Filled.Add
+        "search" -> Icons.Filled.Search
+        "share" -> Icons.Filled.Share
+        "star" -> Icons.Outlined.Star
+        "starfilled" -> Icons.Filled.Star
+        "heart" -> Icons.Outlined.FavoriteBorder
+        "heartfilled" -> Icons.Filled.Favorite
+        "bookmark" -> Icons.Outlined.BookmarkBorder
+        "bookmarkfilled" -> Icons.Filled.Bookmark
+        "link" -> Icons.Filled.Share
+        "clock" -> Icons.Filled.DateRange
+        "comment" -> Icons.Filled.Email
+        "thumblike" -> Icons.Outlined.ThumbUp
+        "eye" -> Icons.Filled.Visibility
+        "eyeoff" -> Icons.Filled.VisibilityOff
+        "checkmarkcircle" -> Icons.Outlined.CheckCircle
+        "dismisscircle" -> Icons.Filled.Clear
+        "info" -> Icons.Outlined.Info
+        "warning" -> Icons.Outlined.Warning
+        "errorcircle" -> Icons.Filled.Error
+        "open" -> Icons.Filled.OpenInNew
+        "copy" -> Icons.Filled.ContentCopy
+        "save" -> Icons.Filled.Done
+        "flag" -> Icons.Outlined.Flag
+        "flagfilled" -> Icons.Filled.Flag
+        "location" -> Icons.Outlined.LocationOn
+        "phone", "call" -> Icons.Filled.Call
+        "mail" -> Icons.Outlined.Email
+        "video" -> Icons.Filled.PlayArrow
+        "camera" -> Icons.Filled.CameraAlt
+        "attach" -> Icons.Filled.AttachFile
+        "document" -> Icons.Filled.Description
+        "folder" -> Icons.Filled.Folder
+        "settings" -> Icons.Outlined.Settings
+        "filter" -> Icons.Filled.FilterList
+        "morehorizontal" -> Icons.Filled.MoreHoriz
+        "chevronright" -> Icons.Filled.ChevronRight
+        "chevrondown" -> Icons.Filled.ExpandMore
+        "chevronup" -> Icons.Filled.ExpandLess
+        "navigation" -> Icons.Filled.Navigation
+        "receipt" -> Icons.Filled.Receipt
+        else -> null
     }
 }
 

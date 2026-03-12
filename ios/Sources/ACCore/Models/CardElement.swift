@@ -32,6 +32,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
     case lineChart(LineChart)
     case pieChart(PieChart)
     case icon(IconElement)
+    case badge(Badge)
     case unknown(type: String)
 
     enum CodingKeys: String, CodingKey {
@@ -118,6 +119,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             self = .pieChart(try PieChart(from: decoder))
         case "Icon":
             self = .icon(try IconElement(from: decoder))
+        case "Badge":
+            self = .badge(try Badge(from: decoder))
         default:
             // Gracefully fallback for unknown element types per Adaptive Cards spec
             self = .unknown(type: type)
@@ -188,6 +191,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             try element.encode(to: encoder)
         case .icon(let element):
             try element.encode(to: encoder)
+        case .badge(let element):
+            try element.encode(to: encoder)
         case .unknown(let type):
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(type, forKey: .type)
@@ -228,6 +233,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .lineChart(let element): return element.id
         case .pieChart(let element): return element.id
         case .icon(let element): return element.id
+        case .badge(let element): return element.id
         case .unknown: return nil
         }
     }
@@ -279,6 +285,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .lineChart(let element): return element.isVisible ?? true
         case .pieChart(let element): return element.isVisible ?? true
         case .icon(let element): return element.isVisible ?? true
+        case .badge(let element): return element.isVisible ?? true
         case .unknown: return false
         }
     }
@@ -317,6 +324,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .lineChart(let e): return e.spacing
         case .pieChart(let e): return e.spacing
         case .icon(let e): return e.spacing
+        case .badge(let e): return e.spacing
         case .unknown: return nil
         }
     }
@@ -331,6 +339,9 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .container(let e): return e.targetWidth
         case .columnSet(let e): return e.targetWidth
         case .actionSet(let e): return e.targetWidth
+        case .table(let e): return e.targetWidth
+        case .icon(let e): return e.targetWidth
+        case .badge(let e): return e.targetWidth
         default: return nil
         }
     }
@@ -369,6 +380,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .lineChart: return "LineChart"
         case .pieChart: return "PieChart"
         case .icon: return "Icon"
+        case .badge: return "Badge"
         case .unknown(let type): return type
         }
     }

@@ -1,20 +1,30 @@
 package com.microsoft.adaptivecards.sample
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,20 +34,25 @@ fun TeamsSimulatorScreen(actionLogState: ActionLogState) {
     val messages = remember { mutableStateListOf<ChatMessage>().apply {
         add(ChatMessage(
             sender = "Bot",
-            content = MessageContent.Text("Welcome to Teams Simulator!"),
+            content = MessageContent.Text("Welcome to Teams Simulator! Send messages or cards to test the chat experience."),
             isFromUser = false
         ))
     }}
     var messageText by remember { mutableStateOf("") }
     var showCardMenu by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Teams Simulator") },
                 actions = {
-                    TextButton(onClick = { messages.clear() }) {
-                        Text("Clear")
+                    IconButton(
+                        onClick = { messages.clear() },
+                        enabled = messages.isNotEmpty()
+                    ) {
+                        Icon(Icons.Default.Delete, "Clear")
                     }
                 }
             )
@@ -50,97 +65,112 @@ fun TeamsSimulatorScreen(actionLogState: ActionLogState) {
         ) {
             // Messages
             LazyColumn(
+                state = listState,
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(messages) { message ->
+                items(messages, key = { it.id }) { message ->
                     ChatBubble(message)
                 }
             }
 
-            Divider()
-
             // Input bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                tonalElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    value = messageText,
-                    onValueChange = { messageText = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Type a message...") },
-                    singleLine = true
-                )
+                Column {
+                    HorizontalDivider()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box {
+                            IconButton(onClick = { showCardMenu = true }) {
+                                Icon(
+                                    Icons.Default.Add,
+                                    "Add Card",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showCardMenu,
+                                onDismissRequest = { showCardMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Simple Card") },
+                                    onClick = {
+                                        messages.add(ChatMessage(
+                                            sender = "Bot",
+                                            content = MessageContent.Card(simpleCardJson),
+                                            isFromUser = false
+                                        ))
+                                        showCardMenu = false
+                                        scope.launch { listState.animateScrollToItem(messages.size - 1) }
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Form Card") },
+                                    onClick = {
+                                        messages.add(ChatMessage(
+                                            sender = "Bot",
+                                            content = MessageContent.Card(formCardJson),
+                                            isFromUser = false
+                                        ))
+                                        showCardMenu = false
+                                        scope.launch { listState.animateScrollToItem(messages.size - 1) }
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Chart Card") },
+                                    onClick = {
+                                        messages.add(ChatMessage(
+                                            sender = "Bot",
+                                            content = MessageContent.Card(chartCardJson),
+                                            isFromUser = false
+                                        ))
+                                        showCardMenu = false
+                                        scope.launch { listState.animateScrollToItem(messages.size - 1) }
+                                    }
+                                )
+                            }
+                        }
 
-                IconButton(
-                    onClick = {
-                        if (messageText.isNotEmpty()) {
-                            messages.add(ChatMessage(
-                                sender = "You",
-                                content = MessageContent.Text(messageText),
-                                isFromUser = true
-                            ))
-                            messageText = ""
-                        }
-                    },
-                    enabled = messageText.isNotEmpty()
-                ) {
-                    Icon(
-                        Icons.Default.Send,
-                        "Send",
-                        tint = if (messageText.isNotEmpty()) 
-                            MaterialTheme.colorScheme.primary 
-                        else 
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    )
-                }
+                        OutlinedTextField(
+                            value = messageText,
+                            onValueChange = { messageText = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("Message...") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(24.dp)
+                        )
 
-                IconButton(onClick = { showCardMenu = true }) {
-                    Icon(Icons.Default.Add, "Add Card")
-                }
-
-                DropdownMenu(
-                    expanded = showCardMenu,
-                    onDismissRequest = { showCardMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Send Simple Card") },
-                        onClick = {
-                            messages.add(ChatMessage(
-                                sender = "Bot",
-                                content = MessageContent.Card(simpleCardJson),
-                                isFromUser = false
-                            ))
-                            showCardMenu = false
+                        FilledIconButton(
+                            onClick = {
+                                if (messageText.isNotEmpty()) {
+                                    messages.add(ChatMessage(
+                                        sender = "You",
+                                        content = MessageContent.Text(messageText),
+                                        isFromUser = true
+                                    ))
+                                    messageText = ""
+                                    scope.launch { listState.animateScrollToItem(messages.size - 1) }
+                                }
+                            },
+                            enabled = messageText.isNotEmpty(),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowUpward,
+                                "Send",
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Send Form Card") },
-                        onClick = {
-                            messages.add(ChatMessage(
-                                sender = "Bot",
-                                content = MessageContent.Card(formCardJson),
-                                isFromUser = false
-                            ))
-                            showCardMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Send Chart Card") },
-                        onClick = {
-                            messages.add(ChatMessage(
-                                sender = "Bot",
-                                content = MessageContent.Card(chartCardJson),
-                                isFromUser = false
-                            ))
-                            showCardMenu = false
-                        }
-                    )
+                    }
                 }
             }
         }
@@ -151,39 +181,63 @@ fun TeamsSimulatorScreen(actionLogState: ActionLogState) {
 fun ChatBubble(message: ChatMessage) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isFromUser) 
-            Arrangement.End 
-        else 
+        horizontalArrangement = if (message.isFromUser)
+            Arrangement.End
+        else
             Arrangement.Start
     ) {
+        if (!message.isFromUser) {
+            // Bot avatar
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(Color(0xFF0078D4), Color(0xFF3399FF))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    message.sender.first().toString(),
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
         Column(
-            horizontalAlignment = if (message.isFromUser) 
-                Alignment.End 
-            else 
+            horizontalAlignment = if (message.isFromUser)
+                Alignment.End
+            else
                 Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.widthIn(max = 300.dp)
         ) {
             Text(
                 message.sender,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(3.dp))
 
             when (message.content) {
                 is MessageContent.Text -> {
                     Surface(
-                        color = if (message.isFromUser) 
-                            MaterialTheme.colorScheme.primary 
-                        else 
+                        color = if (message.isFromUser)
+                            MaterialTheme.colorScheme.primary
+                        else
                             MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(18.dp)
                     ) {
                         Text(
                             message.content.text,
-                            modifier = Modifier.padding(12.dp),
-                            color = if (message.isFromUser) 
-                                MaterialTheme.colorScheme.onPrimary 
-                            else 
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            color = if (message.isFromUser)
+                                MaterialTheme.colorScheme.onPrimary
+                            else
                                 MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -191,7 +245,7 @@ fun ChatBubble(message: ChatMessage) {
                 is MessageContent.Card -> {
                     val msgViewModel: CardViewModel = viewModel(key = "chat_${message.id}")
                     Card(
-                        modifier = Modifier.widthIn(max = 300.dp),
+                        shape = RoundedCornerShape(14.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         AdaptiveCardView(
@@ -203,11 +257,31 @@ fun ChatBubble(message: ChatMessage) {
                 }
             }
 
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 formatTime(message.timestamp),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
+        }
+
+        if (message.isFromUser) {
+            Spacer(modifier = Modifier.width(8.dp))
+            // User avatar
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Y",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

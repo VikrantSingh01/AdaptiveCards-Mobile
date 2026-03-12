@@ -14,7 +14,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 ### Key Features
 
 - 🚀 **Native Rendering**: SwiftUI for iOS, Jetpack Compose for Android
-- 🎨 **Advanced Elements**: Carousel, Accordion, CodeBlock, Rating, TabSet, Progress Indicators, and more
+- 🎨 **Advanced Elements**: Carousel, Accordion, CodeBlock, Rating, TabSet, Badge, Icon, Progress Indicators, and more
 - 📝 **Templating Engine**: Full expression support with 60+ built-in functions
 - ♿ **Accessibility**: WCAG 2.1 AA compliant with VoiceOver/TalkBack support
 - 📱 **Responsive Design**: Adapts to phone/tablet, portrait/landscape, Dynamic Type/font scaling
@@ -28,7 +28,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 | **iOS** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
 | **Android** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
 
-### Build & Test Status (Verified 2026-03-10)
+### Build & Test Status (Verified 2026-03-11)
 
 | Platform | Modules Built | Tests | Sample App |
 |----------|---------------|-------|------------|
@@ -41,7 +41,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - ✅ **ACCore**: Card parsing, models, host configuration
 - ✅ **ACRendering**: Card rendering with SwiftUI views
 - ✅ **ACInputs**: Input controls (text, number, date, rating, etc.)
-- ✅ **ACActions**: Action handling (submit, open URL, show card, etc.)
+- ✅ **ACActions**: Action handling (submit, open URL, show card, cart icon, etc.)
 - ✅ **ACAccessibility**: Accessibility helpers and modifiers
 - ✅ **ACTemplating**: Template engine with 60+ expression functions
 - ✅ **ACMarkdown**: Markdown rendering
@@ -54,7 +54,7 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - ✅ **ac-core**: Card parsing, models, host configuration
 - ✅ **ac-rendering**: Card rendering with Compose views
 - ✅ **ac-inputs**: Input controls with validation
-- ✅ **ac-actions**: Action handling and delegation
+- ✅ **ac-actions**: Action handling and delegation (cart icon support)
 - ✅ **ac-accessibility**: Accessibility semantics
 - ✅ **ac-host-config**: Theme and configuration management
 - ✅ **ac-templating**: Template engine with 50+ expression functions
@@ -379,7 +379,7 @@ For a complete guide to VS Code development, see [VSCODE_COMPLETE_GUIDE.md](docs
 
 ## 🧪 Test Cards
 
-The SDK includes 21 comprehensive test cards:
+The SDK includes 52 comprehensive test cards:
 
 ### Core Elements
 - `simple-text.json` - Basic TextBlock
@@ -655,16 +655,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📱 Sample Applications
 
-Both iOS and Android include comprehensive sample apps showcasing all SDK features. Both apps have been verified running on simulators/emulators as of 2026-02-12.
+Both iOS and Android include comprehensive sample apps showcasing all SDK features. Both apps have been verified running on simulators/emulators as of 2026-03-11.
 
 ### iOS Sample App
 
 Located in `ios/SampleApp/`, features:
-- **Card Gallery**: Browse 35+ test cards by category
+- **Card Gallery**: Browse 52 test cards by category with search/filter
 - **Live Editor**: Edit JSON with real-time preview
 - **Teams Simulator**: Teams-style chat UI with card integration
 - **Performance Dashboard**: Parse/render metrics, memory usage
+- **Bookmarks**: Star and revisit favourite cards
 - **Settings**: Theme, font scale, accessibility options
+- **Deep Link Navigation**: `adaptivecards://` URL scheme for automated testing and demo scripts
 
 **Status**: Running on iPhone 16e Simulator. Card rendering aligned to Figma iOS design spec with platform-native `.SF UI Text` typography.
 
@@ -675,16 +677,31 @@ open Package.swift
 # Select the AdaptiveCardsSample scheme in Xcode, then build (Cmd+R)
 ```
 
+#### Deep Link Routes (both platforms)
+
+```
+adaptivecards://card/{category}/{name}   — open card detail
+adaptivecards://gallery                  — return to gallery
+adaptivecards://gallery/{filter}         — gallery with category filter (e.g. teams-official)
+adaptivecards://editor                   — switch to editor
+adaptivecards://performance              — performance dashboard
+adaptivecards://bookmarks                — bookmarks screen
+adaptivecards://settings                 — settings screen
+adaptivecards://more                     — more menu
+```
+
 See [ios/SampleApp/README.md](ios/SampleApp/README.md) for detailed instructions.
 
 ### Android Sample App
 
 Located in `android/sample-app/`, features:
-- **Card Gallery**: Browse all test cards with search/filter
+- **Card Gallery**: Browse 52 test cards by category with search/filter
 - **Live Editor**: JSON editor with validation
 - **Teams Simulator**: Material Design chat UI
 - **Performance Dashboard**: Comprehensive metrics tracking
+- **Bookmarks**: Star and revisit favourite cards
 - **Settings**: Material You theming support
+- **Deep Link Navigation**: Same `adaptivecards://` URL scheme as iOS for parity
 
 **Status**: Running on Pixel 10 AVD (API 36). Card rendering aligned to Figma Android design spec with `Roboto` typography.
 
@@ -693,6 +710,15 @@ Build and run:
 cd android
 ./gradlew :sample-app:assembleDebug
 ./gradlew :sample-app:installDebug
+```
+
+#### Automated Demo Script
+
+Run a dual-platform bookmark demo across both simulators simultaneously:
+```bash
+bash shared/scripts/demo-bookmarks.sh                # default 2s per card
+bash shared/scripts/demo-bookmarks.sh --wait 3        # 3s per card
+bash shared/scripts/demo-bookmarks.sh --screenshots   # capture screenshots
 ```
 
 See [android/sample-app/README.md](android/sample-app/README.md) for detailed instructions.
@@ -877,4 +903,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Version**: 1.1.0-dev
 **Status**: Production Ready ✅
-**Last Verified**: 2026-03-10 (iOS 11/11 modules, 235 tests passing; Android 12/12 modules, all tests passing; both sample apps running; HostConfigs aligned to Figma AC-Evolution design spec)
+**Last Updated**: 2026-03-11 (iOS 11/11 modules, 235 tests passing; Android 12/12 modules, all tests passing; both sample apps running; HostConfigs aligned to Figma AC-Evolution design spec; extended deep link routing with gallery category filters, cart icon support, and dual-platform demo scripts)
