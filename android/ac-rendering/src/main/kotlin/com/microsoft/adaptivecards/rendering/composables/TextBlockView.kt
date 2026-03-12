@@ -14,7 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.microsoft.adaptivecards.core.models.*
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.accessibility.scaledTextSize
 import com.microsoft.adaptivecards.markdown.MarkdownParser
 import com.microsoft.adaptivecards.markdown.MarkdownRenderer

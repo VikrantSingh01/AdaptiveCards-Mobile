@@ -1,4 +1,4 @@
-package com.microsoft.adaptivecards.hostconfig
+package com.microsoft.adaptivecards.rendering.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -42,7 +42,7 @@ private val TeamsDarkColorScheme = darkColorScheme(
 
 /**
  * Teams theme that applies Material3 styling based on Teams HostConfig
- * 
+ *
  * Usage:
  * ```
  * TeamsTheme {
@@ -57,7 +57,7 @@ fun TeamsTheme(
 ) {
     val colorScheme = if (darkTheme) TeamsDarkColorScheme else TeamsLightColorScheme
     val hostConfig = TeamsHostConfig.create()
-    
+
     MaterialTheme(
         colorScheme = colorScheme
     ) {

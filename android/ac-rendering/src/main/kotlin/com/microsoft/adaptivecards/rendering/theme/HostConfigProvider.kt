@@ -1,4 +1,4 @@
-package com.microsoft.adaptivecards.hostconfig
+package com.microsoft.adaptivecards.rendering.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.microsoft.adaptivecards.core.hostconfig.HostConfig
@@ -13,7 +13,7 @@ val LocalHostConfig = staticCompositionLocalOf<HostConfig> {
 
 /**
  * Provider for HostConfig in the composition tree
- * 
+ *
  * Usage:
  * ```
  * HostConfigProvider(hostConfig = TeamsHostConfig.create()) {

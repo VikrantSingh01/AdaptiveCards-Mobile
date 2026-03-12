@@ -43,7 +43,6 @@ android {
 dependencies {
     implementation(project(":ac-core"))
     implementation(project(":ac-rendering"))
-    implementation(project(":ac-host-config"))
 
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)

@@ -480,6 +480,7 @@ phase2_visual() {
         -scheme ACVisualizer \
         -sdk iphonesimulator \
         -destination "platform=iOS Simulator,name=$SIMULATOR" \
+        CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
         build 2>&1)
     local build_result
     build_result=$(echo "$build_output" | tail -1)
@@ -559,10 +560,11 @@ phase2_visual() {
             app_alive=false
         fi
 
-        # Capture screenshot
+        # Capture screenshot (resized to 540px wide for smaller files)
         local screenshot="$REPORT_DIR/screenshots/${card_name}.png"
         if $app_alive; then
             xcrun simctl io "$SIM_UDID" screenshot "$screenshot" 2>/dev/null || true
+            [ -f "$screenshot" ] && sips --resampleWidth 540 "$screenshot" &>/dev/null || true
         fi
 
         # Capture logs for this card's time window
@@ -610,7 +612,7 @@ phase2_visual() {
             failed_cards+=("$card_path")
             card_diagnoses+=("$diagnosis")
             echo "  ❌ [$idx/${#cards_to_test[@]}] $card_name — $diagnosis"
-        elif [ "$size" -lt 50000 ]; then
+        elif [ "$size" -lt 10000 ]; then
             status="FAIL"
             notes="Blank/error (${size}B)"
             if [[ "$diagnosis" != "CLEAN" && "$diagnosis" != "NO_LOGS" ]]; then
@@ -620,7 +622,7 @@ phase2_visual() {
             failed_cards+=("$card_path")
             card_diagnoses+=("$diagnosis")
             echo "  ❌ [$idx/${#cards_to_test[@]}] $card_name — blank/error (${size}B) [$diagnosis]"
-        elif [ "$size" -lt 100000 ]; then
+        elif [ "$size" -lt 25000 ]; then
             status="WARN"
             notes="Low content (${size}B)"
             if [[ "$diagnosis" != "CLEAN" && "$diagnosis" != "NO_LOGS" ]]; then
@@ -712,6 +714,7 @@ phase2_visual() {
                 local screenshot="$REPORT_DIR/screenshots/${card_name}-retry${retry}.png"
                 if $app_alive; then
                     xcrun simctl io "$SIM_UDID" screenshot "$screenshot" 2>/dev/null || true
+                    [ -f "$screenshot" ] && sips --resampleWidth 540 "$screenshot" &>/dev/null || true
                 fi
 
                 local logfile
@@ -724,7 +727,7 @@ phase2_visual() {
                     size=$(stat -f%z "$screenshot" 2>/dev/null || echo "0")
                 fi
 
-                if $app_alive && [ "$size" -ge 50000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
+                if $app_alive && [ "$size" -ge 10000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
                     recovered=$((recovered + 1))
                     fail=$((fail - 1))
                     pass=$((pass + 1))
@@ -977,7 +980,7 @@ publish_failure_outputs() {
         [ -f "$screenshot" ] || continue
         local size
         size=$(stat -f%z "$screenshot" 2>/dev/null || echo "0")
-        if [ "$size" -lt 100000 ]; then
+        if [ "$size" -lt 25000 ]; then
             local base
             base=$(basename "$screenshot")
             if [ ! -f "$publish_dir/$base" ]; then
