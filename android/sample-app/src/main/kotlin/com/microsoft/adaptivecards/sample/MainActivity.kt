@@ -67,12 +67,17 @@ fun MainScreen() {
     val editorState = remember { EditorState() }
     val perfStore = remember { PerformanceStore(context) }
     val galleryListState = rememberLazyListState()
+    var pendingGalleryFilter by remember { mutableStateOf<String?>(null) }
 
     val activity = context as? MainActivity
     LaunchedEffect(Unit) {
         val channel = activity?.deepLinkChannel ?: return@LaunchedEffect
         for (uri in channel) {
             try {
+                // Extract gallery filter before navigation
+                if (uri.host == "gallery" && uri.pathSegments.isNotEmpty()) {
+                    pendingGalleryFilter = uri.pathSegments.first()
+                }
                 handleDeepLink(uri, navController)
             } catch (e: Exception) {
                 android.util.Log.e("DeepLink", "Failed to handle deep link: $uri", e)
@@ -127,7 +132,9 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Gallery.route) {
-                CardGalleryScreen(navController, bookmarkState, galleryListState)
+                CardGalleryScreen(navController, bookmarkState, galleryListState, pendingGalleryFilter) {
+                    pendingGalleryFilter = null
+                }
             }
             composable(Screen.Editor.route) {
                 CardEditorScreen(actionLogState, editorState)
@@ -407,6 +414,24 @@ fun MoreScreen(
                     )
                 }
             }
+
+            // Footnote
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "New Mobile AC Visualizer - Built with ❤️ by Vikrant Singh",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF0078D4),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/VikrantSingh01/")
+                        )
+                        navController.context.startActivity(intent)
+                    }
+            )
         }
     }
 }
@@ -486,6 +511,35 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
         }
         "gallery" -> {
             navController.popBackStack(Screen.Gallery.route, inclusive = false)
+        }
+        "editor" -> {
+            navController.navigate(Screen.Editor.route) {
+                launchSingleTop = true
+            }
+        }
+        "performance" -> {
+            navController.navigate("performance") {
+                launchSingleTop = true
+            }
+        }
+        "bookmarks" -> {
+            navController.navigate("bookmarks") {
+                launchSingleTop = true
+            }
+        }
+        "settings" -> {
+            navController.navigate("settings") {
+                launchSingleTop = true
+            }
+        }
+        "more" -> {
+            navController.navigate(Screen.More.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
         }
     }
 }

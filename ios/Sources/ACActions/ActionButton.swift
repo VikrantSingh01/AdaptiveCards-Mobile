@@ -193,6 +193,7 @@ public struct ActionButton: View {
         "Video": "video", "Camera": "camera", "Attach": "paperclip",
         "Document": "doc", "Folder": "folder", "Settings": "gearshape",
         "Filter": "line.3.horizontal.decrease", "MoreHorizontal": "ellipsis",
+        "Cart": "cart", "CartFilled": "cart.fill",
         "Save": "square.and.arrow.down",
         "Navigation": "arrow.triangle.turn.up.right.diamond",
         "AlertUrgent": "bell.badge",

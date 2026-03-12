@@ -2,11 +2,21 @@ import SwiftUI
 
 struct CardGalleryView: View {
     @EnvironmentObject var bookmarks: BookmarkStore
+    @EnvironmentObject var deepLink: DeepLinkRouter
     @State private var searchText = ""
     @State private var selectedCategory: CardCategory = .all
     @State private var showGrouped = true
 
     private let cards: [TestCard] = TestCardLoader.loadAllCards()
+
+    /// Maps deep link filter slugs to CardCategory values
+    private static let filterMap: [String: CardCategory] = [
+        "all": .all, "basic": .basic, "inputs": .inputs, "actions": .actions,
+        "containers": .containers, "advanced": .advanced, "teams": .teams,
+        "templating": .templating, "official": .officialSamples,
+        "elements": .elementSamples, "teams-templated": .teamsSamples,
+        "teams-official": .teamsOfficialSamples, "edge-cases": .edgeCases
+    ]
 
     var filteredCards: [TestCard] {
         var result = cards
@@ -86,6 +96,15 @@ struct CardGalleryView: View {
                     Button(action: { withAnimation(.easeInOut(duration: 0.2)) { showGrouped.toggle() } }) {
                         Image(systemName: showGrouped ? "list.bullet.indent" : "list.bullet")
                             .font(.body)
+                    }
+                }
+            }
+            .onChange(of: deepLink.pendingFilter) { _, filter in
+                guard let filter else { return }
+                deepLink.pendingFilter = nil
+                if let category = Self.filterMap[filter] {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedCategory = category
                     }
                 }
             }

@@ -126,6 +126,7 @@ private fun resolveActionIcon(iconUrl: String): ImageVector? {
         "chevronup" -> Icons.Filled.ExpandLess
         "navigation" -> Icons.Filled.Navigation
         "receipt" -> Icons.Filled.Receipt
+        "cart", "cartfilled" -> Icons.Filled.ShoppingCart
         else -> null
     }
 }

@@ -25,21 +25,58 @@ struct AdaptiveCardsSampleApp: App {
     }
 }
 
-/// Deep link handler: adaptivecards://card/{filename}
-/// Enables automated test scripts to navigate directly to any card.
+/// Deep link handler for automated demo & test scripts.
+///
+/// Supported routes:
+///   adaptivecards://card/{category}/{name}  — open card detail
+///   adaptivecards://gallery                 — return to gallery tab
+///   adaptivecards://gallery/{filter}         — gallery with category filter (e.g. teams-official)
+///   adaptivecards://editor                  — switch to editor tab
+///   adaptivecards://performance             — open performance dashboard
+///   adaptivecards://bookmarks               — open bookmarks screen
+///   adaptivecards://settings                — open settings screen
 class DeepLinkRouter: ObservableObject {
     @Published var activeCard: TestCard?
+    /// Set by deep link to request a screen navigation
+    @Published var pendingScreen: String?
+    /// Set by deep link to request a gallery filter (e.g. "teams-official")
+    @Published var pendingFilter: String?
 
     func handle(_ url: URL) {
-        guard url.scheme == "adaptivecards", url.host == "card" else { return }
-        let filename = url.pathComponents.dropFirst().joined(separator: "/")
-        guard !filename.isEmpty else { return }
-        let allCards = TestCardLoader.loadAllCards()
-        // Match with or without .json extension
-        activeCard = allCards.first {
-            $0.filename == filename ||
-            $0.filename == "\(filename).json" ||
-            $0.filename.replacingOccurrences(of: ".json", with: "") == filename
+        guard url.scheme == "adaptivecards" else { return }
+        switch url.host {
+        case "card":
+            let filename = url.pathComponents.dropFirst().joined(separator: "/")
+            guard !filename.isEmpty else { return }
+            let allCards = TestCardLoader.loadAllCards()
+            activeCard = allCards.first {
+                $0.filename == filename ||
+                $0.filename == "\(filename).json" ||
+                $0.filename.replacingOccurrences(of: ".json", with: "") == filename
+            }
+        case "gallery":
+            activeCard = nil
+            // Check for filter path: adaptivecards://gallery/{filter}
+            let filter = url.pathComponents.dropFirst().first
+            pendingFilter = filter
+            pendingScreen = "gallery"
+        case "editor":
+            activeCard = nil
+            pendingScreen = "editor"
+        case "performance":
+            activeCard = nil
+            pendingScreen = "performance"
+        case "bookmarks":
+            activeCard = nil
+            pendingScreen = "bookmarks"
+        case "settings":
+            activeCard = nil
+            pendingScreen = "settings"
+        case "more":
+            activeCard = nil
+            pendingScreen = "more"
+        default:
+            break
         }
     }
 
