@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var settings: AppSettings
     @EnvironmentObject var deepLink: DeepLinkRouter
     @EnvironmentObject var editorState: EditorState
+    @State private var moreNavigationPath = NavigationPath()
 
     var body: some View {
         TabView(selection: $editorState.selectedTab) {
@@ -25,8 +26,20 @@ struct ContentView: View {
                 }
                 .tag(2)
 
-            NavigationStack {
+            NavigationStack(path: $moreNavigationPath) {
                 MoreMenuView()
+                    .navigationDestination(for: String.self) { screen in
+                        switch screen {
+                        case "performance":
+                            PerformanceDashboardView()
+                        case "bookmarks":
+                            BookmarksView()
+                        case "settings":
+                            SettingsView()
+                        default:
+                            EmptyView()
+                        }
+                    }
             }
             .tabItem {
                 Label("More", systemImage: "ellipsis.circle.fill")
@@ -43,6 +56,40 @@ struct ContentView: View {
                             Button("Close") { deepLink.dismiss() }
                         }
                     }
+            }
+        }
+        .onChange(of: deepLink.pendingScreen) { _, screen in
+            guard let screen else { return }
+            deepLink.pendingScreen = nil
+            switch screen {
+            case "gallery":
+                editorState.selectedTab = 0
+                moreNavigationPath = NavigationPath()
+            case "editor":
+                editorState.selectedTab = 1
+            case "performance":
+                editorState.selectedTab = 3
+                moreNavigationPath = NavigationPath()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    moreNavigationPath.append("performance")
+                }
+            case "bookmarks":
+                editorState.selectedTab = 3
+                moreNavigationPath = NavigationPath()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    moreNavigationPath.append("bookmarks")
+                }
+            case "settings":
+                editorState.selectedTab = 3
+                moreNavigationPath = NavigationPath()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    moreNavigationPath.append("settings")
+                }
+            case "more":
+                editorState.selectedTab = 3
+                moreNavigationPath = NavigationPath()
+            default:
+                break
             }
         }
     }
@@ -143,6 +190,21 @@ struct MoreMenuView: View {
                     }
                 }
                 .padding(.vertical, 4)
+                .listRowBackground(Color.clear)
+            }
+
+            // Footnote
+            Section {
+                HStack {
+                    Spacer()
+                    Text("New Mobile AC Visualizer - Built with ❤️ by ")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    + Text("[Vikrant Singh](https://github.com/VikrantSingh01/)")
+                        .font(.caption2)
+                        .foregroundColor(Color(red: 0.0, green: 0.47, blue: 0.83))
+                    Spacer()
+                }
                 .listRowBackground(Color.clear)
             }
         }

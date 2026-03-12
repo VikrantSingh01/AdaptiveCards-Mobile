@@ -31,11 +31,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
+/// Maps deep link filter slugs to CardCategory values
+private val filterSlugMap = mapOf(
+    "all" to CardCategory.ALL, "basic" to CardCategory.BASIC,
+    "inputs" to CardCategory.INPUTS, "actions" to CardCategory.ACTIONS,
+    "containers" to CardCategory.CONTAINERS, "advanced" to CardCategory.ADVANCED,
+    "teams" to CardCategory.TEAMS, "templating" to CardCategory.TEMPLATING,
+    "official" to CardCategory.OFFICIAL, "elements" to CardCategory.ELEMENT,
+    "teams-templated" to CardCategory.TEAMS_TEMPLATED,
+    "teams-official" to CardCategory.TEAMS_OFFICIAL
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardGalleryScreen(navController: NavController, bookmarkState: BookmarkState, listState: LazyListState) {
+fun CardGalleryScreen(
+    navController: NavController,
+    bookmarkState: BookmarkState,
+    listState: LazyListState,
+    pendingFilter: String? = null,
+    onFilterConsumed: () -> Unit = {}
+) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(CardCategory.ALL) }
+
+    // Apply deep link filter
+    LaunchedEffect(pendingFilter) {
+        pendingFilter?.let { slug ->
+            filterSlugMap[slug]?.let { selectedCategory = it }
+            onFilterConsumed()
+        }
+    }
 
     val context = LocalContext.current
     val cards = remember { TestCardLoader.loadAllCards(context) }
