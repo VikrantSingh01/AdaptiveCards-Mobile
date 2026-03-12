@@ -76,7 +76,7 @@ fun ActionButton(
  */
 private fun resolveActionIcon(iconUrl: String): ImageVector? {
     if (!iconUrl.startsWith("icon:")) return null
-    val name = iconUrl.removePrefix("icon:").lowercase()
+    val name = iconUrl.removePrefix("icon:").split(",").firstOrNull()?.lowercase() ?: return null
     return when (name) {
         "alerturgent" -> Icons.Filled.Notifications
         "alert", "bell" -> Icons.Outlined.Notifications
@@ -127,6 +127,8 @@ private fun resolveActionIcon(iconUrl: String): ImageVector? {
         "navigation" -> Icons.Filled.Navigation
         "receipt" -> Icons.Filled.Receipt
         "cart", "cartfilled" -> Icons.Filled.ShoppingCart
+        "arrowreset" -> Icons.Filled.Refresh
+        "toggleleft" -> Icons.Filled.ToggleOn
         else -> null
     }
 }
