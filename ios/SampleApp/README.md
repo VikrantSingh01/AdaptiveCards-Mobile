@@ -64,7 +64,7 @@ A comprehensive SwiftUI sample application demonstrating the Adaptive Cards Mobi
 2. **Add Sample App Target to Xcode**:
    - In Xcode, add a new target for the sample app
    - Select "iOS App" template
-   - Name: "AdaptiveCardsSample"
+   - Name: "ACVisualizer"
    - Interface: SwiftUI
    - Language: Swift
 
@@ -98,14 +98,14 @@ Create a standalone app:
 ```swift
 // Package.swift
 let package = Package(
-    name: "AdaptiveCardsSample",
+    name: "ACVisualizer",
     platforms: [.iOS(.v16)],
     dependencies: [
         .package(path: "../")
     ],
     targets: [
         .executableTarget(
-            name: "AdaptiveCardsSample",
+            name: "ACVisualizer",
             dependencies: [
                 .product(name: "ACCore", package: "AdaptiveCards"),
                 .product(name: "ACRendering", package: "AdaptiveCards"),

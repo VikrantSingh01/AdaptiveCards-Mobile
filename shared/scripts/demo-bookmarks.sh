@@ -33,9 +33,9 @@ set -euo pipefail
 # ─── Defaults ────────────────────────────────────────────────────────────────
 CARD_WAIT=2          # seconds on each card detail page (+ 1s extra per step 4)
 TRANSITION_WAIT=0.5  # seconds between navigation transitions
-PERF_WAIT=3          # seconds on performance dashboard
+PERF_WAIT=5          # seconds on performance dashboard
 SETTINGS_WAIT=3      # seconds on settings page
-MORE_WAIT=3          # seconds on more page
+MORE_WAIT=5          # seconds on more page
 HOME_WAIT=2          # seconds on home/gallery page
 FILTER_WAIT=2        # seconds on filtered gallery view
 IOS_HEAD_START=0.15  # iOS fires first to compensate for slower deep link handling
