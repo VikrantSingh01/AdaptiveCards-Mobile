@@ -8,6 +8,8 @@ public struct ChoiceSetInputView: View {
     @Binding var value: String?
     @ObservedObject var validationState: ValidationState
     @State private var selectedValues: Set<String> = []
+    @State private var filterText: String = ""
+    @State private var isFilterExpanded: Bool = false
 
     public init(
         input: ChoiceSetInput,
@@ -142,8 +144,61 @@ public struct ChoiceSetInputView: View {
     }
 
     private var filteredView: some View {
-        // Filtered view with search - simplified for now
-        expandedView
+        VStack(alignment: .leading, spacing: 0) {
+            TextField(input.placeholder ?? "Type to filter...", text: Binding(
+                get: {
+                    if isFilterExpanded {
+                        return filterText
+                    }
+                    // Show selected choice title when not editing
+                    if let val = value, !val.isEmpty {
+                        return input.choices.first(where: { $0.value == val })?.title ?? val
+                    }
+                    return filterText
+                },
+                set: { newValue in
+                    filterText = newValue
+                    isFilterExpanded = true
+                }
+            ))
+            .textFieldStyle(.roundedBorder)
+            .onTapGesture {
+                isFilterExpanded = true
+                filterText = ""
+            }
+
+            if isFilterExpanded && !filterText.isEmpty {
+                let filtered = input.choices.filter {
+                    $0.title.localizedCaseInsensitiveContains(filterText)
+                }
+                if !filtered.isEmpty {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(filtered.prefix(10), id: \.value) { choice in
+                            Button(action: {
+                                value = choice.value
+                                filterText = choice.title
+                                isFilterExpanded = false
+                                validateIfNeeded()
+                            }) {
+                                Text(choice.title)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.primary)
+
+                            if choice.value != filtered.prefix(10).last?.value {
+                                Divider()
+                            }
+                        }
+                    }
+                    .background(Color(white: 0.95))
+                    .cornerRadius(8)
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+            }
+        }
     }
 
     private func updateMultiSelectValue() {

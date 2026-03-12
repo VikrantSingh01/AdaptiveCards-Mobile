@@ -1,30 +1,82 @@
 package com.microsoft.adaptivecards.core.models
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
-@Serializable
+/**
+ * Generic case-insensitive enum serializer for Adaptive Cards.
+ *
+ * The AC spec treats enum values as case-insensitive (e.g. "small", "Small", "SMALL"
+ * are all valid). This serializer handles that by matching on lowercase.
+ *
+ * @param serialName The descriptor name
+ * @param defaultValue Fallback when no match is found
+ * @param entries Map of lowercase string → enum value
+ */
+open class CaseInsensitiveEnumSerializer<E : Enum<E>>(
+    serialName: String,
+    private val defaultValue: E,
+    private val entries: Map<String, E>
+) : KSerializer<E> {
+    override val descriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: E) =
+        encoder.encodeString(value.name)
+
+    override fun deserialize(decoder: Decoder): E =
+        entries[decoder.decodeString().lowercase()] ?: defaultValue
+
+    companion object {
+        /** Build a lowercase lookup map from enum values, keyed by lowercase enum name. */
+        inline fun <reified E : Enum<E>> buildEntries(): Map<String, E> =
+            enumValues<E>().associateBy { it.name.lowercase() }
+    }
+}
+
+// --- Enum definitions with case-insensitive serialization ---
+
+@Serializable(with = HorizontalAlignmentSerializer::class)
 enum class HorizontalAlignment {
     @SerialName("Left") Left,
     @SerialName("Center") Center,
     @SerialName("Right") Right
 }
 
-@Serializable
+object HorizontalAlignmentSerializer : CaseInsensitiveEnumSerializer<HorizontalAlignment>(
+    "HorizontalAlignment", HorizontalAlignment.Left,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = VerticalAlignmentSerializer::class)
 enum class VerticalAlignment {
     @SerialName("Top") Top,
     @SerialName("Center") Center,
     @SerialName("Bottom") Bottom
 }
 
-@Serializable
+object VerticalAlignmentSerializer : CaseInsensitiveEnumSerializer<VerticalAlignment>(
+    "VerticalAlignment", VerticalAlignment.Top,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = VerticalContentAlignmentSerializer::class)
 enum class VerticalContentAlignment {
     @SerialName("Top") Top,
     @SerialName("Center") Center,
     @SerialName("Bottom") Bottom
 }
 
-@Serializable
+object VerticalContentAlignmentSerializer : CaseInsensitiveEnumSerializer<VerticalContentAlignment>(
+    "VerticalContentAlignment", VerticalContentAlignment.Top,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = SpacingSerializer::class)
 enum class Spacing {
     @SerialName("None") None,
     @SerialName("ExtraSmall") ExtraSmall,
@@ -36,13 +88,23 @@ enum class Spacing {
     @SerialName("Padding") Padding
 }
 
-@Serializable
+object SpacingSerializer : CaseInsensitiveEnumSerializer<Spacing>(
+    "Spacing", Spacing.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = FontTypeSerializer::class)
 enum class FontType {
     @SerialName("Default") Default,
     @SerialName("Monospace") Monospace
 }
 
-@Serializable
+object FontTypeSerializer : CaseInsensitiveEnumSerializer<FontType>(
+    "FontType", FontType.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = FontSizeSerializer::class)
 enum class FontSize {
     @SerialName("Small") Small,
     @SerialName("Default") Default,
@@ -51,14 +113,24 @@ enum class FontSize {
     @SerialName("ExtraLarge") ExtraLarge
 }
 
-@Serializable
+object FontSizeSerializer : CaseInsensitiveEnumSerializer<FontSize>(
+    "FontSize", FontSize.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = FontWeightSerializer::class)
 enum class FontWeight {
     @SerialName("Default") Default,
     @SerialName("Lighter") Lighter,
     @SerialName("Bolder") Bolder
 }
 
-@Serializable
+object FontWeightSerializer : CaseInsensitiveEnumSerializer<FontWeight>(
+    "FontWeight", FontWeight.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = ColorSerializer::class)
 enum class Color {
     @SerialName("Default") Default,
     @SerialName("Dark") Dark,
@@ -69,7 +141,12 @@ enum class Color {
     @SerialName("Attention") Attention
 }
 
-@Serializable
+object ColorSerializer : CaseInsensitiveEnumSerializer<Color>(
+    "Color", Color.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = ImageSizeSerializer::class)
 enum class ImageSize {
     @SerialName("Auto") Auto,
     @SerialName("Stretch") Stretch,
@@ -78,14 +155,28 @@ enum class ImageSize {
     @SerialName("Large") Large
 }
 
-@Serializable
+object ImageSizeSerializer : CaseInsensitiveEnumSerializer<ImageSize>(
+    "ImageSize", ImageSize.Auto,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = ImageStyleSerializer::class)
 enum class ImageStyle {
     @SerialName("Default") Default,
     @SerialName("Person") Person,
     @SerialName("RoundedCorners") RoundedCorners
 }
 
-@Serializable
+object ImageStyleSerializer : CaseInsensitiveEnumSerializer<ImageStyle>(
+    "ImageStyle", ImageStyle.Default,
+    buildMap {
+        putAll(CaseInsensitiveEnumSerializer.buildEntries<ImageStyle>())
+        // Also handle "roundedcorners" → lowercased camelCase "roundedCorners"
+        put("roundedcorners", ImageStyle.RoundedCorners)
+    }
+)
+
+@Serializable(with = ContainerStyleSerializer::class)
 enum class ContainerStyle {
     @SerialName("Default") Default,
     @SerialName("Emphasis") Emphasis,
@@ -95,33 +186,58 @@ enum class ContainerStyle {
     @SerialName("Accent") Accent
 }
 
-@Serializable
+object ContainerStyleSerializer : CaseInsensitiveEnumSerializer<ContainerStyle>(
+    "ContainerStyle", ContainerStyle.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = ActionStyleSerializer::class)
 enum class ActionStyle {
     @SerialName("Default") Default,
     @SerialName("Positive") Positive,
     @SerialName("Destructive") Destructive
 }
 
-@Serializable
+object ActionStyleSerializer : CaseInsensitiveEnumSerializer<ActionStyle>(
+    "ActionStyle", ActionStyle.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = HeightTypeSerializer::class)
 enum class HeightType {
     @SerialName("Auto") Auto,
     @SerialName("Stretch") Stretch
 }
 
-@Serializable
+object HeightTypeSerializer : CaseInsensitiveEnumSerializer<HeightType>(
+    "HeightType", HeightType.Auto,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = BlockElementHeightSerializer::class)
 enum class BlockElementHeight {
     @SerialName("Auto") Auto,
     @SerialName("Stretch") Stretch
 }
 
-@Serializable
+object BlockElementHeightSerializer : CaseInsensitiveEnumSerializer<BlockElementHeight>(
+    "BlockElementHeight", BlockElementHeight.Auto,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = ChoiceInputStyleSerializer::class)
 enum class ChoiceInputStyle {
     @SerialName("Compact") Compact,
     @SerialName("Expanded") Expanded,
     @SerialName("Filtered") Filtered
 }
 
-@Serializable
+object ChoiceInputStyleSerializer : CaseInsensitiveEnumSerializer<ChoiceInputStyle>(
+    "ChoiceInputStyle", ChoiceInputStyle.Compact,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = TextInputStyleSerializer::class)
 enum class TextInputStyle {
     @SerialName("Text") Text,
     @SerialName("Tel") Tel,
@@ -130,11 +246,21 @@ enum class TextInputStyle {
     @SerialName("Password") Password
 }
 
-@Serializable
+object TextInputStyleSerializer : CaseInsensitiveEnumSerializer<TextInputStyle>(
+    "TextInputStyle", TextInputStyle.Text,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = AssociatedInputsSerializer::class)
 enum class AssociatedInputs {
     @SerialName("Auto") Auto,
     @SerialName("None") None
 }
+
+object AssociatedInputsSerializer : CaseInsensitiveEnumSerializer<AssociatedInputs>(
+    "AssociatedInputs", AssociatedInputs.Auto,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
 
 @Serializable(with = ActionModeSerializer::class)
 enum class ActionMode {
@@ -143,26 +269,23 @@ enum class ActionMode {
 }
 
 /** Case-insensitive deserializer — handles both "secondary" and "Secondary". */
-object ActionModeSerializer : kotlinx.serialization.KSerializer<ActionMode> {
-    override val descriptor = kotlinx.serialization.descriptors.PrimitiveSerialDescriptor(
-        "ActionMode", kotlinx.serialization.descriptors.PrimitiveKind.STRING
-    )
-    override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: ActionMode) =
-        encoder.encodeString(value.name)
-    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): ActionMode =
-        when (decoder.decodeString().lowercase()) {
-            "secondary" -> ActionMode.Secondary
-            else -> ActionMode.Primary
-        }
-}
+object ActionModeSerializer : CaseInsensitiveEnumSerializer<ActionMode>(
+    "ActionMode", ActionMode.Primary,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
 
-@Serializable
+@Serializable(with = ActionSetModeSerializer::class)
 enum class ActionSetMode {
     @SerialName("Default") Default,
     @SerialName("Overflow") Overflow
 }
 
-@Serializable
+object ActionSetModeSerializer : CaseInsensitiveEnumSerializer<ActionSetMode>(
+    "ActionSetMode", ActionSetMode.Default,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = TargetWidthSerializer::class)
 enum class TargetWidth {
     @SerialName("Narrow") Narrow,
     @SerialName("Standard") Standard,
@@ -170,25 +293,48 @@ enum class TargetWidth {
     @SerialName("VeryWide") VeryWide
 }
 
-@Serializable
+object TargetWidthSerializer : CaseInsensitiveEnumSerializer<TargetWidth>(
+    "TargetWidth", TargetWidth.Standard,
+    buildMap {
+        putAll(CaseInsensitiveEnumSerializer.buildEntries<TargetWidth>())
+        put("verywide", TargetWidth.VeryWide)
+    }
+)
+
+@Serializable(with = ExpandModeSerializer::class)
 enum class ExpandMode {
     @SerialName("single") SINGLE,
     @SerialName("multiple") MULTIPLE
 }
 
-@Serializable
+object ExpandModeSerializer : CaseInsensitiveEnumSerializer<ExpandMode>(
+    "ExpandMode", ExpandMode.SINGLE,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = RatingSizeSerializer::class)
 enum class RatingSize {
     @SerialName("small") SMALL,
     @SerialName("medium") MEDIUM,
     @SerialName("large") LARGE
 }
 
-@Serializable
+object RatingSizeSerializer : CaseInsensitiveEnumSerializer<RatingSize>(
+    "RatingSize", RatingSize.MEDIUM,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
+
+@Serializable(with = SpinnerSizeSerializer::class)
 enum class SpinnerSize {
     @SerialName("small") SMALL,
     @SerialName("medium") MEDIUM,
     @SerialName("large") LARGE
 }
+
+object SpinnerSizeSerializer : CaseInsensitiveEnumSerializer<SpinnerSize>(
+    "SpinnerSize", SpinnerSize.MEDIUM,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)
 
 // Layout Types
 
@@ -199,8 +345,13 @@ enum class LayoutType {
     @SerialName("Layout.AreaGrid") AREA_GRID
 }
 
-@Serializable
+@Serializable(with = ItemFitSerializer::class)
 enum class ItemFit {
     @SerialName("Fit") FIT,
     @SerialName("Fill") FILL
 }
+
+object ItemFitSerializer : CaseInsensitiveEnumSerializer<ItemFit>(
+    "ItemFit", ItemFit.FIT,
+    CaseInsensitiveEnumSerializer.buildEntries()
+)

@@ -22,15 +22,23 @@ struct ImageView: View {
                 Color.clear
                     .frame(width: 0, height: 0)
             case .success(let img):
-                img
-                    .resizable()
-                    .aspectRatio(contentMode: aspectRatio)
-                    .frame(width: imageWidth, height: imageHeight)
-                    .clipShape(imageShape)
+                if shouldFillWidth {
+                    img
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(imageShape)
+                } else {
+                    img
+                        .resizable()
+                        .aspectRatio(contentMode: aspectRatio)
+                        .frame(width: imageWidth, height: imageHeight)
+                        .clipShape(imageShape)
+                }
             case .failure:
-                Image(systemName: "photo")
-                    .frame(width: imageWidth, height: imageHeight)
-                    .foregroundColor(.gray)
+                // Match Android: silently hide failed images instead of showing placeholder
+                Color.clear
+                    .frame(width: 0, height: 0)
             @unknown default:
                 EmptyView()
             }
@@ -50,6 +58,12 @@ struct ImageView: View {
             return Color(hex: bgColor)
         }
         return .clear
+    }
+
+    /// Whether the image should fill available width (matching Android FillWidth behavior)
+    private var shouldFillWidth: Bool {
+        // Match Android: when no explicit size/width/height, fill container width
+        image.size == nil && image.width == nil && image.height == nil
     }
 
     private var imageWidth: CGFloat? {

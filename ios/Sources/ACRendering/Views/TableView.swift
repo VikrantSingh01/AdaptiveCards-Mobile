@@ -11,11 +11,11 @@ struct TableView: View {
         let rowSpacing: CGFloat = table.showGridLines == true ? 0 : CGFloat(hostConfig.table.cellSpacing / 2)
 
         VStack(spacing: rowSpacing) {
-            ForEach(Array(table.rows.enumerated()), id: \.element.id) { rowIndex, row in
+            ForEach(Array(table.rows.enumerated()), id: \.offset) { rowIndex, row in
                 let isHeaderRow = table.firstRowAsHeaders == true && rowIndex == 0
 
                 HStack(spacing: 0) {
-                    ForEach(Array(row.cells.enumerated()), id: \.element.id) { cellIndex, cell in
+                    ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
                         TableCellView(
                             cell: cell,
                             isHeader: isHeaderRow,
@@ -42,6 +42,7 @@ struct TableView: View {
                 }
             }
         }
+        .containerStyle(table.gridStyle, hostConfig: hostConfig)
         .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["table"] ?? 0)))
         .spacing(table.spacing, hostConfig: hostConfig)
         .separator(table.separator, hostConfig: hostConfig)
