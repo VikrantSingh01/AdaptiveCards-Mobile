@@ -77,7 +77,8 @@ fun AccordionView(
                             ) {
                                 if (element.expandMode == ExpandMode.SINGLE) {
                                     // Close all other panels
-                                    expandedPanels.keys.forEach { key ->
+                                    val keysToClose = expandedPanels.keys.toList()
+                                    keysToClose.forEach { key ->
                                         expandedPanels[key] = false
                                     }
                                 }

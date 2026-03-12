@@ -200,7 +200,7 @@ fun ChatBubble(message: ChatMessage) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    message.sender.first().toString(),
+                    message.sender.firstOrNull()?.toString() ?: "?",
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold

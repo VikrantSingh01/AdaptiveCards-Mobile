@@ -280,8 +280,10 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
  * In-memory card cache to avoid re-loading all cards on each detail navigation.
  */
 object CardCache {
+    @Volatile
     private var cached: List<TestCard>? = null
 
+    @Synchronized
     fun getCards(context: android.content.Context): List<TestCard> {
         return cached ?: TestCardLoader.loadAllCards(context).also { cached = it }
     }

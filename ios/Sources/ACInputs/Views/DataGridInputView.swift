@@ -287,8 +287,9 @@ public struct DataGridInputView: View {
 
     private func sortData(by colIndex: Int, ascending: Bool) {
         gridData.sort { row1, row2 in
-            let val1 = row1[colIndex]
-            let val2 = row2[colIndex]
+            guard colIndex < row1.count, colIndex < row2.count else { return false }
+            let val1 = row1[colIndex] // safe: guarded by colIndex < row1.count above
+            let val2 = row2[colIndex] // safe: guarded by colIndex < row2.count above
 
             let comparison = compareCellValues(val1, val2)
             return ascending ? comparison : !comparison

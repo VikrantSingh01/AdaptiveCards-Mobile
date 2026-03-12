@@ -108,7 +108,7 @@ private struct ToStringFunction: ExpressionFunction {
             return ""
         }
 
-        return String(describing: value!)
+        return String(describing: value as Any)
     }
 }
 

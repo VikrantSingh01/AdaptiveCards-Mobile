@@ -37,7 +37,8 @@ object CardElementSerializer : KSerializer<CardElement> {
     }
 
     override fun deserialize(decoder: Decoder): CardElement {
-        val jsonDecoder = decoder as JsonDecoder
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: throw IllegalStateException("CardElementSerializer requires JsonDecoder")
         val element = jsonDecoder.decodeJsonElement()
         val type = element.jsonObject["type"]?.jsonPrimitive?.content
 

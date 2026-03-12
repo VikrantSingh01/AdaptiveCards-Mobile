@@ -58,7 +58,6 @@ public final class ExpressionCache: @unchecked Sendable {
             // Check TTL
             if let ttl = ttl, Date().timeIntervalSince(entry.createdAt) > ttl {
                 cache.removeValue(forKey: expressionString)
-                lock.unlock()
                 // Fall through to parse
             } else {
                 entry.lastAccessedAt = Date()
@@ -68,9 +67,10 @@ public final class ExpressionCache: @unchecked Sendable {
                 lock.unlock()
                 return entry.expression
             }
-        } else {
-            lock.unlock()
         }
+
+        // Unlock before parsing (parsing can be slow, avoid holding lock)
+        lock.unlock()
 
         // Parse
         let parsed = try parser.parse(expressionString)
@@ -78,6 +78,12 @@ public final class ExpressionCache: @unchecked Sendable {
         // Store in cache
         lock.lock()
         defer { lock.unlock() }
+
+        // Another thread may have cached it while we were parsing — use existing if present
+        if let existing = cache[expressionString] {
+            hits += 1
+            return existing.expression
+        }
 
         // Evict if at capacity
         if cache.count >= maxEntries {

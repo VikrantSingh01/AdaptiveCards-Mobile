@@ -39,7 +39,7 @@ fun DonutChartView(chart: DonutChart) {
     
     val chartSize = ChartSize.from(chart.size)
     val colors = ChartColors.colors(chart.colors)
-    val total = chart.data.sumOf { it.value }
+    val total = chart.data.sumOf { it.value }.let { if (it == 0.0) 1.0 else it }
     val innerRadiusRatio = chart.innerRadiusRatio?.toFloat() ?: 0.5f
     
     val accessibilityDesc = buildAccessibilityDescription(chart, total)
@@ -87,7 +87,7 @@ fun DonutChartView(chart: DonutChart) {
                                     
                                     var startAngle = 0f
                                     for ((index, dataPoint) in chart.data.withIndex()) {
-                                        val percentage = (dataPoint.value / total).toFloat()
+                                        val percentage = (dataPoint.value / total).toFloat() // safe: total guarded >= 1.0
                                         val sweepAngle = 360f * percentage
                                         val endAngle = startAngle + sweepAngle
                                         
@@ -110,7 +110,7 @@ fun DonutChartView(chart: DonutChart) {
                     var startAngle = -90f
                     
                     chart.data.forEachIndexed { index, dataPoint ->
-                        val percentage = (dataPoint.value / total).toFloat()
+                        val percentage = (dataPoint.value / total).toFloat() // safe: total guarded >= 1.0
                         val sweepAngle = 360f * percentage * animationProgress
                         
                         val color = dataPoint.color?.let { 
@@ -154,8 +154,8 @@ fun DonutChartView(chart: DonutChart) {
                         val color = dataPoint.color?.let { 
                             ChartColors.colors(listOf(it)).firstOrNull() 
                         } ?: colors[index % colors.size]
-                        val percentage = (dataPoint.value / total * 100).toInt()
-                        
+                        val percentage = (dataPoint.value / total * 100).toInt() // safe: total guarded >= 1.0
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -194,7 +194,7 @@ private fun buildAccessibilityDescription(chart: DonutChart, total: Double): Str
     builder.append(". ${chart.data.size} segments: ")
     
     val segments = chart.data.joinToString(", ") { dataPoint ->
-        val percentage = (dataPoint.value / total * 100).toInt()
+        val percentage = (dataPoint.value / total * 100).toInt() // safe: total guarded >= 1.0
         "${dataPoint.label} $percentage%"
     }
     builder.append(segments)

@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import ACCore
 import ACAccessibility
 
@@ -38,7 +41,7 @@ struct CarouselView: View {
             #if os(iOS)
             .tabViewStyle(.page(indexDisplayMode: .never))
             #endif
-            .frame(minHeight: adaptiveMinHeight)
+            .frame(height: estimatedHeight)
 
             // Custom page indicators (matching Android accent-colored dots)
             if carousel.pages.count > 1 {
@@ -78,7 +81,7 @@ struct CarouselView: View {
             // Ensure initialPage is applied after TabView renders
             let initialPage = carousel.initialPage ?? 0
             if initialPage > 0 && initialPage < carousel.pages.count {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // safe: struct View, no retain cycle
                     currentPage = initialPage
                 }
             }
@@ -93,18 +96,70 @@ struct CarouselView: View {
         Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
     }
 
-    private var adaptiveMinHeight: CGFloat {
-        let baseHeight: CGFloat
-        if isTablet {
-            baseHeight = 300
-        } else {
-            baseHeight = 200
-        }
+    /// Estimate the carousel height based on page content analysis.
+    /// TabView with .page style doesn't intrinsically size to content, so we compute a
+    /// reasonable height based on the element types present in each page.
+    private var estimatedHeight: CGFloat {
+        let pagePadding: CGFloat = isTablet ? 64 : 48 // inner + outer padding
+        let maxPageContent = carousel.pages.map { page -> CGFloat in
+            estimatePageContentHeight(page)
+        }.max() ?? 0
+
+        let estimated = maxPageContent + pagePadding
+        let minimum: CGFloat = isTablet ? 300 : 200
+        let result = max(estimated, minimum)
 
         if sizeCategory.isAccessibilityCategory {
-            return baseHeight * 1.3
+            return result * 1.3
         }
-        return baseHeight
+        return result
+    }
+
+    /// Estimate content height for a single page based on element types.
+    /// For images without explicit dimensions, assume square aspect ratio at full content
+    /// width so the TabView frame is tall enough for the image to fill the page.
+    private func estimatePageContentHeight(_ page: CarouselPage) -> CGFloat {
+        var height: CGFloat = 0
+        let lineHeight: CGFloat = 20
+        // Full-width image height ≈ screen width minus horizontal padding (page + content)
+        #if canImport(UIKit)
+        let screenWidth = UIScreen.main.bounds.width
+        #else
+        let screenWidth: CGFloat = 375 // Fallback for non-UIKit platforms
+        #endif
+        let hPad: CGFloat = isTablet ? 80 : 48 // (8+16)*2 phone, (16+24)*2 tablet
+        let fullWidthImageHeight = screenWidth - hPad
+
+        for item in page.items {
+            switch item {
+            case .textBlock:
+                height += lineHeight * 2
+            case .image(let img):
+                if let h = img.height, let px = Int(h.replacingOccurrences(of: "px", with: "")) {
+                    height += CGFloat(px)
+                } else if img.size == .small {
+                    height += CGFloat(hostConfig.imageSizes.small)
+                } else if img.size == .medium {
+                    height += CGFloat(hostConfig.imageSizes.medium)
+                } else if img.size == .large {
+                    height += CGFloat(hostConfig.imageSizes.large)
+                } else {
+                    // No explicit size: image fills width → assume square aspect ratio
+                    height += fullWidthImageHeight
+                }
+            case .columnSet:
+                height += 150
+            case .container:
+                height += lineHeight * 6
+            case .factSet(let fs):
+                height += CGFloat(fs.facts.count) * lineHeight
+            case .imageSet:
+                height += fullWidthImageHeight * 0.5
+            default:
+                height += lineHeight * 2
+            }
+        }
+        return height
     }
 
     private func setupAutoAdvance() {
@@ -139,7 +194,7 @@ struct CarouselPageView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .top)
         .padding(.all, isTablet ? 24 : 16)
         .background(
             RoundedRectangle(cornerRadius: 12)

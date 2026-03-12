@@ -19,6 +19,10 @@ import com.microsoft.adaptivecards.rendering.theme.HostConfigProvider
 import com.microsoft.adaptivecards.rendering.modifiers.adaptiveSeparator
 import com.microsoft.adaptivecards.rendering.modifiers.adaptiveSpacing
 import com.microsoft.adaptivecards.rendering.modifiers.SeparatorLine
+import com.microsoft.adaptivecards.charts.BarChartView
+import com.microsoft.adaptivecards.charts.DonutChartView
+import com.microsoft.adaptivecards.charts.LineChartView
+import com.microsoft.adaptivecards.charts.PieChartView
 import com.microsoft.adaptivecards.rendering.registry.GlobalElementRendererRegistry
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
@@ -210,6 +214,11 @@ fun RenderElement(
             is TabSet -> TabSetView(element, viewModel, actionHandler, elementModifier)
             is ListElement -> ListView(element, viewModel, actionHandler, elementModifier)
             is CompoundButton -> CompoundButtonView(element, actionHandler, elementModifier)
+            // Chart elements
+            is BarChart -> BarChartView(chart = element)
+            is DonutChart -> DonutChartView(chart = element)
+            is LineChart -> LineChartView(chart = element)
+            is PieChart -> PieChartView(chart = element)
             else -> {
                 // Check custom element registry for host-registered renderers
                 val customRenderer = GlobalElementRendererRegistry.getRenderer(element.type)

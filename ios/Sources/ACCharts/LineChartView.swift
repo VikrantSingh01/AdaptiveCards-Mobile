@@ -71,11 +71,11 @@ public struct LineChartView: View {
                     let padding: CGFloat = 20
                     let availableWidth = size.width - padding * 2
                     let availableHeight = size.height - padding * 2
-                    let valueRange = maxValue - minValue
+                    let valueRange = max(maxValue - minValue, Double.leastNonzeroMagnitude)
 
                     let points = chart.data.enumerated().map { index, dataPoint in
-                        let x = padding + (availableWidth * CGFloat(index) / CGFloat(chart.data.count - 1))
-                        let normalizedValue = (dataPoint.value - minValue) / valueRange
+                        let x = padding + (availableWidth * CGFloat(index) / CGFloat(chart.data.count - 1)) // safe: guarded by count > 1 on line 69
+                        let normalizedValue = (dataPoint.value - minValue) / valueRange // safe: valueRange uses max(..., .leastNonzeroMagnitude)
                         let y = size.height - padding - (availableHeight * normalizedValue)
                         return CGPoint(x: x, y: y)
                     }
@@ -165,7 +165,7 @@ public struct LineChartView: View {
         guard chart.data.count > 1 else { return nil }
 
         let relativeX = location.x - padding
-        let segmentWidth = availableWidth / CGFloat(chart.data.count - 1)
+        let segmentWidth = availableWidth / CGFloat(chart.data.count - 1) // safe: guarded by count > 1 on line 165
         let index = Int(round(relativeX / segmentWidth))
 
         return index >= 0 && index < chart.data.count ? index : nil

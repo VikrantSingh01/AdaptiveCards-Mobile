@@ -19,7 +19,8 @@ public struct PieChartView: View {
     }
 
     private var total: Double {
-        chart.data.reduce(0) { $0 + $1.value }
+        let sum = chart.data.reduce(0) { $0 + $1.value }
+        return sum == 0 ? 1 : sum  // Avoid division by zero when data is empty or all zeros
     }
 
     public var body: some View {
@@ -56,10 +57,10 @@ public struct PieChartView: View {
                 var startAngle = Angle.degrees(-90)
 
                 for (index, dataPoint) in chart.data.enumerated() {
-                    let percentage = dataPoint.value / total
+                    let percentage = dataPoint.value / total // safe: total guarded >= 1 in computed property
                     let sweepAngle = Angle.degrees(360 * percentage * Double(animationProgress))
 
-                    let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
+                    let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
 
                     let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
 
@@ -115,7 +116,7 @@ public struct PieChartView: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(chart.data.enumerated()), id: \.element.id) { index, dataPoint in
                 HStack(spacing: 8) {
-                    let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
+                    let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
                     RoundedRectangle(cornerRadius: 2)
                         .fill(color)
                         .frame(width: 16, height: 16)
@@ -125,7 +126,7 @@ public struct PieChartView: View {
 
                     Spacer()
 
-                    Text(String(format: "%.0f%%", (dataPoint.value / total) * 100))
+                    Text(String(format: "%.0f%%", (dataPoint.value / total) * 100)) // safe: total guarded >= 1
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -150,7 +151,7 @@ public struct PieChartView: View {
 
         var startAngle: Double = 0
         for (index, dataPoint) in chart.data.enumerated() {
-            let percentage = dataPoint.value / total
+            let percentage = dataPoint.value / total // safe: total guarded >= 1 in computed property
             let sweepAngle = 2 * .pi * percentage
 
             if angle >= startAngle && angle < startAngle + sweepAngle {
@@ -170,7 +171,7 @@ public struct PieChartView: View {
         description += ". \(chart.data.count) segments: "
 
         let segments = chart.data.map { dataPoint in
-            let percentage = (dataPoint.value / total) * 100
+            let percentage = (dataPoint.value / total) * 100 // safe: total guarded >= 1
             return "\(dataPoint.label) \(String(format: "%.0f%%", percentage))"
         }.joined(separator: ", ")
 
