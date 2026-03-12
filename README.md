@@ -21,6 +21,10 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 - 🎭 **Theming**: Host-configurable styles, Fluent UI support, platform-specific design tokens from Figma
 - 🧪 **Well-Tested**: Comprehensive unit tests and integration tests
 
+## 🎬 Demo
+
+[📹 Watch the demo video](download/AC_Mobile_FHL.mov)
+
 ## 📊 Platform Status
 
 | Platform | Core SDK | Templating | Advanced Elements | Sample App | Status |
