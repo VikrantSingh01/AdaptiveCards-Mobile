@@ -129,6 +129,17 @@ else
             cards_to_test+=("${extra[@]}")
             IFS=' ' read -ra extra <<< "$(get_cards_from_dir official-samples official-samples)"
             cards_to_test+=("${extra[@]}")
+            # Versioned cards (v1.5 and v1.6 only — older versions removed)
+            for ver in v1.5 v1.6; do
+                IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
+                cards_to_test+=("${extra[@]}")
+            done
+            ;;
+        versioned)
+            for ver in v1.5 v1.6; do
+                IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
+                cards_to_test+=("${extra[@]}")
+            done
             ;;
         *) cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}") ;;
     esac
@@ -154,7 +165,7 @@ ios_restart() {
     xcrun simctl terminate "$SIM_UDID" "$IOS_APP_ID" &>/dev/null || true
     sleep 0.5
     xcrun simctl launch "$SIM_UDID" "$IOS_APP_ID" &>/dev/null
-    sleep 2
+    sleep 3
 }
 
 ios_navigate() {
@@ -363,8 +374,8 @@ $([ -n "$SINGLE_CARD" ] && echo "**Card:** $SINGLE_CARD")
 
 ## Visual Rendering (Lock-Step)
 
-| # | Card | iOS | Android | iOS Size | Android Size | Notes |
-|---|------|-----|---------|----------|--------------|-------|
+| # | Card | iOS | Android | iOS Size | Android Size | Diff | Notes |
+|---|------|-----|---------|----------|--------------|------|-------|
 EOF
 
 # =============================================================================
@@ -448,9 +459,22 @@ for card_path in "${cards_to_test[@]}"; do
         fi
     fi
 
-    # Parity note
-    if [ "$ios_status" != "-" ] && [ "$android_status" != "-" ] && [ "$ios_status" != "$android_status" ]; then
-        notes="PARITY MISMATCH"
+    # Parity check: use image comparison when both screenshots exist
+    parity_diff=""
+    if [ "$ios_status" != "-" ] && [ "$android_status" != "-" ]; then
+        if [ "$ios_status" = "CRASH" ] || [ "$android_status" = "CRASH" ]; then
+            notes="PARITY MISMATCH (crash)"
+        elif [ -f "$ios_ss" ] && [ -f "$android_ss" ] && [ "$ios_sz" -gt 5000 ] && [ "$android_sz" -gt 5000 ]; then
+            # Use pixel-level image comparison instead of file-size heuristic
+            compare_result=$(python3 "$REPO_ROOT/shared/scripts/compare-screenshots.py" "$ios_ss" "$android_ss" --threshold 0.20 2>/dev/null || echo '{"diff": -1, "status": "ERROR"}')
+            parity_diff=$(echo "$compare_result" | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"{d['diff']*100:.1f}%\")" 2>/dev/null || echo "?")
+            compare_status=$(echo "$compare_result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','ERROR'))" 2>/dev/null || echo "ERROR")
+            if [ "$compare_status" = "MISMATCH" ]; then
+                notes="PARITY MISMATCH (diff: $parity_diff)"
+            fi
+        elif [ "$ios_status" != "$android_status" ]; then
+            notes="PARITY MISMATCH"
+        fi
     fi
 
     # Status symbols for terminal
@@ -463,10 +487,12 @@ for card_path in "${cards_to_test[@]}"; do
         PASS) android_sym="✅" ;; WARN) android_sym="⚠️ " ;; FAIL) android_sym="❌" ;; CRASH) android_sym="💥" ;;
     esac
 
-    echo "  🍎${ios_sym} 🤖${android_sym}  ${notes}"
+    parity_info=""
+    [ -n "$parity_diff" ] && [ "$parity_diff" != "?" ] && parity_info=" [${parity_diff}]"
+    echo "  🍎${ios_sym} 🤖${android_sym}${parity_info}  ${notes}"
 
     # Write to report
-    echo "| $idx | $card_name | $ios_status | $android_status | ${ios_sz}B | ${android_sz}B | $notes |" >> "$REPORT_FILE"
+    echo "| $idx | $card_name | $ios_status | $android_status | ${ios_sz}B | ${android_sz}B | ${parity_diff:-—} | $notes |" >> "$REPORT_FILE"
 
     # --- Return both to gallery simultaneously ---
     $IOS_BUILD_OK && ios_is_running && ios_gallery &

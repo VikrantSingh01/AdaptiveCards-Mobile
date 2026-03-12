@@ -29,18 +29,20 @@ fun DateInputView(
 ) {
     var dateValue by remember { mutableStateOf(element.value ?: "") }
     var showPicker by remember { mutableStateOf(false) }
+    var hasInteracted by remember { mutableStateOf(false) }
     val error = viewModel.getValidationError(element.id ?: "")
 
     LaunchedEffect(dateValue) {
         element.id?.let { id ->
             viewModel.updateInputValue(id, dateValue)
-            // Validate
-            val validationError = if (element.isRequired && dateValue.isBlank()) {
-                element.errorMessage ?: "Date is required"
-            } else {
-                null
+            if (hasInteracted) {
+                val validationError = if (element.isRequired && dateValue.isBlank()) {
+                    element.errorMessage ?: "Date is required"
+                } else {
+                    null
+                }
+                viewModel.setValidationError(id, validationError)
             }
-            viewModel.setValidationError(id, validationError)
         }
     }
 
@@ -78,6 +80,7 @@ fun DateInputView(
                 onDismissRequest = { showPicker = false },
                 confirmButton = {
                     TextButton(onClick = {
+                        hasInteracted = true
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = java.time.Instant.ofEpochMilli(millis)
                                 .atZone(java.time.ZoneId.of("UTC"))
@@ -114,6 +117,7 @@ fun TimeInputView(
 ) {
     var timeValue by remember { mutableStateOf(element.value ?: "") }
     var showPicker by remember { mutableStateOf(false) }
+    var hasInteracted by remember { mutableStateOf(false) }
     val error = viewModel.getValidationError(element.id ?: "")
 
     val initialHour = parseTimeHour(timeValue)
@@ -122,12 +126,14 @@ fun TimeInputView(
     LaunchedEffect(timeValue) {
         element.id?.let { id ->
             viewModel.updateInputValue(id, timeValue)
-            val validationError = if (element.isRequired && timeValue.isBlank()) {
-                element.errorMessage ?: "Time is required"
-            } else {
-                null
+            if (hasInteracted) {
+                val validationError = if (element.isRequired && timeValue.isBlank()) {
+                    element.errorMessage ?: "Time is required"
+                } else {
+                    null
+                }
+                viewModel.setValidationError(id, validationError)
             }
-            viewModel.setValidationError(id, validationError)
         }
     }
 
@@ -168,6 +174,7 @@ fun TimeInputView(
                 text = { TimePicker(state = timePickerState) },
                 confirmButton = {
                     TextButton(onClick = {
+                        hasInteracted = true
                         timeValue = String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
                         showPicker = false
                     }) {
