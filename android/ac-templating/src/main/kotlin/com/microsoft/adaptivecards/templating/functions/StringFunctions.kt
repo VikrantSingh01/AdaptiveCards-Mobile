@@ -56,8 +56,11 @@ object StringFunctions {
             val str = arguments[0] as? String ?: return arguments[0]
             val start = coerceToInt(arguments[1])
 
-            if (start < 0 || start >= str.length) {
+            if (start < 0 || start > str.length) {
                 return str
+            }
+            if (start == str.length) {
+                return ""
             }
 
             return if (arguments.size == 3) {

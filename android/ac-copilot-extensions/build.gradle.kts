@@ -7,10 +7,11 @@ plugins {
 
 android {
     namespace = "com.microsoft.adaptivecards.copilot"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 26
+        targetSdk = 34
     }
 
     compileOptions {

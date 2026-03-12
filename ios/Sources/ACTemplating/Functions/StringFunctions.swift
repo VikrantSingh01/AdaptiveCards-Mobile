@@ -55,8 +55,11 @@ public struct StringFunctions {
             }
 
             let start = try coerceToInt(arguments[1])
-            guard start >= 0 && start < str.count else {
+            guard start >= 0 && start <= str.count else {
                 return str
+            }
+            if start == str.count {
+                return ""
             }
 
             if arguments.count == 3 {

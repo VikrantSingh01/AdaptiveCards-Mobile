@@ -17,6 +17,7 @@ public struct StreamingTextView: View {
     @State private var displayedCharacterCount: Int = 0
     @State private var isAnimating: Bool = false
     @State private var cursorVisible: Bool = true
+    @State private var typingTimer: Timer?
 
     /// Characters per second for typing animation
     private var charsPerSecond: Double {
@@ -45,6 +46,10 @@ public struct StreamingTextView: View {
         }
         .onAppear {
             startTypingAnimation()
+        }
+        .onDisappear {
+            typingTimer?.invalidate()
+            typingTimer = nil
         }
         .onChange(of: content.content) { _ in
             startTypingAnimation()
@@ -118,11 +123,13 @@ public struct StreamingTextView: View {
             return
         }
 
-        Timer.scheduledTimer(withTimeInterval: 1.0 / charsPerSecond, repeats: true) { timer in
+        typingTimer?.invalidate()
+        typingTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / charsPerSecond, repeats: true) { timer in
             if displayedCharacterCount < totalChars {
                 displayedCharacterCount += 1
             } else {
                 timer.invalidate()
+                typingTimer = nil
                 isAnimating = false
             }
         }

@@ -50,7 +50,7 @@ struct ProgressBarView: View {
 
                     Spacer()
 
-                    Text("\(Int((progressBar.value ?? 0) * 100))%")
+                    Text("\(Int(progressBar.normalizedValue * 100))%")
                         .font(labelFont)
                         .foregroundColor(.secondary)
                 }
@@ -64,7 +64,7 @@ struct ProgressBarView: View {
 
                     Rectangle()
                         .fill(progressColor)
-                        .frame(width: geometry.size.width * CGFloat(min(max(progressBar.value ?? 0, 0), 1)), height: barHeight)
+                        .frame(width: geometry.size.width * CGFloat(progressBar.normalizedValue), height: barHeight)
                 }
             }
             .frame(height: barHeight)
@@ -72,7 +72,7 @@ struct ProgressBarView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(progressBar.label ?? "Progress")
-        .accessibilityValue("\(Int((progressBar.value ?? 0) * 100)) percent")
+        .accessibilityValue("\(Int(progressBar.normalizedValue * 100)) percent")
     }
 }
 

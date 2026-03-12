@@ -37,7 +37,7 @@ fun ProgressBarView(
         }
     } ?: try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
     
-    val percentage = (element.value * 100).toInt()
+    val percentage = (element.normalizedValue * 100).toInt()
     
     Column(
         modifier = modifier
@@ -64,7 +64,7 @@ fun ProgressBarView(
 
         // Progress bar
         LinearProgressIndicator(
-            progress = element.value.toFloat().coerceIn(0f, 1f),
+            progress = element.normalizedValue.toFloat(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(if (isTablet) 10.dp else 8.dp),

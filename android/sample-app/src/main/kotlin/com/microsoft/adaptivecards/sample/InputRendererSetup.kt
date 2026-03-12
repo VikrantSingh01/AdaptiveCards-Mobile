@@ -14,41 +14,49 @@ import com.microsoft.adaptivecards.rendering.registry.GlobalElementRendererRegis
 fun registerInputRenderers() {
     GlobalElementRendererRegistry.register("Input.Text") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        TextInputView(element as InputText, vm, modifier)
+        val input = element as? InputText ?: return@register
+        TextInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.Number") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        NumberInputView(element as InputNumber, vm, modifier)
+        val input = element as? InputNumber ?: return@register
+        NumberInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.Date") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        DateInputView(element as InputDate, vm, modifier)
+        val input = element as? InputDate ?: return@register
+        DateInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.Time") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        TimeInputView(element as InputTime, vm, modifier)
+        val input = element as? InputTime ?: return@register
+        TimeInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.Toggle") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        ToggleInputView(element as InputToggle, vm, modifier)
+        val input = element as? InputToggle ?: return@register
+        ToggleInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.ChoiceSet") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        ChoiceSetInputView(element as InputChoiceSet, vm, modifier)
+        val input = element as? InputChoiceSet ?: return@register
+        ChoiceSetInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.DataGrid") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        DataGridInputView(element as InputDataGrid, vm, modifier)
+        val input = element as? InputDataGrid ?: return@register
+        DataGridInputView(input, vm, modifier)
     }
 
     GlobalElementRendererRegistry.register("Input.Rating") { element, modifier ->
         val vm = LocalCardViewModel.current ?: return@register
-        RatingInputView(element as RatingInput, vm, modifier)
+        val input = element as? RatingInput ?: return@register
+        RatingInputView(input, vm, modifier)
     }
 }
