@@ -16,11 +16,19 @@ struct ImageView: View {
         AsyncImage(url: URL(string: image.url)) { phase in
             switch phase {
             case .empty:
-                // When image hasn't loaded yet, render as empty rather than
-                // reserving the target size. This matches legacy behavior where
-                // unloaded images don't reserve space in auto-width columns.
-                Color.clear
-                    .frame(width: 0, height: 0)
+                // Reserve expected size so LazyVGrid/ImageSet can compute row height.
+                // Uses target size if explicit, otherwise a minimal placeholder.
+                if let w = imageWidth, let h = imageHeight {
+                    ProgressView()
+                        .frame(width: w, height: h)
+                } else if shouldFillWidth {
+                    Color.clear
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 1)
+                } else {
+                    Color.clear
+                        .frame(width: 0, height: 0)
+                }
             case .success(let img):
                 if shouldFillWidth {
                     img

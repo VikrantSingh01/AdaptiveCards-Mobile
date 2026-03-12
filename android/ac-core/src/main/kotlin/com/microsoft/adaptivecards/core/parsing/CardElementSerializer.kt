@@ -8,8 +8,10 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -83,12 +85,26 @@ object CardElementSerializer : KSerializer<CardElement> {
             else -> null
         }
 
+        // Pre-process: sanitise Image elements before deserialization.
+        // themedUrls is expected as a JSON object (Map) but some cards send a JSON array — strip it.
+        val sanitisedElement = if (serializer != null && type == "Image") {
+            val obj = element.jsonObject
+            val themed = obj["themedUrls"]
+            if (themed != null && themed is JsonArray) {
+                JsonObject(obj.filterKeys { it != "themedUrls" })
+            } else {
+                element
+            }
+        } else {
+            element
+        }
+
         return if (serializer != null) {
-            val decoded = jsonDecoder.json.decodeFromJsonElement(serializer, element)
+            val decoded = jsonDecoder.json.decodeFromJsonElement(serializer, sanitisedElement)
             // For Image elements, extract pixel height (e.g. "32px") which the base
             // BlockElementHeight enum cannot represent
             if (decoded is Image) {
-                val rawHeight = element.jsonObject["height"]?.jsonPrimitive?.content
+                val rawHeight = sanitisedElement.jsonObject["height"]?.jsonPrimitive?.content
                 if (rawHeight != null && rawHeight.contains("px", ignoreCase = true)) {
                     decoded.copy(pixelHeight = rawHeight)
                 } else {
@@ -101,6 +117,69 @@ object CardElementSerializer : KSerializer<CardElement> {
             val unknown = jsonDecoder.json.decodeFromJsonElement(UnknownElement.serializer(), element)
             unknown.copy(unknownType = type)
         }
+    }
+}
+
+/**
+ * Handles both plain string shorthand and full TextRun object in RichTextBlock inlines.
+ * Per Adaptive Cards spec, inlines can contain plain strings as shorthand for
+ * `{"type": "TextRun", "text": "<string>"}`.
+ */
+object TextRunSerializer : KSerializer<TextRun> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("TextRun")
+
+    override fun deserialize(decoder: Decoder): TextRun {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return TextRun(text = decoder.decodeString())
+        return when (val element = jsonDecoder.decodeJsonElement()) {
+            is JsonPrimitive -> TextRun(text = element.content)
+            else -> {
+                val obj = element.jsonObject
+                TextRun(
+                    type = obj["type"]?.jsonPrimitive?.content ?: "TextRun",
+                    text = obj["text"]?.jsonPrimitive?.content ?: "",
+                    color = obj["color"]?.jsonPrimitive?.content
+                        ?.let { runCatching { Color.valueOf(it) }.getOrNull() },
+                    fontType = obj["fontType"]?.jsonPrimitive?.content
+                        ?.let { runCatching { FontType.valueOf(it) }.getOrNull() },
+                    size = obj["size"]?.jsonPrimitive?.content
+                        ?.let { runCatching { FontSize.valueOf(it) }.getOrNull() },
+                    weight = obj["weight"]?.jsonPrimitive?.content
+                        ?.let { runCatching { FontWeight.valueOf(it) }.getOrNull() },
+                    isSubtle = obj["isSubtle"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    italic = obj["italic"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    strikethrough = obj["strikethrough"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    underline = obj["underline"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    highlight = obj["highlight"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    selectAction = obj["selectAction"]?.let {
+                        runCatching {
+                            jsonDecoder.json.decodeFromJsonElement(CardAction.serializer(), it)
+                        }.getOrNull()
+                    }
+                )
+            }
+        }
+    }
+
+    override fun serialize(encoder: Encoder, value: TextRun) {
+        val jsonEncoder = encoder as? JsonEncoder ?: return
+        val obj = buildMap<String, kotlinx.serialization.json.JsonElement> {
+            put("type", JsonPrimitive(value.type))
+            put("text", JsonPrimitive(value.text))
+            value.color?.let { put("color", JsonPrimitive(it.name)) }
+            value.fontType?.let { put("fontType", JsonPrimitive(it.name)) }
+            value.size?.let { put("size", JsonPrimitive(it.name)) }
+            value.weight?.let { put("weight", JsonPrimitive(it.name)) }
+            value.isSubtle?.let { put("isSubtle", JsonPrimitive(it)) }
+            value.italic?.let { put("italic", JsonPrimitive(it)) }
+            value.strikethrough?.let { put("strikethrough", JsonPrimitive(it)) }
+            value.underline?.let { put("underline", JsonPrimitive(it)) }
+            value.highlight?.let { put("highlight", JsonPrimitive(it)) }
+            value.selectAction?.let {
+                put("selectAction", jsonEncoder.json.encodeToJsonElement(CardAction.serializer(), it))
+            }
+        }
+        jsonEncoder.encodeJsonElement(JsonObject(obj))
     }
 }
 

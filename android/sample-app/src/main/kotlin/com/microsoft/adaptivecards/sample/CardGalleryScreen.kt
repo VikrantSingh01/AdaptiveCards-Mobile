@@ -370,6 +370,7 @@ fun categoryColor(category: CardCategory): Color {
         CardCategory.ELEMENT -> Color(0xFF00ACC1)
         CardCategory.TEAMS_TEMPLATED -> Color(0xFFEC407A)
         CardCategory.TEAMS_OFFICIAL -> Color(0xFF5C6BC0)
+        CardCategory.VERSIONED -> Color(0xFF757575)
     }
 }
 
@@ -385,7 +386,8 @@ enum class CardCategory(val displayName: String) {
     OFFICIAL("Official Samples"),
     ELEMENT("Element Samples"),
     TEAMS_TEMPLATED("Teams Templated"),
-    TEAMS_OFFICIAL("Teams Official")
+    TEAMS_OFFICIAL("Teams Official"),
+    VERSIONED("Versioned")
 }
 
 data class TestCard(
@@ -579,7 +581,7 @@ object TestCardLoader {
     )
 
     fun loadAllCards(context: Context): List<TestCard> {
-        return cardDefinitions.map { (filename, title, category) ->
+        val cards = cardDefinitions.map { (filename, title, category) ->
             val jsonString = loadCardJson(context, filename)
             TestCard(
                 title = title,
@@ -589,7 +591,12 @@ object TestCardLoader {
                 isAdvanced = category == CardCategory.ADVANCED,
                 jsonString = jsonString
             )
-        }
+        }.toMutableList()
+
+        // Dynamically discover versioned cards from assets
+        cards.addAll(loadVersionedCards(context))
+
+        return cards
     }
 
     fun loadCardJson(context: Context, filename: String): String {
@@ -626,7 +633,42 @@ object TestCardLoader {
             CardCategory.ELEMENT -> "Element test: $title"
             CardCategory.TEAMS_TEMPLATED -> "Teams templated: $title"
             CardCategory.TEAMS_OFFICIAL -> "Teams official sample: $title"
+            CardCategory.VERSIONED -> "Versioned card: $title"
             CardCategory.ALL -> "Test card: $title"
         }
+    }
+
+    // Dynamically discover versioned cards from assets versioned subdirectories
+    private fun loadVersionedCards(context: Context): List<TestCard> {
+        val cards = mutableListOf<TestCard>()
+        val versions = try {
+            context.assets.list("versioned")?.sorted() ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+        for (version in versions) {
+            val files = try {
+                context.assets.list("versioned/$version")?.sorted() ?: emptyList()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            for (file in files) {
+                if (!file.endsWith(".json")) continue
+                val relativePath = "versioned/$version/$file"
+                val name = file.removeSuffix(".json")
+                val jsonString = loadCardJson(context, relativePath)
+                cards.add(
+                    TestCard(
+                        title = "$version: $name",
+                        description = "Versioned card: $name ($version)",
+                        filename = relativePath,
+                        category = CardCategory.VERSIONED,
+                        isAdvanced = false,
+                        jsonString = jsonString
+                    )
+                )
+            }
+        }
+        return cards
     }
 }
