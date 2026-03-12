@@ -17,33 +17,176 @@ CATEGORY="${1:-teams-official}"
 mkdir -p "$SCREENSHOT_DIR"
 
 # Card lists by category
+BUILT_IN=(
+    "simple-text"
+    "rich-text"
+    "containers"
+    "all-inputs"
+    "input-form"
+    "all-actions"
+    "markdown"
+    "charts"
+    "datagrid"
+    "list"
+    "carousel"
+    "accordion"
+    "tab-set"
+    "table"
+    "media"
+    "progress-indicators"
+    "rating"
+    "code-block"
+    "fluent-theming"
+    "responsive-layout"
+    "themed-images"
+    "compound-buttons"
+    "split-buttons"
+    "popover-action"
+    "teams-connector"
+    "teams-task-module"
+    "copilot-citations"
+    "streaming-card"
+    "templating-basic"
+    "templating-conditional"
+    "templating-iteration"
+    "templating-expressions"
+    "templating-nested"
+    "advanced-combined"
+    "sample-catalog"
+    "action-overflow"
+)
+
+EDGE_CASES=(
+    "edge-all-unknown-types"
+    "edge-deeply-nested"
+    "edge-empty-card"
+    "edge-empty-containers"
+    "edge-long-text"
+    "edge-max-actions"
+    "edge-mixed-inputs"
+    "edge-rtl-content"
+)
+
+OFFICIAL=(
+    "official-samples/activity-update"
+    "official-samples/agenda"
+    "official-samples/application-login"
+    "official-samples/calendar-reminder"
+    "official-samples/expense-report"
+    "official-samples/flight-details"
+    "official-samples/flight-itinerary"
+    "official-samples/flight-update"
+    "official-samples/flight-update-table"
+    "official-samples/food-order"
+    "official-samples/image-gallery"
+    "official-samples/input-form-official"
+    "official-samples/input-form-rtl"
+    "official-samples/inputs-with-validation"
+    "official-samples/order-confirmation"
+    "official-samples/order-delivery"
+    "official-samples/restaurant"
+    "official-samples/restaurant-order"
+    "official-samples/show-card-wizard"
+    "official-samples/sporting-event"
+    "official-samples/stock-update"
+    "official-samples/weather-compact"
+    "official-samples/weather-large"
+    "official-samples/product-video"
+)
+
+ELEMENT=(
+    "element-samples/action-execute-is-enabled"
+    "element-samples/action-execute-mode"
+    "element-samples/action-execute-tooltip"
+    "element-samples/action-openurl-is-enabled"
+    "element-samples/action-openurl-mode"
+    "element-samples/action-openurl-tooltip"
+    "element-samples/action-showcard-is-enabled"
+    "element-samples/action-showcard-mode"
+    "element-samples/action-showcard-tooltip"
+    "element-samples/action-submit-is-enabled"
+    "element-samples/action-submit-mode"
+    "element-samples/action-submit-tooltip"
+    "element-samples/action-role"
+    "element-samples/adaptive-card-rtl"
+    "element-samples/column-rtl"
+    "element-samples/container-rtl"
+    "element-samples/image-select-action"
+    "element-samples/image-force-load"
+    "element-samples/imageset-stacked-style"
+    "element-samples/input-choiceset-filtered"
+    "element-samples/input-choiceset-dynamic-typeahead"
+    "element-samples/input-text-password-style"
+    "element-samples/input-label-position"
+    "element-samples/input-style"
+    "element-samples/input-toggle-consolidated"
+    "element-samples/table-basic"
+    "element-samples/table-first-row-headers"
+    "element-samples/table-grid-style"
+    "element-samples/table-horizontal-alignment"
+    "element-samples/table-show-grid-lines"
+    "element-samples/table-vertical-alignment"
+    "element-samples/textblock-style"
+    "element-samples/carousel-basic"
+    "element-samples/carousel-header"
+    "element-samples/carousel-height"
+    "element-samples/carousel-height-pixels"
+    "element-samples/carousel-height-vertical"
+    "element-samples/carousel-initial-page"
+    "element-samples/carousel-loop"
+    "element-samples/carousel-scenario-cards"
+    "element-samples/carousel-scenario-timer"
+    "element-samples/carousel-styles"
+    "element-samples/carousel-vertical"
+    "element-samples/media-basic"
+    "element-samples/media-sources"
+)
+
+TEAMS_OFFICIAL=(
+    "teams-official-samples/account"
+    "teams-official-samples/author-highlight-video"
+    "teams-official-samples/book-a-room"
+    "teams-official-samples/cafe-menu"
+    "teams-official-samples/communication"
+    "teams-official-samples/course-video"
+    "teams-official-samples/editorial"
+    "teams-official-samples/expense-report"
+    "teams-official-samples/insights"
+    "teams-official-samples/issue"
+    "teams-official-samples/list"
+    "teams-official-samples/project-dashboard"
+    "teams-official-samples/recipe"
+    "teams-official-samples/simple-event"
+    "teams-official-samples/simple-time-off-request"
+    "teams-official-samples/standard-video"
+    "teams-official-samples/team-standup-summary"
+    "teams-official-samples/time-off-request"
+    "teams-official-samples/work-item"
+)
+
 declare -a CARDS
 case "$CATEGORY" in
+    built-in)
+        CARDS=("${BUILT_IN[@]}")
+        ;;
+    edge-cases)
+        CARDS=("${EDGE_CASES[@]}")
+        ;;
+    official)
+        CARDS=("${OFFICIAL[@]}")
+        ;;
+    element)
+        CARDS=("${ELEMENT[@]}")
+        ;;
     teams-official)
-        CARDS=(
-            "teams-official-samples/account"
-            "teams-official-samples/author-highlight-video"
-            "teams-official-samples/book-a-room"
-            "teams-official-samples/cafe-menu"
-            "teams-official-samples/communication"
-            "teams-official-samples/course-video"
-            "teams-official-samples/editorial"
-            "teams-official-samples/expense-report"
-            "teams-official-samples/insights"
-            "teams-official-samples/issue"
-            "teams-official-samples/list"
-            "teams-official-samples/project-dashboard"
-            "teams-official-samples/recipe"
-            "teams-official-samples/simple-event"
-            "teams-official-samples/simple-time-off-request"
-            "teams-official-samples/standard-video"
-            "teams-official-samples/team-standup-summary"
-            "teams-official-samples/time-off-request"
-            "teams-official-samples/work-item"
-        )
+        CARDS=("${TEAMS_OFFICIAL[@]}")
+        ;;
+    all)
+        # All testable cards (excludes templates which need data binding)
+        CARDS=("${BUILT_IN[@]}" "${EDGE_CASES[@]}" "${OFFICIAL[@]}" "${ELEMENT[@]}" "${TEAMS_OFFICIAL[@]}")
         ;;
     *)
-        echo "Usage: $0 [teams-official]"
+        echo "Usage: $0 [built-in|edge-cases|official|element|teams-official|all]"
         exit 1
         ;;
 esac

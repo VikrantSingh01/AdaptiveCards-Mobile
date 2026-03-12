@@ -25,21 +25,24 @@ fun TextInputView(
     modifier: Modifier = Modifier
 ) {
     var textValue by remember { mutableStateOf(element.value ?: "") }
+    var hasInteracted by remember { mutableStateOf(false) }
     val error = viewModel.getValidationError(element.id ?: "")
-    
+
     LaunchedEffect(textValue) {
         element.id?.let { id ->
             viewModel.updateInputValue(id, textValue)
-            
-            // Validate
-            val validationError = InputValidator.validateText(
-                value = textValue,
-                isRequired = element.isRequired,
-                regex = element.regex,
-                maxLength = element.maxLength,
-                errorMessage = element.errorMessage
-            )
-            viewModel.setValidationError(id, validationError)
+
+            // Only validate after user has interacted with the field
+            if (hasInteracted) {
+                val validationError = InputValidator.validateText(
+                    value = textValue,
+                    isRequired = element.isRequired,
+                    regex = element.regex,
+                    maxLength = element.maxLength,
+                    errorMessage = element.errorMessage
+                )
+                viewModel.setValidationError(id, validationError)
+            }
         }
     }
     
@@ -54,7 +57,7 @@ fun TextInputView(
         // Input field
         OutlinedTextField(
             value = textValue,
-            onValueChange = { textValue = it },
+            onValueChange = { hasInteracted = true; textValue = it },
             placeholder = { element.placeholder?.let { Text(it) } },
             isError = error != null,
             singleLine = element.isMultiline != true,

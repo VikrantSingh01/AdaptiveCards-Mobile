@@ -6,7 +6,7 @@ import SwiftUI
 
 /// Automatically discovers and renders **every** card JSON in the shared/test-cards/
 /// directory tree (including subdirectories like official-samples/, element-samples/,
-/// teams-samples/, teams-official-samples/).
+/// templates/, teams-official-samples/).
 ///
 /// This is the "render every card in an isolated table view" pipeline equivalent.
 /// Each card is rendered via AdaptiveCardView and snapshot-compared against baselines.
@@ -230,9 +230,9 @@ final class AllCardsDiscoveryTests: CardSnapshotTestCase {
         runSubdirectoryTests(subdirectory: "element-samples", configurations: [.iPhone15Pro])
     }
 
-    /// Tests all Teams-formatted samples
-    func testTeamsSamples_coreMatrix() {
-        runSubdirectoryTests(subdirectory: "teams-samples", configurations: SnapshotConfiguration.core)
+    /// Tests all template samples
+    func testTemplateSamples_coreMatrix() {
+        runSubdirectoryTests(subdirectory: "templates", configurations: SnapshotConfiguration.core)
     }
 
     /// Tests all Teams official samples

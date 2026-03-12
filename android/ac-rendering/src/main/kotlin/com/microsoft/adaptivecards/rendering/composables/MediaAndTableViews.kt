@@ -86,7 +86,7 @@ fun TableView(
     actionHandler: ActionHandler
 ) {
     val hostConfig = LocalHostConfig.current
-    val showGridLines = element.showGridLines != false // default true
+    val showGridLines = element.showGridLines == true // match iOS: null means no grid lines
     val firstRowAsHeaders = element.firstRowAsHeaders ?: false
 
     // Resolve grid style background

@@ -1,5 +1,6 @@
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -83,6 +84,13 @@ fun TextBlockView(
     val maxLines = (element.maxLines ?: if (element.wrap == true) Int.MAX_VALUE else 1).coerceAtLeast(1)
     val overflow = if (element.wrap == true) TextOverflow.Visible else TextOverflow.Ellipsis
 
+    // fillMaxWidth is required for textAlign (center/right) to have visible effect
+    val alignedModifier = if (element.horizontalAlignment != null && element.horizontalAlignment != HorizontalAlignment.Left) {
+        modifier.fillMaxWidth()
+    } else {
+        modifier
+    }
+
     // Check if text contains markdown
     if (element.text.containsMarkdown()) {
         // Render with markdown support
@@ -92,7 +100,7 @@ fun TextBlockView(
 
         ClickableText(
             text = annotatedString,
-            modifier = modifier,
+            modifier = alignedModifier,
             style = LocalTextStyle.current.copy(
                 fontSize = textSize,
                 fontWeight = fontWeight,
@@ -129,7 +137,7 @@ fun TextBlockView(
             lineHeight = lineHeight,
             maxLines = maxLines,
             overflow = overflow,
-            modifier = modifier
+            modifier = alignedModifier
         )
     }
 }
