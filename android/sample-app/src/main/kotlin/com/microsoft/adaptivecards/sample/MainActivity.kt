@@ -497,13 +497,8 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
     when (uri.host) {
         "card" -> {
             val segments = uri.pathSegments
-            if (segments.size >= 2) {
-                val cardFilename = "${segments[0]}/${segments[1]}.json"
-                navController.navigate("card_detail/${Uri.encode(cardFilename)}") {
-                    launchSingleTop = true
-                }
-            } else if (segments.size == 1) {
-                val cardFilename = "${segments[0]}.json"
+            if (segments.isNotEmpty()) {
+                val cardFilename = segments.joinToString("/") + ".json"
                 navController.navigate("card_detail/${Uri.encode(cardFilename)}") {
                     launchSingleTop = true
                 }

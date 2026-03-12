@@ -169,7 +169,7 @@ data class ActionPopover(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     val popoverTitle: String? = null,
-    val popoverBody: List<CardElement>,
+    val popoverBody: List<CardElement> = emptyList(),
     val dismissBehavior: String? = null
 ) : CardAction
 

@@ -138,16 +138,18 @@ public struct Column: Codable, Equatable, Identifiable {
     public var requires: [String: String]?
     public var targetWidth: String?
 
-    // Stable identifier using id property or combined items IDs as fallback
+    // Stable identifier using id property or combined items IDs as fallback.
+    // Must be unique across siblings — UUID suffix prevents duplicate-ID crashes in SwiftUI ForEach.
+    private let _fallbackId = UUID().uuidString
     public var stableId: String {
         if let id = id, !id.isEmpty {
             return id
         }
-        guard let items = items else {
-            return "column_empty_\(type)"
+        guard let items = items, !items.isEmpty else {
+            return "column_\(_fallbackId)"
         }
-        let itemsId = items.map { $0.id }.joined(separator: "_")
-        return itemsId.isEmpty ? "column_empty_\(type)" : itemsId
+        let itemsId = items.compactMap { $0.id }.joined(separator: "_")
+        return itemsId.isEmpty ? "column_\(_fallbackId)" : itemsId
     }
 
     public init(

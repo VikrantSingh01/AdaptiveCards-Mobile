@@ -22,7 +22,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-REPORT_DIR="/tmp/self-heal-dual-$TIMESTAMP"
+REPORT_DIR="${REPO_ROOT}/shared/test-output/self-heal-dual-$TIMESTAMP"
 REPORT_FILE="$REPORT_DIR/report.md"
 
 # Defaults
@@ -390,18 +390,29 @@ declare -a failed_cards_ios=()
 declare -a failed_cards_android=()
 idx=0
 
+# Stuck-on-gallery detection: track consecutive identical screenshot hashes
+ios_prev_hash=""
+android_prev_hash=""
+ios_stuck_count=0
+android_stuck_count=0
+STUCK_THRESHOLD=3  # flag after N consecutive identical screenshots
+
 for card_path in "${cards_to_test[@]}"; do
     idx=$((idx + 1))
     card_name=$(basename "$card_path")
 
     printf "  [%2d/%d] %-30s" "$idx" "${#cards_to_test[@]}" "$card_name"
 
-    # --- Ensure apps are alive ---
+    # --- Ensure apps are alive (wait for full restart before navigating) ---
     if $IOS_BUILD_OK && ! ios_is_running; then
         ios_restart
+        # Wait up to 5s for app to be fully running
+        for _w in $(seq 1 10); do ios_is_running && break; sleep 0.5; done
     fi
     if $ANDROID_BUILD_OK && ! android_is_running; then
         android_restart
+        # Wait up to 5s for app to be fully running
+        for _w in $(seq 1 10); do android_is_running && break; sleep 0.5; done
     fi
 
     # --- Navigate BOTH platforms simultaneously ---
@@ -459,6 +470,39 @@ for card_path in "${cards_to_test[@]}"; do
         fi
     fi
 
+    # --- Stuck-on-gallery detection (hash-based) ---
+    if $IOS_BUILD_OK && [ -f "$ios_ss" ]; then
+        ios_hash=$(md5 -q "$ios_ss" 2>/dev/null || md5sum "$ios_ss" 2>/dev/null | awk '{print $1}')
+        if [ "$ios_hash" = "$ios_prev_hash" ]; then
+            ios_stuck_count=$((ios_stuck_count + 1))
+        else
+            ios_stuck_count=0
+        fi
+        ios_prev_hash="$ios_hash"
+        if [ "$ios_stuck_count" -ge "$STUCK_THRESHOLD" ]; then
+            if [ "$ios_stuck_count" -eq "$STUCK_THRESHOLD" ]; then
+                notes="iOS STUCK (deep link not navigating since card #$((idx - STUCK_THRESHOLD)))"
+            fi
+            ios_status="STUCK"
+        fi
+    fi
+
+    if $ANDROID_BUILD_OK && [ -f "$android_ss" ]; then
+        android_hash=$(md5 -q "$android_ss" 2>/dev/null || md5sum "$android_ss" 2>/dev/null | awk '{print $1}')
+        if [ "$android_hash" = "$android_prev_hash" ]; then
+            android_stuck_count=$((android_stuck_count + 1))
+        else
+            android_stuck_count=0
+        fi
+        android_prev_hash="$android_hash"
+        if [ "$android_stuck_count" -ge "$STUCK_THRESHOLD" ]; then
+            if [ "$android_stuck_count" -eq "$STUCK_THRESHOLD" ]; then
+                notes="Android STUCK (deep link not navigating since card #$((idx - STUCK_THRESHOLD)))"
+            fi
+            android_status="STUCK"
+        fi
+    fi
+
     # Parity check: use image comparison when both screenshots exist
     parity_diff=""
     if [ "$ios_status" != "-" ] && [ "$android_status" != "-" ]; then
@@ -481,10 +525,10 @@ for card_path in "${cards_to_test[@]}"; do
     ios_sym="—"
     android_sym="—"
     case "$ios_status" in
-        PASS) ios_sym="✅" ;; WARN) ios_sym="⚠️ " ;; FAIL) ios_sym="❌" ;; CRASH) ios_sym="💥" ;;
+        PASS) ios_sym="✅" ;; WARN) ios_sym="⚠️ " ;; FAIL) ios_sym="❌" ;; CRASH) ios_sym="💥" ;; STUCK) ios_sym="🔒" ;;
     esac
     case "$android_status" in
-        PASS) android_sym="✅" ;; WARN) android_sym="⚠️ " ;; FAIL) android_sym="❌" ;; CRASH) android_sym="💥" ;;
+        PASS) android_sym="✅" ;; WARN) android_sym="⚠️ " ;; FAIL) android_sym="❌" ;; CRASH) android_sym="💥" ;; STUCK) android_sym="🔒" ;;
     esac
 
     parity_info=""
@@ -553,8 +597,30 @@ if [ ${#all_failed[@]} -gt 0 ] && [ "$MAX_RETRIES" -gt 0 ]; then
 
         next_failed=()
 
+        # Take gallery baseline screenshots to detect "bounced back to gallery" vs "rendered card"
+        sleep 2
+        ios_gallery_baseline="$REPORT_DIR/screenshots/ios/_gallery_baseline_r${retry}.png"
+        android_gallery_baseline="$REPORT_DIR/screenshots/android/_gallery_baseline_r${retry}.png"
+        $IOS_BUILD_OK && ios_screenshot "$ios_gallery_baseline" &
+        $ANDROID_BUILD_OK && android_screenshot "$android_gallery_baseline" &
+        wait
+        ios_gallery_hash=""
+        android_gallery_hash=""
+        [ -f "$ios_gallery_baseline" ] && ios_gallery_hash=$(md5 -q "$ios_gallery_baseline" 2>/dev/null || md5sum "$ios_gallery_baseline" 2>/dev/null | awk '{print $1}')
+        [ -f "$android_gallery_baseline" ] && android_gallery_hash=$(md5 -q "$android_gallery_baseline" 2>/dev/null || md5sum "$android_gallery_baseline" 2>/dev/null | awk '{print $1}')
+
         for card_path in "${all_failed[@]}"; do
             card_name=$(basename "$card_path")
+
+            # Ensure apps alive before navigating
+            if $IOS_BUILD_OK && ! ios_is_running; then
+                ios_restart
+                for _w in $(seq 1 10); do ios_is_running && break; sleep 0.5; done
+            fi
+            if $ANDROID_BUILD_OK && ! android_is_running; then
+                android_restart
+                for _w in $(seq 1 10); do android_is_running && break; sleep 0.5; done
+            fi
 
             # Navigate both
             $IOS_BUILD_OK && ios_navigate "$card_path" &
@@ -572,31 +638,58 @@ if [ ${#all_failed[@]} -gt 0 ] && [ "$MAX_RETRIES" -gt 0 ]; then
             ios_retry_st="-"
             android_retry_st="-"
             still_failing=false
+            retry_notes=""
 
             if $IOS_BUILD_OK; then
-                local_sz=$(file_size "$ios_ss")
-                ios_retry_st=$(classify "$local_sz" "ios")
-                if [ "$ios_retry_st" = "FAIL" ] || ! ios_is_running; then
+                if ! ios_is_running; then
+                    ios_retry_st="CRASH"
                     still_failing=true
+                    retry_notes="iOS crash"
+                else
+                    local_sz=$(file_size "$ios_ss")
+                    ios_retry_st=$(classify "$local_sz" "ios")
+                    # Check if screenshot matches gallery (card didn't actually render)
+                    if [ -f "$ios_ss" ] && [ -n "$ios_gallery_hash" ]; then
+                        local_hash=$(md5 -q "$ios_ss" 2>/dev/null || md5sum "$ios_ss" 2>/dev/null | awk '{print $1}')
+                        if [ "$local_hash" = "$ios_gallery_hash" ]; then
+                            ios_retry_st="FAIL"
+                            still_failing=true
+                            retry_notes="iOS shows gallery (deep link failed)"
+                        fi
+                    fi
+                    [ "$ios_retry_st" = "FAIL" ] && still_failing=true
                 fi
             fi
 
             if $ANDROID_BUILD_OK; then
-                local_sz=$(file_size "$android_ss")
-                android_retry_st=$(classify "$local_sz" "android")
-                if [ "$android_retry_st" = "FAIL" ] || ! android_is_running; then
+                if ! android_is_running; then
+                    android_retry_st="CRASH"
                     still_failing=true
+                    retry_notes="${retry_notes:+$retry_notes; }Android crash"
+                else
+                    local_sz=$(file_size "$android_ss")
+                    android_retry_st=$(classify "$local_sz" "android")
+                    # Check if screenshot matches gallery (card didn't actually render)
+                    if [ -f "$android_ss" ] && [ -n "$android_gallery_hash" ]; then
+                        local_hash=$(md5 -q "$android_ss" 2>/dev/null || md5sum "$android_ss" 2>/dev/null | awk '{print $1}')
+                        if [ "$local_hash" = "$android_gallery_hash" ]; then
+                            android_retry_st="FAIL"
+                            still_failing=true
+                            retry_notes="${retry_notes:+$retry_notes; }Android shows gallery (deep link failed)"
+                        fi
+                    fi
+                    [ "$android_retry_st" = "FAIL" ] && still_failing=true
                 fi
             fi
 
             if $still_failing; then
                 next_failed+=("$card_path")
-                echo "    ❌ $card_name — still failing"
+                echo "    ❌ $card_name — still failing${retry_notes:+ ($retry_notes)}"
             else
                 echo "    ✅ $card_name — recovered"
             fi
 
-            echo "| $card_name | $retry | $ios_retry_st | $android_retry_st | |" >> "$REPORT_FILE"
+            echo "| $card_name | $retry | $ios_retry_st | $android_retry_st | $retry_notes |" >> "$REPORT_FILE"
 
             # Gallery
             $IOS_BUILD_OK && ios_is_running && ios_gallery &

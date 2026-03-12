@@ -551,7 +551,7 @@ class AdvancedElementsParserTest {
         assertEquals("btn1", button.id)
         assertEquals("Approve Request", button.title)
         assertEquals("Review and approve the pending request", button.subtitle)
-        assertEquals("checkmark.circle.fill", button.icon)
+        assertEquals("checkmark.circle.fill", button.iconName)
         assertEquals("leading", button.iconPosition)
         assertEquals("positive", button.style)
         assertNotNull(button.action)
@@ -736,7 +736,7 @@ class AdvancedElementsParserTest {
                     id = "btn1",
                     title = "Test Button",
                     subtitle = "Test subtitle",
-                    icon = "star.fill",
+                    icon = IconDescriptor(name = "star.fill"),
                     iconPosition = "leading",
                     style = "emphasis",
                     action = ActionSubmit(
@@ -755,7 +755,7 @@ class AdvancedElementsParserTest {
         assertEquals("btn1", button.id)
         assertEquals("Test Button", button.title)
         assertEquals("Test subtitle", button.subtitle)
-        assertEquals("star.fill", button.icon)
+        assertEquals("star.fill", button.iconName)
         assertEquals("leading", button.iconPosition)
         assertEquals("emphasis", button.style)
         assertNotNull(button.action)

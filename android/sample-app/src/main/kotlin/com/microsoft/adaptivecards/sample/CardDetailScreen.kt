@@ -37,6 +37,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     var parseTimeMs by remember { mutableStateOf(0.0) }
     var renderTimeMs by remember { mutableStateOf(0.0) }
     var refreshKey by remember { mutableStateOf(0) }
+    var parseError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val card = remember(cardId) {
@@ -46,23 +47,27 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
 
     LaunchedEffect(card, refreshKey) {
         card?.let {
-            // Clear cache so measurements reflect real work, not cache lookups
-            CardViewModel.clearParseCache()
+            try {
+                // Clear cache so measurements reflect real work, not cache lookups
+                CardViewModel.clearParseCache()
 
-            // Parse: fresh JSON deserialization
-            val parseStart = System.nanoTime()
-            CardParser.parse(it.jsonString)
-            parseTimeMs = (System.nanoTime() - parseStart) / 1_000_000.0
+                // Parse: fresh JSON deserialization
+                val parseStart = System.nanoTime()
+                CardParser.parse(it.jsonString)
+                parseTimeMs = (System.nanoTime() - parseStart) / 1_000_000.0
 
-            // Render: ViewModel parse (cache-miss) + state initialization
-            CardViewModel.clearParseCache()
-            val renderStart = System.nanoTime()
-            cardViewModel.parseCard(it.jsonString)
-            renderTimeMs = (System.nanoTime() - renderStart) / 1_000_000.0
+                // Render: ViewModel parse (cache-miss) + state initialization
+                CardViewModel.clearParseCache()
+                val renderStart = System.nanoTime()
+                cardViewModel.parseCard(it.jsonString)
+                renderTimeMs = (System.nanoTime() - renderStart) / 1_000_000.0
 
-            // Persist to store (accumulates across sessions)
-            perfStore?.recordParse(parseTimeMs)
-            perfStore?.recordRender(renderTimeMs)
+                // Persist to store (accumulates across sessions)
+                perfStore?.recordParse(parseTimeMs)
+                perfStore?.recordRender(renderTimeMs)
+            } catch (e: Exception) {
+                parseError = "Failed to render card: ${e.message}\nJSON input: ${it.jsonString.take(200)}"
+            }
         }
     }
 
@@ -72,7 +77,8 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                 title = {
                     Text(
                         card?.title ?: "Card Detail",
-                        maxLines = 1
+                        maxLines = 2,
+                        style = MaterialTheme.typography.titleMedium
                     )
                 },
                 navigationIcon = {
@@ -123,14 +129,22 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                AdaptiveCardView(
-                    cardJson = card?.jsonString ?: "",
-                    hostConfig = com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig.createLight(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    viewModel = cardViewModel
-                )
+                if (parseError != null) {
+                    Text(
+                        text = parseError ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    AdaptiveCardView(
+                        cardJson = card?.jsonString ?: "",
+                        hostConfig = com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig.createLight(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        viewModel = cardViewModel
+                    )
+                }
             }
 
             // Bottom bar — single row: JSON | Parse | Render | Copy

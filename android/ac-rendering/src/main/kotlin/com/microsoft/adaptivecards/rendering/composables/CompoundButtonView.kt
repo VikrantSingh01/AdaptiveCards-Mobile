@@ -98,7 +98,7 @@ fun CompoundButtonView(
         ) {
             // Leading icon
             if (element.iconPosition != "trailing") {
-                IconView(element.icon, contentColor)
+                IconView(element.iconName, contentColor)
             }
             
             // Title and subtitle
@@ -128,7 +128,7 @@ fun CompoundButtonView(
             
             // Trailing icon
             if (element.iconPosition == "trailing") {
-                IconView(element.icon, contentColor)
+                IconView(element.iconName, contentColor)
             }
             
             // Chevron indicator
