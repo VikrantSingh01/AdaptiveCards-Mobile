@@ -57,6 +57,9 @@ Pods/
 # Screenshots
 screenshots/
 
+# Self-heal test outputs (generated artifacts)
+shared/test-outputs/
+
 # Environment files
 .env
 .env.*

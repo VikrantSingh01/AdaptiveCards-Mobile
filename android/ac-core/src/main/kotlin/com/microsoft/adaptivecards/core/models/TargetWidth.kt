@@ -16,11 +16,16 @@ enum class WidthCategory(val order: Int) {
     Wide(3);
 
     companion object {
-        /** Determine the width category from a dp value. */
-        fun fromDp(widthDp: Float): WidthCategory = when {
-            widthDp < 300f -> VeryNarrow
-            widthDp < 500f -> Narrow
-            widthDp < 700f -> Standard
+        /** Determine the width category from a dp value using hostConfig breakpoints. */
+        fun fromDp(
+            widthDp: Float,
+            veryNarrowBreakpoint: Int = 216,
+            narrowBreakpoint: Int = 413,
+            standardBreakpoint: Int = 500
+        ): WidthCategory = when {
+            veryNarrowBreakpoint > 0 && widthDp <= veryNarrowBreakpoint -> VeryNarrow
+            widthDp <= narrowBreakpoint -> Narrow
+            widthDp <= standardBreakpoint -> Standard
             else -> Wide
         }
 
@@ -79,5 +84,9 @@ val CardElement.targetWidth: String?
         is Image -> targetWidth
         is Container -> targetWidth
         is ActionSet -> targetWidth
+        is ColumnSet -> targetWidth
+        is Table -> targetWidth
+        is Icon -> targetWidth
+        is Badge -> targetWidth
         else -> null
     }

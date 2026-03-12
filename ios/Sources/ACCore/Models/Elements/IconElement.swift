@@ -13,6 +13,7 @@ public struct IconElement: Codable, Equatable {
     public var spacing: Spacing?
     public var isVisible: Bool?
     public var selectAction: CardAction?
+    public var targetWidth: String?
 
     public init(
         name: String,
@@ -23,7 +24,8 @@ public struct IconElement: Codable, Equatable {
         horizontalAlignment: String? = nil,
         spacing: Spacing? = nil,
         isVisible: Bool? = nil,
-        selectAction: CardAction? = nil
+        selectAction: CardAction? = nil,
+        targetWidth: String? = nil
     ) {
         self.type = "Icon"
         self.id = id
@@ -35,5 +37,6 @@ public struct IconElement: Codable, Equatable {
         self.spacing = spacing
         self.isVisible = isVisible
         self.selectAction = selectAction
+        self.targetWidth = targetWidth
     }
 }

@@ -51,6 +51,8 @@ struct ElementView: View {
             FactSetView(factSet: factSet, hostConfig: hostConfig)
         case .actionSet(let actionSet):
             ActionSetView(actions: actionSet.actions, hostConfig: hostConfig)
+                .spacing(actionSet.spacing, hostConfig: hostConfig)
+                .separator(actionSet.separator, hostConfig: hostConfig)
         case .table(let table):
             TableView(table: table, hostConfig: hostConfig)
         case .textInput(let input):
@@ -135,6 +137,8 @@ struct ElementView: View {
             PieChartView(chart: chart)
         case .icon(let icon):
             IconElementView(icon: icon, hostConfig: hostConfig)
+        case .badge(let badge):
+            BadgeView(badge: badge, hostConfig: hostConfig)
         case .unknown(let type):
             // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG

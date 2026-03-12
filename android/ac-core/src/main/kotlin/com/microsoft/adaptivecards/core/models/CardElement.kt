@@ -81,7 +81,10 @@ data class Image(
     val horizontalAlignment: HorizontalAlignment? = null,
     val selectAction: CardAction? = null,
     val targetWidth: String? = null,
-    val themedUrls: Map<String, String>? = null
+    val themedUrls: Map<String, String>? = null,
+    /** Explicit pixel height from JSON (e.g. "32px"). Extracted by CardElementSerializer because
+     *  the base `height` field is typed as BlockElementHeight enum. */
+    @Transient val pixelHeight: String? = null
 ) : CardElement
 
 @Serializable
@@ -104,8 +107,15 @@ data class Container(
     val minHeight: String? = null,
     val targetWidth: String? = null,
     val rtl: Boolean? = null,
+    /** When true, render a border stroke around the container using the style's borderColor. */
+    val showBorder: Boolean? = null,
+    /** When true, apply rounded corners from hostConfig.cornerRadius.container. */
+    val roundedCorners: Boolean? = null,
     /** Layout descriptor (FlowLayout or AreaGridLayout). When null, uses default stack layout. */
-    val layout: Layout? = null
+    val layout: Layout? = null,
+    /** Responsive layouts array. Each layout has a targetWidth condition; the first match is used.
+     *  Falls back to `layout` (singular) or default stack layout. */
+    val layouts: List<Layout>? = null
 ) : CardElement
 
 @Serializable(with = BackgroundImageSerializer::class)
@@ -132,7 +142,8 @@ data class ColumnSet(
     val style: ContainerStyle? = null,
     val bleed: Boolean? = null,
     val minHeight: String? = null,
-    val horizontalAlignment: HorizontalAlignment? = null
+    val horizontalAlignment: HorizontalAlignment? = null,
+    val targetWidth: String? = null
 ) : CardElement
 
 @Serializable
@@ -151,7 +162,8 @@ data class Column(
     val minHeight: String? = null,
     val rtl: Boolean? = null,
     val requires: Map<String, String>? = null,
-    val fallback: JsonElement? = null
+    val fallback: JsonElement? = null,
+    val targetWidth: String? = null
 )
 
 @Serializable
@@ -259,6 +271,47 @@ data class TextRun(
 )
 
 @Serializable
+@SerialName("Icon")
+data class Icon(
+    @Transient override val type: String = "Icon",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val name: String = "",
+    val size: String? = null,
+    val color: Color? = null,
+    val style: String? = null,
+    val selectAction: CardAction? = null,
+    val targetWidth: String? = null,
+    val horizontalAlignment: HorizontalAlignment? = null
+) : CardElement
+
+@Serializable
+@SerialName("Badge")
+data class Badge(
+    @Transient override val type: String = "Badge",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val text: String = "",
+    val style: String? = null,
+    val appearance: String? = null,
+    val icon: String? = null,
+    val size: String? = null,
+    val shape: String? = null,
+    val targetWidth: String? = null,
+    val horizontalAlignment: HorizontalAlignment? = null
+) : CardElement
+
+@Serializable
 @SerialName("Table")
 data class Table(
     @Transient override val type: String = "Table",
@@ -275,7 +328,8 @@ data class Table(
     val showGridLines: Boolean? = null,
     val gridStyle: ContainerStyle? = null,
     val horizontalCellContentAlignment: HorizontalAlignment? = null,
-    val verticalCellContentAlignment: VerticalContentAlignment? = null
+    val verticalCellContentAlignment: VerticalContentAlignment? = null,
+    val targetWidth: String? = null
 ) : CardElement
 
 @Serializable

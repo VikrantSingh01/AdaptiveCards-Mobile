@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0-dev] - Unreleased
 
+### 🚀 Extended Deep Link Routing, Gallery Filters & Cart Icon (2026-03-11)
+
+#### Added
+- **Extended deep link routing (iOS + Android)**: Added routes for `editor`, `performance`, `bookmarks`, `settings`, and `more` screens on both platforms via the `adaptivecards://` URL scheme
+- **Gallery category filtering via deep link**: `adaptivecards://gallery/{filter}` now applies a category filter (e.g. `teams-official`, `inputs`, `advanced`) on both platforms
+- **Cart icon mapping (iOS + Android)**: Added `Cart`/`CartFilled` icon resolution to `ActionButton` on both platforms (`cart.fill` SF Symbol on iOS, `ShoppingCart` Material Icon on Android)
+- **Dual-platform demo script**: `shared/scripts/demo-bookmarks.sh` for running bookmark demos across both simulators simultaneously
+- **More screen footnote**: Added attribution footnote with link on both iOS and Android More screens
+
+#### Changed
+- **iOS DeepLinkRouter**: Refactored from single `card` route handling to a full `switch`-based router supporting all app screens
+- **iOS ContentView**: Added `NavigationPath`-based programmatic navigation for More sub-screens (performance, bookmarks, settings)
+- **Android MainActivity**: Extended `handleDeepLink()` with navigation for editor, performance, bookmarks, settings, and more screens
+- **Android CardGalleryScreen**: Added `pendingFilter` parameter with `LaunchedEffect` for deep-link-driven category selection
+
+---
+
 ### 🔧 Sample App Rendering Fixes & Build Verification (2026-02-12)
 
 #### Fixed

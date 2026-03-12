@@ -26,7 +26,7 @@ This project follows the [Microsoft Open Source Code of Conduct](https://opensou
 - macOS 13.0 or later
 - Xcode 15.0 or later
 - Swift 5.9 or later
-- CocoaPods or Swift Package Manager
+- Swift Package Manager (primary), CocoaPods optional
 - Git
 
 **For Android Development**:
@@ -93,7 +93,7 @@ This project follows the [Microsoft Open Source Code of Conduct](https://opensou
 
 ## Cross-Platform Parity Requirements
 
-**The Adaptive Cards Mobile SDK maintains strict cross-platform parity.** All features must work identically on both iOS and Android.
+**The Adaptive Cards Mobile SDK maintains strict cross-platform parity.** All features must work identically on both iOS and Android. Both sample apps support identical `adaptivecards://` deep link routes for automated testing and demo scripts.
 
 ### Key Principles
 

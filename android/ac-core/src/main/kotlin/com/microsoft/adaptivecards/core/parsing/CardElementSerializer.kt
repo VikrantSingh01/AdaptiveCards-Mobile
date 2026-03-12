@@ -56,6 +56,8 @@ object CardElementSerializer : KSerializer<CardElement> {
             "Media" -> Media.serializer()
             "RichTextBlock" -> RichTextBlock.serializer()
             "Table" -> Table.serializer()
+            "Icon" -> Icon.serializer()
+            "Badge" -> Badge.serializer()
             "Input.Text" -> InputText.serializer()
             "Input.Number" -> InputNumber.serializer()
             "Input.Date" -> InputDate.serializer()
@@ -81,7 +83,19 @@ object CardElementSerializer : KSerializer<CardElement> {
         }
 
         return if (serializer != null) {
-            jsonDecoder.json.decodeFromJsonElement(serializer, element)
+            val decoded = jsonDecoder.json.decodeFromJsonElement(serializer, element)
+            // For Image elements, extract pixel height (e.g. "32px") which the base
+            // BlockElementHeight enum cannot represent
+            if (decoded is Image) {
+                val rawHeight = element.jsonObject["height"]?.jsonPrimitive?.content
+                if (rawHeight != null && rawHeight.contains("px", ignoreCase = true)) {
+                    decoded.copy(pixelHeight = rawHeight)
+                } else {
+                    decoded
+                }
+            } else {
+                decoded
+            }
         } else {
             val unknown = jsonDecoder.json.decodeFromJsonElement(UnknownElement.serializer(), element)
             unknown.copy(unknownType = type)

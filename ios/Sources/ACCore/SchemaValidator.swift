@@ -20,7 +20,9 @@ public struct SchemaValidator {
         // v1.6 elements
         "Table", "CompoundButton",
         // Custom chart extensions
-        "DonutChart", "BarChart", "LineChart", "PieChart"
+        "DonutChart", "BarChart", "LineChart", "PieChart",
+        // UI elements
+        "Badge", "Icon"
     ]
     
     /// Valid action types in Adaptive Cards v1.6
