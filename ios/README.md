@@ -495,8 +495,8 @@ swift package clean
 
 ### Running the Sample App
 
-1. Open `ios/Package.swift` in Xcode
-2. Select the `AdaptiveCardsSample` scheme
+1. Open `ios/SampleApp.xcodeproj` in Xcode
+2. Select the `ACVisualizer` scheme
 3. Choose iPhone 17 Pro Simulator (or any iOS 16+ simulator)
 4. Press Cmd+R to build and run
 5. The app will display a card gallery with live rendering of Adaptive Cards

@@ -673,8 +673,8 @@ Located in `ios/SampleApp/`, features:
 Build and run:
 ```bash
 cd ios
-open Package.swift
-# Select the AdaptiveCardsSample scheme in Xcode, then build (Cmd+R)
+open SampleApp.xcodeproj
+# Select the ACVisualizer scheme in Xcode, then build (Cmd+R)
 ```
 
 #### Deep Link Routes (both platforms)
