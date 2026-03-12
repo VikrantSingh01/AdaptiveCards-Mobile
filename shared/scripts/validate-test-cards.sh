@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Author: Vikrant Singh (github.com/VikrantSingh01)
+# Licensed under the MIT License.
+
 # Script to validate all JSON files in shared/test-cards/ directory
 # Checks for valid JSON format and required AdaptiveCard fields
 

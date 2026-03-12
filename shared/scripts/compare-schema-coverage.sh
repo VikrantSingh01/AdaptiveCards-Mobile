@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Author: Vikrant Singh (github.com/VikrantSingh01)
+# Licensed under the MIT License.
+
 # Schema Coverage Comparison Script
 # Compares element types and action types across iOS and Android platforms
 # Fails if there's a significant parity gap between platforms

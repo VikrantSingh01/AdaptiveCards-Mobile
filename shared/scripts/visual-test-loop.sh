@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Author: Vikrant Singh (github.com/VikrantSingh01)
+# Licensed under the MIT License.
+
 # Self-Healing Visual Test Loop for iOS Cards
 # Uses deep links (adaptivecards://card/{path}) to navigate to each card,
 # takes a screenshot, and analyzes it for rendering failures.
