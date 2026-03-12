@@ -36,17 +36,31 @@ sleep 2
 CARD_DIR="$(cd "$(dirname "$0")/../test-cards" && pwd)"
 
 case "$CATEGORY" in
-    teams-official)
-        CARD_FILES=$(ls "$CARD_DIR/teams-official-samples/"*.json 2>/dev/null | sort)
+    built-in)
+        CARD_FILES=$(ls "$CARD_DIR/"*.json 2>/dev/null | sort)
+        ;;
+    edge-cases)
+        CARD_FILES=$(ls "$CARD_DIR/edge-"*.json 2>/dev/null | sort)
         ;;
     official)
         CARD_FILES=$(ls "$CARD_DIR/official-samples/"*.json 2>/dev/null | sort)
+        ;;
+    element)
+        CARD_FILES=$(ls "$CARD_DIR/element-samples/"*.json 2>/dev/null | sort)
+        ;;
+    teams-official)
+        CARD_FILES=$(ls "$CARD_DIR/teams-official-samples/"*.json 2>/dev/null | sort)
+        ;;
+    all-testable)
+        # All standalone cards (excludes templates needing data binding, host-configs, data files)
+        CARD_FILES=$(find "$CARD_DIR" -name "*.json" ! -name "*-data.json" ! -name "*.data.json" ! -path "*/host-configs/*" ! -path "*/templates/*" | sort)
         ;;
     all)
         CARD_FILES=$(find "$CARD_DIR" -name "*.json" ! -name "*-data.json" | sort)
         ;;
     *)
         echo "Unknown category: $CATEGORY"
+        echo "Usage: $0 [built-in|edge-cases|official|element|teams-official|all-testable|all]"
         exit 1
         ;;
 esac

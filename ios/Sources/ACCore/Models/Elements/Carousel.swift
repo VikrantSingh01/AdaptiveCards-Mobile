@@ -61,30 +61,49 @@ public struct Carousel: Codable, Equatable {
 }
 
 public struct CarouselPage: Codable, Equatable, Identifiable {
+    public var jsonId: String?
     public var items: [CardElement]
     public var selectAction: CardAction?
 
-    // Generate stable ID from items and selectAction
+    /// Unique ID: prefer JSON "id", fall back to UUID to avoid SwiftUI ForEach collisions
     public var id: String {
-        // Use item IDs if available, otherwise generate from content
+        if let jsonId, !jsonId.isEmpty {
+            return jsonId
+        }
+        // Fallback: use item IDs if unique, otherwise include hash for uniqueness
         let itemIds = items.map { $0.elementId ?? $0.typeString }.joined(separator: "_")
         if itemIds.isEmpty {
-            return "page_empty"
+            return "page_\(UUID().uuidString)"
         }
-
-        if selectAction != nil {
-            // Include a marker that action is present without accessing private properties
-            return "\(itemIds)_with_action"
-        }
-
         return itemIds
     }
 
+    enum CodingKeys: String, CodingKey {
+        case jsonId = "id"
+        case items, selectAction, type, rtl
+    }
+
     public init(
+        jsonId: String? = nil,
         items: [CardElement],
         selectAction: CardAction? = nil
     ) {
+        self.jsonId = jsonId
         self.items = items
         self.selectAction = selectAction
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.jsonId = try container.decodeIfPresent(String.self, forKey: .jsonId)
+        self.items = (try? container.decode([CardElement].self, forKey: .items)) ?? []
+        self.selectAction = try container.decodeIfPresent(CardAction.self, forKey: .selectAction)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(jsonId, forKey: .jsonId)
+        try container.encode(items, forKey: .items)
+        try container.encodeIfPresent(selectAction, forKey: .selectAction)
     }
 }

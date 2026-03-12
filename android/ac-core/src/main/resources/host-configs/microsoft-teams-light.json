@@ -463,7 +463,7 @@
             "wrap": true,
             "maxWidth": 0
         },
-        "spacing": 32
+        "spacing": 8
     },
     "inputs": {
         "label": {

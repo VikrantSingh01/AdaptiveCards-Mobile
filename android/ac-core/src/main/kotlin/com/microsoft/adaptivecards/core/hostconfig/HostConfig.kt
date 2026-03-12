@@ -182,7 +182,7 @@ data class MediaConfig(
 data class FactSetConfig(
     val title: FactSetTextConfig = FactSetTextConfig(weight = FontWeight.Bolder),
     val value: FactSetTextConfig = FactSetTextConfig(),
-    val spacing: Int = 32
+    val spacing: Int = 8
 )
 
 @Serializable
