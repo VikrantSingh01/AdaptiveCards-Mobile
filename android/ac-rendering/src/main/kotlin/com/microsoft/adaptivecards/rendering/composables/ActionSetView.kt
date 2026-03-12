@@ -7,6 +7,7 @@ package com.microsoft.adaptivecards.rendering.composables
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -74,9 +75,13 @@ fun ActionSetView(
     val isLeftAligned = hostConfig.actions.actionAlignment == "left"
 
     Column(modifier = modifier) {
-        Row(
+        @OptIn(ExperimentalLayoutApi::class)
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(
+                hostConfig.actions.buttonSpacing.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(
                 hostConfig.actions.buttonSpacing.dp
             )
         ) {
@@ -84,8 +89,7 @@ fun ActionSetView(
                 ActionButton(
                     action = action,
                     actionHandler = actionHandler,
-                    viewModel = viewModel,
-                    modifier = if (isLeftAligned) Modifier else Modifier.weight(1f)
+                    viewModel = viewModel
                 )
             }
 

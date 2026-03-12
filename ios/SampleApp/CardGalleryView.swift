@@ -533,6 +533,7 @@ class TestCardLoader {
             ("compound-buttons.json", "Compound Buttons", .actions, false),
             ("split-buttons.json", "Split Buttons", .actions, false),
             ("popover-action.json", "Popover Action", .actions, false),
+            ("action-overflow.json", "Action Overflow", .actions, false),
             ("teams-connector.json", "Teams Connector", .teams, false),
             ("teams-task-module.json", "Teams Task Module", .teams, false),
             ("copilot-citations.json", "Copilot Citations", .advanced, true),
@@ -551,6 +552,7 @@ class TestCardLoader {
             ("edge-empty-containers.json", "Edge: Empty Containers", .edgeCases, false),
             ("edge-long-text.json", "Edge: Long Text", .edgeCases, false),
             ("edge-max-actions.json", "Edge: Max Actions", .edgeCases, false),
+            ("edge-action-crashes.json", "Edge: Action Crashes", .edgeCases, false),
             ("edge-mixed-inputs.json", "Edge: Mixed Inputs", .edgeCases, false),
             ("edge-rtl-content.json", "Edge: RTL Content", .edgeCases, false),
             // Official Samples

@@ -139,6 +139,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                     AdaptiveCardView(
                         cardJson = card?.jsonString ?: "",
                         hostConfig = com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig.createLight(),
+                        actionHandler = LoggingActionHandler(actionLogState),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp),
