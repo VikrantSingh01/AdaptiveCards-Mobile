@@ -527,11 +527,11 @@ class AdvancedElementsParserTest {
                         "type": "CompoundButton",
                         "id": "btn1",
                         "title": "Approve Request",
-                        "subtitle": "Review and approve the pending request",
+                        "description": "Review and approve the pending request",
                         "icon": "checkmark.circle.fill",
                         "iconPosition": "leading",
                         "style": "positive",
-                        "action": {
+                        "selectAction": {
                             "type": "Action.Submit",
                             "title": "Approve",
                             "data": {
@@ -550,11 +550,11 @@ class AdvancedElementsParserTest {
         
         assertEquals("btn1", button.id)
         assertEquals("Approve Request", button.title)
-        assertEquals("Review and approve the pending request", button.subtitle)
+        assertEquals("Review and approve the pending request", button.description)
         assertEquals("checkmark.circle.fill", button.iconName)
         assertEquals("leading", button.iconPosition)
         assertEquals("positive", button.style)
-        assertNotNull(button.action)
+        assertNotNull(button.selectAction)
     }
     
     @Test
@@ -568,10 +568,10 @@ class AdvancedElementsParserTest {
                         "type": "CompoundButton",
                         "id": "btn_emphasis",
                         "title": "Primary Action",
-                        "subtitle": "With accent color",
+                        "description": "With accent color",
                         "icon": "star.fill",
                         "style": "emphasis",
-                        "action": {
+                        "selectAction": {
                             "type": "Action.Submit",
                             "title": "Submit"
                         }
@@ -598,10 +598,10 @@ class AdvancedElementsParserTest {
                         "type": "CompoundButton",
                         "id": "btn_delete",
                         "title": "Delete Item",
-                        "subtitle": "This action cannot be undone",
+                        "description": "This action cannot be undone",
                         "icon": "trash",
                         "style": "destructive",
-                        "action": {
+                        "selectAction": {
                             "type": "Action.Submit",
                             "title": "Delete",
                             "data": {
@@ -631,10 +631,10 @@ class AdvancedElementsParserTest {
                         "type": "CompoundButton",
                         "id": "btn_trailing",
                         "title": "Navigate",
-                        "subtitle": "Open external link",
+                        "description": "Open external link",
                         "icon": "arrow.right.circle",
                         "iconPosition": "trailing",
-                        "action": {
+                        "selectAction": {
                             "type": "Action.OpenUrl",
                             "url": "https://example.com"
                         }
@@ -661,8 +661,8 @@ class AdvancedElementsParserTest {
                         "type": "CompoundButton",
                         "id": "btn_no_icon",
                         "title": "Submit Form",
-                        "subtitle": "Send your response",
-                        "action": {
+                        "description": "Send your response",
+                        "selectAction": {
                             "type": "Action.Submit"
                         }
                     }
@@ -674,7 +674,7 @@ class AdvancedElementsParserTest {
         val button = card.body?.first() as CompoundButton
         
         assertNull(button.icon)
-        assertNotNull(button.subtitle)
+        assertNotNull(button.description)
     }
     
     @Test
@@ -689,7 +689,7 @@ class AdvancedElementsParserTest {
                         "id": "btn_no_subtitle",
                         "title": "Quick Action",
                         "icon": "bolt.fill",
-                        "action": {
+                        "selectAction": {
                             "type": "Action.Submit"
                         }
                     }
@@ -700,7 +700,7 @@ class AdvancedElementsParserTest {
         val card = CardParser.parse(json)
         val button = card.body?.first() as CompoundButton
         
-        assertNull(button.subtitle)
+        assertNull(button.description)
         assertNotNull(button.icon)
     }
     
@@ -715,7 +715,7 @@ class AdvancedElementsParserTest {
                         "type": "CompoundButton",
                         "id": "btn_disabled",
                         "title": "Disabled Button",
-                        "subtitle": "No action associated"
+                        "description": "No action associated"
                     }
                 ]
             }
@@ -724,7 +724,7 @@ class AdvancedElementsParserTest {
         val card = CardParser.parse(json)
         val button = card.body?.first() as CompoundButton
         
-        assertNull(button.action)
+        assertNull(button.selectAction)
     }
     
     @Test
@@ -735,11 +735,11 @@ class AdvancedElementsParserTest {
                 CompoundButton(
                     id = "btn1",
                     title = "Test Button",
-                    subtitle = "Test subtitle",
+                    description = "Test subtitle",
                     icon = IconDescriptor(name = "star.fill"),
                     iconPosition = "leading",
                     style = "emphasis",
-                    action = ActionSubmit(
+                    selectAction = ActionSubmit(
                         title = "Submit",
                         data = kotlinx.serialization.json.JsonObject(mapOf("action" to kotlinx.serialization.json.JsonPrimitive("test")))
                     )
@@ -754,10 +754,10 @@ class AdvancedElementsParserTest {
         val button = parsedCard.body?.first() as CompoundButton
         assertEquals("btn1", button.id)
         assertEquals("Test Button", button.title)
-        assertEquals("Test subtitle", button.subtitle)
+        assertEquals("Test subtitle", button.description)
         assertEquals("star.fill", button.iconName)
         assertEquals("leading", button.iconPosition)
         assertEquals("emphasis", button.style)
-        assertNotNull(button.action)
+        assertNotNull(button.selectAction)
     }
 }

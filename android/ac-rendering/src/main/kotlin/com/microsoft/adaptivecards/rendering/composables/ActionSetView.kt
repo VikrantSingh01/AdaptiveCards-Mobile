@@ -1,6 +1,7 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -10,9 +11,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.microsoft.adaptivecards.core.models.*
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
@@ -63,28 +69,89 @@ fun ActionSetView(
 
     val isLeftAligned = hostConfig.actions.actionAlignment == "left"
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(
-            hostConfig.actions.buttonSpacing.dp
-        )
-    ) {
-        visibleActions.forEach { action ->
-            ActionButton(
-                action = action,
-                actionHandler = actionHandler,
-                viewModel = viewModel,
-                modifier = if (isLeftAligned) Modifier else Modifier.weight(1f)
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(
+                hostConfig.actions.buttonSpacing.dp
             )
+        ) {
+            visibleActions.forEach { action ->
+                ActionButton(
+                    action = action,
+                    actionHandler = actionHandler,
+                    viewModel = viewModel,
+                    modifier = if (isLeftAligned) Modifier else Modifier.weight(1f)
+                )
+            }
+
+            // Overflow menu for secondary actions
+            if (secondaryActions.isNotEmpty()) {
+                OverflowMenuButton(
+                    actions = secondaryActions,
+                    actionHandler = actionHandler,
+                    viewModel = viewModel
+                )
+            }
         }
 
-        // Overflow menu for secondary actions
-        if (secondaryActions.isNotEmpty()) {
-            OverflowMenuButton(
-                actions = secondaryActions,
-                actionHandler = actionHandler,
-                viewModel = viewModel
-            )
+        // Render expanded ShowCard sub-cards inline
+        val showCardActions = actions.filterIsInstance<ActionShowCard>()
+        showCardActions.forEach { showCardAction ->
+            val actionId = showCardAction.id ?: "showCard_${showCardAction.title ?: "unknown"}"
+            if (viewModel.isShowCardExpanded(actionId)) {
+                val emphasisBg = Color(
+                    android.graphics.Color.parseColor(
+                        hostConfig.containerStyles.emphasis.backgroundColor
+                    )
+                )
+                val cornerRadius = hostConfig.cornerRadius.container.dp
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = hostConfig.spacing.default.dp)
+                        .background(
+                            color = emphasisBg,
+                            shape = RoundedCornerShape(cornerRadius)
+                        )
+                        .padding(hostConfig.spacing.padding.dp)
+                ) {
+                    showCardAction.card.body?.forEachIndexed { index, element ->
+                        RenderElement(
+                            element = element,
+                            isFirst = index == 0,
+                            viewModel = viewModel,
+                            actionHandler = actionHandler
+                        )
+                    }
+                    // Render sub-card actions if present
+                    showCardAction.card.actions?.let { subActions ->
+                        if (subActions.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(hostConfig.spacing.default.dp))
+                            ActionSetView(
+                                actions = subActions,
+                                actionHandler = actionHandler,
+                                viewModel = viewModel
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Render popover bottom sheets for any ActionPopover actions that are showing
+        val popoverActions = actions.filterIsInstance<ActionPopover>()
+        popoverActions.forEach { popoverAction ->
+            val actionId = popoverAction.id ?: return@forEach
+            if (viewModel.isPopoverShowing(actionId)) {
+                PopoverBottomSheet(
+                    action = popoverAction,
+                    viewModel = viewModel,
+                    actionHandler = actionHandler,
+                    onDismiss = { viewModel.dismissPopover(actionId) }
+                )
+            }
         }
     }
 }
@@ -299,6 +366,57 @@ private fun resolveFluentIcon(name: String): ImageVector? {
 }
 
 /**
+ * Renders an ActionPopover's content inside a Material3 ModalBottomSheet.
+ *
+ * The bottom sheet does not steal focus and supports nested popovers
+ * (each popover tracks its own state via viewModel.popoverState).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PopoverBottomSheet(
+    action: ActionPopover,
+    viewModel: CardViewModel,
+    actionHandler: ActionHandler,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val hostConfig = LocalHostConfig.current
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = hostConfig.spacing.padding.dp)
+                .padding(bottom = hostConfig.spacing.padding.dp)
+        ) {
+            // Popover title
+            val title = action.popoverTitle ?: action.title
+            if (!title.isNullOrBlank()) {
+                Text(
+                    text = title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = hostConfig.spacing.default.dp)
+                )
+            }
+
+            // Render the popover content element using the standard rendering pipeline
+            action.content?.let { contentElement ->
+                RenderElement(
+                    element = contentElement,
+                    isFirst = true,
+                    viewModel = viewModel,
+                    actionHandler = actionHandler
+                )
+            }
+        }
+    }
+}
+
+/**
  * Handle action execution
  */
 private fun handleAction(
@@ -319,6 +437,8 @@ private fun handleAction(
             actionHandler.onExecute(action.verb ?: "", inputData, action.id)
         }
         is ActionShowCard -> {
+            val actionId = action.id ?: "showCard_${action.title ?: "unknown"}"
+            viewModel.toggleShowCard(actionId)
             actionHandler.onShowCard(action)
         }
         is ActionToggleVisibility -> {
@@ -331,7 +451,8 @@ private fun handleAction(
             actionHandler.onOpenUrl(action.url, action.id)
         }
         is ActionPopover -> {
-            // Popover actions handled externally
+            val actionId = action.id ?: return
+            viewModel.togglePopover(actionId)
         }
         is ActionRunCommands -> {
             // RunCommands actions handled externally

@@ -17,6 +17,7 @@ public struct AdaptiveCard: Codable, Equatable {
     public var authentication: Authentication?
     public var metadata: [String: AnyCodable]?
     public var rtl: Bool?
+    public var references: [DocumentReference]?
 
     enum CodingKeys: String, CodingKey {
         case type
@@ -35,6 +36,7 @@ public struct AdaptiveCard: Codable, Equatable {
         case authentication
         case metadata
         case rtl
+        case references
     }
 
     public init(
@@ -52,7 +54,8 @@ public struct AdaptiveCard: Codable, Equatable {
         refresh: Refresh? = nil,
         authentication: Authentication? = nil,
         metadata: [String: AnyCodable]? = nil,
-        rtl: Bool? = nil
+        rtl: Bool? = nil,
+        references: [DocumentReference]? = nil
     ) {
         self.version = version
         self.schema = schema
@@ -69,6 +72,7 @@ public struct AdaptiveCard: Codable, Equatable {
         self.authentication = authentication
         self.metadata = metadata
         self.rtl = rtl
+        self.references = references
     }
 
     // Custom decoder to allow missing version in sub-cards (Action.ShowCard)
@@ -103,5 +107,32 @@ public struct AdaptiveCard: Codable, Equatable {
         self.authentication = try container.decodeIfPresent(Authentication.self, forKey: .authentication)
         self.metadata = try container.decodeIfPresent([String: AnyCodable].self, forKey: .metadata)
         self.rtl = try container.decodeIfPresent(Bool.self, forKey: .rtl)
+        self.references = try container.decodeIfPresent([DocumentReference].self, forKey: .references)
+    }
+}
+
+// MARK: - DocumentReference
+
+/// A reference entry for CitationRun inlines.
+/// Parsed from the top-level `references` array in an AdaptiveCard.
+public struct DocumentReference: Codable, Equatable {
+    public var type: String?
+    public var title: String?
+    public var icon: String?
+    public var url: String?
+    public var abstract: String?
+
+    public init(
+        type: String? = nil,
+        title: String? = nil,
+        icon: String? = nil,
+        url: String? = nil,
+        abstract: String? = nil
+    ) {
+        self.type = type
+        self.title = title
+        self.icon = icon
+        self.url = url
+        self.abstract = abstract
     }
 }

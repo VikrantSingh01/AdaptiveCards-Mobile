@@ -63,15 +63,26 @@ struct TableCellView: View {
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
-        VStack(spacing: 0) {
+        Group {
             if let items = cell.items {
-                ForEach(items) { element in
-                    if viewModel.isElementVisible(elementId: element.elementId) {
-                        if isHeader {
-                            ElementView(element: element, hostConfig: hostConfig)
-                                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
-                        } else {
-                            ElementView(element: element, hostConfig: hostConfig)
+                if let layout = cell.layout {
+                    switch layout {
+                    case .flow(let flowLayout):
+                        FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig)
+                    case .areaGrid(let gridLayout):
+                        AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig)
+                    }
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(items) { element in
+                            if viewModel.isElementVisible(elementId: element.elementId) {
+                                if isHeader {
+                                    ElementView(element: element, hostConfig: hostConfig)
+                                        .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
+                                } else {
+                                    ElementView(element: element, hostConfig: hostConfig)
+                                }
+                            }
                         }
                     }
                 }

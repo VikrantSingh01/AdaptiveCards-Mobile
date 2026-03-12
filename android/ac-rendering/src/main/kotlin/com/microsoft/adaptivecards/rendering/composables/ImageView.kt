@@ -11,8 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.ImageStyle
@@ -26,6 +29,7 @@ import com.microsoft.adaptivecards.accessibility.imageSemantics
  *
  * Sizes resolved from HostConfig.imageSizes (Figma: small=32, medium=52, large=100).
  * Corner radius applied from HostConfig.cornerRadius.image (4dp) except for Person style.
+ * SVG images supported via Coil's SvgDecoder (both URL and data:image/svg+xml URIs).
  */
 @Composable
 fun ImageView(
@@ -35,6 +39,10 @@ fun ImageView(
 ) {
     val hostConfig = LocalHostConfig.current
     val cornerRadius = hostConfig.cornerRadius.image
+    val context = LocalContext.current
+
+    // Skip symbol: URLs (platform-specific, not renderable)
+    if (element.url.startsWith("symbol:")) return
 
     // Determine image size
     val imageModifier = when (element.size ?: ImageSize.Auto) {
@@ -51,7 +59,6 @@ fun ImageView(
                 widthPx != null -> modifier.width(widthPx.dp)
                 heightPx != null -> modifier.height(heightPx.dp)
                 // Auto per AC spec: display at natural size constrained to container width.
-                // Images with explicit pixel dimensions (avatars etc.) are handled above.
                 else -> modifier.fillMaxWidth()
             }
         }
@@ -64,8 +71,22 @@ fun ImageView(
         else -> if (cornerRadius > 0) imageModifier.clip(RoundedCornerShape(cornerRadius.dp)) else imageModifier
     }
 
+    // Build image request — add SVG decoder for SVG content
+    val isSvg = element.url.endsWith(".svg", ignoreCase = true) ||
+        element.url.startsWith("data:image/svg+xml")
+
+    val model = ImageRequest.Builder(context)
+        .data(element.url)
+        .apply {
+            if (isSvg) {
+                decoderFactory(SvgDecoder.Factory())
+            }
+        }
+        .crossfade(true)
+        .build()
+
     AsyncImage(
-        model = element.url,
+        model = model,
         contentDescription = element.altText,
         contentScale = when {
             element.size == ImageSize.Stretch -> ContentScale.Crop

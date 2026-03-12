@@ -75,10 +75,11 @@ data class CompoundButton(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     val title: String,
-    val subtitle: String? = null,
+    val description: String? = null,
     val icon: IconDescriptor? = null,
     val iconPosition: String? = null,
-    val action: CardAction? = null,
+    val selectAction: CardAction? = null,
+    val badge: String? = null,
     val style: String? = null
 ) : CardElement {
     /** Convenience accessor: the icon name as a string regardless of how it was encoded */

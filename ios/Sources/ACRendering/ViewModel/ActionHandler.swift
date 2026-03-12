@@ -56,7 +56,8 @@ public class DefaultActionHandler: ActionHandler {
             handler.handle(toggleAction)
 
         case .popover(let popoverAction):
-            PopoverActionHandler.handle(action: popoverAction, delegate: delegate)
+            let actionId = popoverAction.id ?? "popover_\(popoverAction.title ?? UUID().uuidString)"
+            viewModel.togglePopover(actionId: actionId)
 
         case .runCommands(let runCommandsAction):
             RunCommandsActionHandler.handle(action: runCommandsAction, delegate: delegate)

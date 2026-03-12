@@ -124,6 +124,9 @@ object CardElementSerializer : KSerializer<CardElement> {
  * Handles both plain string shorthand and full TextRun object in RichTextBlock inlines.
  * Per Adaptive Cards spec, inlines can contain plain strings as shorthand for
  * `{"type": "TextRun", "text": "<string>"}`.
+ *
+ * Also used as the serializer for TextRun when it appears standalone (e.g., in
+ * InlineElementSerializer delegation).
  */
 object TextRunSerializer : KSerializer<TextRun> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("TextRun")
@@ -133,32 +136,33 @@ object TextRunSerializer : KSerializer<TextRun> {
             ?: return TextRun(text = decoder.decodeString())
         return when (val element = jsonDecoder.decodeJsonElement()) {
             is JsonPrimitive -> TextRun(text = element.content)
-            else -> {
-                val obj = element.jsonObject
-                TextRun(
-                    type = obj["type"]?.jsonPrimitive?.content ?: "TextRun",
-                    text = obj["text"]?.jsonPrimitive?.content ?: "",
-                    color = obj["color"]?.jsonPrimitive?.content
-                        ?.let { runCatching { Color.valueOf(it) }.getOrNull() },
-                    fontType = obj["fontType"]?.jsonPrimitive?.content
-                        ?.let { runCatching { FontType.valueOf(it) }.getOrNull() },
-                    size = obj["size"]?.jsonPrimitive?.content
-                        ?.let { runCatching { FontSize.valueOf(it) }.getOrNull() },
-                    weight = obj["weight"]?.jsonPrimitive?.content
-                        ?.let { runCatching { FontWeight.valueOf(it) }.getOrNull() },
-                    isSubtle = obj["isSubtle"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
-                    italic = obj["italic"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
-                    strikethrough = obj["strikethrough"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
-                    underline = obj["underline"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
-                    highlight = obj["highlight"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
-                    selectAction = obj["selectAction"]?.let {
-                        runCatching {
-                            jsonDecoder.json.decodeFromJsonElement(CardAction.serializer(), it)
-                        }.getOrNull()
-                    }
-                )
-            }
+            else -> decodeTextRunFromJsonObject(element.jsonObject, jsonDecoder)
         }
+    }
+
+    internal fun decodeTextRunFromJsonObject(obj: JsonObject, jsonDecoder: JsonDecoder): TextRun {
+        return TextRun(
+            type = obj["type"]?.jsonPrimitive?.content ?: "TextRun",
+            text = obj["text"]?.jsonPrimitive?.content ?: "",
+            color = obj["color"]?.jsonPrimitive?.content
+                ?.let { runCatching { Color.valueOf(it) }.getOrNull() },
+            fontType = obj["fontType"]?.jsonPrimitive?.content
+                ?.let { runCatching { FontType.valueOf(it) }.getOrNull() },
+            size = obj["size"]?.jsonPrimitive?.content
+                ?.let { runCatching { FontSize.valueOf(it) }.getOrNull() },
+            weight = obj["weight"]?.jsonPrimitive?.content
+                ?.let { runCatching { FontWeight.valueOf(it) }.getOrNull() },
+            isSubtle = obj["isSubtle"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+            italic = obj["italic"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+            strikethrough = obj["strikethrough"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+            underline = obj["underline"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+            highlight = obj["highlight"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+            selectAction = obj["selectAction"]?.let {
+                runCatching {
+                    jsonDecoder.json.decodeFromJsonElement(CardAction.serializer(), it)
+                }.getOrNull()
+            }
+        )
     }
 
     override fun serialize(encoder: Encoder, value: TextRun) {
@@ -180,6 +184,49 @@ object TextRunSerializer : KSerializer<TextRun> {
             }
         }
         jsonEncoder.encodeJsonElement(JsonObject(obj))
+    }
+}
+
+/**
+ * Polymorphic serializer for InlineElement within RichTextBlock inlines.
+ * Routes to TextRun or CitationRun based on the "type" field.
+ * Handles plain string shorthand (maps to TextRun).
+ */
+object InlineElementSerializer : KSerializer<InlineElement> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("InlineElement")
+
+    override fun deserialize(decoder: Decoder): InlineElement {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return TextRun(text = decoder.decodeString())
+        return when (val element = jsonDecoder.decodeJsonElement()) {
+            is JsonPrimitive -> TextRun(text = element.content)
+            else -> {
+                val obj = element.jsonObject
+                val type = obj["type"]?.jsonPrimitive?.content
+                when (type) {
+                    "CitationRun" -> CitationRun(
+                        text = obj["text"]?.jsonPrimitive?.content ?: "",
+                        referenceIndex = obj["referenceIndex"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
+                    )
+                    else -> TextRunSerializer.decodeTextRunFromJsonObject(obj, jsonDecoder)
+                }
+            }
+        }
+    }
+
+    override fun serialize(encoder: Encoder, value: InlineElement) {
+        val jsonEncoder = encoder as? JsonEncoder ?: return
+        when (value) {
+            is TextRun -> TextRunSerializer.serialize(encoder, value)
+            is CitationRun -> {
+                val obj = buildMap<String, kotlinx.serialization.json.JsonElement> {
+                    put("type", JsonPrimitive(value.type))
+                    put("text", JsonPrimitive(value.text))
+                    put("referenceIndex", JsonPrimitive(value.referenceIndex))
+                }
+                jsonEncoder.encodeJsonElement(JsonObject(obj))
+            }
+        }
     }
 }
 

@@ -1,10 +1,61 @@
 package com.microsoft.adaptivecards.templating
 
+import org.json.JSONObject
+
 /**
  * Template engine for expanding Adaptive Card templates with data binding
  */
 class TemplateEngine {
     private val parser = ExpressionParser()
+
+    /**
+     * Resolve `${rs:key}` string resource references in a raw JSON string.
+     * Must be called **before** template expansion or JSON parsing.
+     *
+     * @param json Raw card JSON string (may contain `${rs:key}` references)
+     * @param locale Preferred locale for localized values (e.g. "en-US"). Falls back to `defaultValue`.
+     * @return JSON string with all valid `${rs:key}` patterns replaced
+     */
+    fun resolveStringResources(json: String, locale: String? = null): String {
+        val root = try { JSONObject(json) } catch (_: Exception) { return json }
+        val resources = root.optJSONObject("resources") ?: return json
+        val strings = resources.optJSONObject("strings") ?: return json
+
+        // Build a flat lookup: key -> resolved string
+        val lookup = mutableMapOf<String, String>()
+        for (key in strings.keys()) {
+            val entry = strings.optJSONObject(key) ?: continue
+            val defaultValue = entry.optString("defaultValue", "")
+
+            if (locale != null) {
+                val localizedValues = entry.optJSONObject("localizedValues")
+                if (localizedValues != null) {
+                    // Case-insensitive locale match
+                    val resolved = localizedValues.keys().asSequence().firstOrNull { localeKey ->
+                        localeKey.equals(locale, ignoreCase = true)
+                    }?.let { localizedValues.optString(it) }
+                    lookup[key] = resolved ?: defaultValue
+                } else {
+                    lookup[key] = defaultValue
+                }
+            } else {
+                lookup[key] = defaultValue
+            }
+        }
+
+        if (lookup.isEmpty()) return json
+
+        // Replace all ${rs:key} patterns (case-sensitive: only lowercase "rs:" is valid)
+        var result = json
+        for ((key, value) in lookup) {
+            val escapedValue = value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+            result = result.replace("\${rs:$key}", escapedValue)
+        }
+
+        return result
+    }
 
     /**
      * Expand a template string with data binding

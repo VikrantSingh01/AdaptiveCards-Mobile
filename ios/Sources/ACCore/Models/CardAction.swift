@@ -295,9 +295,14 @@ public struct PopoverAction: BaseAction {
     public var tooltip: String?
     public var isEnabled: Bool?
     public var mode: ActionMode?
-    public var popoverTitle: String?
-    public var popoverBody: [CardElement]?
+    /// The content to display in the popover (single CardElement from JSON "content" field)
+    public var content: CardElement?
     public var dismissBehavior: String?
+
+    enum CodingKeys: String, CodingKey {
+        case type, id, title, iconUrl, style, tooltip, isEnabled, mode
+        case content, dismissBehavior
+    }
 
     public init(
         id: String? = nil,
@@ -307,8 +312,7 @@ public struct PopoverAction: BaseAction {
         tooltip: String? = nil,
         isEnabled: Bool? = nil,
         mode: ActionMode? = nil,
-        popoverTitle: String? = nil,
-        popoverBody: [CardElement]? = nil,
+        content: CardElement? = nil,
         dismissBehavior: String? = nil
     ) {
         self.id = id
@@ -318,8 +322,7 @@ public struct PopoverAction: BaseAction {
         self.tooltip = tooltip
         self.isEnabled = isEnabled
         self.mode = mode
-        self.popoverTitle = popoverTitle
-        self.popoverBody = popoverBody
+        self.content = content
         self.dismissBehavior = dismissBehavior
     }
 }

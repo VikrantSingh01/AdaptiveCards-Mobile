@@ -259,14 +259,23 @@ data class RichTextBlock(
     override val height: BlockElementHeight? = null,
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
-    val inlines: List<TextRun>,
+    val inlines: List<InlineElement>,
     val horizontalAlignment: HorizontalAlignment? = null
 ) : CardElement
+
+/**
+ * Polymorphic inline element within a RichTextBlock.
+ * Supports TextRun (styled text) and CitationRun (citation badge).
+ */
+@Serializable(with = com.microsoft.adaptivecards.core.parsing.InlineElementSerializer::class)
+sealed interface InlineElement {
+    val text: String
+}
 
 @Serializable(with = TextRunSerializer::class)
 data class TextRun(
     val type: String = "TextRun",
-    val text: String,
+    override val text: String,
     val color: Color? = null,
     val fontType: FontType? = null,
     val size: FontSize? = null,
@@ -277,7 +286,16 @@ data class TextRun(
     val underline: Boolean? = null,
     val highlight: Boolean? = null,
     val selectAction: CardAction? = null
-)
+) : InlineElement
+
+/**
+ * An inline citation badge that renders as a superscript `[N]` reference.
+ */
+data class CitationRun(
+    val type: String = "CitationRun",
+    override val text: String,
+    val referenceIndex: Int
+) : InlineElement
 
 @Serializable
 @SerialName("Icon")
@@ -365,5 +383,9 @@ data class TableCell(
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,
-    val rtl: Boolean? = null
-)
+    val rtl: Boolean? = null,
+    val layouts: List<Layout>? = null
+) {
+    /** Active layout — first from layouts array, or null for default stack */
+    val layout: Layout? get() = layouts?.firstOrNull()
+}

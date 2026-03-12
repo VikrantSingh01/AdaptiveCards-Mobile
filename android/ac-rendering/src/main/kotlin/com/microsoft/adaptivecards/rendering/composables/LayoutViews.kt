@@ -157,6 +157,24 @@ fun AreaGridLayoutView(
 ) {
     val colSpacing = spacingToDp(gridLayout.columnSpacing ?: Spacing.Default, hostConfig)
     val rowSpacing = spacingToDp(gridLayout.rowSpacing ?: Spacing.Default, hostConfig)
+
+    // When no areas are defined, fall back to vertical stack (graceful degradation)
+    if (gridLayout.areas.isEmpty()) {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(rowSpacing)
+        ) {
+            items.forEach { item ->
+                RenderElement(
+                    element = item,
+                    viewModel = viewModel,
+                    actionHandler = actionHandler
+                )
+            }
+        }
+        return
+    }
+
     val maxRow = gridLayout.areas.maxOfOrNull { it.row + (it.rowSpan ?: 1) - 1 } ?: 1
     val columnCount = gridLayout.columns.size.coerceAtLeast(1)
 

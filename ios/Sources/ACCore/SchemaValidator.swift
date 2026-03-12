@@ -14,6 +14,8 @@ public struct SchemaValidator {
         "Container", "ColumnSet", "ImageSet", "FactSet", "ActionSet",
         // Input elements (v1.0)
         "Input.Text", "Input.Number", "Input.Date", "Input.Time", "Input.Toggle", "Input.ChoiceSet",
+        // Input elements (v1.5+)
+        "Input.DataGrid",
         // Advanced elements (v1.3+)
         "Carousel", "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
         "TabSet", "List",

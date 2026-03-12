@@ -97,7 +97,7 @@ public struct TextBlock: Codable, Equatable {
 public struct RichTextBlock: Codable, Equatable {
     public let type: String = "RichTextBlock"
     public var id: String?
-    public var inlines: [TextRun]
+    public var inlines: [InlineElement]
     public var horizontalAlignment: HorizontalAlignment?
     public var spacing: Spacing?
     public var separator: Bool?
@@ -108,7 +108,7 @@ public struct RichTextBlock: Codable, Equatable {
 
     public init(
         id: String? = nil,
-        inlines: [TextRun],
+        inlines: [InlineElement],
         horizontalAlignment: HorizontalAlignment? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
@@ -126,6 +126,75 @@ public struct RichTextBlock: Codable, Equatable {
         self.isVisible = isVisible
         self.requires = requires
         self.fallback = fallback
+    }
+}
+
+// MARK: - InlineElement
+
+/// Polymorphic inline element within a RichTextBlock.
+/// Supports TextRun (styled text) and CitationRun (citation badge).
+public enum InlineElement: Codable, Equatable {
+    case textRun(TextRun)
+    case citationRun(CitationRun)
+
+    enum CodingKeys: String, CodingKey {
+        case type
+    }
+
+    public init(from decoder: Decoder) throws {
+        // Try plain string shorthand first — maps to TextRun
+        if let container = try? decoder.singleValueContainer(),
+           let stringValue = try? container.decode(String.self) {
+            self = .textRun(TextRun(text: stringValue))
+            return
+        }
+
+        // Peek at "type" to determine which inline to decode
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decodeIfPresent(String.self, forKey: .type)
+
+        switch type {
+        case "CitationRun":
+            self = .citationRun(try CitationRun(from: decoder))
+        default:
+            // Default to TextRun for "TextRun" type or missing type
+            self = .textRun(try TextRun(from: decoder))
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        switch self {
+        case .textRun(let textRun):
+            try textRun.encode(to: encoder)
+        case .citationRun(let citationRun):
+            try citationRun.encode(to: encoder)
+        }
+    }
+
+    /// Convenience: the display text for this inline element
+    public var text: String {
+        switch self {
+        case .textRun(let run): return run.text
+        case .citationRun(let run): return run.text
+        }
+    }
+}
+
+// MARK: - CitationRun
+
+/// An inline citation badge that renders as a superscript `[N]` reference.
+public struct CitationRun: Codable, Equatable {
+    public let type: String = "CitationRun"
+    public var text: String
+    public var referenceIndex: Int
+
+    public init(text: String, referenceIndex: Int) {
+        self.text = text
+        self.referenceIndex = referenceIndex
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type, text, referenceIndex
     }
 }
 

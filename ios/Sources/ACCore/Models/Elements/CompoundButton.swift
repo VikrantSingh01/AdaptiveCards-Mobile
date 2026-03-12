@@ -31,10 +31,11 @@ public struct CompoundButton: Codable, Equatable {
     public let type: String = "CompoundButton"
     public var id: String?
     public var title: String
-    public var subtitle: String?
+    public var description: String?
     public var icon: IconDescriptor?
     public var iconPosition: String?
-    public var action: CardAction?
+    public var selectAction: CardAction?
+    public var badge: String?
     public var style: String?
     public var isVisible: Bool?
     public var separator: Bool?
@@ -50,10 +51,11 @@ public struct CompoundButton: Codable, Equatable {
     public init(
         id: String? = nil,
         title: String,
-        subtitle: String? = nil,
+        description: String? = nil,
         icon: IconDescriptor? = nil,
         iconPosition: String? = nil,
-        action: CardAction? = nil,
+        selectAction: CardAction? = nil,
+        badge: String? = nil,
         style: String? = nil,
         isVisible: Bool? = nil,
         separator: Bool? = nil,
@@ -63,10 +65,11 @@ public struct CompoundButton: Codable, Equatable {
     ) {
         self.id = id
         self.title = title
-        self.subtitle = subtitle
+        self.description = description
         self.icon = icon
         self.iconPosition = iconPosition
-        self.action = action
+        self.selectAction = selectAction
+        self.badge = badge
         self.style = style
         self.isVisible = isVisible
         self.separator = separator

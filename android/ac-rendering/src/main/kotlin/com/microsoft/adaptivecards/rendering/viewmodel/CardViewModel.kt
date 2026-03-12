@@ -112,6 +112,7 @@ class CardViewModel : ViewModel() {
     val inputValues: SnapshotStateMap<String, Any> = mutableStateMapOf()
     val visibilityState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
     val showCardState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
+    val popoverState: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
     val validationErrors: SnapshotStateMap<String, String> = mutableStateMapOf()
     
     // StateFlow API - Read-only reactive views for backward compatibility
@@ -143,13 +144,14 @@ class CardViewModel : ViewModel() {
     fun parseCard(jsonString: String, templateData: Map<String, Any?>? = null) {
         viewModelScope.launch {
             try {
-                var cardJson = jsonString
+                // Resolve ${rs:key} string resources before any other processing
+                var cardJson = templateEngine.resolveStringResources(jsonString)
 
                 // If template data provided, expand template first
                 if (templateData != null) {
                     storedTemplate = jsonString
                     storedTemplateData = templateData
-                    cardJson = templateEngine.expand(jsonString, templateData)
+                    cardJson = templateEngine.expand(cardJson, templateData)
                 } else {
                     storedTemplate = null
                     storedTemplateData = null
@@ -255,7 +257,7 @@ class CardViewModel : ViewModel() {
                     element.actions.forEach { action ->
                         when (action) {
                             is ActionShowCard -> action.card.body?.forEach { validateElement(it) }
-                            is ActionPopover -> action.popoverBody.forEach { validateElement(it) }
+                            is ActionPopover -> action.content?.let { validateElement(it) }
                             else -> {}
                         }
                     }
@@ -331,7 +333,29 @@ class CardViewModel : ViewModel() {
     fun isShowCardExpanded(actionId: String): Boolean {
         return showCardState[actionId] ?: false
     }
-    
+
+    /**
+     * Toggle popover state - O(1) operation with SnapshotStateMap
+     */
+    fun togglePopover(actionId: String) {
+        val currentState = popoverState[actionId] ?: false
+        popoverState[actionId] = !currentState
+    }
+
+    /**
+     * Check if a popover is currently showing
+     */
+    fun isPopoverShowing(actionId: String): Boolean {
+        return popoverState[actionId] ?: false
+    }
+
+    /**
+     * Dismiss a popover
+     */
+    fun dismissPopover(actionId: String) {
+        popoverState[actionId] = false
+    }
+
     /**
      * Set validation error for an input - O(1) operation with SnapshotStateMap
      */
@@ -377,11 +401,13 @@ class CardViewModel : ViewModel() {
         val savedInputs = inputValues.toMap()
         val savedVisibility = visibilityState.toMap()
         val savedShowCards = showCardState.toMap()
+        val savedPopovers = popoverState.toMap()
         parseCard(template, newData)
         // Restore user state after re-parse
         inputValues.putAll(savedInputs)
         visibilityState.putAll(savedVisibility)
         showCardState.putAll(savedShowCards)
+        popoverState.putAll(savedPopovers)
     }
 
     /**
@@ -392,6 +418,7 @@ class CardViewModel : ViewModel() {
         inputValues.clear()
         visibilityState.clear()
         showCardState.clear()
+        popoverState.clear()
         validationErrors.clear()
     }
 
