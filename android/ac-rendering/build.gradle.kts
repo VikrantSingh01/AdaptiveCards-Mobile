@@ -43,7 +43,6 @@ android {
 
 dependencies {
     implementation(project(":ac-core"))
-    implementation(project(":ac-host-config"))
     implementation(project(":ac-markdown"))
     implementation(project(":ac-accessibility"))
     implementation(project(":ac-templating"))

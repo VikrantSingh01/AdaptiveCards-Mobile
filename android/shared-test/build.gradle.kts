@@ -69,7 +69,6 @@ dependencies {
     implementation(project(":ac-fluent-ui"))
     implementation(project(":ac-copilot-extensions"))
     implementation(project(":ac-teams"))
-    implementation(project(":ac-host-config"))
 
     // Kotlin
     implementation(libs.kotlin.stdlib)

@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.microsoft.adaptivecards.core.hostconfig.HostConfig
 import com.microsoft.adaptivecards.core.models.*
-import com.microsoft.adaptivecards.hostconfig.HostConfigProvider
+import com.microsoft.adaptivecards.rendering.theme.HostConfigProvider
 import com.microsoft.adaptivecards.rendering.modifiers.adaptiveSeparator
 import com.microsoft.adaptivecards.rendering.modifiers.adaptiveSpacing
 import com.microsoft.adaptivecards.rendering.modifiers.SeparatorLine
@@ -94,7 +94,7 @@ fun AdaptiveCardView(
             RTLSupport(isRTL = adaptiveCard.rtl == true) {
                 BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
                     val density = LocalDensity.current
-                    val hc = com.microsoft.adaptivecards.hostconfig.LocalHostConfig.current
+                    val hc = com.microsoft.adaptivecards.rendering.theme.LocalHostConfig.current
                     val widthDp = with(density) { constraints.maxWidth.toDp().value }
                     val widthCategory = WidthCategory.fromDp(
                         widthDp,

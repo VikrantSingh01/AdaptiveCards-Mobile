@@ -2,7 +2,7 @@ package com.microsoft.adaptivecards.rendering.snapshots
 
 import app.cash.paparazzi.Paparazzi
 import com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig
-import com.microsoft.adaptivecards.hostconfig.HostConfigProvider
+import com.microsoft.adaptivecards.rendering.theme.HostConfigProvider
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import org.junit.Assume.assumeNotNull

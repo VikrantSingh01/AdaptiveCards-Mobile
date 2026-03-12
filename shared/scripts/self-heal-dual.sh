@@ -138,6 +138,13 @@ fi
 # Utility Functions
 # =============================================================================
 
+# Resize screenshot to 540px wide for smaller file sizes while keeping enough detail
+resize_screenshot() {
+    local f="$1"
+    [ -f "$f" ] || return 0
+    sips --resampleWidth 540 "$f" &>/dev/null || true
+}
+
 # iOS helpers — all output suppressed for clean terminal
 ios_is_running() {
     xcrun simctl spawn "$SIM_UDID" launchctl list 2>/dev/null | grep -q "$IOS_APP_ID" 2>/dev/null
@@ -156,6 +163,7 @@ ios_navigate() {
 
 ios_screenshot() {
     xcrun simctl io "$SIM_UDID" screenshot "$1" &>/dev/null || true
+    resize_screenshot "$1"
 }
 
 ios_gallery() {
@@ -186,6 +194,7 @@ android_screenshot() {
     "$ADB" shell screencap -p "$device_path" &>/dev/null
     "$ADB" pull "$device_path" "$out" &>/dev/null || true
     "$ADB" shell rm "$device_path" &>/dev/null || true
+    resize_screenshot "$out"
 }
 
 android_gallery() {
@@ -207,12 +216,12 @@ file_size() {
 classify() {
     local size="$1"
     local platform="$2"
-    # iOS screenshots are ~3x retina, thresholds differ
-    local fail_thresh=50000
-    local warn_thresh=100000
+    # Screenshots resized to 540px wide — smaller thresholds
+    local fail_thresh=10000
+    local warn_thresh=25000
     if [ "$platform" = "android" ]; then
-        fail_thresh=40000
-        warn_thresh=90000
+        fail_thresh=8000
+        warn_thresh=20000
     fi
     if [ "$size" -lt "$fail_thresh" ]; then
         echo "FAIL"
@@ -281,6 +290,7 @@ if $IOS_READY; then
             -scheme ACVisualizer \
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,name=$IOS_SIMULATOR" \
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
             build 2>&1 && echo "__BUILD_OK__"
     ) > "$IOS_BUILD_LOG" &
     IOS_BUILD_PID=$!
