@@ -5,6 +5,7 @@ public struct ProgressBar: Codable, Equatable {
     public let type: String = "ProgressBar"
     public var id: String?
     public var value: Double?
+    public var max: Double?
     public var label: String?
     public var color: String?
     public var spacing: Spacing?
@@ -13,9 +14,27 @@ public struct ProgressBar: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
 
+    /// Normalized progress fraction (0.0–1.0).
+    /// - When `max` is explicitly set: `value / max`
+    /// - When `max` is nil and `value` <= 1: treat value as already a 0–1 fraction
+    /// - When `max` is nil and `value` > 1: treat as 0–100 scale
+    public var normalizedValue: Double {
+        let v = value ?? 0
+        if let m = max {
+            guard m > 0 else { return 0 }
+            return Swift.min(Swift.max(v / m, 0), 1)
+        }
+        // No explicit max: auto-detect scale
+        if v >= 0 && v <= 1 {
+            return Swift.max(v, 0)
+        }
+        return Swift.min(Swift.max(v / 100, 0), 1)
+    }
+
     public init(
         id: String? = nil,
         value: Double? = nil,
+        max: Double? = nil,
         label: String? = nil,
         color: String? = nil,
         spacing: Spacing? = nil,
@@ -26,6 +45,7 @@ public struct ProgressBar: Codable, Equatable {
     ) {
         self.id = id
         self.value = value
+        self.max = max
         self.label = label
         self.color = color
         self.spacing = spacing
