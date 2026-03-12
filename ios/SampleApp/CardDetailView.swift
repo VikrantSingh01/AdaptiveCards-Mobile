@@ -2,6 +2,38 @@ import SwiftUI
 import UIKit
 import ACCore
 import ACRendering
+import ACActions
+
+/// Logs action callbacks to ActionLogStore for visibility in the Action Log screen.
+final class SampleActionDelegate: ActionDelegate {
+    private let actionLog: ActionLogStore
+
+    init(actionLog: ActionLogStore) {
+        self.actionLog = actionLog
+    }
+
+    func onSubmit(data: [String: Any], actionId: String?) {
+        actionLog.log("Action.Submit", data: data)
+    }
+
+    func onOpenUrl(url: URL, actionId: String?) {
+        actionLog.log("Action.OpenUrl", data: ["url": url.absoluteString])
+    }
+
+    func onExecute(verb: String?, data: [String: Any], actionId: String?) {
+        var logData = data
+        logData["verb"] = verb ?? ""
+        actionLog.log("Action.Execute", data: logData)
+    }
+
+    func onShowCard(actionId: String?, isExpanded: Bool) {
+        actionLog.log("Action.ShowCard", data: ["actionId": actionId ?? "", "isExpanded": isExpanded])
+    }
+
+    func onToggleVisibility(targetElementIds: [String]) {
+        actionLog.log("Action.ToggleVisibility", data: ["targets": targetElementIds.joined(separator: ",")])
+    }
+}
 
 struct CardDetailView: View {
     let card: TestCard
@@ -19,7 +51,8 @@ struct CardDetailView: View {
             AdaptiveCardView(
                 cardJson: card.jsonString,
                 templateData: card.dataJsonString.flatMap { parseTemplateData($0) },
-                hostConfig: TeamsHostConfig.create()
+                hostConfig: TeamsHostConfig.create(),
+                actionDelegate: SampleActionDelegate(actionLog: actionLog)
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 

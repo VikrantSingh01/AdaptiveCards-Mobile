@@ -96,6 +96,9 @@ let package = Package(
             name: "ACMarkdownTests",
             dependencies: ["ACMarkdown"]),
         .testTarget(
+            name: "ACActionsTests",
+            dependencies: ["ACActions", "ACCore"]),
+        .testTarget(
             name: "ACChartsTests",
             dependencies: ["ACCharts"]),
         .testTarget(
