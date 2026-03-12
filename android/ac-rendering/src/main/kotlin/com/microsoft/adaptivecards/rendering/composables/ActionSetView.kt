@@ -313,7 +313,7 @@ private fun ActionButtonContent(
 /** Maps Fluent UI icon names to Material icons. Strips style suffixes like ",Filled" or ",Regular". */
 private fun resolveFluentIcon(name: String): ImageVector? {
     // Strip style suffix (e.g., ",Filled", ",Regular") before lookup
-    val baseName = name.split(",").first().lowercase()
+    val baseName = name.split(",").firstOrNull()?.lowercase() ?: return null
     return when (baseName) {
         "alerturgent" -> Icons.Filled.Notifications
         "alert", "bell" -> Icons.Outlined.Notifications
