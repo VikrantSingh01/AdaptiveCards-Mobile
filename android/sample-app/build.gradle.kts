@@ -70,7 +70,6 @@ dependencies {
     implementation(project(":ac-fluent-ui"))
     implementation(project(":ac-copilot-extensions"))
     implementation(project(":ac-teams"))
-    implementation(project(":ac-host-config"))
 
     // Jetpack Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.10.01")

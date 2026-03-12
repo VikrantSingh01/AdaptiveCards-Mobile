@@ -16,7 +16,7 @@ import coil.compose.AsyncImage
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.ImageStyle
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.modifiers.selectAction
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.accessibility.imageSemantics

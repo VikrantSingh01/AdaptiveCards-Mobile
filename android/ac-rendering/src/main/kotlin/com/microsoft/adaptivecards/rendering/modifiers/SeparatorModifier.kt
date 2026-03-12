@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 
 /**
  * Draws a separator line based on host config.

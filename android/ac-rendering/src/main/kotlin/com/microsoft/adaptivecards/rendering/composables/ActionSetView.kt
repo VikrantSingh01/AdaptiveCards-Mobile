@@ -26,7 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.microsoft.adaptivecards.core.models.*
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import com.microsoft.adaptivecards.accessibility.buttonSemantics

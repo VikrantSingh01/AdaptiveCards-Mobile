@@ -47,7 +47,8 @@ let package = Package(
     targets: [
         .target(
             name: "ACCore",
-            dependencies: []),
+            dependencies: [],
+            resources: [.copy("Resources")]),
         .target(
             name: "ACAccessibility",
             dependencies: ["ACCore"]),

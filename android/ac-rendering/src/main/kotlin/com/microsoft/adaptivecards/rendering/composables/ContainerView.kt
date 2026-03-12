@@ -17,7 +17,7 @@ import com.microsoft.adaptivecards.core.models.VerticalContentAlignment
 import com.microsoft.adaptivecards.core.models.ContainerStyle
 import com.microsoft.adaptivecards.core.models.WidthCategory
 import com.microsoft.adaptivecards.core.models.shouldShowForTargetWidth
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.modifiers.containerStyle
 import com.microsoft.adaptivecards.rendering.modifiers.parseColor
 import com.microsoft.adaptivecards.rendering.modifiers.selectAction

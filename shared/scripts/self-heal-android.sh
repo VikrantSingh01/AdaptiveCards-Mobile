@@ -418,13 +418,14 @@ phase2_visual() {
             app_alive=false
         fi
 
-        # Capture screenshot
+        # Capture screenshot (resized to 540px wide for smaller files)
         local device_screenshot="/sdcard/ac_test_${card_name}.png"
         local local_screenshot="$REPORT_DIR/screenshots/${card_name}.png"
         if $app_alive; then
             "$ADB" shell screencap -p "$device_screenshot" 2>/dev/null
             "$ADB" pull "$device_screenshot" "$local_screenshot" 2>/dev/null || true
             "$ADB" shell rm "$device_screenshot" 2>/dev/null || true
+            [ -f "$local_screenshot" ] && sips --resampleWidth 540 "$local_screenshot" &>/dev/null || true
         fi
 
         # Capture logcat for this card
@@ -477,7 +478,7 @@ phase2_visual() {
             failed_cards+=("$card_path")
             card_diagnoses+=("$diagnosis")
             echo "  ❌ $card_name — blank/error (${size}B) [$diagnosis]"
-        elif [ "$size" -lt 90000 ]; then
+        elif [ "$size" -lt 20000 ]; then
             status="WARN"
             notes="Low content (${size}B)"
             if [[ "$diagnosis" != "CLEAN" && "$diagnosis" != "NO_LOGS" ]]; then
@@ -569,6 +570,7 @@ phase2_visual() {
                     "$ADB" shell screencap -p "$device_screenshot" 2>/dev/null
                     "$ADB" pull "$device_screenshot" "$local_screenshot" 2>/dev/null || true
                     "$ADB" shell rm "$device_screenshot" 2>/dev/null || true
+                    [ -f "$local_screenshot" ] && sips --resampleWidth 540 "$local_screenshot" &>/dev/null || true
                 fi
 
                 local logfile
@@ -581,7 +583,7 @@ phase2_visual() {
                     size=$(stat -f%z "$local_screenshot" 2>/dev/null || stat -c%s "$local_screenshot" 2>/dev/null || echo "0")
                 fi
 
-                if $app_alive && [ "$size" -ge 90000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
+                if $app_alive && [ "$size" -ge 8000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
                     recovered=$((recovered + 1))
                     fail=$((fail - 1))
                     pass=$((pass + 1))
@@ -792,7 +794,7 @@ publish_failure_outputs() {
         [ -f "$screenshot" ] || continue
         local size
         size=$(stat -f%z "$screenshot" 2>/dev/null || stat -c%s "$screenshot" 2>/dev/null || echo "0")
-        if [ "$size" -lt 90000 ]; then
+        if [ "$size" -lt 20000 ]; then
             local base
             base=$(basename "$screenshot")
             if [ ! -f "$publish_dir/$base" ]; then

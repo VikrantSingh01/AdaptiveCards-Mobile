@@ -12,7 +12,7 @@ import com.microsoft.adaptivecards.core.models.ColumnSet
 import com.microsoft.adaptivecards.core.models.VerticalContentAlignment
 import com.microsoft.adaptivecards.core.models.WidthCategory
 import com.microsoft.adaptivecards.core.models.shouldShowForTargetWidth
-import com.microsoft.adaptivecards.hostconfig.LocalHostConfig
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.modifiers.SeparatorLine
 import com.microsoft.adaptivecards.rendering.modifiers.containerStyle
 import com.microsoft.adaptivecards.rendering.modifiers.parseSeparatorColor

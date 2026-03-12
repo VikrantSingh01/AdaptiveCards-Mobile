@@ -16,6 +16,11 @@ public class HostConfigParser {
         return try parse(jsonData)
     }
 
+    /// Static convenience — parses JSON data into a HostConfig
+    public static func parse(_ jsonData: Data) throws -> HostConfig {
+        return try HostConfigParser().parse(jsonData)
+    }
+
     /// Parses JSON data into a HostConfig
     public func parse(_ jsonData: Data) throws -> HostConfig {
         do {
