@@ -27,11 +27,15 @@ import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.RichTextBlock
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.templating.TemplateEngine
+import android.util.LruCache
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * ViewModel for managing Adaptive Card state with dual API support for backward compatibility.
@@ -77,6 +81,15 @@ class CardViewModel : ViewModel() {
 
     companion object {
         private const val TAG = "CardViewModel"
+
+        /** In-memory LRU cache for parsed AdaptiveCard objects, keyed by JSON hash. */
+        private val parseCache = LruCache<Int, AdaptiveCard>(32)
+
+        /** Clears the parse cache. Call on low-memory events. */
+        @JvmStatic
+        fun clearParseCache() {
+            synchronized(parseCache) { parseCache.evictAll() }
+        }
     }
 
     private val _card = MutableStateFlow<AdaptiveCard?>(null)
@@ -84,6 +97,10 @@ class CardViewModel : ViewModel() {
 
     private val _parseError = MutableStateFlow<String?>(null)
     val parseError: StateFlow<String?> = _parseError.asStateFlow()
+
+    /** Duration of the last parse operation in milliseconds (0 if served from cache). */
+    private val _lastParseTimeMs = MutableStateFlow(0.0)
+    val lastParseTimeMs: StateFlow<Double> = _lastParseTimeMs.asStateFlow()
 
     private val templateEngine = TemplateEngine()
 
@@ -119,29 +136,57 @@ class CardViewModel : ViewModel() {
      * @param jsonString The card JSON string (may contain `${expression}` template syntax)
      * @param templateData Optional data context for template expansion
      */
+    /**
+     * Parse and set the card from JSON, optionally expanding template expressions with data.
+     * Uses an in-memory LRU cache to skip redundant parsing for the same JSON.
+     */
     fun parseCard(jsonString: String, templateData: Map<String, Any?>? = null) {
-        try {
-            var cardJson = jsonString
+        viewModelScope.launch {
+            try {
+                var cardJson = jsonString
 
-            // If template data provided, expand template first
-            if (templateData != null) {
-                storedTemplate = jsonString
-                storedTemplateData = templateData
-                cardJson = templateEngine.expand(jsonString, templateData)
-            } else {
-                storedTemplate = null
-                storedTemplateData = null
+                // If template data provided, expand template first
+                if (templateData != null) {
+                    storedTemplate = jsonString
+                    storedTemplateData = templateData
+                    cardJson = templateEngine.expand(jsonString, templateData)
+                } else {
+                    storedTemplate = null
+                    storedTemplateData = null
+                }
+
+                val cacheKey = cardJson.hashCode()
+
+                // Check cache first (fast path on main thread)
+                val cached = synchronized(parseCache) { parseCache.get(cacheKey) }
+
+                val parsedCard: AdaptiveCard
+                if (cached != null) {
+                    parsedCard = cached
+                    _lastParseTimeMs.value = 0.0 // Cache hit — no parse cost
+                } else {
+                    // Heavy parsing on background thread
+                    val (card, timeMs) = withContext(Dispatchers.Default) {
+                        val startNs = System.nanoTime()
+                        val card = CardParser.parse(cardJson)
+                        val timeMs = (System.nanoTime() - startNs) / 1_000_000.0
+                        Pair(card, timeMs)
+                    }
+                    parsedCard = card
+                    _lastParseTimeMs.value = timeMs
+
+                    synchronized(parseCache) { parseCache.put(cacheKey, parsedCard) }
+                }
+
+                _card.value = parsedCard
+                _parseError.value = null
+                validateCardStructure(parsedCard)
+                initializeVisibilityState(parsedCard)
+            } catch (e: Exception) {
+                _card.value = null
+                _parseError.value = e.message ?: "Unknown parsing error"
+                Log.e(TAG, "Failed to parse card", e)
             }
-
-            val parsedCard = CardParser.parse(cardJson)
-            _card.value = parsedCard
-            _parseError.value = null
-            validateCardStructure(parsedCard)
-            initializeVisibilityState(parsedCard)
-        } catch (e: Exception) {
-            _card.value = null
-            _parseError.value = e.message ?: "Unknown parsing error"
-            Log.e(TAG, "Failed to parse card", e)
         }
     }
 

@@ -18,12 +18,24 @@ import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardEditorScreen(actionLogState: ActionLogState) {
+fun CardEditorScreen(actionLogState: ActionLogState, editorState: EditorState? = null) {
     var jsonText by remember { mutableStateOf(defaultCardJson) }
     var isValid by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
     var showMenu by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
+
+    // Pick up pending JSON from card detail "Edit" action
+    LaunchedEffect(editorState?.pendingJson) {
+        editorState?.pendingJson?.let { json ->
+            try {
+                jsonText = JSONObject(json).toString(2)
+            } catch (e: Exception) {
+                jsonText = json
+            }
+            editorState.pendingJson = null
+        }
+    }
 
     // Validate JSON on change
     LaunchedEffect(jsonText) {

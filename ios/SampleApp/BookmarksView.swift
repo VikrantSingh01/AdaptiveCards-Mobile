@@ -9,31 +9,52 @@ struct BookmarksView: View {
     }
 
     var body: some View {
-        List {
+        Group {
             if bookmarkedCards.isEmpty {
-                ContentUnavailableView(
-                    "No Bookmarks",
-                    systemImage: "bookmark",
-                    description: Text("Swipe right on a card in the Gallery or tap the bookmark icon in the detail view to add favorites.")
-                )
+                VStack(spacing: 16) {
+                    Spacer()
+                    Image(systemName: "bookmark")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.tertiary)
+                    Text("No Bookmarks")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("Swipe right on a card in the Gallery\nor tap the bookmark icon to save favorites.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
             } else {
-                ForEach(bookmarkedCards) { card in
-                    NavigationLink(destination: CardDetailView(card: card)) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(card.title)
-                                .font(.headline)
-                            Text(card.description)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(2)
+                List {
+                    ForEach(bookmarkedCards) { card in
+                        NavigationLink(destination: CardDetailView(card: card)) {
+                            HStack(spacing: 14) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(card.category.color.gradient)
+                                    .frame(width: 4, height: 36)
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(card.title)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                    Text(card.description)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                            }
+                            .padding(.vertical, 2)
                         }
-                        .padding(.vertical, 4)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            bookmarks.toggle(card.filename)
-                        } label: {
-                            Label("Remove", systemImage: "bookmark.slash")
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    bookmarks.toggle(card.filename)
+                                }
+                            } label: {
+                                Label("Remove", systemImage: "bookmark.slash")
+                            }
                         }
                     }
                 }

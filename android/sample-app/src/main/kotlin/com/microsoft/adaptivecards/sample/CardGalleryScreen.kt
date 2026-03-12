@@ -2,34 +2,65 @@ package com.microsoft.adaptivecards.sample
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.Alignment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
-import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+
+/// Maps deep link filter slugs to CardCategory values
+private val filterSlugMap = mapOf(
+    "all" to CardCategory.ALL, "basic" to CardCategory.BASIC,
+    "inputs" to CardCategory.INPUTS, "actions" to CardCategory.ACTIONS,
+    "containers" to CardCategory.CONTAINERS, "advanced" to CardCategory.ADVANCED,
+    "teams" to CardCategory.TEAMS, "templating" to CardCategory.TEMPLATING,
+    "official" to CardCategory.OFFICIAL, "elements" to CardCategory.ELEMENT,
+    "teams-templated" to CardCategory.TEAMS_TEMPLATED,
+    "teams-official" to CardCategory.TEAMS_OFFICIAL
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardGalleryScreen(navController: NavController, bookmarkState: BookmarkState) {
+fun CardGalleryScreen(
+    navController: NavController,
+    bookmarkState: BookmarkState,
+    listState: LazyListState,
+    pendingFilter: String? = null,
+    onFilterConsumed: () -> Unit = {}
+) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(CardCategory.ALL) }
-    var showFilterMenu by remember { mutableStateOf(false) }
+
+    // Apply deep link filter
+    LaunchedEffect(pendingFilter) {
+        pendingFilter?.let { slug ->
+            filterSlugMap[slug]?.let { selectedCategory = it }
+            onFilterConsumed()
+        }
+    }
 
     val context = LocalContext.current
     val cards = remember { TestCardLoader.loadAllCards(context) }
@@ -46,54 +77,78 @@ fun CardGalleryScreen(navController: NavController, bookmarkState: BookmarkState
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Card Gallery (${filteredCards.size} of ${cards.size} cards)") },
-                actions = {
-                    IconButton(onClick = { showFilterMenu = true }) {
-                        Icon(Icons.Default.FilterList, "Filter")
-                    }
-                    DropdownMenu(
-                        expanded = showFilterMenu,
-                        onDismissRequest = { showFilterMenu = false }
-                    ) {
-                        CardCategory.values().forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category.displayName) },
-                                onClick = {
-                                    selectedCategory = category
-                                    showFilterMenu = false
-                                }
+                title = { Text("Gallery") }
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            // Hero header
+            if (searchQuery.isEmpty() && selectedCategory == CardCategory.ALL) {
+                item(key = "hero") {
+                    HeroHeader(cards, bookmarkState)
+                }
+            }
+
+            // Search bar
+            item(key = "search") {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text("Search ${cards.size} cards...") },
+                    leadingIcon = { Icon(Icons.Default.Search, null) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp)
+                )
+            }
+
+            // Category chips
+            item(key = "chips") {
+                Row(
+                    modifier = Modifier
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CardCategory.values().forEach { category ->
+                        val count = if (category == CardCategory.ALL) cards.size
+                            else cards.count { it.category == category }
+                        if (count > 0 || category == CardCategory.ALL) {
+                            CategoryChip(
+                                category = category,
+                                count = count,
+                                isSelected = selectedCategory == category,
+                                onClick = { selectedCategory = category }
                             )
                         }
                     }
                 }
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            // Search bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                placeholder = { Text("Search cards...") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true
-            )
+            }
 
-            // Cards list — rememberLazyListState preserves scroll position across navigation
-            val listState = rememberLazyListState()
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(filteredCards, key = { it.filename }) { card ->
-                    CardItem(card, bookmarkState) {
-                        navController.navigate("card_detail/${Uri.encode(card.filename)}")
-                    }
+            // Results count when filtered
+            if (selectedCategory != CardCategory.ALL || searchQuery.isNotEmpty()) {
+                item(key = "count") {
+                    Text(
+                        "${filteredCards.size} results",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            // Card items
+            items(filteredCards, key = { it.filename }) { card ->
+                CardItem(card, bookmarkState) {
+                    navController.navigate("card_detail/${Uri.encode(card.filename)}")
                 }
             }
         }
@@ -101,76 +156,220 @@ fun CardGalleryScreen(navController: NavController, bookmarkState: BookmarkState
 }
 
 @Composable
-fun CardItem(card: TestCard, bookmarkState: BookmarkState, onClick: () -> Unit) {
-    val cardViewModel: CardViewModel = viewModel(key = "gallery_${card.filename}")
-
+fun HeroHeader(cards: List<TestCard>, bookmarkState: BookmarkState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(Color(0xFF0078D4), Color(0xFF3399FF))
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.List,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                Column {
+                    Text(
+                        "Adaptive Cards",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "v1.6 Mobile SDK",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatBadge("${cards.size}", "Cards", Color(0xFF0078D4))
+                StatBadge(
+                    "${CardCategory.values().count { cat -> cat != CardCategory.ALL && cards.any { it.category == cat } }}",
+                    "Categories",
+                    Color(0xFF7B1FA2)
+                )
+                StatBadge("${cards.count { it.isAdvanced }}", "Advanced", Color(0xFFFF9800))
+                StatBadge("${bookmarkState.bookmarkedFilenames.size}", "Saved", Color(0xFFE91E63))
+            }
+        }
+    }
+}
+
+@Composable
+fun StatBadge(value: String, label: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun CategoryChip(
+    category: CardCategory,
+    count: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val chipColor = categoryColor(category)
+    FilterChip(
+        selected = isSelected,
+        onClick = onClick,
+        label = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(category.displayName)
+                if (category != CardCategory.ALL) {
+                    Text(
+                        "$count",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier
+                            .background(
+                                if (isSelected) Color.White.copy(alpha = 0.25f)
+                                else chipColor.copy(alpha = 0.12f),
+                                CircleShape
+                            )
+                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                    )
+                }
+            }
+        },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = chipColor,
+            selectedLabelColor = Color.White
+        )
+    )
+}
+
+@Composable
+fun CardItem(card: TestCard, bookmarkState: BookmarkState, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Category color indicator
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(44.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            categoryColor(card.category),
+                            categoryColor(card.category).copy(alpha = 0.6f)
+                        )
+                    )
+                )
+        )
+
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = card.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = { bookmarkState.toggle(card.filename) }) {
-                    Icon(
-                        if (bookmarkState.isBookmarked(card.filename)) Icons.Default.Bookmark
-                        else Icons.Default.BookmarkBorder,
-                        contentDescription = "Bookmark",
-                        tint = if (bookmarkState.isBookmarked(card.filename))
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = card.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Render actual card preview
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 200.dp)
-                    .clipToBounds(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 1.dp,
-                shape = MaterialTheme.shapes.small
-            ) {
-                AdaptiveCardView(
-                    cardJson = card.jsonString,
-                    modifier = Modifier.padding(8.dp),
-                    viewModel = cardViewModel
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(card.category.displayName) }
+                    card.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
                 )
                 if (card.isAdvanced) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("Advanced") }
+                    Text(
+                        "Advanced",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF7B1FA2),
+                        modifier = Modifier
+                            .background(
+                                Color(0xFF7B1FA2).copy(alpha = 0.1f),
+                                RoundedCornerShape(50)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                card.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
         }
+
+        if (bookmarkState.isBookmarked(card.filename)) {
+            Icon(
+                Icons.Default.Bookmark,
+                contentDescription = null,
+                tint = Color(0xFFFF9800),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Icon(
+            Icons.Default.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+fun categoryColor(category: CardCategory): Color {
+    return when (category) {
+        CardCategory.ALL -> Color(0xFF0078D4)
+        CardCategory.BASIC -> Color(0xFF1976D2)
+        CardCategory.INPUTS -> Color(0xFF388E3C)
+        CardCategory.ACTIONS -> Color(0xFFFF9800)
+        CardCategory.CONTAINERS -> Color(0xFF7B1FA2)
+        CardCategory.ADVANCED -> Color(0xFFD32F2F)
+        CardCategory.TEAMS -> Color(0xFF3F51B5)
+        CardCategory.TEMPLATING -> Color(0xFF00897B)
+        CardCategory.OFFICIAL -> Color(0xFF26A69A)
+        CardCategory.ELEMENT -> Color(0xFF00ACC1)
+        CardCategory.TEAMS_TEMPLATED -> Color(0xFFEC407A)
+        CardCategory.TEAMS_OFFICIAL -> Color(0xFF5C6BC0)
     }
 }
 
@@ -201,7 +400,6 @@ data class TestCard(
 object TestCardLoader {
 
     private val cardDefinitions = listOf(
-        // --- Existing test cards ---
         Triple("simple-text.json", "Simple Text", CardCategory.BASIC),
         Triple("rich-text.json", "Rich Text", CardCategory.BASIC),
         Triple("containers.json", "Containers", CardCategory.CONTAINERS),
@@ -245,8 +443,6 @@ object TestCardLoader {
         Triple("edge-max-actions.json", "Edge: Max Actions", CardCategory.ADVANCED),
         Triple("edge-mixed-inputs.json", "Edge: Mixed Inputs", CardCategory.ADVANCED),
         Triple("edge-rtl-content.json", "Edge: RTL Content", CardCategory.ADVANCED),
-
-        // --- Official samples (from shared/test-cards/official-samples/) ---
         Triple("official-samples/activity-update.json", "Activity Update", CardCategory.OFFICIAL),
         Triple("official-samples/agenda.json", "Agenda", CardCategory.OFFICIAL),
         Triple("official-samples/application-login.json", "Application Login", CardCategory.OFFICIAL),
@@ -271,8 +467,6 @@ object TestCardLoader {
         Triple("official-samples/weather-compact.json", "Weather Compact", CardCategory.OFFICIAL),
         Triple("official-samples/weather-large.json", "Weather Large", CardCategory.OFFICIAL),
         Triple("official-samples/product-video.json", "Product Video", CardCategory.OFFICIAL),
-
-        // --- Element samples (from shared/test-cards/element-samples/) ---
         Triple("element-samples/action-execute-is-enabled.json", "Action Execute isEnabled", CardCategory.ELEMENT),
         Triple("element-samples/action-execute-mode.json", "Action Execute Mode", CardCategory.ELEMENT),
         Triple("element-samples/action-execute-tooltip.json", "Action Execute Tooltip", CardCategory.ELEMENT),
@@ -318,8 +512,6 @@ object TestCardLoader {
         Triple("element-samples/carousel-vertical.json", "Carousel Vertical", CardCategory.ELEMENT),
         Triple("element-samples/media-basic.json", "Media Basic", CardCategory.ELEMENT),
         Triple("element-samples/media-sources.json", "Media Sources", CardCategory.ELEMENT),
-
-        // --- Teams templated samples (template + data pairs from shared/test-cards/teams-samples/) ---
         Triple("teams-samples/activity-update-template.json", "Teams: Activity Update", CardCategory.TEAMS_TEMPLATED),
         Triple("teams-samples/weather-large-template.json", "Teams: Weather Large", CardCategory.TEAMS_TEMPLATED),
         Triple("teams-samples/stock-update-template.json", "Teams: Stock Update", CardCategory.TEAMS_TEMPLATED),
@@ -341,8 +533,6 @@ object TestCardLoader {
         Triple("teams-samples/flight-update-template.json", "Teams: Flight Update", CardCategory.TEAMS_TEMPLATED),
         Triple("teams-samples/order-confirmation-template.json", "Teams: Order Confirmation", CardCategory.TEAMS_TEMPLATED),
         Triple("teams-samples/restaurant-order-template.json", "Teams: Restaurant Order", CardCategory.TEAMS_TEMPLATED),
-
-        // --- Teams official samples (from shared/test-cards/teams-official-samples/) ---
         Triple("teams-official-samples/account.json", "Teams: Account", CardCategory.TEAMS_OFFICIAL),
         Triple("teams-official-samples/author-highlight-video.json", "Teams: Author Highlight Video", CardCategory.TEAMS_OFFICIAL),
         Triple("teams-official-samples/book-a-room.json", "Teams: Book a Room", CardCategory.TEAMS_OFFICIAL),
@@ -364,10 +554,6 @@ object TestCardLoader {
         Triple("teams-official-samples/work-item.json", "Teams: Work Item", CardCategory.TEAMS_OFFICIAL),
     )
 
-    /**
-     * Map of template filenames to their corresponding data filenames
-     * for teams-samples that use templating.
-     */
     private val templateDataMap = mapOf(
         "teams-samples/activity-update-template.json" to "teams-samples/activity-update-data.json",
         "teams-samples/weather-large-template.json" to "teams-samples/weather-large-data.json",
@@ -392,9 +578,6 @@ object TestCardLoader {
         "teams-samples/restaurant-order-template.json" to "teams-samples/restaurant-order-data.json",
     )
 
-    /**
-     * Load all test cards with their actual JSON content from the assets directory.
-     */
     fun loadAllCards(context: Context): List<TestCard> {
         return cardDefinitions.map { (filename, title, category) ->
             val jsonString = loadCardJson(context, filename)
@@ -409,22 +592,14 @@ object TestCardLoader {
         }
     }
 
-    /**
-     * Load a single card's JSON by filename.
-     */
     fun loadCardJson(context: Context, filename: String): String {
         return try {
             context.assets.open(filename).bufferedReader().use { it.readText() }
         } catch (e: Exception) {
-            // Fallback: return a minimal card with the filename as the title
             """{"type":"AdaptiveCard","version":"1.5","body":[{"type":"TextBlock","text":"Could not load: $filename","wrap":true,"color":"Attention"}]}"""
         }
     }
 
-    /**
-     * Load the data JSON for a teams-samples template file, if available.
-     * Returns null if no data file exists for the given template.
-     */
     fun loadTemplateData(context: Context, templateFilename: String): String? {
         val dataFilename = templateDataMap[templateFilename] ?: return null
         return try {
@@ -434,9 +609,6 @@ object TestCardLoader {
         }
     }
 
-    /**
-     * Check if a card filename has an associated data file for templating.
-     */
     fun hasTemplateData(filename: String): Boolean {
         return templateDataMap.containsKey(filename)
     }

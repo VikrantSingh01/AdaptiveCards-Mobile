@@ -8,6 +8,7 @@ struct CardEditorView: View {
     @State private var errorMessage: String = ""
     @State private var splitView: Bool = true
     @EnvironmentObject var actionLog: ActionLogStore
+    @EnvironmentObject var editorState: EditorState
 
     var body: some View {
         NavigationStack {
@@ -140,6 +141,13 @@ struct CardEditorView: View {
         }
         .onAppear {
             validateJSON()
+        }
+        .onChange(of: editorState.pendingJson) { _, newJson in
+            if let json = newJson {
+                jsonText = json
+                formatJSON()
+                editorState.pendingJson = nil
+            }
         }
     }
 

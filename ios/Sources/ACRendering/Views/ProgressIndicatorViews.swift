@@ -24,10 +24,20 @@ struct ProgressBarView: View {
     }
 
     private var progressColor: Color {
-        if let colorString = progressBar.color {
-            return Color(hex: colorString)
+        guard let colorString = progressBar.color else {
+            return Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
         }
-        return Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
+        let fg = hostConfig.containerStyles.default.foregroundColors
+        switch colorString.lowercased() {
+        case "default": return Color(hex: fg.default.default)
+        case "dark": return Color(hex: fg.dark.default)
+        case "light": return Color(hex: fg.light.default)
+        case "accent": return Color(hex: fg.accent.default)
+        case "good", "green": return Color(hex: fg.good.default)
+        case "warning", "yellow": return Color(hex: fg.warning.default)
+        case "attention", "red": return Color(hex: fg.attention.default)
+        default: return Color(hex: colorString)
+        }
     }
 
     var body: some View {

@@ -9,7 +9,7 @@ The new SDK provides:
 - ✅ Modular architecture for smaller app size
 - ✅ Enhanced performance and memory efficiency
 - ✅ Better accessibility support
-- ✅ Complete Adaptive Cards 1.5 support
+- ✅ Complete Adaptive Cards v1.6 support (including Table, Badge, Icon, CompoundButton)
 - ✅ Improved developer experience
 
 ## Breaking Changes
@@ -419,3 +419,7 @@ If you encounter issues during migration:
 | Complex (15+ card types, custom elements) | 1-2 weeks |
 
 Plan for additional time to test thoroughly across devices and OS versions.
+
+---
+
+*Last updated: March 11, 2026*

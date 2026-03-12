@@ -15,15 +15,15 @@ fun Modifier.adaptiveSpacing(
     spacing: Spacing?,
     isFirst: Boolean = false
 ): Modifier {
-    if (isFirst || spacing == null || spacing == Spacing.None) {
+    if (isFirst || spacing == Spacing.None) {
         return this
     }
-    
+
     val hostConfig = LocalHostConfig.current
     val spacingValue = when (spacing) {
+        null, Spacing.Default -> hostConfig.spacing.default
         Spacing.ExtraSmall -> hostConfig.spacing.extraSmall
         Spacing.Small -> hostConfig.spacing.small
-        Spacing.Default -> hostConfig.spacing.default
         Spacing.Medium -> hostConfig.spacing.medium
         Spacing.Large -> hostConfig.spacing.large
         Spacing.ExtraLarge -> hostConfig.spacing.extraLarge

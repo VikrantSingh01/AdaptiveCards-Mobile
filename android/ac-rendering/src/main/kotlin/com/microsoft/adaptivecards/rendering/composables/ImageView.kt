@@ -43,27 +43,38 @@ fun ImageView(
         ImageSize.Large -> modifier.size(hostConfig.imageSizes.large.dp)
         ImageSize.Stretch -> modifier.fillMaxWidth()
         ImageSize.Auto -> {
-            // Parse explicit width if provided
-            val width = element.width?.toIntOrNull()
-            if (width != null) {
-                modifier.width(width.dp)
-            } else {
-                modifier
+            // Parse explicit width/height if provided (supports "20px" or plain "20")
+            val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
+            val heightPx = element.pixelHeight?.removeSuffix("px")?.toIntOrNull()
+            when {
+                widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
+                widthPx != null -> modifier.width(widthPx.dp)
+                heightPx != null -> modifier.height(heightPx.dp)
+                // Auto per AC spec: display at natural size constrained to container width.
+                // Images with explicit pixel dimensions (avatars etc.) are handled above.
+                else -> modifier.fillMaxWidth()
             }
         }
     }
 
-    // Apply shape: Person → circle, otherwise rounded corners from HostConfig
-    val finalModifier = when {
-        element.style == ImageStyle.Person -> imageModifier.clip(CircleShape)
-        cornerRadius > 0 -> imageModifier.clip(RoundedCornerShape(cornerRadius.dp))
-        else -> imageModifier
+    // Apply shape: Person → circle, RoundedCorners → explicit radius, otherwise HostConfig radius
+    val finalModifier = when (element.style) {
+        ImageStyle.Person -> imageModifier.clip(CircleShape)
+        ImageStyle.RoundedCorners -> imageModifier.clip(RoundedCornerShape(8.dp))
+        else -> if (cornerRadius > 0) imageModifier.clip(RoundedCornerShape(cornerRadius.dp)) else imageModifier
     }
 
     AsyncImage(
         model = element.url,
         contentDescription = element.altText,
-        contentScale = if (element.size == ImageSize.Stretch) ContentScale.Crop else ContentScale.Fit,
+        contentScale = when {
+            element.size == ImageSize.Stretch -> ContentScale.Crop
+            element.size == null || element.size == ImageSize.Auto -> {
+                val hasExplicitSize = element.width != null || element.pixelHeight != null
+                if (hasExplicitSize) ContentScale.Fit else ContentScale.FillWidth
+            }
+            else -> ContentScale.Fit
+        },
         modifier = finalModifier
             .imageSemantics(element.altText)
             .selectAction(element.selectAction, actionHandler)
