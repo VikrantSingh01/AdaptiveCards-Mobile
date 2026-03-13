@@ -51,46 +51,75 @@ Cross-platform parity is enforced by CI — the parity gate fails if element typ
 
 ## Quick Start
 
-### iOS
+### iOS (SwiftUI)
 
-Add the package via Swift Package Manager:
+Add via Swift Package Manager:
 
 ```
 https://github.com/VikrantSingh01/AdaptiveCards-Mobile.git
 ```
 
 ```swift
-import ACCore
-import ACRendering
+import AdaptiveCards
 
-let card = try AdaptiveCard.parse(json: cardJson)
-
-AdaptiveCardView(card: card) { action in
-    print("Action: \(action.type)")
+// Parse + render
+let result = AdaptiveCards.parse(cardJson)
+if let card = result.card {
+    AdaptiveCardView(card: card, configuration: .teams(theme: .dark))
+        .onCardAction { event in
+            switch event {
+            case .submit(_, let inputs): sendToBackend(inputs)
+            case .openUrl(_, let url): UIApplication.shared.open(url)
+            case .execute(let action, let inputs): invokeBot(action.verb, inputs)
+            default: break
+            }
+        }
 }
+
+// Or 1 line for quick rendering
+AdaptiveCardView(json: cardJson)
 ```
 
-### Android
+For UIKit, use the bridge: `AdaptiveCardUIView(card: card, configuration: .default)`.
+
+See [iOS Integration Guide](docs/guides/IOS_INTEGRATION_GUIDE.md) for full documentation.
+
+### Android (Jetpack Compose)
 
 Add the dependency via Gradle:
 
 ```kotlin
-implementation("com.microsoft.adaptivecards:ac-rendering:<version>")
+implementation("com.microsoft.adaptivecards:adaptive-cards:<version>")
 ```
 
 ```kotlin
-import com.microsoft.adaptivecards.core.parsing.CardParser
-import com.microsoft.adaptivecards.rendering.AdaptiveCardView
+import com.microsoft.adaptivecards.core.AdaptiveCards
+import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 
-val card = CardParser.parse(cardJson)
+// Parse + render
+val result = AdaptiveCards.parse(cardJson)
+result.card?.let { card ->
+    AdaptiveCardView(
+        card = card,
+        configuration = CardConfiguration.teams(TeamsTheme.Dark),
+        onAction = { event ->
+            when (event) {
+                is CardActionEvent.Submit -> sendToBackend(event.inputValues)
+                is CardActionEvent.OpenUrl -> openBrowser(event.url)
+                is CardActionEvent.Execute -> invokeBot(event.action.verb, event.inputValues)
+                else -> {}
+            }
+        }
+    )
+}
 
-AdaptiveCardView(
-    card = card,
-    onActionExecuted = { action ->
-        println("Action: ${action.type}")
-    }
-)
+// Or 1 line for quick rendering
+AdaptiveCardView(cardJson = cardJson)
 ```
+
+For Android Views, use the bridge: `AdaptiveCardAndroidView(context)`.
+
+See [Android Integration Guide](docs/guides/ANDROID_INTEGRATION_GUIDE.md) for full documentation.
 
 ### Templating
 

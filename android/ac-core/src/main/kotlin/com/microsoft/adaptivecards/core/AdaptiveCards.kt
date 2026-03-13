@@ -100,6 +100,35 @@ object AdaptiveCards {
         CardCache.shared.clearAll()
     }
 
+    // MARK: - Prefetch
+
+    /**
+     * Pre-parse cards that are about to scroll into view.
+     * Call from RecyclerView.Adapter.onBindViewHolder or LazyColumn prefetch.
+     */
+    fun prefetch(jsons: List<String>, configuration: CardConfiguration = CardConfiguration.Default) {
+        Thread {
+            for (json in jsons) {
+                parse(json, configuration.cache)
+            }
+        }.start()
+    }
+
+    /**
+     * Pre-warm image caches for pre-parsed cards.
+     */
+    @JvmName("prefetchCards")
+    fun prefetch(cards: List<AdaptiveCard>, configuration: CardConfiguration = CardConfiguration.Default) {
+        // Future: extract image URLs and pre-warm image cache
+    }
+
+    /**
+     * Cancel prefetch for cards that scrolled out of range.
+     */
+    fun cancelPrefetch(jsons: List<String>) {
+        // Future: cancel in-flight image prefetch tasks
+    }
+
     /**
      * Walk the parsed card tree and collect warnings for unknown types, etc.
      */

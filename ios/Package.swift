@@ -11,6 +11,17 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "AdaptiveCards",
+            targets: ["ACCore", "ACRendering", "ACInputs", "ACActions",
+                      "ACAccessibility", "ACMarkdown", "ACCharts",
+                      "ACFluentUI", "ACTemplating"]),
+        .library(
+            name: "AdaptiveCardsTeams",
+            targets: ["ACTeams"]),
+        .library(
+            name: "AdaptiveCardsCopilot",
+            targets: ["ACCopilotExtensions"]),
+        .library(
             name: "ACCore",
             targets: ["ACCore"]),
         .library(

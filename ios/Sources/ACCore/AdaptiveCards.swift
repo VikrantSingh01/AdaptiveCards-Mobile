@@ -139,3 +139,27 @@ public enum AdaptiveCards {
         return warnings
     }
 }
+
+// MARK: - Prefetch
+
+extension AdaptiveCards {
+    /// Pre-parse cards that are about to scroll into view.
+    /// Call from UICollectionViewDataSourcePrefetching or List .onAppear.
+    public static func prefetch(_ jsons: [String], configuration: CardConfiguration = .default) {
+        DispatchQueue.global(qos: .utility).async {
+            for json in jsons {
+                _ = parse(json, cache: configuration.cache)
+            }
+        }
+    }
+
+    /// Pre-parse cards from pre-parsed models (prefetch image URLs)
+    public static func prefetch(_ cards: [AdaptiveCard], configuration: CardConfiguration = .default) {
+        // Future: extract image URLs and pre-warm image cache
+    }
+
+    /// Cancel prefetch for cards that scrolled out of range
+    public static func cancelPrefetch(_ jsons: [String]) {
+        // Future: cancel in-flight image prefetch tasks
+    }
+}

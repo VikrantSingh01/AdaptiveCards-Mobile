@@ -266,14 +266,42 @@ Scopes: `ios`, `android`, `shared`, `ci`
 
 ## Key File Paths (avoid searching for these)
 
+### Public API (new simplified surface)
+
+| Type | iOS | Android |
+|---|---|---|
+| `AdaptiveCards.parse()` | `ios/Sources/ACCore/AdaptiveCards.swift` | `android/ac-core/.../core/AdaptiveCards.kt` |
+| `ParseResult` | `ios/Sources/ACCore/ParseResult.swift` | `android/ac-core/.../core/ParseResult.kt` |
+| `CardConfiguration` | `ios/Sources/ACCore/CardConfiguration.swift` | `android/ac-core/.../core/CardConfiguration.kt` |
+| `ImageProvider` | `ios/Sources/ACCore/ImageProvider.swift` | `android/ac-core/.../core/ImageProvider.kt` |
+| `CardActionEvent` | `ios/Sources/ACActions/CardActionEvent.swift` | `android/ac-core/.../core/CardActionEvent.kt` |
+| `CardLifecycleEvent` | `ios/Sources/ACRendering/Events/CardLifecycleEvent.swift` | `android/ac-core/.../core/CardLifecycleEvent.kt` |
+| `CardPerformanceMetrics` | `ios/Sources/ACRendering/Events/CardPerformanceMetrics.swift` | `android/ac-core/.../core/CardPerformanceMetrics.kt` |
+| `CardHandle` | `ios/Sources/ACRendering/State/CardHandle.swift` | `android/ac-rendering/.../state/CardHandle.kt` |
+| `AdaptiveCardView` | `ios/Sources/ACRendering/Views/AdaptiveCardView.swift` | `android/ac-rendering/.../composables/AdaptiveCardView.kt` |
+| View modifiers | `ios/Sources/ACRendering/Views/AdaptiveCardView+Modifiers.swift` | (params on composable) |
+| UIKit/View bridge | `ios/Sources/ACRendering/Bridge/AdaptiveCardUIView.swift` | `android/ac-rendering/.../bridge/AdaptiveCardAndroidView.kt` |
+| `CardCache` | `ios/Sources/ACCore/Caching/CardCache.swift` | `android/ac-core/.../caching/CardCache.kt` |
+| `PerformanceGuardrails` | `ios/Sources/ACCore/PerformanceGuardrails.swift` | `android/ac-core/.../core/PerformanceGuardrails.kt` |
+
+### SPM Umbrella Products (ios/Package.swift)
+
+- `AdaptiveCards` — all core modules (ACCore, ACRendering, ACInputs, ACActions, etc.)
+- `AdaptiveCardsTeams` — Teams-specific adapters (ACTeams)
+- `AdaptiveCardsCopilot` — Copilot streaming/citations (ACCopilotExtensions)
+
 ### iOS Source Layout
 
 ```
 ios/Sources/<Module>/          # e.g., ios/Sources/ACCore/
   ├── Models/                  # Data models
   ├── HostConfig/              # (ACCore only) host config
+  ├── Caching/                 # (ACCore only) CardCache, CacheConfiguration
   ├── Parsing/                 # JSON parsing
   ├── Views/                   # (ACRendering) SwiftUI views
+  ├── Events/                  # (ACRendering) CardLifecycleEvent, CardPerformanceMetrics
+  ├── State/                   # (ACRendering) CardHandle
+  ├── Bridge/                  # (ACRendering) AdaptiveCardUIView
   └── SchemaValidator.swift    # (ACCore only)
 ```
 
@@ -282,8 +310,8 @@ ios/Sources/<Module>/          # e.g., ios/Sources/ACCore/
 All Kotlin sources follow: `android/<module>/src/main/kotlin/com/microsoft/adaptivecards/<package>/`
 
 ```
-android/ac-core/.../core/       → models/, parsing/, hostconfig/, viewmodel/
-android/ac-rendering/.../rendering/ → composables/, modifiers/, registry/, viewmodel/
+android/ac-core/.../core/       → models/, parsing/, hostconfig/, caching/
+android/ac-rendering/.../rendering/ → composables/, modifiers/, registry/, viewmodel/, state/, bridge/
 android/ac-inputs/.../inputs/   → composables/, validation/
 ```
 
@@ -291,6 +319,12 @@ android/ac-inputs/.../inputs/   → composables/, validation/
 
 - iOS: `ios/Sources/ACCore/SchemaValidator.swift`
 - Android: `android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/SchemaValidator.kt`
+
+### Architecture Docs
+
+- Roadmap: `docs/architecture/ARCHITECTURE_SIMPLIFICATION_ROADMAP.md`
+- iOS guide: `docs/guides/IOS_INTEGRATION_GUIDE.md`
+- Android guide: `docs/guides/ANDROID_INTEGRATION_GUIDE.md`
 
 ### Local Environment Paths
 
