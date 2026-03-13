@@ -1,8 +1,6 @@
 # Android Adaptive Cards SDK - Architecture Documentation
 
-**Version:** 1.0  
-**Last Updated:** 2026-02-07  
-**Platform:** Android API 26+, Kotlin 1.9+, Jetpack Compose
+**Platform:** Android API 24+, Kotlin 1.9+, Jetpack Compose
 
 ---
 
@@ -33,6 +31,40 @@ The Android Adaptive Cards SDK is a modular, Jetpack Compose-based framework for
 - **Performance**: Lazy loading, caching, and efficient recomposition
 - **Accessibility**: TalkBack support built into every composable
 - **Testability**: Interface-based design enables comprehensive unit testing
+
+### High-Level Rendering Pipeline
+
+```
+┌─────────────────────────────────────────────┐
+│       Jetpack Compose Host Application      │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│        ac-rendering (Composables)           │
+│  • AdaptiveCardView                         │
+│  • Element Composables                      │
+│  • Container Composables                    │
+│  • Advanced Element Composables             │
+└──────┬──────────────────────────┬───────────┘
+       │                          │
+┌──────▼──────┐           ┌──────▼──────────┐
+│  ac-inputs  │           │   ac-actions    │
+│  • Input    │           │   • Action      │
+│    Views    │           │     Delegates   │
+└──────┬──────┘           └──────┬──────────┘
+       │                          │
+       │      ┌──────────┐        │
+       └──────►  ac-core ◄────────┘
+              │  • Models│
+              │  • Parser│
+              └──────┬───┘
+                     │
+              ┌──────▼──────────┐
+              │ ac-templating   │
+              │ • Template      │
+              │   Engine        │
+              └─────────────────┘
+```
 
 ### Architecture Diagram
 
@@ -1000,42 +1032,15 @@ Located in `shared/test-cards/`:
 
 ---
 
-## Future Enhancements
-
-### Planned Additions
-
-- **ac-charts**: Chart rendering module (Phase 2E)
-- **ac-fluent-ui**: Fluent Design System theming (Phase 2F)
-- **ac-copilot-extensions**: Copilot-specific features (Phase 3C)
-- **ac-teams**: Teams integration module (Phase 3D)
-
-### Performance Improvements
+## Potential Improvements
 
 - Background JSON parsing with coroutines
 - Expression caching in TemplateEngine
 - Composable skipping optimization
 - Binary card format for faster parsing
-
-### Additional Features
-
 - Custom animation support
 - Video playback in Media element
-- PDF rendering
 - Offline card caching
-- Card versioning and migration
-
----
-
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | 2026-02-07 | Initial architecture document with Phase 1 & 2A-2B complete |
-
----
-
-**Document Maintained By:** Android SDK Team  
-**Contact:** See CONTRIBUTING.md for contribution guidelines
 
 ---
 
@@ -1188,6 +1193,3 @@ See [android/sample-app/README.md](sample-app/README.md) for detailed build inst
 
 ---
 
-**Document Version**: 1.0.1  
-**Last Updated**: 2024-02-07  
-**Next Review**: 2024-03-07

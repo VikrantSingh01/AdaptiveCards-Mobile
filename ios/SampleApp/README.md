@@ -4,13 +4,13 @@ A comprehensive SwiftUI sample application demonstrating the Adaptive Cards Mobi
 
 ## Features
 
-### 📱 Card Gallery
+### Card Gallery
 - Browse all test cards by category
 - Search and filter functionality
 - Categories: Basic, Inputs, Actions, Containers, Advanced, Teams, Templating
 - Visual category badges
 
-### ✏️ Card Editor
+### Card Editor
 - Live JSON editor with syntax validation
 - Real-time preview
 - Split-view and single-view modes
@@ -18,28 +18,28 @@ A comprehensive SwiftUI sample application demonstrating the Adaptive Cards Mobi
 - Load sample cards
 - Copy JSON to clipboard
 
-### 💬 Teams Simulator
+### Teams Simulator
 - Teams-style chat interface
 - Send text messages and cards
 - Multiple card templates (simple, form, chart)
 - Chat bubble UI with timestamps
 - Action handling within chat context
 
-### 📊 Performance Dashboard
+### Performance Dashboard
 - Parse time metrics (avg, min, max)
 - Render time metrics (avg, min, max)
 - Memory usage tracking
 - Action success rate monitoring
 - Export performance reports
 
-### 🎨 Settings
+### Settings
 - Theme selection (Light, Dark, System)
 - Font scale adjustment (80% - 150%)
 - Accessibility toggles
 - Developer options
 - SDK version info
 
-### 📝 Action Log
+### Action Log
 - Complete history of all dispatched actions
 - Search and filter actions
 - Detailed action inspection

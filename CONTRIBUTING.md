@@ -170,8 +170,7 @@ In rare cases, platform-specific limitations may prevent exact parity:
 
 ### Branching Strategy
 
-- `main` - Stable release branch
-- `develop` - Active development branch
+- `main` - Stable release and active development branch
 - `feature/*` - New feature branches
 - `bugfix/*` - Bug fix branches
 - `hotfix/*` - Critical production fixes
@@ -179,8 +178,8 @@ In rare cases, platform-specific limitations may prevent exact parity:
 ### Creating a Feature Branch
 
 ```bash
-git checkout develop
-git pull origin develop
+git checkout main
+git pull origin main
 git checkout -b feature/your-feature-name
 ```
 
@@ -281,10 +280,10 @@ cd android
 
 1. **Update your branch**:
    ```bash
-   git checkout develop
-   git pull origin develop
+   git checkout main
+   git pull origin main
    git checkout your-branch
-   git rebase develop
+   git rebase main
    ```
 
 2. **Push your changes**:
@@ -295,7 +294,7 @@ cd android
 3. **Create Pull Request**:
    - Go to GitHub repository
    - Click "New Pull Request"
-   - Select `develop` as base branch
+   - Select `main` as base branch
    - Fill out PR template completely
 
 ### PR Requirements
@@ -522,4 +521,4 @@ Contributors will be acknowledged in:
 - CHANGELOG.md
 - GitHub contributors page
 
-Thank you for contributing! 🎉
+Thank you for contributing!
