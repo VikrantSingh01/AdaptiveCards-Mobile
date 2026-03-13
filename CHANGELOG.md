@@ -5,7 +5,20 @@ All notable changes to the Adaptive Cards Mobile SDK will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0-dev] - Unreleased
+## [0.0.1] - 2026-03-13
+
+### Dogfood Release
+
+First dogfood release of the Adaptive Cards Mobile SDK for internal testing.
+
+### Highlights
+- **SDK Public API**: `AdaptiveCards.parse()`, `CardConfiguration`, `CardCache`, `CardHandle`, `PerformanceGuardrails`
+- **UIKit/View bridges**: `AdaptiveCardUIView` (iOS), `AdaptiveCardAndroidView` (Android)
+- **Template engine**: 60+ functions on iOS, 50+ on Android with full `${...}` expression support
+- **Schema v1.6**: Complete element/action coverage with cross-platform parity
+- **Sample apps**: Deep link routing, gallery filters, card editor, Teams simulator
+
+---
 
 ### Extended Deep Link Routing, Gallery Filters & Cart Icon (2026-03-11)
 
@@ -271,5 +284,6 @@ Built following the [Adaptive Cards specification](https://adaptivecards.io/) by
 
 ---
 
+[0.0.1]: https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/tag/v0.0.1
 [1.0.0]: https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/tag/v1.0.0
-[Unreleased]: https://github.com/VikrantSingh01/AdaptiveCards-Mobile/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/VikrantSingh01/AdaptiveCards-Mobile/compare/v0.0.1...HEAD
