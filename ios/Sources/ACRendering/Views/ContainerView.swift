@@ -12,22 +12,36 @@ struct ContainerView: View {
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
+    @Environment(\.widthCategory) var widthCategory
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
-        let content = VStack(spacing: 0) {
-            if let items = container.items {
-                ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
-                    if viewModel.isElementVisible(elementId: element.elementId) {
-                        ElementView(element: element, hostConfig: hostConfig)
-                            .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+        let items = container.items ?? []
+        let activeLayout: ACCore.Layout? = resolveLayout()
+        let contentPadding: CGFloat = container.bleed == true ? 0 : (container.style != nil ? CGFloat(hostConfig.spacing.padding) : 0)
+
+        let content = Group {
+            switch activeLayout {
+            case .flow(let flowLayout):
+                FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig)
+                    .padding(contentPadding)
+            case .areaGrid(let gridLayout):
+                AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig)
+                    .padding(contentPadding)
+            case .none:
+                VStack(spacing: 0) {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
+                        if viewModel.isElementVisible(elementId: element.elementId) {
+                            ElementView(element: element, hostConfig: hostConfig)
+                                .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+                        }
                     }
                 }
+                .padding(contentPadding)
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
-        .padding(container.bleed == true ? 0 : (container.style != nil ? CGFloat(hostConfig.spacing.padding) : 0))
 
         Group {
             if let bgImage = container.backgroundImage {
@@ -77,6 +91,24 @@ struct ContainerView: View {
             styleConfig = hostConfig.containerStyles.accent
         }
         return Color(hex: styleConfig.borderColor)
+    }
+
+    /// Resolve which layout to use for this container:
+    /// 1. Check `layouts` array — pick first whose targetWidth matches the current width category
+    /// 2. Fall back to null (default vertical stack)
+    private func resolveLayout() -> ACCore.Layout? {
+        guard let layouts = container.layouts else { return nil }
+        for layout in layouts {
+            let targetWidth: String?
+            switch layout {
+            case .flow(let flow): targetWidth = flow.targetWidth
+            case .areaGrid(let grid): targetWidth = grid.targetWidth
+            }
+            if shouldShowForTargetWidth(targetWidth, currentCategory: widthCategory) {
+                return layout
+            }
+        }
+        return nil
     }
 
     private var verticalContentAlignment: Alignment {

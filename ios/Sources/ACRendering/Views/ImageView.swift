@@ -158,8 +158,10 @@ struct ImageView: View {
 
     private var imageWidth: CGFloat? {
         if let width = image.width {
+            if width.lowercased() == "auto" { return nil }
             let stripped = width.replacingOccurrences(of: "px", with: "")
-            return CGFloat(Int(stripped) ?? 0)
+            if let value = Int(stripped), value > 0 { return CGFloat(value) }
+            return nil
         }
 
         if let size = image.size {
@@ -182,8 +184,11 @@ struct ImageView: View {
 
     private var imageHeight: CGFloat? {
         if let height = image.height {
+            // "auto" means let the image determine its natural height
+            if height.lowercased() == "auto" { return nil }
             let stripped = height.replacingOccurrences(of: "px", with: "")
-            return CGFloat(Int(stripped) ?? 0)
+            if let value = Int(stripped), value > 0 { return CGFloat(value) }
+            return nil
         }
         return nil
     }

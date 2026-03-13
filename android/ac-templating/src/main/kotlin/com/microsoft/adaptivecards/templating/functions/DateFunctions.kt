@@ -15,6 +15,7 @@ import java.util.*
 object DateFunctions {
     fun register(functions: MutableMap<String, ExpressionFunction>) {
         functions["formatDateTime"] = FormatDateTime()
+        functions["formatTicks"] = FormatTicks()
         functions["addDays"] = AddDays()
         functions["addHours"] = AddHours()
         functions["getYear"] = GetYear()
@@ -36,6 +37,40 @@ object DateFunctions {
             val formatString = if (arguments.size > 1) arguments[1] as? String else "yyyy-MM-dd"
 
             val formatter = SimpleDateFormat(formatString ?: "yyyy-MM-dd", Locale.US)
+            return formatter.format(date)
+        }
+    }
+
+    /**
+     * Converts .NET ticks (100-nanosecond intervals since 0001-01-01) to a formatted date string.
+     * Usage: formatTicks(ticksValue, 'yyyy-MM-dd')
+     */
+    class FormatTicks : ExpressionFunction {
+        override fun call(arguments: List<Any?>): Any? {
+            if (arguments.isEmpty() || arguments.size > 2) {
+                throw EvaluationException("formatTicks expects 1 or 2 arguments, got ${arguments.size}")
+            }
+
+            val ticks: Long = when (val arg = arguments[0]) {
+                is Long -> arg
+                is Int -> arg.toLong()
+                is Double -> arg.toLong()
+                is String -> arg.toLongOrNull()
+                    ?: throw EvaluationException("formatTicks requires a numeric ticks value")
+                else -> throw EvaluationException("formatTicks requires a numeric ticks value")
+            }
+
+            // .NET epoch: 0001-01-01T00:00:00Z
+            // Unix epoch: 1970-01-01T00:00:00Z
+            // Difference: 621355968000000000 ticks
+            val unixEpochTicks = 621_355_968_000_000_000L
+            val ticksPerMillisecond = 10_000L
+            val unixMillis = (ticks - unixEpochTicks) / ticksPerMillisecond
+            val date = Date(unixMillis)
+
+            val formatString = if (arguments.size > 1) arguments[1] as? String else "yyyy-MM-dd"
+            val formatter = SimpleDateFormat(formatString ?: "yyyy-MM-dd", Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
             return formatter.format(date)
         }
     }

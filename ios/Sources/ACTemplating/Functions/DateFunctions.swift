@@ -8,6 +8,7 @@ import Foundation
 public struct DateFunctions {
     public static func register(into functions: inout [String: ExpressionFunction]) {
         functions["formatDateTime"] = FormatDateTime()
+        functions["formatTicks"] = FormatTicks()
         functions["addDays"] = AddDays()
         functions["addHours"] = AddHours()
         functions["getYear"] = GetYear()
@@ -28,6 +29,40 @@ public struct DateFunctions {
             let date = try parseDate(arguments[0])
             let formatString = arguments.count > 1 ? (arguments[1] as? String) : "yyyy-MM-dd"
 
+            let formatter = DateFormatter()
+            formatter.dateFormat = formatString ?? "yyyy-MM-dd"
+            return formatter.string(from: date)
+        }
+    }
+
+    /// Converts .NET ticks (100-nanosecond intervals since 0001-01-01) to a formatted date string.
+    /// Usage: formatTicks(ticksValue, 'yyyy-MM-dd')
+    struct FormatTicks: ExpressionFunction {
+        func call(_ arguments: [Any?]) throws -> Any? {
+            guard arguments.count >= 1 && arguments.count <= 2 else {
+                throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
+            }
+
+            let ticks: Int64
+            if let intVal = arguments[0] as? Int {
+                ticks = Int64(intVal)
+            } else if let doubleVal = arguments[0] as? Double {
+                ticks = Int64(doubleVal)
+            } else if let strVal = arguments[0] as? String, let parsed = Int64(strVal) {
+                ticks = parsed
+            } else {
+                throw EvaluationError.invalidArgument("formatTicks requires a numeric ticks value")
+            }
+
+            // .NET epoch: 0001-01-01T00:00:00Z
+            // Unix epoch: 1970-01-01T00:00:00Z
+            // Difference: 621355968000000000 ticks
+            let unixEpochTicks: Int64 = 621_355_968_000_000_000
+            let ticksPerSecond: Int64 = 10_000_000
+            let unixSeconds = Double(ticks - unixEpochTicks) / Double(ticksPerSecond)
+            let date = Date(timeIntervalSince1970: unixSeconds)
+
+            let formatString = arguments.count > 1 ? (arguments[1] as? String) : "yyyy-MM-dd"
             let formatter = DateFormatter()
             formatter.dateFormat = formatString ?? "yyyy-MM-dd"
             return formatter.string(from: date)

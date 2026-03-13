@@ -71,6 +71,9 @@ public enum Layout: Codable, Equatable {
 public struct FlowLayout: Codable, Equatable {
     public let type: String
 
+    /// Responsive target width constraint (e.g., "atLeast:Standard", "Narrow")
+    public var targetWidth: String?
+
     /// How items should be sized: "Fit" (natural size) or "Fill" (stretch to fill row)
     public var itemFit: ItemFit?
 
@@ -93,6 +96,7 @@ public struct FlowLayout: Codable, Equatable {
     public var horizontalAlignment: HorizontalAlignment?
 
     public init(
+        targetWidth: String? = nil,
         itemFit: ItemFit? = nil,
         itemWidth: String? = nil,
         minItemWidth: String? = nil,
@@ -102,6 +106,7 @@ public struct FlowLayout: Codable, Equatable {
         horizontalAlignment: HorizontalAlignment? = nil
     ) {
         self.type = "Layout.Flow"
+        self.targetWidth = targetWidth
         self.itemFit = itemFit
         self.itemWidth = itemWidth
         self.minItemWidth = minItemWidth
@@ -140,7 +145,10 @@ public struct FlowLayout: Codable, Equatable {
 public struct AreaGridLayout: Codable, Equatable {
     public let type: String
 
-    /// Column definitions (e.g., ["1fr", "2fr", "auto", "100px"])
+    /// Responsive target width constraint (e.g., "atLeast:Standard", "Narrow")
+    public var targetWidth: String?
+
+    /// Column definitions (e.g., ["1fr", "2fr", "auto", "100px"] or [25, 25, 25])
     public var columns: [String]
 
     /// Named grid areas that define placement regions
@@ -152,18 +160,60 @@ public struct AreaGridLayout: Codable, Equatable {
     /// Spacing between rows
     public var rowSpacing: Spacing?
 
+    private enum CodingKeys: String, CodingKey {
+        case type, targetWidth, columns, areas, columnSpacing, rowSpacing
+    }
+
     public init(
+        targetWidth: String? = nil,
         columns: [String] = [],
         areas: [GridArea] = [],
         columnSpacing: Spacing? = nil,
         rowSpacing: Spacing? = nil
     ) {
         self.type = "Layout.AreaGrid"
+        self.targetWidth = targetWidth
         self.columns = columns
         self.areas = areas
         self.columnSpacing = columnSpacing
         self.rowSpacing = rowSpacing
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? "Layout.AreaGrid"
+        self.targetWidth = try container.decodeIfPresent(String.self, forKey: .targetWidth)
+        self.areas = try container.decodeIfPresent([GridArea].self, forKey: .areas) ?? []
+        self.columnSpacing = try container.decodeIfPresent(Spacing.self, forKey: .columnSpacing)
+        self.rowSpacing = try container.decodeIfPresent(Spacing.self, forKey: .rowSpacing)
+
+        // Columns can be strings ("1fr", "auto") or integers (25, 50) in JSON
+        if var columnsArray = try? container.nestedUnkeyedContainer(forKey: .columns) {
+            var parsed: [String] = []
+            while !columnsArray.isAtEnd {
+                if let str = try? columnsArray.decode(String.self) {
+                    parsed.append(str)
+                } else if let num = try? columnsArray.decode(Int.self) {
+                    parsed.append(String(num))
+                } else if let num = try? columnsArray.decode(Double.self) {
+                    parsed.append(String(Int(num)))
+                } else {
+                    _ = try? columnsArray.decode(LayoutAnyCodable.self)
+                }
+            }
+            self.columns = parsed
+        } else {
+            self.columns = []
+        }
+    }
+}
+
+/// Type-erased Codable wrapper for skipping unknown JSON values in layout columns
+private struct LayoutAnyCodable: Codable {
+    init(from decoder: Decoder) throws {
+        _ = try? decoder.singleValueContainer()
+    }
+    func encode(to encoder: Encoder) throws {}
 }
 
 // MARK: - GridArea
@@ -177,10 +227,10 @@ public struct GridArea: Codable, Equatable {
     /// Name for this area, referenced by items' `layout.targetArea`
     public var name: String
 
-    /// Row position (1-based)
+    /// Row position (1-based, defaults to 1)
     public var row: Int
 
-    /// Column position (1-based)
+    /// Column position (1-based, defaults to 1)
     public var column: Int
 
     /// Number of rows this area spans
@@ -188,6 +238,10 @@ public struct GridArea: Codable, Equatable {
 
     /// Number of columns this area spans
     public var columnSpan: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case name, row, column, rowSpan, columnSpan
+    }
 
     public init(
         name: String,
@@ -201,5 +255,14 @@ public struct GridArea: Codable, Equatable {
         self.column = column
         self.rowSpan = rowSpan
         self.columnSpan = columnSpan
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.row = try container.decodeIfPresent(Int.self, forKey: .row) ?? 1
+        self.column = try container.decodeIfPresent(Int.self, forKey: .column) ?? 1
+        self.rowSpan = try container.decodeIfPresent(Int.self, forKey: .rowSpan)
+        self.columnSpan = try container.decodeIfPresent(Int.self, forKey: .columnSpan)
     }
 }

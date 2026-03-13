@@ -58,10 +58,15 @@ fun ImageView(
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
             val heightPx = element.pixelHeight?.removeSuffix("px")?.toIntOrNull()
+            // Check if height is "auto" (not a pixel value)
+            val hasAutoHeight = element.height != null && element.pixelHeight == null
             when {
                 widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
                 widthPx != null -> modifier.width(widthPx.dp)
                 heightPx != null -> modifier.height(heightPx.dp)
+                // When height="auto" with no width, use medium default size to avoid
+                // collapsing to tiny or expanding to full width in auto-width columns
+                hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: display at natural size constrained to container width.
                 else -> modifier.fillMaxWidth()
             }
@@ -96,7 +101,8 @@ fun ImageView(
             element.size == ImageSize.Stretch -> ContentScale.Crop
             element.size == null || element.size == ImageSize.Auto -> {
                 val hasExplicitSize = element.width != null || element.pixelHeight != null
-                if (hasExplicitSize) ContentScale.Fit else ContentScale.FillWidth
+                val hasAutoHeight = element.height != null && element.pixelHeight == null
+                if (hasExplicitSize || hasAutoHeight) ContentScale.Fit else ContentScale.FillWidth
             }
             else -> ContentScale.Fit
         },
