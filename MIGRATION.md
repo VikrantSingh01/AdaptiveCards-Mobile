@@ -5,12 +5,12 @@ This guide helps you migrate from the legacy Adaptive Cards SDK to the new mobil
 ## Overview
 
 The new SDK provides:
-- ✅ Modern UI frameworks (SwiftUI, Jetpack Compose)
-- ✅ Modular architecture for smaller app size
-- ✅ Enhanced performance and memory efficiency
-- ✅ Better accessibility support
-- ✅ Complete Adaptive Cards v1.6 support (including Table, Badge, Icon, CompoundButton)
-- ✅ Improved developer experience
+- Modern UI frameworks (SwiftUI, Jetpack Compose)
+- Modular architecture for smaller app size
+- Enhanced performance and memory efficiency
+- Better accessibility support
+- Complete Adaptive Cards v1.6 support (including Table, Badge, Icon, CompoundButton)
+- Improved developer experience
 
 ## Breaking Changes
 
@@ -392,11 +392,11 @@ Use the included test cards in `shared/test-cards/` to validate:
 ## Getting Help
 
 ### Resources
-- 📖 [iOS Documentation](ios/README.md)
-- 📖 [Android Documentation](android/README.md)
-- 📖 [API Reference](CONTRIBUTING.md)
-- 💬 [GitHub Discussions](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/discussions)
-- 🐛 [Issue Tracker](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/issues)
+- [iOS Documentation](ios/README.md)
+- [Android Documentation](android/README.md)
+- [API Reference](CONTRIBUTING.md)
+- [GitHub Discussions](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/discussions)
+- [Issue Tracker](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/issues)
 
 ### Support
 
@@ -421,5 +421,3 @@ If you encounter issues during migration:
 Plan for additional time to test thoroughly across devices and OS versions.
 
 ---
-
-*Last updated: March 11, 2026*

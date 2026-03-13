@@ -632,9 +632,3 @@ If your app was using only basic Adaptive Card elements, no changes are required
 - Voice Control
 - Switch Control
 
----
-
-**Version:** 1.0  
-**Status:** Production Ready  
-**Last Updated:** February 7, 2026  
-**Compatibility:** iOS 15.0+, iPadOS 15.0+

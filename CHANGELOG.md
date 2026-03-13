@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0-dev] - Unreleased
 
-### 🚀 Extended Deep Link Routing, Gallery Filters & Cart Icon (2026-03-11)
+### Extended Deep Link Routing, Gallery Filters & Cart Icon (2026-03-11)
 
 #### Added
 - **Extended deep link routing (iOS + Android)**: Added routes for `editor`, `performance`, `bookmarks`, `settings`, and `more` screens on both platforms via the `adaptivecards://` URL scheme
@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-### 🔧 Sample App Rendering Fixes & Build Verification (2026-02-12)
+### Sample App Rendering Fixes & Build Verification (2026-02-12)
 
 #### Fixed
 - **iOS card rendering placeholder bug**: Cards in the iOS sample app were displaying static placeholder text ("TextBlock element", "Image element") instead of actual Adaptive Card content. Fixed the `ElementView`, `ImageView`, `CompoundButtonView`, `ProgressIndicatorViews`, `RatingDisplayView`, `TabSetView`, and `TableView` to render real card data from parsed JSON. Card previews in the gallery and editor now display properly rendered Adaptive Card elements.
@@ -36,17 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Android SchemaValidator**: Updated `SchemaValidator.kt` for compatibility fixes.
 - **Android Markdown build config**: Updated `ac-markdown/build.gradle.kts` and `gradle/libs.versions.toml` for dependency alignment.
 
-#### Verified
-- **iOS build**: All 11 modules build successfully (`swift build` passes)
-- **iOS tests**: All tests pass (`swift test` passes)
-- **iOS sample app**: Running on iPhone 17 Pro Simulator with actual card rendering
-- **Android build**: All 12 modules build successfully (`./gradlew build` passes)
-- **Android tests**: 150 tests passed with 100% pass rate (`./gradlew test`)
-- **Android sample app**: Running on Android Emulator API 36 with actual card rendering
-
 ---
 
-### ✅ Phase 1: Android Templating Engine Complete
+### Phase 1: Android Templating Engine Complete
 
 #### Added
 - **Android ac-templating module implementation (PR #XX)**: Complete feature parity with iOS ACTemplating
@@ -86,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated IMPLEMENTATION_PLAN.md Phase 1 from 85% to 100% completion
   - Updated project-wide completion references from 54% to 100%
 
-### 🔧 Phase 6B: Reliability & CI/CD Improvements
+### Phase 6B: Reliability & CI/CD Improvements
 
 #### Fixed
 - **CarouselView ForEach rendering bug (PR #14)**: Fixed remaining ForEach offset-as-ID issue in `CarouselView.swift`
@@ -118,16 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Added LICENSE file**: MIT License with copyright "Adaptive Cards Mobile SDK Contributors" (2024)
 - **Added PR validation workflow**: Created `.github/workflows/pr-checks.yml` for fast PR validation (JSON and lint checks)
 
-#### Why This Matters
-- **Prevents all SwiftUI ForEach bugs**: Completing the offset-as-ID fixes across all files ensures no view identity bugs in production
-- **Faster CI feedback**: iOS tests now run once instead of three times, reducing CI time by ~35%
-- **Reliable builds**: Gradle wrapper ensures consistent Android builds across all environments
-- **Visible lint failures**: Removing `continue-on-error` makes code quality issues actionable instead of silently ignored
-- **Legal compliance**: LICENSE file removes legal blocker for adoption
-- **Better PR workflow**: Fast validation catches basic issues before expensive iOS/Android tests run
-
 ---
-### 🔧 Phase 6A: Codebase Hygiene & README Accuracy
+### Phase 6A: Codebase Hygiene & README Accuracy
 
 #### Changed
 - **Updated README roadmap**: Marked Phases 1-5 as ✅ Complete, added Phase 6 with sub-phases (6A-6F)
@@ -138,19 +122,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated 7 view files: `AdaptiveCardView`, `ContainerView`, `ColumnView`, `TableView`, `AccordionView`, `CarouselView`, `TabSetView`
 - **Documentation organization**: Updated docs/README.md to reference session artifacts folder
 
-#### Why This Matters
-- **Stable identities prevent UI glitches**: SwiftUI's ForEach requires stable identifiers to correctly track view identity across updates. Using array indices (`.offset`) can cause views to be incorrectly reused or animated when the underlying data changes.
-- **Improved README accuracy**: The roadmap now reflects the actual project state, making it easier for contributors and users to understand project status.
-
 ---
 
 ## [1.0.0] - 2024-02-07
 
-### 🎉 Initial Release
+### Initial Release
 
 First stable release of the Adaptive Cards Mobile SDK for iOS and Android with complete feature parity.
 
-### ✨ Added
+### Added
 
 #### Core Features
 - **Adaptive Card Schema 1.5 Support**: Full compliance with Adaptive Cards schema version 1.5
@@ -225,7 +205,7 @@ First stable release of the Adaptive Cards Mobile SDK for iOS and Android with c
 - Migration guide from legacy SDK
 - Contributing guidelines
 
-### 📦 Module Structure
+### Module Structure
 
 **iOS Modules**:
 - `ACCore` - Core models and parsing
@@ -254,7 +234,7 @@ First stable release of the Adaptive Cards Mobile SDK for iOS and Android with c
 - `ac-teams` - Teams integration
 - `ac-host-config` - Configuration management
 
-### 🔧 Technical Details
+### Technical Details
 
 #### Performance
 - Average parse time: <5ms for typical cards
@@ -268,13 +248,13 @@ First stable release of the Adaptive Cards Mobile SDK for iOS and Android with c
 - **Swift**: 5.9+
 - **Kotlin**: 1.9+
 
-### 📝 Known Limitations
+### Known Limitations
 
 - Video playback requires network connectivity
 - Some advanced chart types may have rendering variations across platforms
 - Custom host config validation is runtime-only (no compile-time checking)
 
-### 🙏 Acknowledgments
+### Acknowledgments
 
 Built following the [Adaptive Cards specification](https://adaptivecards.io/) by Microsoft.
 

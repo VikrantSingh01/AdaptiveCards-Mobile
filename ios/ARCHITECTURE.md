@@ -1,7 +1,5 @@
 # iOS Adaptive Cards SDK - Architecture Documentation
 
-**Version:** 1.0  
-**Last Updated:** 2026-02-07  
 **Platform:** iOS 16+, Swift 5.9+, SwiftUI
 
 ---
@@ -33,6 +31,40 @@ The iOS Adaptive Cards SDK is a modular, SwiftUI-based framework for rendering A
 - **Performance**: Lazy loading, caching, and efficient rendering
 - **Accessibility**: VoiceOver support built into every component
 - **Testability**: Protocol-based design enables comprehensive unit testing
+
+### High-Level Rendering Pipeline
+
+```
+┌─────────────────────────────────────────────┐
+│          SwiftUI Host Application           │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│          ACRendering (Views)                │
+│  • AdaptiveCardView                         │
+│  • Element Views (TextBlock, Image, etc.)   │
+│  • Container Views                          │
+│  • Advanced Element Views                   │
+└──────┬──────────────────────────┬───────────┘
+       │                          │
+┌──────▼──────┐           ┌──────▼──────────┐
+│  ACInputs   │           │   ACActions     │
+│  • Input    │           │   • Action      │
+│    Controls │           │     Handlers    │
+└──────┬──────┘           └──────┬──────────┘
+       │                          │
+       │      ┌──────────┐        │
+       └──────►  ACCore  ◄────────┘
+              │  • Models│
+              │  • Parser│
+              └──────┬───┘
+                     │
+              ┌──────▼─────────┐
+              │ ACTemplating   │
+              │ • Template     │
+              │   Engine       │
+              └────────────────┘
+```
 
 ### Architecture Diagram
 
@@ -830,42 +862,14 @@ Located in `shared/test-cards/`:
 
 ---
 
-## Future Enhancements
+## Potential Improvements
 
-### Planned Additions
-
-- **ACCharts**: Chart rendering module (Phase 2E)
-- **ACFluentUI**: Fluent Design System theming (Phase 2F)
-- **ACCopilotExtensions**: Copilot-specific features (Phase 3C)
-- **ACTeams**: Teams integration module (Phase 3D)
-
-### Performance Improvements
-
-- Background JSON parsing with actors
+- Background JSON parsing with Swift actors
 - Expression caching in TemplateEngine
-- View diffing optimization
 - Binary card format for faster parsing
-
-### Additional Features
-
 - Custom animation support
 - Video playback in Media element
-- PDF rendering
 - Offline card caching
-- Card versioning and migration
-
----
-
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | 2026-02-07 | Initial architecture document with Phase 1 & 2A-2B complete |
-
----
-
-**Document Maintained By:** iOS SDK Team  
-**Contact:** See CONTRIBUTING.md for contribution guidelines
 
 ---
 
@@ -1001,6 +1005,3 @@ See [ios/SampleApp/README.md](SampleApp/README.md) for detailed build instructio
 
 ---
 
-**Document Version**: 1.0.1  
-**Last Updated**: 2024-02-07  
-**Next Review**: 2024-03-07

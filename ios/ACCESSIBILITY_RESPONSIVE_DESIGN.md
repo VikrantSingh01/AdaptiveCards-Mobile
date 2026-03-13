@@ -412,9 +412,3 @@ VStack(spacing: isTablet ? 16 : 12) { ... }
 3. **Guided Access:** Better support for Guided Access mode
 4. **AssistiveTouch:** Optimize for AssistiveTouch users
 
----
-
-**Version:** 1.0  
-**Last Updated:** February 7, 2026  
-**Compliance:** WCAG 2.1 Level AA, iOS Accessibility Guidelines  
-**Tested On:** iOS 17.0+, iPadOS 17.0+

@@ -4,13 +4,13 @@ A comprehensive Jetpack Compose sample application demonstrating the Adaptive Ca
 
 ## Features
 
-### 📱 Card Gallery
+### Card Gallery
 - Browse all test cards by category
 - Search and filter functionality
 - Categories: Basic, Inputs, Actions, Containers, Advanced, Teams, Templating
 - Material Design 3 UI
 
-### ✏️ Card Editor
+### Card Editor
 - Live JSON editor with syntax validation
 - Real-time preview
 - Tab-based navigation (Editor/Preview)
@@ -18,14 +18,14 @@ A comprehensive Jetpack Compose sample application demonstrating the Adaptive Ca
 - Load sample cards
 - Copy JSON functionality
 
-### 💬 Teams Simulator
+### Teams Simulator
 - Teams-style chat interface
 - Send text messages and cards
 - Multiple card templates (simple, form, chart)
 - Material Design chat bubbles with timestamps
 - Action handling within chat context
 
-### 📊 Performance Dashboard
+### Performance Dashboard
 - Parse time metrics (avg, min, max)
 - Render time metrics (avg, min, max)
 - Memory usage tracking
@@ -33,14 +33,14 @@ A comprehensive Jetpack Compose sample application demonstrating the Adaptive Ca
 - Start/stop recording
 - Export performance reports
 
-### 🎨 Settings
+### Settings
 - Theme selection (Light, Dark, System)
 - Font scale adjustment (80% - 150%)
 - Accessibility toggles
 - Developer options
 - SDK version info
 
-### 📝 Action Log
+### Action Log
 - Complete history of all dispatched actions
 - Search and filter actions
 - Detailed action inspection
