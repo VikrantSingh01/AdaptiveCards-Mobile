@@ -17,6 +17,8 @@ import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -161,6 +163,22 @@ data class GridArea(
  * converting everything to String. Handles cases like `"columns": [50]` (numeric)
  * or `"columns": ["1fr", "2fr"]` (string).
  */
+/**
+ * Serializer that accepts both string and numeric JSON values,
+ * converting everything to String. Handles cases like `"width": 1` (numeric)
+ * or `"width": "stretch"` (string).
+ */
+object FlexibleStringSerializer : JsonTransformingSerializer<String>(String.serializer()) {
+    override fun transformDeserialize(element: JsonElement): JsonElement {
+        // Convert any JSON primitive (number, boolean) to its string representation
+        return if (element is JsonPrimitive && !element.isString) {
+            JsonPrimitive(element.content)
+        } else {
+            element
+        }
+    }
+}
+
 object FlexibleStringListSerializer : KSerializer<List<String>> {
     override val descriptor: SerialDescriptor =
         ListSerializer(String.serializer()).descriptor

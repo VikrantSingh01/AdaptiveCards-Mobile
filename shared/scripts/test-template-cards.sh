@@ -12,6 +12,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SIMULATOR="iPhone 16 Pro"
 APP_ID="com.microsoft.adaptivecards.sampleapp"
@@ -153,6 +154,14 @@ test_card() {
 
     if [[ "$file_size" -lt 10000 ]]; then
         log_fail "$name — screenshot too small (${file_size}B), likely blank"
+        return
+    fi
+
+    # OCR check: detect unresolved template markers ({}) or fail text
+    local ocr_result
+    ocr_result=$(check_screenshot_text "$screenshot_path")
+    if [[ "$ocr_result" == TEMPLATE_FAIL* ]]; then
+        log_fail "$name — $ocr_result"
         return
     fi
 

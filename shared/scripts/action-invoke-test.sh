@@ -31,6 +31,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
+
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 REPORT_DIR="${REPO_ROOT}/shared/test-output/action-invoke-$TIMESTAMP"
@@ -462,6 +465,16 @@ android_test_action() {
     local post_hash
     post_hash=$(screenshot_hash "$post_ss")
 
+    # OCR check for unresolved template markers or fail text
+    local android_ocr
+    android_ocr=$(check_screenshot_text "$post_ss")
+    if [[ "$android_ocr" == TEMPLATE_FAIL* ]]; then
+        echo "FAIL:$android_ocr"
+        android_press_back
+        sleep 0.5
+        return 1
+    fi
+
     # UX verification
     local ux_changed=false
     if [ "$pre_hash" != "$post_hash" ]; then
@@ -518,6 +531,14 @@ ios_test_action() {
     ios_screenshot "$post_ss"
     local post_hash
     post_hash=$(screenshot_hash "$post_ss")
+
+    # OCR check for unresolved template markers or fail text
+    local ios_ocr
+    ios_ocr=$(check_screenshot_text "$post_ss")
+    if [[ "$ios_ocr" == TEMPLATE_FAIL* ]]; then
+        echo "FAIL:$ios_ocr"
+        return 1
+    fi
 
     # UX verification
     local ux_changed=false

@@ -13,6 +13,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
+
 SIMULATOR="iPhone 16 Pro"
 APP_ID="com.microsoft.adaptivecards.sampleapp"
 SCREENSHOT_DIR="/tmp/card-visual-tests"
@@ -230,8 +233,15 @@ for card_path in "${CARDS[@]}"; do
 
     SIZE=$(stat -f%z "$SCREENSHOT" 2>/dev/null || echo "0")
 
+    # OCR check: detect unresolved template markers or fail text in screenshot
+    OCR_RESULT=$(check_screenshot_text "$SCREENSHOT")
+
     # Analyze: very small = blank, medium-small = possible issue
-    if [ "$SIZE" -lt 50000 ]; then
+    if [[ "$OCR_RESULT" == TEMPLATE_FAIL* ]]; then
+        echo "FAIL (${SIZE}B — $OCR_RESULT)"
+        echo "| $card_name | FAIL | ${SIZE}B | $OCR_RESULT |" >> "$REPORT_FILE"
+        FAIL=$((FAIL + 1))
+    elif [ "$SIZE" -lt 50000 ]; then
         echo "FAIL (${SIZE}B — likely blank/error)"
         echo "| $card_name | FAIL | ${SIZE}B | Blank or error screen |" >> "$REPORT_FILE"
         FAIL=$((FAIL + 1))

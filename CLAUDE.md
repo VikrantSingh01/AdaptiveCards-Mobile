@@ -114,6 +114,16 @@ cd ios && swift test --filter CardParsingRegressionTests
 bash shared/scripts/test-ios-cards-ui.sh teams-official
 ```
 
+### Screenshot OCR Validation
+
+All visual test scripts automatically run OCR on each screenshot to detect:
+- **Curly brackets** (`{`, `}`) — indicates unresolved `${expression}` template markers
+- **"fail" text** — indicates rendering/parsing error messages in the card
+
+This catches template engine failures that produce valid-looking screenshots (correct size) but contain raw template expressions instead of resolved values. The OCR check uses macOS Vision framework via a compiled Swift helper (`shared/scripts/check-screenshot-text.sh`).
+
+Scripts with OCR validation: `visual-test-loop.sh`, `self-heal-ios.sh`, `self-heal-android.sh`, `self-heal-dual.sh`, `test-template-cards.sh`, `test-template-cards-dual.sh`, `test-ios-cards-visual.sh`, `auto-test-ios-cards.sh`, `action-test-loop.sh`, `action-invoke-test.sh`.
+
 ### Android
 
 ```bash
@@ -180,6 +190,7 @@ Test framework: JUnit 5 (Jupiter) with `useJUnitPlatform()`.
 ```bash
 bash shared/scripts/validate-test-cards.sh       # Validate test card JSON
 bash shared/scripts/compare-schema-coverage.sh   # Check iOS/Android parity
+bash shared/scripts/check-screenshot-text.sh <screenshot.png>  # OCR check for template failures
 ```
 
 ### Test Cards

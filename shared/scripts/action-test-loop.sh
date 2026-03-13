@@ -25,6 +25,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
+
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 REPORT_DIR="${REPO_ROOT}/shared/test-output/action-test-$TIMESTAMP"
@@ -279,7 +282,18 @@ for card_path in "${ACTION_CARDS[@]}"; do
                 notes="iOS: shows gallery (deep link didn't navigate)"
             else
                 ios_status=$(classify "$ios_sz" "ios")
-                if [ "$ios_status" = "PASS" ]; then
+                # OCR check for unresolved template markers or fail text
+                if [ "$ios_status" = "PASS" ] && [ -f "$ios_ss" ]; then
+                    local ios_ocr
+                    ios_ocr=$(check_screenshot_text "$ios_ss")
+                    if [[ "$ios_ocr" == TEMPLATE_FAIL* ]]; then
+                        ios_status="FAIL"
+                        ios_fail=$((ios_fail + 1))
+                        notes="iOS: $ios_ocr"
+                    else
+                        ios_pass=$((ios_pass + 1))
+                    fi
+                elif [ "$ios_status" = "PASS" ]; then
                     ios_pass=$((ios_pass + 1))
                 else
                     ios_fail=$((ios_fail + 1))
@@ -306,7 +320,18 @@ for card_path in "${ACTION_CARDS[@]}"; do
                 notes="${notes:+$notes; }Android: shows gallery (deep link didn't navigate)"
             else
                 android_status=$(classify "$android_sz" "android")
-                if [ "$android_status" = "PASS" ]; then
+                # OCR check for unresolved template markers or fail text
+                if [ "$android_status" = "PASS" ] && [ -f "$android_ss" ]; then
+                    local android_ocr
+                    android_ocr=$(check_screenshot_text "$android_ss")
+                    if [[ "$android_ocr" == TEMPLATE_FAIL* ]]; then
+                        android_status="FAIL"
+                        android_fail=$((android_fail + 1))
+                        notes="${notes:+$notes; }Android: $android_ocr"
+                    else
+                        android_pass=$((android_pass + 1))
+                    fi
+                elif [ "$android_status" = "PASS" ]; then
                     android_pass=$((android_pass + 1))
                 else
                     android_fail=$((android_fail + 1))

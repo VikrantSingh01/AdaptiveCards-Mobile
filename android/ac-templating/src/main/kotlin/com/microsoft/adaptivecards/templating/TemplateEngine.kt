@@ -76,12 +76,41 @@ class TemplateEngine {
             val parsed = jsonToMap(jsonObject)
             val context = DataContext(data = data)
             val expanded = expandDictionary(parsed, context)
-            return org.json.JSONObject(expanded).toString()
+            return toJsonObject(expanded).toString()
         } catch (_: Exception) {
             // Fallback to string-based expansion for non-JSON templates
         }
         val context = DataContext(data = data)
         return expandString(template, context)
+    }
+
+    /** Recursively converts a Map/List/primitive structure to org.json types */
+    private fun toJsonValue(value: Any?): Any = when (value) {
+        null -> org.json.JSONObject.NULL
+        is Map<*, *> -> {
+            val obj = org.json.JSONObject()
+            for ((k, v) in value) {
+                obj.put(k as? String ?: k.toString(), toJsonValue(v))
+            }
+            obj
+        }
+        is List<*> -> {
+            val arr = org.json.JSONArray()
+            for (item in value) {
+                arr.put(toJsonValue(item))
+            }
+            arr
+        }
+        is Boolean, is Int, is Long, is Double, is Float, is String -> value
+        else -> value.toString()
+    }
+
+    private fun toJsonObject(map: Map<String, Any?>): org.json.JSONObject {
+        val obj = org.json.JSONObject()
+        for ((key, value) in map) {
+            obj.put(key, toJsonValue(value))
+        }
+        return obj
     }
 
     private fun jsonToMap(json: org.json.JSONObject): Map<String, Any?> {
@@ -277,7 +306,42 @@ class TemplateEngine {
 
     private fun expandValue(value: Any?, context: DataContext): Any? {
         return when (value) {
-            is String -> expandString(value, context)
+            is String -> {
+                // If the entire string is a single ${expr}, return the native evaluated value
+                // (preserving arrays, objects, numbers, booleans) instead of stringifying.
+                val trimmed = value.trim()
+                if (trimmed.startsWith("\${") && trimmed.endsWith("}")) {
+                    // Verify it's a single expression (no text before/after, balanced braces)
+                    var braceCount = 0
+                    var firstCloseIndex = -1
+                    for (i in 2 until trimmed.length) {
+                        when (trimmed[i]) {
+                            '{' -> braceCount++
+                            '}' -> {
+                                if (braceCount == 0) {
+                                    firstCloseIndex = i
+                                    break
+                                }
+                                braceCount--
+                            }
+                        }
+                    }
+                    if (firstCloseIndex == trimmed.length - 1) {
+                        // Pure expression — return native value
+                        val expression = trimmed.substring(2, trimmed.length - 1)
+                        try {
+                            val parsed = parser.parse(expression)
+                            val evaluator = ExpressionEvaluator(context)
+                            val result = evaluator.evaluate(parsed)
+                            // Return native type for complex values; stringify only for text
+                            return result
+                        } catch (_: Exception) {
+                            return value // Leave as-is on error
+                        }
+                    }
+                }
+                expandString(value, context)
+            }
             is Map<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
                 expandDictionary(value as? Map<String, Any?> ?: emptyMap(), context)
@@ -312,14 +376,27 @@ class TemplateEngine {
             is Double -> {
                 // Format numbers without unnecessary decimal places
                 if (value % 1.0 == 0.0) {
-                    value.toInt().toString()
+                    value.toLong().toString()
                 } else {
                     value.toString()
                 }
             }
             is Int -> value.toString()
+            is Long -> value.toString()
             is Boolean -> value.toString()
             null -> ""
+            is Map<*, *> -> {
+                // Serialize maps as valid JSON
+                try {
+                    org.json.JSONObject(value).toString()
+                } catch (_: Exception) { "{}" }
+            }
+            is List<*> -> {
+                // Serialize lists as valid JSON
+                try {
+                    org.json.JSONArray(value).toString()
+                } catch (_: Exception) { "[]" }
+            }
             else -> value.toString()
         }
     }

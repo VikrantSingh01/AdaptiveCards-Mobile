@@ -368,6 +368,30 @@ steps:
 | MemoryBenchmark              | -     | -       | 8           |
 | **TOTAL**                    |       |         | **641**     |
 
+## Screenshot OCR Validation (Shell Scripts)
+
+The shell-based visual test scripts (`self-heal-android.sh`, `self-heal-dual.sh`,
+`test-template-cards-dual.sh`, `action-test-loop.sh`, `action-invoke-test.sh`)
+include automatic OCR validation of screenshots pulled from Android devices.
+
+### What It Detects
+
+| Pattern | Indicates | Example |
+|---------|-----------|---------|
+| `{` or `}` in rendered text | Unresolved template expressions | `${user.name}` shown literally |
+| "fail" text (case-insensitive) | Rendering/parsing error message | "Failed to parse card" |
+
+The OCR uses macOS Vision framework (`shared/scripts/check-screenshot-text.sh`).
+On non-macOS CI, the OCR check is skipped gracefully (returns `OCR_UNAVAILABLE`).
+
+### When Tests Fail with TEMPLATE_FAIL
+
+This means the template engine did not resolve expressions before rendering.
+Check:
+1. Template data JSON is being loaded and passed correctly
+2. `ac-templating` handles all expression functions used in the card
+3. The card's `$data` binding matches the data schema
+
 ## Troubleshooting
 
 ### No baseline found

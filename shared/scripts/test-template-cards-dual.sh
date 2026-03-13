@@ -8,6 +8,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SIMULATOR="iPhone 16 Pro"
 IOS_APP_ID="com.microsoft.adaptivecards.sampleapp"
@@ -170,35 +171,20 @@ fi
 # ─────────────────────────────────────────────
 # Test function: take screenshot and validate
 # ─────────────────────────────────────────────
-test_ios() {
-    local deeplink="$1" name="$2" screenshot_name="$3"
-    xcrun simctl openurl "$SIMULATOR" "adaptivecards://card/$deeplink" 2>/dev/null
-    sleep 2
-    local path="$IOS_DIR/${screenshot_name}.png"
-    xcrun simctl io "$SIMULATOR" screenshot "$path" 2>/dev/null
+check_screenshot() {
+    local path="$1"
     local size
     size=$(stat -f%z "$path" 2>/dev/null || echo "0")
-    if [[ "$size" -gt 10000 ]]; then
-        return 0
-    fi
-    return 1
-}
-
-test_android() {
-    local deeplink="$1" name="$2" screenshot_name="$3"
-    "$ADB" shell am start -a android.intent.action.VIEW -d "adaptivecards://card/$deeplink" 2>/dev/null
-    sleep 2
-    "$ADB" exec-out screencap -p > "$ANDROID_DIR/${screenshot_name}.png" 2>/dev/null
-    local size
-    size=$(stat -f%z "$ANDROID_DIR/${screenshot_name}.png" 2>/dev/null || echo "0")
-    if [[ "$size" -gt 10000 ]]; then
-        return 0
-    fi
-    return 1
+    # Fail if screenshot is too small (blank/error)
+    [[ "$size" -gt 10000 ]] || return 1
+    # Fail if OCR detects curly brackets or fail text (unresolved templates)
+    local ocr_result
+    ocr_result=$(check_screenshot_text "$path")
+    [[ "$ocr_result" != TEMPLATE_FAIL* ]]
 }
 
 # ─────────────────────────────────────────────
-# Run tests on both platforms
+# Run tests on both platforms (in sync)
 # ─────────────────────────────────────────────
 log_header "Testing ${#CARDS[@]} template cards on both platforms..."
 echo "═══════════════════════════════════════════════════════════════"
@@ -212,8 +198,31 @@ for entry in "${CARDS[@]}"; do
     ios_result="—"
     android_result="—"
 
+    # Fire both deep links simultaneously
     if $IOS_AVAILABLE; then
-        if test_ios "$deeplink" "$name" "$screenshot_name"; then
+        xcrun simctl openurl "$SIMULATOR" "adaptivecards://card/$deeplink" 2>/dev/null
+    fi
+    if $ANDROID_AVAILABLE; then
+        "$ADB" shell am start -a android.intent.action.VIEW -d "adaptivecards://card/$deeplink" 2>/dev/null
+    fi
+
+    # Single wait for both platforms to render
+    sleep 2
+
+    # Take both screenshots in parallel
+    if $IOS_AVAILABLE; then
+        xcrun simctl io "$SIMULATOR" screenshot "$IOS_DIR/${screenshot_name}.png" 2>/dev/null &
+        IOS_SNAP_PID=$!
+    fi
+    if $ANDROID_AVAILABLE; then
+        "$ADB" exec-out screencap -p > "$ANDROID_DIR/${screenshot_name}.png" 2>/dev/null &
+        ANDROID_SNAP_PID=$!
+    fi
+
+    # Wait for screenshots to complete
+    if $IOS_AVAILABLE; then
+        wait $IOS_SNAP_PID
+        if check_screenshot "$IOS_DIR/${screenshot_name}.png"; then
             ios_result="${GREEN}✓${NC}"
             ((IOS_PASSES++))
         else
@@ -221,9 +230,9 @@ for entry in "${CARDS[@]}"; do
             ((IOS_FAILS++))
         fi
     fi
-
     if $ANDROID_AVAILABLE; then
-        if test_android "$deeplink" "$name" "$screenshot_name"; then
+        wait $ANDROID_SNAP_PID
+        if check_screenshot "$ANDROID_DIR/${screenshot_name}.png"; then
             android_result="${GREEN}✓${NC}"
             ((ANDROID_PASSES++))
         else

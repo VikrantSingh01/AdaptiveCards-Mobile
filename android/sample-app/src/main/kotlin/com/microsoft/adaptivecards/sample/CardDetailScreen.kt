@@ -82,12 +82,19 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     LaunchedEffect(card, refreshKey) {
         card?.let {
             try {
+                // Expand templates before benchmarking (templates need data to produce valid JSON)
+                val templateEngine = com.microsoft.adaptivecards.templating.TemplateEngine()
+                var cardJson = templateEngine.resolveStringResources(it.jsonString)
+                if (templateData != null) {
+                    cardJson = templateEngine.expand(cardJson, templateData)
+                }
+
                 // Clear cache so measurements reflect real work, not cache lookups
                 CardViewModel.clearParseCache()
 
                 // Parse: fresh JSON deserialization
                 val parseStart = System.nanoTime()
-                CardParser.parse(it.jsonString)
+                CardParser.parse(cardJson)
                 parseTimeMs = (System.nanoTime() - parseStart) / 1_000_000.0
 
                 // Render: ViewModel parse (cache-miss) + state initialization
