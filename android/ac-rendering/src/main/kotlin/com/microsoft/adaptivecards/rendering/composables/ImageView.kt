@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.microsoft.adaptivecards.core.models.Image
@@ -89,6 +90,10 @@ fun ImageView(
         .apply {
             if (isSvg) {
                 decoderFactory(SvgDecoder.Factory())
+            }
+            if (element.forceLoad == true) {
+                memoryCachePolicy(CachePolicy.DISABLED)
+                diskCachePolicy(CachePolicy.DISABLED)
             }
         }
         .crossfade(true)

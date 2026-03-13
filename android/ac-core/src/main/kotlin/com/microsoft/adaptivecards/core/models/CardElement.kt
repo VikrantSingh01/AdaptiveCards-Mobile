@@ -87,6 +87,7 @@ data class Image(
     val selectAction: CardAction? = null,
     val targetWidth: String? = null,
     val themedUrls: Map<String, String>? = null,
+    val forceLoad: Boolean? = null,
     /** Explicit pixel height from JSON (e.g. "32px"). Extracted by CardElementSerializer because
      *  the base `height` field is typed as BlockElementHeight enum. */
     @Transient val pixelHeight: String? = null
@@ -385,6 +386,7 @@ data class TableCell(
     val selectAction: CardAction? = null,
     val style: ContainerStyle? = null,
     val verticalContentAlignment: VerticalContentAlignment? = null,
+    val horizontalCellContentAlignment: HorizontalAlignment? = null,
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,

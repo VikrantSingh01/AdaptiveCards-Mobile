@@ -59,7 +59,7 @@ struct ImageView: View {
             } else if isSVG {
                 svgView
             } else {
-                AsyncImage(url: URL(string: image.url)) { phase in
+                AsyncImage(url: imageURL) { phase in
                     switch phase {
                     case .empty:
                         if let w = imageWidth, let h = imageHeight {
@@ -97,12 +97,12 @@ struct ImageView: View {
             }
         }
         .background(backgroundColorValue)
-        .frame(maxWidth: .infinity, alignment: frameAlignment)
-        .spacing(image.spacing, hostConfig: hostConfig)
-        .separator(image.separator, hostConfig: hostConfig)
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
+        .frame(maxWidth: .infinity, alignment: frameAlignment)
+        .spacing(image.spacing, hostConfig: hostConfig)
+        .separator(image.separator, hostConfig: hostConfig)
         .accessibilityElement(label: image.altText ?? "Image")
     }
 
@@ -142,6 +142,19 @@ struct ImageView: View {
     }
 
     // MARK: - Sizing
+
+    private var imageURL: URL? {
+        guard let url = URL(string: image.url) else { return nil }
+        if image.forceLoad == true {
+            // Append cache-busting parameter to bypass URL cache
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            var queryItems = components?.queryItems ?? []
+            queryItems.append(URLQueryItem(name: "_t", value: "\(Date().timeIntervalSince1970)"))
+            components?.queryItems = queryItems
+            return components?.url ?? url
+        }
+        return url
+    }
 
     private var backgroundColorValue: Color {
         if let bgColor = image.backgroundColor, !bgColor.isEmpty {

@@ -133,6 +133,46 @@ get_official_cards() {
     echo "${cards[@]}"
 }
 
+get_versioned_cards() {
+    local cards=()
+    for ver in v1.5 v1.6; do
+        if [ -d "$REPO_ROOT/shared/test-cards/versioned/$ver" ]; then
+            for f in "$REPO_ROOT/shared/test-cards/versioned/$ver"/*.json; do
+                [ -f "$f" ] || continue
+                cards+=("versioned/$ver/$(basename "$f" .json)")
+            done
+        fi
+    done
+    echo "${cards[@]}"
+}
+
+get_root_cards() {
+    local cards=()
+    for f in "$REPO_ROOT/shared/test-cards"/*.json; do
+        [ -f "$f" ] || continue
+        local bname
+        bname=$(basename "$f")
+        [[ "$bname" == *.data.json ]] && continue
+        [[ "$bname" == "sample-catalog.json" ]] && continue
+        cards+=("$(basename "$f" .json)")
+    done
+    echo "${cards[@]}"
+}
+
+get_template_cards() {
+    local cards=()
+    for f in "$REPO_ROOT/shared/test-cards/templates"/*.template.json; do
+        [ -f "$f" ] || continue
+        cards+=("templates/$(basename "$f" .json)")
+    done
+    for f in "$REPO_ROOT/shared/test-cards/templates"/Template.*.json; do
+        [ -f "$f" ] || continue
+        [[ "$(basename "$f")" == *.data.json ]] && continue
+        cards+=("templates/$(basename "$f" .json)")
+    done
+    echo "${cards[@]}"
+}
+
 # =============================================================================
 # Utility Functions
 # =============================================================================
@@ -529,6 +569,21 @@ phase2_visual() {
                 cards_to_test+=("${element_cards[@]}")
                 IFS=' ' read -ra official_cards <<< "$(get_official_cards)"
                 cards_to_test+=("${official_cards[@]}")
+                IFS=' ' read -ra versioned_cards <<< "$(get_versioned_cards)"
+                cards_to_test+=("${versioned_cards[@]}")
+                IFS=' ' read -ra root_cards <<< "$(get_root_cards)"
+                cards_to_test+=("${root_cards[@]}")
+                IFS=' ' read -ra template_cards <<< "$(get_template_cards)"
+                cards_to_test+=("${template_cards[@]}")
+                ;;
+            versioned)
+                IFS=' ' read -ra cards_to_test <<< "$(get_versioned_cards)"
+                ;;
+            root)
+                IFS=' ' read -ra cards_to_test <<< "$(get_root_cards)"
+                ;;
+            templates)
+                IFS=' ' read -ra cards_to_test <<< "$(get_template_cards)"
                 ;;
             *) cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}") ;;
         esac

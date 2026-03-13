@@ -14,6 +14,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$SCRIPT_DIR/check-screenshot-text.sh"
 
 SIMULATOR="iPhone 16 Pro"
@@ -190,11 +191,76 @@ case "$CATEGORY" in
         CARDS=("${TEAMS_OFFICIAL[@]}")
         ;;
     all)
-        # All testable cards (excludes templates which need data binding)
         CARDS=("${BUILT_IN[@]}" "${EDGE_CASES[@]}" "${OFFICIAL[@]}" "${ELEMENT[@]}" "${TEAMS_OFFICIAL[@]}")
+        # Versioned cards (v1.5 and v1.6)
+        for ver in v1.5 v1.6; do
+            if [ -d "$REPO_ROOT/shared/test-cards/versioned/$ver" ]; then
+                for f in "$REPO_ROOT/shared/test-cards/versioned/$ver"/*.json; do
+                    [ -f "$f" ] || continue
+                    CARDS+=("versioned/$ver/$(basename "$f" .json)")
+                done
+            fi
+        done
+        # Root-level cards (skip .data.json and catalog)
+        for f in "$REPO_ROOT/shared/test-cards"/*.json; do
+            [ -f "$f" ] || continue
+            bname=$(basename "$f")
+            [[ "$bname" == *.data.json ]] && continue
+            [[ "$bname" == "sample-catalog.json" ]] && continue
+            # Skip cards already in hardcoded arrays
+            card_id=$(basename "$f" .json)
+            already=false
+            for existing in "${BUILT_IN[@]}" "${EDGE_CASES[@]}"; do
+                [[ "$existing" == "$card_id" ]] && { already=true; break; }
+            done
+            $already || CARDS+=("$card_id")
+        done
+        # Template cards
+        for f in "$REPO_ROOT/shared/test-cards/templates"/*.template.json; do
+            [ -f "$f" ] || continue
+            CARDS+=("templates/$(basename "$f" .json)")
+        done
+        for f in "$REPO_ROOT/shared/test-cards/templates"/Template.*.json; do
+            [ -f "$f" ] || continue
+            [[ "$(basename "$f")" == *.data.json ]] && continue
+            CARDS+=("templates/$(basename "$f" .json)")
+        done
+        ;;
+    versioned)
+        CARDS=()
+        for ver in v1.5 v1.6; do
+            if [ -d "$REPO_ROOT/shared/test-cards/versioned/$ver" ]; then
+                for f in "$REPO_ROOT/shared/test-cards/versioned/$ver"/*.json; do
+                    [ -f "$f" ] || continue
+                    CARDS+=("versioned/$ver/$(basename "$f" .json)")
+                done
+            fi
+        done
+        ;;
+    root)
+        CARDS=()
+        for f in "$REPO_ROOT/shared/test-cards"/*.json; do
+            [ -f "$f" ] || continue
+            bname=$(basename "$f")
+            [[ "$bname" == *.data.json ]] && continue
+            [[ "$bname" == "sample-catalog.json" ]] && continue
+            CARDS+=("$(basename "$f" .json)")
+        done
+        ;;
+    templates)
+        CARDS=()
+        for f in "$REPO_ROOT/shared/test-cards/templates"/*.template.json; do
+            [ -f "$f" ] || continue
+            CARDS+=("templates/$(basename "$f" .json)")
+        done
+        for f in "$REPO_ROOT/shared/test-cards/templates"/Template.*.json; do
+            [ -f "$f" ] || continue
+            [[ "$(basename "$f")" == *.data.json ]] && continue
+            CARDS+=("templates/$(basename "$f" .json)")
+        done
         ;;
     *)
-        echo "Usage: $0 [built-in|edge-cases|official|element|teams-official|all]"
+        echo "Usage: $0 [built-in|edge-cases|official|element|teams-official|versioned|root|templates|all]"
         exit 1
         ;;
 esac

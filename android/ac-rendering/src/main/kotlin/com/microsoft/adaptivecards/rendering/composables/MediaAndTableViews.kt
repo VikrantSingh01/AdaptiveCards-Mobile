@@ -144,8 +144,9 @@ fun TableView(
                         ?: element.verticalCellContentAlignment
                         ?: VerticalContentAlignment.Top
 
-                    // Resolve horizontal alignment (colDef > row > table)
-                    val horizontalAlign = colDef?.horizontalCellContentAlignment
+                    // Resolve horizontal alignment (cell > colDef > row > table)
+                    val horizontalAlign = cell.horizontalCellContentAlignment
+                        ?: colDef?.horizontalCellContentAlignment
                         ?: row.horizontalCellContentAlignment
                         ?: element.horizontalCellContentAlignment
 
