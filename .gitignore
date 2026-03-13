@@ -58,7 +58,10 @@ Pods/
 screenshots/
 
 # Self-heal test outputs (generated artifacts)
-shared/test-outputs/
+shared/test-output/
+
+# Design review catalogs (generated artifacts)
+shared/test-results/
 
 # Environment files
 .env
