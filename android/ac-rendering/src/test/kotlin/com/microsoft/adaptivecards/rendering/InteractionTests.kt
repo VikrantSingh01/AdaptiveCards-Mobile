@@ -184,7 +184,7 @@ class InteractionTests {
     // MARK: - Card Parsing
 
     @Test
-    fun `parse simple card`() {
+    fun `parse simple card`() = runTest {
         val json = """
             {
                 "type": "AdaptiveCard",
@@ -196,6 +196,7 @@ class InteractionTests {
         """.trimIndent()
 
         viewModel.parseCard(json)
+        testDispatcher.scheduler.advanceUntilIdle()
         assertNotNull(viewModel.card.value)
     }
 

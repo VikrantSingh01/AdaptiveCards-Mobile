@@ -69,17 +69,18 @@ public struct CarouselPage: Codable, Equatable, Identifiable {
     public var items: [CardElement]
     public var selectAction: CardAction?
 
-    /// Unique ID: prefer JSON "id", fall back to UUID to avoid SwiftUI ForEach collisions
+    /// Unique ID: prefer JSON "id", fall back to deterministic content-based ID
     public var id: String {
         if let jsonId, !jsonId.isEmpty {
             return jsonId
         }
-        // Fallback: use item IDs if unique, otherwise include hash for uniqueness
+        // Fallback: deterministic ID based on content
         let itemIds = items.map { $0.elementId ?? $0.typeString }.joined(separator: "_")
-        if itemIds.isEmpty {
-            return "page_\(UUID().uuidString)"
+        let base = itemIds.isEmpty ? "page_empty" : itemIds
+        if selectAction != nil {
+            return "\(base)_with_action"
         }
-        return itemIds
+        return base
     }
 
     enum CodingKeys: String, CodingKey {

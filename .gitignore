@@ -63,3 +63,4 @@ shared/test-outputs/
 # Environment files
 .env
 .env.*
+docs/architecture/ARCHITECTURE_SIMPLIFICATION_ROADMAP.md
