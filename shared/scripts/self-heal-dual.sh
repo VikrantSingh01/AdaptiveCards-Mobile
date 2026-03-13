@@ -142,11 +142,50 @@ else
                 IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
                 cards_to_test+=("${extra[@]}")
             done
+            # Root-level cards (not in subdirectories, skip .data.json and catalog)
+            for f in "$REPO_ROOT/shared/test-cards"/*.json; do
+                [ -f "$f" ] || continue
+                local_name=$(basename "$f")
+                [[ "$local_name" == *.data.json ]] && continue
+                [[ "$local_name" == "sample-catalog.json" ]] && continue
+                cards_to_test+=("$(basename "$f" .json)")
+            done
+            # Template cards (use .template suffix for deep link resolution)
+            for f in "$REPO_ROOT/shared/test-cards/templates"/*.template.json; do
+                [ -f "$f" ] || continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
+            # Template cards without .template suffix (e.g., Template.*.json)
+            for f in "$REPO_ROOT/shared/test-cards/templates"/Template.*.json; do
+                [ -f "$f" ] || continue
+                [[ "$(basename "$f")" == *.data.json ]] && continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
             ;;
         versioned)
             for ver in v1.5 v1.6; do
                 IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
                 cards_to_test+=("${extra[@]}")
+            done
+            ;;
+        root)
+            for f in "$REPO_ROOT/shared/test-cards"/*.json; do
+                [ -f "$f" ] || continue
+                local_name=$(basename "$f")
+                [[ "$local_name" == *.data.json ]] && continue
+                [[ "$local_name" == "sample-catalog.json" ]] && continue
+                cards_to_test+=("$(basename "$f" .json)")
+            done
+            ;;
+        templates)
+            for f in "$REPO_ROOT/shared/test-cards/templates"/*.template.json; do
+                [ -f "$f" ] || continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
+            for f in "$REPO_ROOT/shared/test-cards/templates"/Template.*.json; do
+                [ -f "$f" ] || continue
+                [[ "$(basename "$f")" == *.data.json ]] && continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
             done
             ;;
         *) cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}") ;;
@@ -454,8 +493,8 @@ for card_path in "${cards_to_test[@]}"; do
             failed_cards_ios+=("$card_path")
         else
             # OCR check for unresolved template markers or fail text
-            local ios_ocr="OCR_SKIP"
-            [ -f "$ios_ss" ] && ios_ocr=$(check_screenshot_text "$ios_ss")
+            ios_ocr="OCR_SKIP"
+            [ -f "$ios_ss" ] && ios_ocr=$(check_screenshot_text "$ios_ss" || true)
             if [[ "$ios_ocr" == TEMPLATE_FAIL* ]]; then
                 ios_status="FAIL"
                 notes="iOS: $ios_ocr"
@@ -480,8 +519,8 @@ for card_path in "${cards_to_test[@]}"; do
             failed_cards_android+=("$card_path")
         else
             # OCR check for unresolved template markers or fail text
-            local android_ocr="OCR_SKIP"
-            [ -f "$android_ss" ] && android_ocr=$(check_screenshot_text "$android_ss")
+            android_ocr="OCR_SKIP"
+            [ -f "$android_ss" ] && android_ocr=$(check_screenshot_text "$android_ss" || true)
             if [[ "$android_ocr" == TEMPLATE_FAIL* ]]; then
                 android_status="FAIL"
                 notes="${notes:+$notes; }Android: $android_ocr"
@@ -687,8 +726,7 @@ if [ ${#all_failed[@]} -gt 0 ] && [ "$MAX_RETRIES" -gt 0 ]; then
                     fi
                     # OCR check for unresolved template markers or fail text
                     if [ -f "$ios_ss" ] && [ "$ios_retry_st" != "FAIL" ]; then
-                        local ios_retry_ocr
-                        ios_retry_ocr=$(check_screenshot_text "$ios_ss")
+                        ios_retry_ocr=$(check_screenshot_text "$ios_ss" || true)
                         if [[ "$ios_retry_ocr" == TEMPLATE_FAIL* ]]; then
                             ios_retry_st="FAIL"
                             still_failing=true
@@ -718,8 +756,7 @@ if [ ${#all_failed[@]} -gt 0 ] && [ "$MAX_RETRIES" -gt 0 ]; then
                     fi
                     # OCR check for unresolved template markers or fail text
                     if [ -f "$android_ss" ] && [ "$android_retry_st" != "FAIL" ]; then
-                        local android_retry_ocr
-                        android_retry_ocr=$(check_screenshot_text "$android_ss")
+                        android_retry_ocr=$(check_screenshot_text "$android_ss" || true)
                         if [[ "$android_retry_ocr" == TEMPLATE_FAIL* ]]; then
                             android_retry_st="FAIL"
                             still_failing=true

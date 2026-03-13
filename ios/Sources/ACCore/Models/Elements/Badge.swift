@@ -10,27 +10,33 @@ import Foundation
 public struct Badge: Codable, Equatable {
     public let type: String
     public var id: String?
-    public var text: String
+    public var text: String?
     public var style: String?
     public var appearance: String?
     public var icon: String?
+    public var iconPosition: String?
     public var size: String?
+    public var shape: String?
     public var horizontalAlignment: String?
     public var spacing: Spacing?
     public var isVisible: Bool?
     public var targetWidth: String?
+    public var tooltip: String?
 
     public init(
-        text: String,
+        text: String? = nil,
         id: String? = nil,
         style: String? = nil,
         appearance: String? = nil,
         icon: String? = nil,
+        iconPosition: String? = nil,
         size: String? = nil,
+        shape: String? = nil,
         horizontalAlignment: String? = nil,
         spacing: Spacing? = nil,
         isVisible: Bool? = nil,
-        targetWidth: String? = nil
+        targetWidth: String? = nil,
+        tooltip: String? = nil
     ) {
         self.type = "Badge"
         self.id = id
@@ -38,10 +44,13 @@ public struct Badge: Codable, Equatable {
         self.style = style
         self.appearance = appearance
         self.icon = icon
+        self.iconPosition = iconPosition
         self.size = size
+        self.shape = shape
         self.horizontalAlignment = horizontalAlignment
         self.spacing = spacing
         self.isVisible = isVisible
         self.targetWidth = targetWidth
+        self.tooltip = tooltip
     }
 }

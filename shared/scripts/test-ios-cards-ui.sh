@@ -56,16 +56,26 @@ case "$CATEGORY" in
     teams-official)
         CARD_FILES=$(ls "$CARD_DIR/teams-official-samples/"*.json 2>/dev/null | sort)
         ;;
-    all-testable)
-        # All standalone cards (excludes templates needing data binding, host-configs, data files)
-        CARD_FILES=$(find "$CARD_DIR" -name "*.json" ! -name "*-data.json" ! -name "*.data.json" ! -path "*/host-configs/*" ! -path "*/templates/*" | sort)
+    versioned)
+        CARD_FILES=$(find "$CARD_DIR/versioned" -name "*.json" 2>/dev/null | sort)
+        ;;
+    root)
+        CARD_FILES=$(ls "$CARD_DIR/"*.json 2>/dev/null | grep -v '\.data\.json$' | grep -v 'sample-catalog\.json$' | sort)
+        ;;
+    templates)
+        CARD_FILES=$(ls "$CARD_DIR/templates/"*.template.json "$CARD_DIR/templates/"Template.*.json 2>/dev/null | grep -v '\.data\.json$' | sort)
         ;;
     all)
-        CARD_FILES=$(find "$CARD_DIR" -name "*.json" ! -name "*-data.json" | sort)
+        # All testable cards (excludes .data.json, host-configs, sample-catalog.json)
+        CARD_FILES=$(find "$CARD_DIR" -name "*.json" \
+            ! -name "*.data.json" \
+            ! -name "sample-catalog.json" \
+            ! -path "*/host-configs/*" \
+            | sort)
         ;;
     *)
         echo "Unknown category: $CATEGORY"
-        echo "Usage: $0 [built-in|edge-cases|official|element|teams-official|all-testable|all]"
+        echo "Usage: $0 [built-in|edge-cases|official|element|teams-official|versioned|root|templates|all]"
         exit 1
         ;;
 esac

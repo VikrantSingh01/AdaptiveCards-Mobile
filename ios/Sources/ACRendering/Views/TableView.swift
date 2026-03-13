@@ -25,7 +25,10 @@ struct TableView: View {
                             cell: cell,
                             isHeader: isHeaderRow,
                             hostConfig: hostConfig,
-                            depth: depth
+                            depth: depth,
+                            table: table,
+                            row: row,
+                            columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil
                         )
                         .frame(maxWidth: .infinity)
                         .if(hasColumnWeight(at: cellIndex)) { view in
@@ -66,6 +69,9 @@ struct TableCellView: View {
     let isHeader: Bool
     let hostConfig: HostConfig
     var depth: Int = 0
+    var table: ACCore.Table? = nil
+    var row: ACCore.TableRow? = nil
+    var columnDef: TableColumnDefinition? = nil
 
     @EnvironmentObject var viewModel: CardViewModel
 
@@ -80,7 +86,7 @@ struct TableCellView: View {
                         AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig, depth: depth)
                     }
                 } else {
-                    VStack(spacing: 0) {
+                    VStack(alignment: resolvedHStackAlignment, spacing: 0) {
                         ForEach(items) { element in
                             if viewModel.isElementVisible(elementId: element.elementId) {
                                 if isHeader {
@@ -98,26 +104,47 @@ struct TableCellView: View {
                     .frame(minHeight: 20)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: verticalContentAlignment)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: combinedAlignment)
         .frame(minHeight: minHeight)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
         .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
         .containerStyle(cell.style, hostConfig: hostConfig)
     }
 
-    private var verticalContentAlignment: Alignment {
-        guard let alignment = cell.verticalContentAlignment else {
-            return .center
-        }
-
+    private var resolvedHStackAlignment: SwiftUI.HorizontalAlignment {
+        let alignment = cell.horizontalCellContentAlignment
+            ?? columnDef?.horizontalCellContentAlignment
+            ?? row?.horizontalCellContentAlignment
+            ?? table?.horizontalCellContentAlignment
         switch alignment {
-        case .top:
-            return .top
-        case .center:
-            return .center
-        case .bottom:
-            return .bottom
+        case .center: return .center
+        case .right: return .trailing
+        default: return .leading
         }
+    }
+
+    private var combinedAlignment: Alignment {
+        let h: SwiftUI.HorizontalAlignment = {
+            let alignment = cell.horizontalCellContentAlignment
+                ?? columnDef?.horizontalCellContentAlignment
+                ?? row?.horizontalCellContentAlignment
+                ?? table?.horizontalCellContentAlignment
+            switch alignment {
+            case .center: return .center
+            case .right: return .trailing
+            default: return .leading
+            }
+        }()
+
+        let v: SwiftUI.VerticalAlignment = {
+            switch cell.verticalContentAlignment {
+            case .top: return .top
+            case .bottom: return .bottom
+            default: return .center
+            }
+        }()
+
+        return Alignment(horizontal: h, vertical: v)
     }
 
     private var minHeight: CGFloat? {

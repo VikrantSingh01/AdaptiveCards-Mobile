@@ -464,6 +464,7 @@ public struct TableCell: Codable, Equatable, Identifiable {
     public let type: String = "TableCell"
     public var items: [CardElement]?  // Optional to support cells with inline text
     public var style: ContainerStyle?
+    public var horizontalCellContentAlignment: HorizontalAlignment?
     public var verticalContentAlignment: VerticalAlignment?
     public var bleed: Bool?
     public var backgroundImage: BackgroundImage?
@@ -485,6 +486,7 @@ public struct TableCell: Codable, Equatable, Identifiable {
     public init(
         items: [CardElement]? = nil,
         style: ContainerStyle? = nil,
+        horizontalCellContentAlignment: HorizontalAlignment? = nil,
         verticalContentAlignment: VerticalAlignment? = nil,
         bleed: Bool? = nil,
         backgroundImage: BackgroundImage? = nil,
@@ -494,6 +496,7 @@ public struct TableCell: Codable, Equatable, Identifiable {
     ) {
         self.items = items
         self.style = style
+        self.horizontalCellContentAlignment = horizontalCellContentAlignment
         self.verticalContentAlignment = verticalContentAlignment
         self.bleed = bleed
         self.backgroundImage = backgroundImage
@@ -615,13 +618,14 @@ public struct Image: Codable, Equatable, Identifiable {
     public var targetWidth: String?
     public var themedUrls: [String: String]?
     public var backgroundColor: String?
+    public var forceLoad: Bool?
     public var fallback: CardElement?
 
     enum CodingKeys: String, CodingKey {
         case type, id, url, altText, size, style, width, height
         case horizontalAlignment, selectAction, spacing, separator
         case isVisible, requires, targetWidth, themedUrls
-        case backgroundColor, fallback
+        case backgroundColor, forceLoad, fallback
     }
 
     // Stable identifier using id property or url as fallback
@@ -649,6 +653,7 @@ public struct Image: Codable, Equatable, Identifiable {
         targetWidth: String? = nil,
         themedUrls: [String: String]? = nil,
         backgroundColor: String? = nil,
+        forceLoad: Bool? = nil,
         fallback: CardElement? = nil
     ) {
         self.id = id
@@ -667,6 +672,7 @@ public struct Image: Codable, Equatable, Identifiable {
         self.targetWidth = targetWidth
         self.themedUrls = themedUrls
         self.backgroundColor = backgroundColor
+        self.forceLoad = forceLoad
         self.fallback = fallback
     }
 
@@ -694,6 +700,7 @@ public struct Image: Codable, Equatable, Identifiable {
             self.themedUrls = nil
         }
         self.backgroundColor = try container.decodeIfPresent(String.self, forKey: .backgroundColor)
+        self.forceLoad = try container.decodeIfPresent(Bool.self, forKey: .forceLoad)
         self.fallback = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
     }
 }

@@ -12,26 +12,43 @@ struct BadgeView: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let iconName = badge.icon {
+            if badge.iconPosition?.lowercased() != "after", let iconName = badge.icon {
                 Image(systemName: sfSymbolName(for: iconName))
                     .font(.system(size: fontSize))
             }
-            Text(badge.text)
-                .font(.system(size: fontSize, weight: .medium))
+            if let text = badge.text, !text.isEmpty {
+                Text(text)
+                    .font(.system(size: fontSize, weight: .medium))
+            }
+            if badge.iconPosition?.lowercased() == "after", let iconName = badge.icon {
+                Image(systemName: sfSymbolName(for: iconName))
+                    .font(.system(size: fontSize))
+            }
         }
         .foregroundColor(foregroundColor)
         .padding(.horizontal, horizontalPadding)
         .padding(.vertical, verticalPadding)
         .background(backgroundColor)
-        .clipShape(Capsule())
+        .clipShape(badgeShape)
         .overlay(
-            Capsule()
-                .strokeBorder(strokeColor, lineWidth: isTint ? 1 : 0)
+            badgeShape
+                .stroke(strokeColor, lineWidth: isTint ? 1 : 0)
         )
         .frame(
             maxWidth: badge.horizontalAlignment == nil ? nil : .infinity,
             alignment: alignment
         )
+    }
+
+    private var badgeShape: AnyShape {
+        switch badge.shape?.lowercased() {
+        case "square":
+            return AnyShape(RoundedRectangle(cornerRadius: 4))
+        case "rounded":
+            return AnyShape(RoundedRectangle(cornerRadius: 8))
+        default:
+            return AnyShape(Capsule())
+        }
     }
 
     private var isTint: Bool {
@@ -102,7 +119,13 @@ struct BadgeView: View {
 
     private func sfSymbolName(for fluentName: String) -> String {
         let map: [String: String] = [
+            "calendar": "calendar",
             "checkmarkcircle": "checkmark.circle",
+            "errorcircle": "xmark.circle",
+            "imagecircle": "photo.circle",
+            "important": "exclamationmark.circle",
+            "tag": "tag",
+            "tooltipquote": "text.bubble",
             "warning": "exclamationmark.triangle",
             "clock": "clock",
             "people": "person.2",
