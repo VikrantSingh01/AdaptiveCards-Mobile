@@ -205,6 +205,16 @@ public final class TemplateEngine {
                             }
                         }
                         continue
+                    } else if dataValue != nil {
+                        // Single object: set as data context for this element
+                        let childContext = DataContext(data: dataValue, root: context.root, index: nil, parent: context)
+                        var itemTemplate = dict
+                        itemTemplate.removeValue(forKey: "$data")
+                        let expandedItem = try expandDictionary(itemTemplate, context: childContext)
+                        if !expandedItem.isEmpty {
+                            result.append(expandedItem)
+                        }
+                        continue
                     }
                 }
 

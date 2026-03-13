@@ -244,6 +244,16 @@ class TemplateEngine {
                                     }
                                 }
                                 continue
+                            } else if (dataValue != null) {
+                                // Single object: set as data context for this element
+                                val childContext = DataContext(data = dataValue, root = context.root, index = null, parent = context)
+                                val itemTemplate = dict.toMutableMap()
+                                itemTemplate.remove("\$data")
+                                val expandedItem = expandDictionary(itemTemplate, childContext)
+                                if (expandedItem.isNotEmpty()) {
+                                    result.add(expandedItem)
+                                }
+                                continue
                             }
                         } catch (e: Exception) {
                             // If evaluation fails, skip this item

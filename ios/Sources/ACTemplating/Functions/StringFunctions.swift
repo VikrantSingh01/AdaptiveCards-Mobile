@@ -20,6 +20,7 @@ public struct StringFunctions {
         functions["endsWith"] = EndsWith()
         functions["contains"] = Contains()
         functions["format"] = Format()
+        functions["concat"] = Concat()
     }
 
     // MARK: - Function Implementations
@@ -241,6 +242,21 @@ public struct StringFunctions {
             }
 
             return result
+        }
+    }
+
+    struct Concat: ExpressionFunction {
+        func call(_ arguments: [Any?]) throws -> Any? {
+            return arguments.map { value -> String in
+                if let str = value as? String { return str }
+                if let num = value as? Double {
+                    return num.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(num)) : String(num)
+                }
+                if let num = value as? Int { return String(num) }
+                if let bool = value as? Bool { return bool ? "true" : "false" }
+                if value == nil { return "" }
+                return String(describing: value as Any)
+            }.joined()
         }
     }
 

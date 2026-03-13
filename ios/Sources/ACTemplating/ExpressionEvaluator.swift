@@ -52,6 +52,11 @@ public final class ExpressionEvaluator {
             return context.resolve(path: path)
 
         case .functionCall(let name, let arguments):
+            // select() requires lazy evaluation of its body expression per element
+            if name == "select" {
+                return try evaluateSelect(arguments: arguments)
+            }
+
             guard let function = functions[name] else {
                 throw EvaluationError.unknownFunction(name)
             }
@@ -70,6 +75,47 @@ public final class ExpressionEvaluator {
             let boolResult = try coerceToBool(condResult)
             return try evaluate(boolResult ? trueValue : falseValue)
         }
+    }
+
+    // MARK: - select() Special Form
+
+    /// Evaluates `select(array, varName, bodyExpression)` by iterating the array
+    /// and evaluating the body expression with varName bound to each element.
+    private func evaluateSelect(arguments: [Expression]) throws -> Any? {
+        guard arguments.count == 3 else {
+            throw EvaluationError.invalidArgumentCount(expected: 3, actual: arguments.count)
+        }
+
+        // Evaluate first arg to get the array
+        guard let array = try evaluate(arguments[0]) as? [Any] else {
+            return []
+        }
+
+        // Second arg must be a variable name (identifier)
+        guard case .propertyAccess(let varName) = arguments[1] else {
+            throw EvaluationError.invalidArgument("select() second argument must be a variable name")
+        }
+
+        // Third arg is evaluated lazily per element
+        let bodyExpr = arguments[2]
+
+        var results: [Any] = []
+        for element in array {
+            // Build child data: overlay the variable binding onto current context data
+            var childData: [String: Any] = [:]
+            if let parentDict = context.data as? [String: Any] {
+                childData = parentDict
+            }
+            childData[varName] = element
+
+            let childContext = DataContext(data: childData, root: context.root, index: nil, parent: nil)
+            let childEvaluator = ExpressionEvaluator(context: childContext)
+            if let result = try childEvaluator.evaluate(bodyExpr) {
+                results.append(result)
+            }
+        }
+
+        return results
     }
 
     // MARK: - Binary Operations

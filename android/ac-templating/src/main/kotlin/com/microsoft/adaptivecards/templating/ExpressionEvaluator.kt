@@ -55,14 +55,19 @@ class ExpressionEvaluator(private val context: DataContext) {
             is Expression.PropertyAccess -> context.resolve(expression.path)
 
             is Expression.FunctionCall -> {
-                val function = functions[expression.name]
-                    ?: throw EvaluationException("Unknown function: ${expression.name}")
+                // select() requires lazy evaluation of its body expression per element
+                if (expression.name == "select") {
+                    evaluateSelect(expression.arguments)
+                } else {
+                    val function = functions[expression.name]
+                        ?: throw EvaluationException("Unknown function: ${expression.name}")
 
-                val evaluatedArgs = expression.arguments.map { evaluate(it) }
-                try {
-                    function.call(evaluatedArgs)
-                } catch (e: Exception) {
-                    throw EvaluationException("Function ${expression.name} failed: ${e.message}", e)
+                    val evaluatedArgs = expression.arguments.map { evaluate(it) }
+                    try {
+                        function.call(evaluatedArgs)
+                    } catch (e: Exception) {
+                        throw EvaluationException("Function ${expression.name} failed: ${e.message}", e)
+                    }
                 }
             }
 
@@ -76,6 +81,53 @@ class ExpressionEvaluator(private val context: DataContext) {
                 evaluate(if (boolResult) expression.trueValue else expression.falseValue)
             }
         }
+    }
+
+    // MARK: - select() Special Form
+
+    /**
+     * Evaluates `select(array, varName, bodyExpression)` by iterating the array
+     * and evaluating the body expression with varName bound to each element.
+     */
+    private fun evaluateSelect(arguments: List<Expression>): Any? {
+        if (arguments.size != 3) {
+            throw EvaluationException("select expects 3 arguments, got ${arguments.size}")
+        }
+
+        // Evaluate first arg to get the array
+        val arrayValue = evaluate(arguments[0])
+        val array = arrayValue as? List<*> ?: return emptyList<Any>()
+
+        // Second arg must be a variable name (identifier)
+        val varNameExpr = arguments[1]
+        if (varNameExpr !is Expression.PropertyAccess) {
+            throw EvaluationException("select() second argument must be a variable name")
+        }
+        val varName = varNameExpr.path
+
+        // Third arg is evaluated lazily per element
+        val bodyExpr = arguments[2]
+
+        val results = mutableListOf<Any>()
+        for (element in array) {
+            // Build child data: overlay the variable binding onto current context data
+            val childData = mutableMapOf<String, Any?>()
+            val parentData = context.data
+            if (parentData is Map<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                childData.putAll(parentData as Map<String, Any?>)
+            }
+            childData[varName] = element
+
+            val childContext = DataContext(data = childData, root = context.root, index = null, parent = null)
+            val childEvaluator = ExpressionEvaluator(childContext)
+            val result = childEvaluator.evaluate(bodyExpr)
+            if (result != null) {
+                results.add(result)
+            }
+        }
+
+        return results
     }
 
     // MARK: - Binary Operations

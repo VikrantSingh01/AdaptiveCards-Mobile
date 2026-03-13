@@ -27,6 +27,7 @@ object MathFunctions {
         functions["floor"] = Floor()
         functions["ceil"] = Ceil()
         functions["abs"] = Abs()
+        functions["sum"] = Sum()
         functions["formatNumber"] = FormatNumber()
     }
 
@@ -94,6 +95,11 @@ object MathFunctions {
             if (arguments.isEmpty()) {
                 throw EvaluationException("min expects at least 1 argument")
             }
+            // If single argument is an array, find min within it
+            if (arguments.size == 1 && arguments[0] is List<*>) {
+                val array = arguments[0] as? List<*> ?: return 0.0 // pre-commit:allow
+                return array.map { toNumber(it) }.minOrNull() ?: 0.0
+            }
             return arguments.map { toNumber(it) }.minOrNull() ?: 0.0
         }
     }
@@ -103,7 +109,26 @@ object MathFunctions {
             if (arguments.isEmpty()) {
                 throw EvaluationException("max expects at least 1 argument")
             }
+            // If single argument is an array, find max within it
+            if (arguments.size == 1 && arguments[0] is List<*>) {
+                val array = arguments[0] as? List<*> ?: return 0.0 // pre-commit:allow
+                return array.map { toNumber(it) }.maxOrNull() ?: 0.0
+            }
             return arguments.map { toNumber(it) }.maxOrNull() ?: 0.0
+        }
+    }
+
+    class Sum : ExpressionFunction {
+        override fun call(arguments: List<Any?>): Any? {
+            if (arguments.size != 1) {
+                throw EvaluationException("sum expects 1 argument, got ${arguments.size}")
+            }
+            // Sum elements of an array
+            if (arguments[0] is List<*>) {
+                val array = arguments[0] as? List<*> ?: return 0.0 // pre-commit:allow
+                return array.fold(0.0) { acc, element -> acc + toNumber(element) }
+            }
+            return toNumber(arguments[0])
         }
     }
 

@@ -18,6 +18,7 @@ public struct MathFunctions {
         functions["floor"] = Floor()
         functions["ceil"] = Ceil()
         functions["abs"] = Abs()
+        functions["sum"] = Sum()
         functions["formatNumber"] = FormatNumber()
     }
 
@@ -93,6 +94,12 @@ public struct MathFunctions {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
 
+            // If single argument is an array, find min within it
+            if arguments.count == 1, let array = arguments[0] as? [Any] {
+                let numbers = array.map { toNumber($0) }
+                return numbers.min() ?? 0.0
+            }
+
             let numbers = arguments.map { toNumber($0) }
             return numbers.min() ?? 0.0
         }
@@ -104,8 +111,31 @@ public struct MathFunctions {
                 throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
             }
 
+            // If single argument is an array, find max within it
+            if arguments.count == 1, let array = arguments[0] as? [Any] {
+                let numbers = array.map { toNumber($0) }
+                return numbers.max() ?? 0.0
+            }
+
             let numbers = arguments.map { toNumber($0) }
             return numbers.max() ?? 0.0
+        }
+    }
+
+    struct Sum: ExpressionFunction {
+        func call(_ arguments: [Any?]) throws -> Any? {
+            guard arguments.count == 1 else {
+                throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
+            }
+
+            // Sum elements of an array
+            if let array = arguments[0] as? [Any] {
+                return array.reduce(0.0) { result, element in
+                    result + toNumber(element)
+                }
+            }
+
+            return toNumber(arguments[0])
         }
     }
 

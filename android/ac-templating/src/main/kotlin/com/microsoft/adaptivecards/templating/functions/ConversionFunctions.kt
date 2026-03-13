@@ -20,6 +20,7 @@ object ConversionFunctions {
         functions["float"] = ParseFloatFunction()    // alias
         functions["int"] = ParseIntFunction()        // alias
         functions["string"] = ToStringFunction()     // alias
+        functions["json"] = JsonParseFunction()
     }
 }
 
@@ -80,6 +81,40 @@ private class ToNumberFunction : ExpressionFunction {
             is Boolean -> if (value) 1.0 else 0.0
             null -> 0.0
             else -> throw IllegalArgumentException("Cannot convert ${value::class.simpleName} to number")
+        }
+    }
+}
+
+/** Parses a JSON string into a Map or List */
+private class JsonParseFunction : ExpressionFunction {
+    override fun call(arguments: List<Any?>): Any? {
+        if (arguments.size != 1) throw IllegalArgumentException("json requires 1 argument, got ${arguments.size}")
+        val value = arguments[0]
+        if (value !is String) return value // already an object
+        return try {
+            val trimmed = value.trim()
+            if (trimmed.startsWith("{")) {
+                @Suppress("UNCHECKED_CAST")
+                org.json.JSONObject(trimmed).let { jsonObj ->
+                    val map = mutableMapOf<String, Any?>()
+                    for (key in jsonObj.keys()) {
+                        map[key] = jsonObj.get(key).let { if (it == org.json.JSONObject.NULL) null else it }
+                    }
+                    map
+                }
+            } else if (trimmed.startsWith("[")) {
+                org.json.JSONArray(trimmed).let { jsonArr ->
+                    val list = mutableListOf<Any?>()
+                    for (i in 0 until jsonArr.length()) {
+                        list.add(jsonArr.get(i).let { if (it == org.json.JSONObject.NULL) null else it })
+                    }
+                    list
+                }
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
         }
     }
 }

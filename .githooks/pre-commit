@@ -841,6 +841,10 @@ if [ -n "$STAGED_JSON" ]; then
         # ── J2. Missing required Adaptive Card fields ──
         # FIX: Every Adaptive Card JSON must have:
         #        { "type": "AdaptiveCard", "version": "1.5", "body": [...] }
+        # Skip data files (*.data.json) — they're template data, not Adaptive Cards
+        if [[ "$file" == *.data.json ]]; then
+            continue
+        fi
         HAS_TYPE=$(echo "$JSON_CONTENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('type',''))" 2>/dev/null || true)
         HAS_VERSION=$(echo "$JSON_CONTENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('version',''))" 2>/dev/null || true)
 

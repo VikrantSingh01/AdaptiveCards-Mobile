@@ -16,6 +16,7 @@ public struct ConversionFunctions {
         functions["float"] = ParseFloatFunction()    // alias
         functions["int"] = ParseIntFunction()        // alias
         functions["string"] = ToStringFunction()     // alias
+        functions["json"] = JsonParseFunction()
     }
 }
 
@@ -177,5 +178,28 @@ private struct ToBoolFunction: ExpressionFunction {
         }
 
         return true // Non-null objects are truthy
+    }
+}
+
+// MARK: - json
+
+/// Parses a JSON string into a dictionary or array
+/// Usage: json('{"key":"value"}') -> {key: "value"}
+private struct JsonParseFunction: ExpressionFunction {
+    func call(_ arguments: [Any?]) throws -> Any? {
+        guard arguments.count == 1 else {
+            throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
+        }
+
+        guard let str = arguments[0] as? String else {
+            return arguments[0] // already an object
+        }
+
+        guard let data = str.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) else {
+            return nil
+        }
+
+        return obj
     }
 }

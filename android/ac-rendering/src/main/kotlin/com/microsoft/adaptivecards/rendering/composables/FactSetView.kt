@@ -15,6 +15,10 @@ import androidx.compose.ui.unit.sp
 import com.microsoft.adaptivecards.core.models.FactSet
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.accessibility.scaledTextSize
+import com.microsoft.adaptivecards.markdown.MarkdownParser
+import com.microsoft.adaptivecards.markdown.MarkdownRenderer
+import com.microsoft.adaptivecards.markdown.containsMarkdown
+// DateTimeMacroExpander is in the same package
 
 /**
  * Renders a FactSet element as key-value pairs.
@@ -45,31 +49,64 @@ fun FactSetView(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Title (key) — use fixed max width, wrap content
-                Text(
-                    text = fact.title,
-                    fontWeight = titleWeight,
-                    fontSize = scaledTextSize(titleSize),
-                    lineHeight = titleLineHeight,
-                    color = titleColor,
-                    fontFamily = resolveFontFamily(hostConfig.factSet.title.fontType),
-                    maxLines = if (hostConfig.factSet.title.wrap) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(
-                        max = if (titleMaxWidth > 0) titleMaxWidth.dp else 150.dp
+                val titleText = DateTimeMacroExpander.expand(fact.title)
+                if (titleText.containsMarkdown()) {
+                    val tokens = MarkdownParser.parse(titleText)
+                    val annotated = MarkdownRenderer.render(tokens, titleSize.sp, titleColor)
+                    Text(
+                        text = annotated,
+                        fontWeight = titleWeight,
+                        fontSize = scaledTextSize(titleSize),
+                        lineHeight = titleLineHeight,
+                        fontFamily = resolveFontFamily(hostConfig.factSet.title.fontType),
+                        maxLines = if (hostConfig.factSet.title.wrap) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(
+                            max = if (titleMaxWidth > 0) titleMaxWidth.dp else 150.dp
+                        )
                     )
-                )
+                } else {
+                    Text(
+                        text = titleText,
+                        fontWeight = titleWeight,
+                        fontSize = scaledTextSize(titleSize),
+                        lineHeight = titleLineHeight,
+                        color = titleColor,
+                        fontFamily = resolveFontFamily(hostConfig.factSet.title.fontType),
+                        maxLines = if (hostConfig.factSet.title.wrap) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(
+                            max = if (titleMaxWidth > 0) titleMaxWidth.dp else 150.dp
+                        )
+                    )
+                }
 
-                // Value — wrap content, no weight
-                Text(
-                    text = fact.value,
-                    fontWeight = valueWeight,
-                    fontSize = scaledTextSize(valueSize),
-                    lineHeight = valueLineHeight,
-                    color = valueColor,
-                    fontFamily = resolveFontFamily(hostConfig.factSet.value.fontType),
-                    maxLines = if (hostConfig.factSet.value.wrap) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // Value — wrap content, with markdown support
+                val valueText = DateTimeMacroExpander.expand(fact.value)
+                if (valueText.containsMarkdown()) {
+                    val tokens = MarkdownParser.parse(valueText)
+                    val annotated = MarkdownRenderer.render(tokens, valueSize.sp, valueColor)
+                    Text(
+                        text = annotated,
+                        fontWeight = valueWeight,
+                        fontSize = scaledTextSize(valueSize),
+                        lineHeight = valueLineHeight,
+                        fontFamily = resolveFontFamily(hostConfig.factSet.value.fontType),
+                        maxLines = if (hostConfig.factSet.value.wrap) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } else {
+                    Text(
+                        text = valueText,
+                        fontWeight = valueWeight,
+                        fontSize = scaledTextSize(valueSize),
+                        lineHeight = valueLineHeight,
+                        color = valueColor,
+                        fontFamily = resolveFontFamily(hostConfig.factSet.value.fontType),
+                        maxLines = if (hostConfig.factSet.value.wrap) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }

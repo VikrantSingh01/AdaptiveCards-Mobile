@@ -5,6 +5,7 @@
 import SwiftUI
 import ACCore
 import ACAccessibility
+import ACMarkdown
 
 struct FactSetView: View {
     let factSet: FactSet
@@ -14,16 +15,10 @@ struct FactSetView: View {
         VStack(alignment: .leading, spacing: CGFloat(hostConfig.factSet.spacing)) {
             ForEach(factSet.facts) { fact in
                 HStack(alignment: .top, spacing: 8) {
-                    Text(fact.title)
-                        .font(resolveFont(hostConfig.factSet.title))
-                        .fontWeight(resolveWeight(hostConfig.factSet.title.weight))
-                        .foregroundColor(resolveColor(hostConfig.factSet.title))
+                    factText(fact.title, config: hostConfig.factSet.title)
                         .lineLimit(hostConfig.factSet.title.wrap ? nil : 1)
                         .frame(width: titleMaxWidth > 0 ? CGFloat(titleMaxWidth) : nil, alignment: .leading)
-                    Text(fact.value)
-                        .font(resolveFont(hostConfig.factSet.value))
-                        .fontWeight(resolveWeight(hostConfig.factSet.value.weight))
-                        .foregroundColor(resolveColor(hostConfig.factSet.value))
+                    factText(fact.value, config: hostConfig.factSet.value)
                         .lineLimit(hostConfig.factSet.value.wrap ? nil : 1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -32,6 +27,26 @@ struct FactSetView: View {
         .spacing(factSet.spacing, hostConfig: hostConfig)
         .separator(factSet.separator, hostConfig: hostConfig)
         .accessibilityContainer(label: "Fact Set")
+    }
+
+    /// Renders fact text with markdown support (bold, italic, links) when markdown is detected.
+    @ViewBuilder
+    private func factText(_ text: String, config: FactSetTextConfig) -> some View {
+        let expanded = DateTimeMacroExpander.expand(text)
+        if expanded.containsMarkdown {
+            let tokens = MarkdownParser.parse(expanded)
+            let attributed = MarkdownRenderer.render(
+                tokens: tokens,
+                font: resolveFont(config),
+                color: resolveColor(config)
+            )
+            Text(attributed)
+        } else {
+            Text(expanded)
+                .font(resolveFont(config))
+                .fontWeight(resolveWeight(config.weight))
+                .foregroundColor(resolveColor(config))
+        }
     }
 
     private var titleMaxWidth: Int {
