@@ -161,6 +161,7 @@ data class Column(
     val selectAction: CardAction? = null,
     val style: ContainerStyle? = null,
     val verticalContentAlignment: VerticalContentAlignment? = null,
+    @Serializable(with = FlexibleStringSerializer::class)
     val width: String? = null,
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,

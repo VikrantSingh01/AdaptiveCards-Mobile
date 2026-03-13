@@ -269,10 +269,57 @@ final class MyTests: CardSnapshotTestCase {
     swift test --filter ComprehensiveSnapshotTests/testAllCards_coreConfigurations
 ```
 
+## Screenshot OCR Validation (Shell Scripts)
+
+All shell-based visual test scripts (`visual-test-loop.sh`, `self-heal-ios.sh`,
+`self-heal-dual.sh`, `test-template-cards.sh`, etc.) include automatic OCR
+validation of screenshots using macOS Vision framework.
+
+### What It Detects
+
+| Pattern | Indicates | Example |
+|---------|-----------|---------|
+| `{` or `}` in rendered text | Unresolved template expressions | `${user.name}` shown literally |
+| "fail" text (case-insensitive) | Rendering/parsing error message | "Failed to parse card" |
+
+### How It Works
+
+1. `shared/scripts/check-screenshot-text.sh` compiles a Swift OCR binary (cached at `/tmp/ac-ocr-check`)
+2. The binary uses `VNRecognizeTextRequest` (Vision framework) to extract all text from the screenshot
+3. Extracted text is checked for curly brackets and "fail" keywords
+4. Returns `TEMPLATE_FAIL: <details>` or `OCR_CLEAN`
+
+### Usage
+
+```bash
+# Source the helper in any script
+source shared/scripts/check-screenshot-text.sh
+
+# Check a screenshot
+result=$(check_screenshot_text "/path/to/screenshot.png")
+# Returns: "OCR_CLEAN" or "TEMPLATE_FAIL: curly brackets: ${user.name} | ..."
+
+# Standalone
+bash shared/scripts/check-screenshot-text.sh /path/to/screenshot.png
+```
+
+### When Tests Fail with TEMPLATE_FAIL
+
+This means the template engine did not resolve expressions before rendering.
+Check:
+1. Template data JSON is being loaded and passed correctly
+2. `ACTemplating` (iOS) or `ac-templating` (Android) handles all expression types
+3. The card's `$data` binding matches the data schema
+
 ## Troubleshooting
 
 ### Tests fail with "No baseline found"
 Record baselines first: `RECORD_SNAPSHOTS=1 swift test --filter VisualTests`
+
+### Tests fail with "TEMPLATE_FAIL"
+The OCR check detected curly brackets (`{`, `}`) or "fail" text in the screenshot.
+This usually means template expressions were not resolved. Check that the template
+data JSON is present and the template engine handles all functions used in the card.
 
 ### All tests show tiny differences (< 1%)
 This can happen due to font rendering differences across macOS/Xcode versions.

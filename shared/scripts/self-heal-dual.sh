@@ -25,6 +25,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
+
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 REPORT_DIR="${REPO_ROOT}/shared/test-output/self-heal-dual-$TIMESTAMP"
@@ -450,12 +453,22 @@ for card_path in "${cards_to_test[@]}"; do
             ios_fail=$((ios_fail + 1))
             failed_cards_ios+=("$card_path")
         else
-            ios_status=$(classify "$ios_sz" "ios")
-            case "$ios_status" in
-                PASS) ios_pass=$((ios_pass + 1)) ;;
-                WARN) ios_warn=$((ios_warn + 1)) ;;
-                FAIL) ios_fail=$((ios_fail + 1)); failed_cards_ios+=("$card_path") ;;
-            esac
+            # OCR check for unresolved template markers or fail text
+            local ios_ocr="OCR_SKIP"
+            [ -f "$ios_ss" ] && ios_ocr=$(check_screenshot_text "$ios_ss")
+            if [[ "$ios_ocr" == TEMPLATE_FAIL* ]]; then
+                ios_status="FAIL"
+                notes="iOS: $ios_ocr"
+                ios_fail=$((ios_fail + 1))
+                failed_cards_ios+=("$card_path")
+            else
+                ios_status=$(classify "$ios_sz" "ios")
+                case "$ios_status" in
+                    PASS) ios_pass=$((ios_pass + 1)) ;;
+                    WARN) ios_warn=$((ios_warn + 1)) ;;
+                    FAIL) ios_fail=$((ios_fail + 1)); failed_cards_ios+=("$card_path") ;;
+                esac
+            fi
         fi
     fi
 
@@ -466,12 +479,22 @@ for card_path in "${cards_to_test[@]}"; do
             android_fail=$((android_fail + 1))
             failed_cards_android+=("$card_path")
         else
-            android_status=$(classify "$android_sz" "android")
-            case "$android_status" in
-                PASS) android_pass=$((android_pass + 1)) ;;
-                WARN) android_warn=$((android_warn + 1)) ;;
-                FAIL) android_fail=$((android_fail + 1)); failed_cards_android+=("$card_path") ;;
-            esac
+            # OCR check for unresolved template markers or fail text
+            local android_ocr="OCR_SKIP"
+            [ -f "$android_ss" ] && android_ocr=$(check_screenshot_text "$android_ss")
+            if [[ "$android_ocr" == TEMPLATE_FAIL* ]]; then
+                android_status="FAIL"
+                notes="${notes:+$notes; }Android: $android_ocr"
+                android_fail=$((android_fail + 1))
+                failed_cards_android+=("$card_path")
+            else
+                android_status=$(classify "$android_sz" "android")
+                case "$android_status" in
+                    PASS) android_pass=$((android_pass + 1)) ;;
+                    WARN) android_warn=$((android_warn + 1)) ;;
+                    FAIL) android_fail=$((android_fail + 1)); failed_cards_android+=("$card_path") ;;
+                esac
+            fi
         fi
     fi
 
@@ -662,6 +685,16 @@ if [ ${#all_failed[@]} -gt 0 ] && [ "$MAX_RETRIES" -gt 0 ]; then
                             retry_notes="iOS shows gallery (deep link failed)"
                         fi
                     fi
+                    # OCR check for unresolved template markers or fail text
+                    if [ -f "$ios_ss" ] && [ "$ios_retry_st" != "FAIL" ]; then
+                        local ios_retry_ocr
+                        ios_retry_ocr=$(check_screenshot_text "$ios_ss")
+                        if [[ "$ios_retry_ocr" == TEMPLATE_FAIL* ]]; then
+                            ios_retry_st="FAIL"
+                            still_failing=true
+                            retry_notes="${retry_notes:+$retry_notes; }iOS: $ios_retry_ocr"
+                        fi
+                    fi
                     [ "$ios_retry_st" = "FAIL" ] && still_failing=true
                 fi
             fi
@@ -681,6 +714,16 @@ if [ ${#all_failed[@]} -gt 0 ] && [ "$MAX_RETRIES" -gt 0 ]; then
                             android_retry_st="FAIL"
                             still_failing=true
                             retry_notes="${retry_notes:+$retry_notes; }Android shows gallery (deep link failed)"
+                        fi
+                    fi
+                    # OCR check for unresolved template markers or fail text
+                    if [ -f "$android_ss" ] && [ "$android_retry_st" != "FAIL" ]; then
+                        local android_retry_ocr
+                        android_retry_ocr=$(check_screenshot_text "$android_ss")
+                        if [[ "$android_retry_ocr" == TEMPLATE_FAIL* ]]; then
+                            android_retry_st="FAIL"
+                            still_failing=true
+                            retry_notes="${retry_notes:+$retry_notes; }Android: $android_retry_ocr"
                         fi
                     fi
                     [ "$android_retry_st" = "FAIL" ] && still_failing=true

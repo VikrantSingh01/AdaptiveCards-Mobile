@@ -621,6 +621,8 @@ object TestCardLoader {
         "templating-basic.json" to "templating-basic.data.json",
         "templating-conditional.json" to "templating-conditional.data.json",
         "templating-expressions.json" to "templating-expressions.data.json",
+        "templating-iteration.json" to "templating-iteration.data.json",
+        "templating-nested.json" to "templating-nested.data.json",
     )
 
     fun loadAllCards(context: Context): List<TestCard> {

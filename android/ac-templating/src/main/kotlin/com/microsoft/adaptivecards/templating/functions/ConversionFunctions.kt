@@ -24,14 +24,14 @@ object ConversionFunctions {
     }
 }
 
-/** Converts a value to an integer */
+/** Converts a value to an integer (uses Double to match iOS parity; handles large values via Long) */
 private class ParseIntFunction : ExpressionFunction {
     override fun call(arguments: List<Any?>): Any? {
         if (arguments.size != 1) throw IllegalArgumentException("parseInt requires 1 argument, got ${arguments.size}")
         return when (val value = arguments[0]) {
-            is Number -> value.toInt().toDouble()
-            is String -> value.toIntOrNull()?.toDouble()
-                ?: value.toDoubleOrNull()?.toInt()?.toDouble()
+            is Number -> value.toDouble()
+            is String -> value.toLongOrNull()?.toDouble()
+                ?: value.toDoubleOrNull()
                 ?: throw IllegalArgumentException("Cannot parse '$value' as integer")
             is Boolean -> if (value) 1.0 else 0.0
             null -> 0.0

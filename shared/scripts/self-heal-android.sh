@@ -36,6 +36,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
+
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP_ID="com.microsoft.adaptivecards.sample"
 MAIN_ACTIVITY="$APP_ID/.MainActivity"
@@ -453,13 +456,26 @@ phase2_visual() {
             size=$(stat -f%z "$local_screenshot" 2>/dev/null || stat -c%s "$local_screenshot" 2>/dev/null || echo "0")
         fi
 
+        # OCR check: detect unresolved template markers or fail text
+        local ocr_result="OCR_SKIP"
+        if $app_alive && [ -f "$local_screenshot" ]; then
+            ocr_result=$(check_screenshot_text "$local_screenshot")
+        fi
+
         # Multi-signal analysis
         # Thresholds calibrated for 1080x2400 emulator:
         #   <40KB  = navigation didn't work or blank error screen
         #   <90KB  = card detail loaded but minimal/no card content rendered
         #   >=90KB = card has rendered content (text-only cards ~90-200KB, image cards 300KB+)
         local status notes
-        if ! $app_alive; then
+        if [[ "$ocr_result" == TEMPLATE_FAIL* ]]; then
+            status="FAIL"
+            notes="$ocr_result"
+            fail=$((fail + 1))
+            failed_cards+=("$card_path")
+            card_diagnoses+=("$ocr_result")
+            echo "  ❌ $card_name — $ocr_result"
+        elif ! $app_alive; then
             status="CRASH"
             notes="App crashed on navigation"
             fail=$((fail + 1))
@@ -588,7 +604,13 @@ phase2_visual() {
                     size=$(stat -f%z "$local_screenshot" 2>/dev/null || stat -c%s "$local_screenshot" 2>/dev/null || echo "0")
                 fi
 
-                if $app_alive && [ "$size" -ge 8000 ] && [[ "$diagnosis" != *"CRASH"* ]]; then
+                # OCR check on retry screenshot
+                local retry_ocr="OCR_SKIP"
+                if $app_alive && [ -f "$local_screenshot" ]; then
+                    retry_ocr=$(check_screenshot_text "$local_screenshot")
+                fi
+
+                if $app_alive && [ "$size" -ge 8000 ] && [[ "$diagnosis" != *"CRASH"* ]] && [[ "$retry_ocr" != TEMPLATE_FAIL* ]]; then
                     recovered=$((recovered + 1))
                     fail=$((fail - 1))
                     pass=$((pass + 1))
@@ -596,7 +618,7 @@ phase2_visual() {
                     echo "| $card_name | RECOVERED | retry $retry | ${size}B | $diagnosis |" >> "$REPORT_FILE"
                 else
                     still_failing+=("$card_path")
-                    still_diagnoses+=("$diagnosis")
+                    still_diagnoses+=("${retry_ocr:-$diagnosis}")
                     echo "  ❌ $card_name — still failing on retry $retry"
                 fi
 

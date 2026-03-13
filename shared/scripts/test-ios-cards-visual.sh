@@ -24,6 +24,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/check-screenshot-text.sh"
+
 SIMULATOR="iPhone 16 Pro"
 SCREENSHOT_DIR="/tmp/card-visual-tests"
 REPORT_FILE="/tmp/card-visual-report.txt"
@@ -48,7 +51,15 @@ take_and_analyze() {
     # Check file size — very small screenshots indicate blank content
     local size=$(stat -f%z "$screenshot" 2>/dev/null || echo "0")
 
-    if [ "$size" -lt 50000 ]; then
+    # OCR check: detect unresolved template markers or fail text
+    local ocr_result
+    ocr_result=$(check_screenshot_text "$screenshot")
+
+    if [[ "$ocr_result" == TEMPLATE_FAIL* ]]; then
+        echo "✗ $name: $ocr_result"
+        echo "FAIL: $name - $ocr_result" >> "$REPORT_FILE"
+        return 1
+    elif [ "$size" -lt 50000 ]; then
         echo "⚠ $name: Suspiciously small screenshot (${size}B - likely blank)"
         echo "WARN: $name - small screenshot ${size}B" >> "$REPORT_FILE"
         return 1
