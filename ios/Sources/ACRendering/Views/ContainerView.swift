@@ -9,6 +9,7 @@ import ACAccessibility
 struct ContainerView: View {
     let container: Container
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
@@ -23,16 +24,16 @@ struct ContainerView: View {
         let content = Group {
             switch activeLayout {
             case .flow(let flowLayout):
-                FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig)
+                FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig, depth: depth)
                     .padding(contentPadding)
             case .areaGrid(let gridLayout):
-                AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig)
+                AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig, depth: depth)
                     .padding(contentPadding)
             case .none:
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                         if viewModel.isElementVisible(elementId: element.elementId) {
-                            ElementView(element: element, hostConfig: hostConfig)
+                            ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                 .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
                         }
                     }

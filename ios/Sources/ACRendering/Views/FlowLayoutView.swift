@@ -17,11 +17,13 @@ public struct FlowLayoutView: View {
     let items: [CardElement]
     let flowLayout: FlowLayout
     let hostConfig: HostConfig
+    var depth: Int = 0
 
-    public init(items: [CardElement], flowLayout: FlowLayout, hostConfig: HostConfig) {
+    public init(items: [CardElement], flowLayout: FlowLayout, hostConfig: HostConfig, depth: Int = 0) {
         self.items = items
         self.flowLayout = flowLayout
         self.hostConfig = hostConfig
+        self.depth = depth
     }
 
     public var body: some View {
@@ -30,7 +32,7 @@ public struct FlowLayoutView: View {
 
         FlowLayoutContainer(horizontalSpacing: colSpacing, verticalSpacing: rowSpacing) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                ElementView(element: item, hostConfig: hostConfig)
+                ElementView(element: item, hostConfig: hostConfig, depth: depth)
                     .modifier(
                         FlowItemModifier(
                             itemWidth: parseSize(flowLayout.itemWidth),

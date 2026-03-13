@@ -250,7 +250,7 @@ struct CardGalleryView: View {
     // MARK: - Card Row
 
     private func cardRow(_ card: TestCard) -> some View {
-        NavigationLink(destination: CardDetailView(card: card)) {
+        NavigationLink(value: card) {
             HStack(spacing: 14) {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(card.category.color.gradient)
@@ -552,6 +552,8 @@ class TestCardLoader {
         "templating-basic.json": "templating-basic.data.json",
         "templating-conditional.json": "templating-conditional.data.json",
         "templating-expressions.json": "templating-expressions.data.json",
+        "templating-iteration.json": "templating-iteration.data.json",
+        "templating-nested.json": "templating-nested.data.json",
     ]
 
     static func loadAllCards() -> [TestCard] {

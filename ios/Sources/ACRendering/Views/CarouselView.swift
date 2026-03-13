@@ -12,6 +12,7 @@ import ACAccessibility
 struct CarouselView: View {
     let carousel: Carousel
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @State private var currentPage: Int
     @State private var timer: Timer?
@@ -22,9 +23,10 @@ struct CarouselView: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.sizeCategory) var sizeCategory
 
-    init(carousel: Carousel, hostConfig: HostConfig) {
+    init(carousel: Carousel, hostConfig: HostConfig, depth: Int = 0) {
         self.carousel = carousel
         self.hostConfig = hostConfig
+        self.depth = depth
         _currentPage = State(initialValue: carousel.initialPage ?? 0)
     }
 
@@ -36,7 +38,7 @@ struct CarouselView: View {
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
                 ForEach(Array(carousel.pages.enumerated()), id: \.offset) { index, page in
-                    CarouselPageView(page: page, hostConfig: hostConfig, isTablet: isTablet)
+                    CarouselPageView(page: page, hostConfig: hostConfig, isTablet: isTablet, depth: depth)
                         .tag(index)
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel("Page \(index + 1) of \(carousel.pages.count)")
@@ -185,6 +187,7 @@ struct CarouselPageView: View {
     let page: CarouselPage
     let hostConfig: HostConfig
     let isTablet: Bool
+    var depth: Int = 0
 
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.actionHandler) var actionHandler
@@ -194,7 +197,7 @@ struct CarouselPageView: View {
         VStack(spacing: 0) {
             ForEach(page.items) { element in
                 if viewModel.isElementVisible(elementId: element.elementId) {
-                    ElementView(element: element, hostConfig: hostConfig)
+                    ElementView(element: element, hostConfig: hostConfig, depth: depth)
                 }
             }
         }

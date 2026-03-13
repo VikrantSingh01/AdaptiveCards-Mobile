@@ -11,6 +11,7 @@ import ACFluentUI
 struct ActionSetView: View {
     let actions: [CardAction]
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
@@ -37,11 +38,11 @@ struct ActionSetView: View {
                    viewModel.isShowCardExpanded(actionId: action.id) {
                     VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.default)) {
                         ForEach(Array((showCardAction.card.body ?? []).enumerated()), id: \.offset) { _, element in
-                            ElementView(element: element, hostConfig: hostConfig)
+                            ElementView(element: element, hostConfig: hostConfig, depth: depth)
                         }
                         // Render sub-card actions if present
                         if let subActions = showCardAction.card.actions, !subActions.isEmpty {
-                            ActionSetView(actions: subActions, hostConfig: hostConfig)
+                            ActionSetView(actions: subActions, hostConfig: hostConfig, depth: depth)
                         }
                     }
                     .padding(CGFloat(hostConfig.spacing.padding))
@@ -114,7 +115,8 @@ struct ActionSetView: View {
                 PopoverContentView(
                     content: popoverAction.content,
                     title: popoverAction.title,
-                    hostConfig: hostConfig
+                    hostConfig: hostConfig,
+                    depth: depth
                 )
                 .environmentObject(viewModel)
                 .environment(\.actionHandler, actionHandler)
