@@ -191,7 +191,7 @@ struct MoreMenuView: View {
             Section {
                 HStack {
                     Spacer()
-                    Text("New Mobile AC Visualizer - Built with ❤️ by ")
+                    Text("New SDK & Visualizer - Built with ❤️ by ")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     + Text("[Vikrant Singh](https://github.com/VikrantSingh01/)")
