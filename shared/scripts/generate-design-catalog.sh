@@ -51,12 +51,12 @@ echo "  Source: $SCREENSHOT_DIR"
 echo "  Output: $OUTPUT_HTML"
 
 # =============================================================================
-# Build card name → category + JSON path mapping
+# Build card name → category + JSON path mapping (Bash 3.2 compatible)
 # =============================================================================
-declare -A CARD_CATEGORY
-declare -A CARD_JSON_PATH
+# Uses a temp file as a lookup table: "name|category|json_path" per line
+CARD_MAP_FILE=$(mktemp /tmp/card-map.XXXXXX)
+trap "rm -f '$CARD_MAP_FILE'" EXIT
 
-# Scan all subdirectories in test-cards
 map_cards_from_dir() {
     local dir="$1"
     local category="$2"
@@ -65,8 +65,7 @@ map_cards_from_dir() {
             [ -f "$f" ] || continue
             local basename_no_ext
             basename_no_ext=$(basename "$f" .json)
-            CARD_CATEGORY["$basename_no_ext"]="$category"
-            CARD_JSON_PATH["$basename_no_ext"]="$dir/$(basename "$f")"
+            echo "${basename_no_ext}|${category}|${dir}/$(basename "$f")" >> "$CARD_MAP_FILE"
         done
     fi
 }
@@ -83,9 +82,21 @@ map_cards_from_dir "host-configs" "Host Configs"
 for f in "$TEST_CARDS_DIR"/*.json; do
     [ -f "$f" ] || continue
     local_name=$(basename "$f" .json)
-    CARD_CATEGORY["$local_name"]="Root"
-    CARD_JSON_PATH["$local_name"]="$(basename "$f")"
+    echo "${local_name}|Root|$(basename "$f")" >> "$CARD_MAP_FILE"
 done
+
+# Lookup helpers
+lookup_category() {
+    local result
+    result=$(grep "^${1}|" "$CARD_MAP_FILE" | head -1 | cut -d'|' -f2)
+    echo "${result:-Unknown}"
+}
+
+lookup_json_path() {
+    local result
+    result=$(grep "^${1}|" "$CARD_MAP_FILE" | head -1 | cut -d'|' -f3)
+    echo "$result"
+}
 
 # =============================================================================
 # Collect screenshots
@@ -124,12 +135,6 @@ done
 echo "  App screens: ${#APP_SCREENS[@]}"
 echo "  Card screenshots: ${#CARD_SCREENSHOTS[@]}"
 
-# Count categories
-declare -A CATEGORY_COUNTS
-for name in "${CARD_SCREENSHOTS[@]}"; do
-    cat="${CARD_CATEGORY[$name]:-Unknown}"
-    CATEGORY_COUNTS["$cat"]=$(( ${CATEGORY_COUNTS[$cat]:-0} + 1 ))
-done
 
 # =============================================================================
 # Generate HTML
@@ -228,8 +233,8 @@ done
 
 # Card screenshots
 for name in "${CARD_SCREENSHOTS[@]}"; do
-    category="${CARD_CATEGORY[$name]:-Unknown}"
-    json_path="${CARD_JSON_PATH[$name]:-}"
+    category=$(lookup_category "$name")
+    json_path=$(lookup_json_path "$name")
     json_url=""
     if [ -n "$json_path" ]; then
         json_url="$GITHUB_BASE/$json_path"
