@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'AdaptiveCards-Mobile'
-  s.version          = '2.0.0'
+  s.version          = '0.0.1'
   s.summary          = 'Cross-platform Adaptive Cards v1.6 rendering SDK for iOS'
   s.description      = <<-DESC
     SwiftUI-based rendering library for Adaptive Cards v1.6. Provides standalone parsing,

@@ -21,18 +21,18 @@ permissions:
 
 jobs:
   publish-ios:
-    name: Publish iOS SDK
+    name: Publish iOS SDK & Sample App
     runs-on: macos-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '15.2'
-      
+
       - name: Get version
         id: version
         run: |
@@ -41,46 +41,67 @@ jobs:
           else
             echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Build iOS Package
         working-directory: ios
         run: swift build -c release
-      
+
       - name: Run Tests
         working-directory: ios
         run: swift test
-      
-      - name: Create Release Archive
+
+      - name: Create SDK Release Archive
         run: |
           cd ios
           tar -czf ../AdaptiveCards-iOS-${{ steps.version.outputs.version }}.tar.gz \
             Package.swift Sources/ README.md LICENSE
-      
-      - name: Upload Release Asset
+
+      - name: Build Sample App (Simulator)
+        run: |
+          xcodebuild -project ios/SampleApp.xcodeproj \
+            -scheme ACVisualizer \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios-derived \
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            clean build
+
+      - name: Package Sample App IPA
+        run: |
+          APP_PATH=$(find build/ios-derived -name "ACVisualizer.app" -type d | head -1)
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r ACVisualizer-${{ steps.version.outputs.version }}.ipa Payload/
+          rm -rf Payload
+
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: AdaptiveCards-iOS-${{ steps.version.outputs.version }}.tar.gz
+          files: |
+            AdaptiveCards-iOS-${{ steps.version.outputs.version }}.tar.gz
+            ACVisualizer-${{ steps.version.outputs.version }}.ipa
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, 'dogfood') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
   publish-android:
-    name: Publish Android SDK
+    name: Publish Android SDK & Sample App
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-      
+
       - name: Get version
         id: version
         run: |
@@ -89,12 +110,12 @@ jobs:
           else
             echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Grant execute permission for gradlew
         working-directory: android
         run: chmod +x gradlew || echo "No gradlew found"
-      
-      - name: Build Android Library
+
+      - name: Build Android Library & Sample App
         working-directory: android
         run: |
           if [ -f gradlew ]; then
@@ -102,7 +123,7 @@ jobs:
           else
             gradle clean assembleRelease
           fi
-      
+
       - name: Run Tests
         working-directory: android
         run: |
@@ -111,93 +132,115 @@ jobs:
           else
             gradle test
           fi
-      
+
       - name: Publish to Maven Local (preparation for publishing)
         working-directory: android
         run: |
           if [ -f gradlew ]; then
             ./gradlew publishToMavenLocal || echo "Maven publish not configured"
           fi
-      
-      - name: Create Release Archive
+
+      - name: Create SDK Release Archive
         run: |
           cd android
           find . -name "*.aar" -type f > aar-files.txt
           tar -czf ../AdaptiveCards-Android-${{ steps.version.outputs.version }}.tar.gz \
             --files-from=aar-files.txt \
             build.gradle.kts settings.gradle.kts gradle.properties README.md
-      
-      - name: Upload Release Asset
+
+      - name: Collect Sample App APK
+        run: |
+          APK_PATH=$(find android/sample-app/build -name "*.apk" -path "*/release/*" | head -1)
+          if [ -n "$APK_PATH" ]; then
+            cp "$APK_PATH" ACVisualizer-${{ steps.version.outputs.version }}.apk
+          else
+            echo "Warning: Release APK not found, looking for any APK..."
+            APK_PATH=$(find android/sample-app/build -name "*.apk" | head -1)
+            cp "$APK_PATH" ACVisualizer-${{ steps.version.outputs.version }}.apk
+          fi
+
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: AdaptiveCards-Android-${{ steps.version.outputs.version }}.tar.gz
+          files: |
+            AdaptiveCards-Android-${{ steps.version.outputs.version }}.tar.gz
+            ACVisualizer-${{ steps.version.outputs.version }}.apk
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, 'dogfood') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
   create-release:
     name: Create GitHub Release
     needs: [publish-ios, publish-android]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      
+
       - name: Create Release Notes
         run: |
-          cat > release-notes.md << EOF
+          cat > release-notes.md << 'EOF'
           # Adaptive Cards Mobile SDK v${{ steps.version.outputs.version }}
-          
-          ## 🎉 New Release
-          
-          This release includes both iOS and Android SDKs with complete feature parity.
-          
-          ### 📦 Packages
-          
-          - **iOS SDK**: AdaptiveCards-iOS-${{ steps.version.outputs.version }}.tar.gz
-          - **Android SDK**: AdaptiveCards-Android-${{ steps.version.outputs.version }}.tar.gz
-          
-          ### 📝 Installation
-          
+
+          ## Dogfood Release
+
+          This release includes both iOS and Android SDKs with complete feature parity,
+          plus sample apps for hands-on testing.
+
+          ### Packages
+
+          | Asset | Description |
+          |-------|-------------|
+          | `AdaptiveCards-iOS-${{ steps.version.outputs.version }}.tar.gz` | iOS SDK (SPM sources) |
+          | `AdaptiveCards-Android-${{ steps.version.outputs.version }}.tar.gz` | Android SDK (AAR libraries) |
+          | `ACVisualizer-${{ steps.version.outputs.version }}.ipa` | iOS Sample App (simulator build) |
+          | `ACVisualizer-${{ steps.version.outputs.version }}.apk` | Android Sample App (install via `adb install`) |
+
+          ### Installation
+
           #### iOS (Swift Package Manager)
-          \`\`\`swift
+          ```swift
           dependencies: [
               .package(url: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile", from: "${{ steps.version.outputs.version }}")
           ]
-          \`\`\`
-          
+          ```
+
           #### Android (Gradle)
-          \`\`\`kotlin
+          ```kotlin
           dependencies {
               implementation("com.microsoft.adaptivecards:ac-core:${{ steps.version.outputs.version }}")
               implementation("com.microsoft.adaptivecards:ac-rendering:${{ steps.version.outputs.version }}")
           }
-          \`\`\`
-          
-          ### 🚀 Features
-          
+          ```
+
+          #### Sample App (Android)
+          ```bash
+          adb install ACVisualizer-${{ steps.version.outputs.version }}.apk
+          ```
+
+          ### What's Changed
+
           See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-          
-          ### 📖 Documentation
-          
-          - [iOS README](ios/README.md)
-          - [Android README](android/README.md)
-          - [Sample Apps](README.md#sample-apps)
+
+          ### Documentation
+
+          - [iOS Integration Guide](docs/guides/IOS_INTEGRATION_GUIDE.md)
+          - [Android Integration Guide](docs/guides/ANDROID_INTEGRATION_GUIDE.md)
           EOF
-      
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           body_path: release-notes.md
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, 'dogfood') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

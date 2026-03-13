@@ -7,6 +7,16 @@ Native [Adaptive Cards](https://adaptivecards.io/) rendering for iOS (SwiftUI) a
 [![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org/)
 [![Kotlin 1.9](https://img.shields.io/badge/Kotlin-1.9-purple.svg)](https://kotlinlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/VikrantSingh01/AdaptiveCards-Mobile?include_prereleases&label=release)](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/latest)
+
+## Downloads
+
+| Asset | Description |
+|-------|-------------|
+| [iOS SDK](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/latest/download/AdaptiveCards-iOS-0.0.1.tar.gz) | SPM sources archive |
+| [Android SDK](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/latest/download/AdaptiveCards-Android-0.0.1.tar.gz) | AAR libraries archive |
+| [iOS Sample App (.ipa)](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/latest/download/ACVisualizer-0.0.1.ipa) | Simulator build |
+| [Android Sample App (.apk)](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases/latest/download/ACVisualizer-0.0.1.apk) | Install via `adb install` |
 
 ## Demo
 

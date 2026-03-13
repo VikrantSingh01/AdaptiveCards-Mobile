@@ -4,7 +4,7 @@
 
 apply(plugin = "maven-publish")
 
-val sdkVersion = findProperty("version")?.toString() ?: "2.0.0-SNAPSHOT"
+val sdkVersion = findProperty("version")?.toString() ?: "0.0.1"
 val sdkGroup = "com.microsoft.adaptivecards"
 
 configure<PublishingExtension> {
