@@ -10,9 +10,11 @@ import ACInputs
 
 /// Root SwiftUI view for rendering an Adaptive Card
 public struct AdaptiveCardView: View {
-    let cardJson: String
+    let cardJson: String?
+    let preParsedCard: AdaptiveCard?
     let templateData: [String: Any]?
     let hostConfig: HostConfig
+    let configuration: CardConfiguration?
     let actionDelegate: ActionDelegate?
     let onCardParsed: ((AdaptiveCard) -> Void)?
     let onCardParseError: ((Error) -> Void)?
@@ -22,7 +24,57 @@ public struct AdaptiveCardView: View {
     @StateObject private var validationState = ValidationState()
     private let actionHandler: ActionHandler
 
-    /// Creates an Adaptive Card view
+    // MARK: - New API (Phase 2)
+
+    /// Creates an Adaptive Card view from a pre-parsed card and configuration.
+    ///
+    /// ```swift
+    /// let result = AdaptiveCards.parse(jsonString)
+    /// if let card = result.card {
+    ///     AdaptiveCardView(card: card, configuration: .teams(theme: .dark))
+    /// }
+    /// ```
+    public init(
+        card: AdaptiveCard,
+        configuration: CardConfiguration = .default
+    ) {
+        self.preParsedCard = card
+        self.cardJson = nil
+        self.templateData = nil
+        self.hostConfig = configuration.hostConfig
+        self.configuration = configuration
+        self.actionDelegate = nil
+        self.actionHandler = DefaultActionHandler()
+        self.pendingActionTitle = nil
+        self.onCardParsed = nil
+        self.onCardParseError = nil
+    }
+
+    /// Creates an Adaptive Card view from a JSON string and configuration.
+    ///
+    /// ```swift
+    /// AdaptiveCardView(json: jsonString, configuration: .teams(theme: .dark))
+    /// ```
+    public init(
+        json: String,
+        data: [String: Any]? = nil,
+        configuration: CardConfiguration = .default
+    ) {
+        self.cardJson = json
+        self.preParsedCard = nil
+        self.templateData = data
+        self.hostConfig = configuration.hostConfig
+        self.configuration = configuration
+        self.actionDelegate = nil
+        self.actionHandler = DefaultActionHandler()
+        self.pendingActionTitle = nil
+        self.onCardParsed = nil
+        self.onCardParseError = nil
+    }
+
+    // MARK: - Legacy API (kept for backward compatibility)
+
+    /// Creates an Adaptive Card view (legacy API).
     /// - Parameters:
     ///   - cardJson: The card JSON string (may contain `${expression}` template syntax)
     ///   - templateData: Optional data context for template expansion
@@ -43,8 +95,10 @@ public struct AdaptiveCardView: View {
         onCardParseError: ((Error) -> Void)? = nil
     ) {
         self.cardJson = cardJson
+        self.preParsedCard = nil
         self.templateData = templateData
         self.hostConfig = hostConfig
+        self.configuration = nil
         self.actionDelegate = actionDelegate
         self.actionHandler = actionHandler
         self.pendingActionTitle = pendingActionTitle
@@ -60,10 +114,17 @@ public struct AdaptiveCardView: View {
             .environment(\.actionHandler, actionHandler)
             .environment(\.validationState, validationState)
             .onAppear {
-                viewModel.parseCard(json: cardJson, templateData: templateData)
+                if let preParsedCard = preParsedCard {
+                    // Pre-parsed card — set directly without parsing
+                    viewModel.card = preParsedCard
+                } else if let cardJson = cardJson {
+                    viewModel.parseCard(json: cardJson, templateData: templateData)
+                }
             }
             .onChange(of: cardJson) { newJson in
-                viewModel.parseCard(json: newJson, templateData: templateData)
+                if let newJson = newJson {
+                    viewModel.parseCard(json: newJson, templateData: templateData)
+                }
             }
             .onChange(of: viewModel.card) { card in
                 if let card = card {

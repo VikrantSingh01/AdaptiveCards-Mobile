@@ -29,6 +29,7 @@ import com.microsoft.adaptivecards.charts.DonutChartView
 import com.microsoft.adaptivecards.charts.LineChartView
 import com.microsoft.adaptivecards.charts.PieChartView
 import com.microsoft.adaptivecards.rendering.registry.GlobalElementRendererRegistry
+import com.microsoft.adaptivecards.core.CardConfiguration
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import com.microsoft.adaptivecards.rendering.viewmodel.DefaultActionHandler
@@ -143,6 +144,83 @@ fun AdaptiveCardView(
                             }
 
                             // Render actions
+                            adaptiveCard.actions?.let { actions ->
+                                if (actions.isNotEmpty()) {
+                                    ActionSetView(
+                                        actions = actions,
+                                        actionHandler = actionHandler,
+                                        viewModel = viewModel,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * New API (Phase 2): Render a pre-parsed Adaptive Card with a CardConfiguration.
+ *
+ * ```kotlin
+ * val result = AdaptiveCards.parse(jsonString)
+ * result.card?.let { card ->
+ *     AdaptiveCardView(
+ *         card = card,
+ *         configuration = CardConfiguration.teams(TeamsTheme.Dark),
+ *         onAction = { event -> handleAction(event) }
+ *     )
+ * }
+ * ```
+ */
+@Composable
+fun AdaptiveCardView(
+    card: AdaptiveCard,
+    configuration: CardConfiguration = CardConfiguration.Default,
+    actionHandler: ActionHandler = DefaultActionHandler(),
+    modifier: Modifier = Modifier,
+    viewModel: CardViewModel = viewModel(),
+    onCardParsed: ((AdaptiveCard) -> Unit)? = null
+) {
+    // Set the pre-parsed card directly
+    LaunchedEffect(card) {
+        viewModel.setCard(card)
+        onCardParsed?.invoke(card)
+    }
+
+    val currentCard by viewModel.card.collectAsState()
+
+    currentCard?.let { adaptiveCard ->
+        HostConfigProvider(hostConfig = configuration.hostConfig) {
+            RTLSupport(isRTL = adaptiveCard.rtl == true) {
+                BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+                    val density = LocalDensity.current
+                    val hc = com.microsoft.adaptivecards.rendering.theme.LocalHostConfig.current
+                    val widthDp = with(density) { constraints.maxWidth.toDp().value }
+                    val widthCategory = WidthCategory.fromDp(
+                        widthDp,
+                        veryNarrowBreakpoint = hc.hostWidth.veryNarrow,
+                        narrowBreakpoint = hc.hostWidth.narrow,
+                        standardBreakpoint = hc.hostWidth.standard
+                    )
+
+                    CompositionLocalProvider(
+                        LocalWidthCategory provides widthCategory,
+                        LocalCardViewModel provides viewModel
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            adaptiveCard.body?.forEachIndexed { index, element ->
+                                RenderElement(
+                                    element = element,
+                                    isFirst = index == 0,
+                                    viewModel = viewModel,
+                                    actionHandler = actionHandler
+                                )
+                            }
+
                             adaptiveCard.actions?.let { actions ->
                                 if (actions.isNotEmpty()) {
                                     ActionSetView(
