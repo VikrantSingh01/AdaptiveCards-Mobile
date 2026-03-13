@@ -444,7 +444,7 @@ fun MoreScreen(
             // Footnote
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "New Mobile AC Visualizer - Built with ❤️ by Vikrant Singh",
+                text = "New SDK & Visualizer - Built with ❤️ by Vikrant Singh",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF0078D4),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,

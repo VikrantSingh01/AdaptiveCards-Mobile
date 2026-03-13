@@ -23,27 +23,28 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 
 ## 🎬 Demo
 
-> **One cross-platform SDK, one shared card spec, pixel-perfect rendering on iOS & Android — see it live in the Visualizer.**
+> **One cross-platform SDK, one shared card spec, pixel-perfect rendering on iOS & Android - see it live in the Visualizer.**
 
 https://github.com/user-attachments/assets/3a0e7ae5-8362-479a-a9e5-6b25d5f98c18
 
 ## 📊 Platform Status
 
-| Platform | Core SDK | Templating | Advanced Elements | Sample App | Status |
-|----------|----------|------------|-------------------|------------|--------|
-| **iOS** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
-| **Android** | ✅ Complete | ✅ Complete | ✅ Complete | ✅ Running | Production Ready |
+| Platform    | Core SDK    | Templating  | Advanced Elements | Sample App | Status           |
+| ----------- | ----------- | ----------- | ----------------- | ---------- | ---------------- |
+| **iOS**     | ✅ Complete | ✅ Complete | ✅ Complete       | ✅ Running | Production Ready |
+| **Android** | ✅ Complete | ✅ Complete | ✅ Complete       | ✅ Running | Production Ready |
 
 ### Build & Test Status (Verified 2026-03-11)
 
-| Platform | Modules Built | Tests | Sample App |
-|----------|---------------|-------|------------|
-| **iOS** | 11/11 | 235 passed (100%) | Running on iPhone 16 Pro Simulator |
-| **Android** | 12/12 | All passing (100%) | Running on Pixel 10 AVD (API 36) |
+| Platform    | Modules Built | Tests              | Sample App                         |
+| ----------- | ------------- | ------------------ | ---------------------------------- |
+| **iOS**     | 11/11         | 235 passed (100%)  | Running on iPhone 16 Pro Simulator |
+| **Android** | 12/12         | All passing (100%) | Running on Pixel 10 AVD (API 36)   |
 
 ### Module Overview
 
 #### iOS Modules (11)
+
 - ✅ **ACCore**: Card parsing, models, host configuration
 - ✅ **ACRendering**: Card rendering with SwiftUI views
 - ✅ **ACInputs**: Input controls (text, number, date, rating, etc.)
@@ -57,6 +58,7 @@ https://github.com/user-attachments/assets/3a0e7ae5-8362-479a-a9e5-6b25d5f98c18
 - ✅ **ACTeams**: Teams integration
 
 #### Android Modules (12)
+
 - ✅ **ac-core**: Card parsing, models, host configuration
 - ✅ **ac-rendering**: Card rendering with Compose views
 - ✅ **ac-inputs**: Input controls with validation
@@ -117,12 +119,14 @@ AdaptiveCardView(
 ### Prerequisites
 
 #### For iOS Development
+
 - macOS 12.0 or later
 - Xcode 15.0 or later (Xcode 26 recommended)
 - Swift 5.9 or later
 - iOS 16.0+ deployment target (tested on iOS 26 / iPhone 17 Pro Simulator)
 
 #### For Android Development
+
 - macOS, Linux, or Windows
 - Android Studio Hedgehog (2023.1.1) or later
 - JDK 17 or later
@@ -132,16 +136,19 @@ AdaptiveCardView(
 ### iOS - Building with Xcode
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/VikrantSingh01/AdaptiveCards-Mobile.git
    cd AdaptiveCards-Mobile
    ```
 
 2. **Open the iOS project**
+
    ```bash
    cd ios
    open Package.swift
    ```
+
    This will open the project in Xcode.
 
 3. **Select a target**
@@ -187,6 +194,7 @@ swift package clean
 ### Android - Building with Android Studio
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/VikrantSingh01/AdaptiveCards-Mobile.git
    cd AdaptiveCards-Mobile
@@ -258,11 +266,13 @@ cd android
 ### Troubleshooting Build Issues
 
 #### iOS
+
 - **Swift version errors**: Ensure Xcode 14+ is installed and selected in Xcode preferences
 - **Module not found**: Run `swift package clean` and rebuild
 - **Test failures**: Check that all test resources are properly linked in Package.swift
 
 #### Android
+
 - **Gradle sync fails**: Check your JDK version (must be JDK 17)
 - **SDK not found**: Open SDK Manager and install required SDK versions (API 24-34)
 - **Kotlin version conflicts**: Ensure kotlin version in build.gradle.kts matches project requirements
@@ -276,22 +286,26 @@ cd android
 #### iOS Development in VS Code
 
 **Prerequisites:**
+
 - macOS with Xcode Command Line Tools installed:
   ```bash
   xcode-select --install
   ```
 
 **Required VS Code Extensions:**
+
 - `sswg.swift-lang` (Swift extension by Swift Server Work Group)
 - Or `apple.swift` if available
 
 **Building:**
+
 ```bash
 cd ios
 swift build
 ```
 
 **Testing:**
+
 ```bash
 cd ios
 swift test
@@ -302,6 +316,7 @@ swift test --filter ACTemplatingTests
 
 **Debugging:**
 Configure `.vscode/launch.json` for Swift debugging:
+
 ```json
 {
   "version": "0.2.0",
@@ -320,15 +335,18 @@ Configure `.vscode/launch.json` for Swift debugging:
 #### Android Development in VS Code
 
 **Prerequisites:**
+
 - JDK 17 or later
 - Android SDK (API 34)
 
 **Required VS Code Extensions:**
+
 - `mathiasfrohlich.Kotlin` (Kotlin Language support)
 - `vscjava.vscode-java-pack` (Java Extension Pack)
 - `vscjava.vscode-gradle` (Gradle for Java)
 
 **Environment Setup:**
+
 ```bash
 # Set JAVA_HOME to JDK 17 path
 export JAVA_HOME=/path/to/jdk-17
@@ -339,6 +357,7 @@ export ANDROID_SDK_ROOT=$ANDROID_HOME
 ```
 
 **Building:**
+
 ```bash
 cd android
 ./gradlew build
@@ -348,6 +367,7 @@ cd android
 ```
 
 **Testing:**
+
 ```bash
 cd android
 ./gradlew test
@@ -358,6 +378,7 @@ cd android
 
 **Debugging:**
 Configure `.vscode/launch.json` for Kotlin debugging:
+
 ```json
 {
   "version": "0.2.0",
@@ -388,6 +409,7 @@ For a complete guide to VS Code development, see [VSCODE_COMPLETE_GUIDE.md](docs
 The SDK includes 52 comprehensive test cards:
 
 ### Core Elements
+
 - `simple-text.json` - Basic TextBlock
 - `rich-text.json` - RichTextBlock with formatting
 - `containers.json` - Container layouts
@@ -395,14 +417,17 @@ The SDK includes 52 comprehensive test cards:
 - `table.json` - Table element
 
 ### Input Elements
+
 - `all-inputs.json` - All input types
 - `input-form.json` - Complete form example
 
 ### Actions
+
 - `all-actions.json` - All action types
 - `teams-connector.json` - Teams-specific actions
 
 ### Advanced Elements
+
 - `carousel.json` - Image/content carousel
 - `accordion.json` - Collapsible sections
 - `code-block.json` - Syntax-highlighted code
@@ -412,6 +437,7 @@ The SDK includes 52 comprehensive test cards:
 - `advanced-combined.json` - Multiple advanced elements
 
 ### Templating
+
 - `templating-basic.json` - Simple property binding
 - `templating-conditional.json` - Conditional rendering with `$when`
 - `templating-iteration.json` - Array iteration with `$data`
@@ -443,6 +469,7 @@ The templating engine supports powerful data binding:
 ```
 
 **Expression Functions (60 total):**
+
 - String: `toLower`, `toUpper`, `substring`, `replace`, `trim`, `format`, etc.
 - Math: `add`, `sub`, `mul`, `max`, `round`, `abs`, etc.
 - Logic: `if`, `equals`, `and`, `or`, `exists`, `empty`, etc.
@@ -463,6 +490,7 @@ The templating engine supports powerful data binding:
 ## 🏗️ Architecture
 
 ### iOS Architecture
+
 ```
 ┌─────────────────────────────────────────────┐
 │          SwiftUI Host Application           │
@@ -496,6 +524,7 @@ The templating engine supports powerful data binding:
 ```
 
 ### Android Architecture
+
 ```
 ┌─────────────────────────────────────────────┐
 │       Jetpack Compose Host Application      │
@@ -531,12 +560,14 @@ The templating engine supports powerful data binding:
 ## 🗺️ Roadmap
 
 ### ✅ Phase 1: Templating Engine (Complete)
+
 - [x] iOS ACTemplating module with 50 functions
 - [x] Expression parser and evaluator
 - [x] Test cards and comprehensive tests
 - [x] Android ac-templating implementation with 50+ functions
 
 ### ✅ Phase 2: Advanced Elements + Markdown + Fluent (Complete)
+
 - [x] Markdown rendering
 - [x] ListView element
 - [x] DataGrid component
@@ -546,15 +577,18 @@ The templating engine supports powerful data binding:
 - [x] Schema validation
 
 ### ✅ Phase 3: Advanced Actions + Copilot + Teams (Complete)
+
 - [x] Advanced actions (Popover, MenuAction, etc.)
 - [x] Copilot Extensions module
 - [x] Teams Integration module
 
 ### ✅ Phase 4: Sample Apps (Complete)
+
 - [x] iOS sample app with card gallery, editor, Teams simulator
 - [x] Android sample app with same features
 
 ### ✅ Phase 5: Production Readiness (Complete)
+
 - [x] Visual regression tests
 - [x] Performance benchmarks
 - [x] SDK publishing configuration
@@ -567,6 +601,7 @@ The templating engine supports powerful data binding:
 **Goal:** Bridge the gap between "v1.0 code complete" and "production-adopted SDK"
 
 #### 🔧 Phase 6A: Codebase Hygiene & README Accuracy (Complete)
+
 - [x] Update README roadmap to reflect reality
 - [x] Fix ForEach offset-as-ID anti-pattern across all views
 - [x] Add CHANGELOG section for v1.1.0-dev
@@ -576,6 +611,7 @@ The templating engine supports powerful data binding:
 - [x] Both sample apps verified running on simulators/emulators (2026-02-12)
 
 #### 🎨 Phase 6A.1: Figma Design Alignment (Complete — 2026-03-10)
+
 - [x] Extracted platform-specific HostConfigs from Figma AC-Evolution design file
 - [x] iOS TeamsHostConfig aligned to Figma iOS page (`.SF UI Text`, sizes 12/15/15/17/22, weights 300/400/600)
 - [x] Android TeamsHostConfig aligned to Figma Android page (`Roboto`, sizes 12/14/14/16/20, weights 400/400/500)
@@ -587,18 +623,21 @@ The templating engine supports powerful data binding:
 - [x] Visual snapshot baselines updated
 
 #### 📦 Phase 6B: CI/CD Validation & Green Build
+
 - [ ] Audit and fix iOS workflow (Xcode 15+, macos-14)
 - [ ] Audit and fix Android workflow (JDK 17, AGP, Compose)
 - [ ] Add workflow status badges to README
 - [ ] Implement PR check workflow
 
 #### 🧪 Phase 6C: Integration Tests & Real-Device Validation
+
 - [ ] iOS integration tests (rendering, templating, actions)
 - [ ] Android instrumented tests (Compose testing)
 - [ ] Document test cards with purpose and expectations
 - [ ] Run integration tests in CI
 
 #### ⚡ Phase 6D: Performance Optimization & Caching
+
 - [ ] Card parse caching (NSCache/LruCache)
 - [ ] Image caching with disk + memory
 - [ ] LazyVStack/LazyColumn optimization
@@ -606,6 +645,7 @@ The templating engine supports powerful data binding:
 - [ ] Document performance characteristics
 
 #### 🎬 Phase 6E: Animation Support & Card Transitions
+
 - [ ] Card appear/disappear animations
 - [ ] Staggered element loading animations
 - [ ] ToggleVisibility action animations
@@ -613,6 +653,7 @@ The templating engine supports powerful data binding:
 - [ ] Animation test card and sample app toggle
 
 #### 🌐 Phase 6F: Ecosystem & Community Readiness
+
 - [ ] GitHub issue templates (bug, feature, question)
 - [ ] PR template with checklist
 - [ ] Add MIT LICENSE file
@@ -634,6 +675,7 @@ Contributions are welcome! Please follow these guidelines:
 6. **Submit a PR**: Include description of changes and test results
 
 ### Code Style
+
 - **iOS**: Follow Swift API Design Guidelines
 - **Android**: Follow Kotlin Coding Conventions
 - **Cross-platform**: Maintain naming parity (see NAMING_CONVENTIONS.md)
@@ -666,6 +708,7 @@ Both iOS and Android include comprehensive sample apps showcasing all SDK featur
 ### iOS Sample App
 
 Located in `ios/SampleApp/`, features:
+
 - **Card Gallery**: Browse 52 test cards by category with search/filter
 - **Live Editor**: Edit JSON with real-time preview
 - **Teams Simulator**: Teams-style chat UI with card integration
@@ -677,6 +720,7 @@ Located in `ios/SampleApp/`, features:
 **Status**: Running on iPhone 16 Pro Simulator. Card rendering aligned to Figma iOS design spec with platform-native `.SF UI Text` typography.
 
 Build and run:
+
 ```bash
 cd ios
 open SampleApp.xcodeproj
@@ -701,6 +745,7 @@ See [ios/SampleApp/README.md](ios/SampleApp/README.md) for detailed instructions
 ### Android Sample App
 
 Located in `android/sample-app/`, features:
+
 - **Card Gallery**: Browse 52 test cards by category with search/filter
 - **Live Editor**: JSON editor with validation
 - **Teams Simulator**: Material Design chat UI
@@ -712,6 +757,7 @@ Located in `android/sample-app/`, features:
 **Status**: Running on Pixel 10 AVD (API 36). Card rendering aligned to Figma Android design spec with `Roboto` typography.
 
 Build and run:
+
 ```bash
 cd android
 ./gradlew :sample-app:assembleDebug
@@ -721,6 +767,7 @@ cd android
 #### Automated Demo Script
 
 Run a dual-platform bookmark demo across both simulators simultaneously:
+
 ```bash
 bash shared/scripts/demo-bookmarks.sh                # default 2s per card
 bash shared/scripts/demo-bookmarks.sh --wait 3        # 3s per card
@@ -777,6 +824,7 @@ swift test --verbose
 ```
 
 Or use Xcode:
+
 1. Open `ios/Package.swift` in Xcode
 2. Press `⌘ + U` to run all tests
 3. Open Test Navigator (`⌘ + 6`) to run specific tests
@@ -804,12 +852,14 @@ Run tests for specific modules:
 ```
 
 View HTML test reports:
+
 ```bash
 # Reports are generated at:
 android/<module>/build/reports/tests/testDebugUnitTest/index.html
 ```
 
 Or use Android Studio:
+
 1. Right-click on `src/test/kotlin` in any module
 2. Select "Run Tests"
 3. View results in the Run window
@@ -823,6 +873,7 @@ bash shared/scripts/validate-test-cards.sh
 ```
 
 This script:
+
 - Validates JSON syntax for all cards in `shared/test-cards/`
 - Checks for required `type` and `version` fields
 - Reports any malformed or invalid cards
@@ -842,13 +893,13 @@ The integration tests (`IntegrationTests` on both platforms) validate:
 
 Current test coverage exceeds 80% across all modules:
 
-| Platform | Module | Coverage |
-|----------|--------|----------|
-| iOS | ACCore | 85% |
-| iOS | ACRendering | 82% |
-| iOS | ACTemplating | 88% |
-| Android | ac-core | 84% |
-| Android | ac-rendering | 81% |
+| Platform | Module       | Coverage |
+| -------- | ------------ | -------- |
+| iOS      | ACCore       | 85%      |
+| iOS      | ACRendering  | 82%      |
+| iOS      | ACTemplating | 88%      |
+| Android  | ac-core      | 84%      |
+| Android  | ac-rendering | 81%      |
 
 ### Edge Case Test Cards
 
@@ -883,6 +934,7 @@ To create a new release:
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
 - Development setup
 - Coding standards
 - Testing requirements

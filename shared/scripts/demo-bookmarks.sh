@@ -42,7 +42,7 @@ TRANSITION_WAIT=0.5  # seconds between navigation transitions
 PERF_WAIT=5          # seconds on performance dashboard
 SETTINGS_WAIT=3      # seconds on settings page
 MORE_WAIT=5          # seconds on more page
-HOME_WAIT=2          # seconds on home/gallery page
+HOME_WAIT=3          # seconds on home/gallery page
 FILTER_WAIT=2        # seconds on filtered gallery view
 IOS_HEAD_START=0.15  # iOS fires first to compensate for slower deep link handling
 TAKE_SCREENSHOTS=false
@@ -384,25 +384,30 @@ echo ""
 echo "━━━ Step 5: Charts Card ━━━"
 
 navigate "card/charts"
-sleep 3
+sleep 1
 take_screenshots "05-charts-top"
-echo "  📊 Charts card — donut + bar charts (3s)"
+echo "  📊 Charts card — donut + bar charts (1s)"
 
 # Scroll down to reveal more chart types
 scroll_down
-sleep 2
+sleep 1
 take_screenshots "05-charts-mid"
-echo "  📊 Charts card — scrolled to more charts (2s)"
+echo "  📊 Charts card — scrolled to more charts (1s)"
 
 scroll_down
-sleep 2
+sleep 1
 take_screenshots "05-charts-mid2"
-echo "  📊 Charts card — scrolled to more charts (2s)"
+echo "  📊 Charts card — scrolled to more charts (1s)"
 
 scroll_down
-sleep 2
+sleep 1
+take_screenshots "05-charts-mid3"
+echo "  📊 Charts card — crolled to more charts  (1s)"
+
+scroll_down
+sleep 1
 take_screenshots "05-charts-bottom"
-echo "  📊 Charts card — scrolled to bottom (2s)"
+echo "  📊 Charts card — scrolled to bottom (1s)"
 
 echo ""
 
