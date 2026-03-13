@@ -117,7 +117,7 @@ Every agent PR that touches rendering or test code **must** pass:
 cd ios && xcodebuild test \
   -scheme AdaptiveCards-Package \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 16e' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:VisualTests/CardElementSnapshotTests \
   CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```

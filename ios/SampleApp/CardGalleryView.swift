@@ -10,6 +10,7 @@ struct CardGalleryView: View {
     @State private var searchText = ""
     @State private var selectedCategory: CardCategory = .all
     @State private var showGrouped = true
+    @State private var navigationPath = NavigationPath()
 
     private let cards: [TestCard] = TestCardLoader.loadAllCards()
 
@@ -49,7 +50,7 @@ struct CardGalleryView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 0) {
                     // Hero header
@@ -111,6 +112,22 @@ struct CardGalleryView: View {
                         selectedCategory = category
                     }
                 }
+            }
+            .navigationDestination(for: TestCard.self) { card in
+                CardDetailView(card: card)
+            }
+            .onChange(of: deepLink.activeCard) { _, card in
+                guard let card else { return }
+                deepLink.activeCard = nil
+                navigationPath = NavigationPath()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    navigationPath.append(card)
+                }
+            }
+            .onChange(of: deepLink.pendingGalleryPopToRoot) { _, shouldPop in
+                guard shouldPop else { return }
+                deepLink.pendingGalleryPopToRoot = false
+                navigationPath = NavigationPath()
             }
         }
     }
@@ -430,8 +447,16 @@ enum CardCategory: String, CaseIterable, Identifiable {
     }
 }
 
-struct TestCard: Identifiable {
+struct TestCard: Identifiable, Hashable {
     let id = UUID()
+
+    static func == (lhs: TestCard, rhs: TestCard) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     let title: String
     let description: String
     let filename: String

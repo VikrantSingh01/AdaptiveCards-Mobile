@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-SIMULATOR="iPhone 16e"
+SIMULATOR="iPhone 16 Pro"
 APP_ID="com.microsoft.adaptivecards.sampleapp"
 SCREENSHOT_DIR="/tmp/card-auto-tests"
 REPORT_FILE="$SCREENSHOT_DIR/report.txt"

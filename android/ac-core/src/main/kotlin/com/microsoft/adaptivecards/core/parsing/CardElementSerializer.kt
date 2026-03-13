@@ -5,6 +5,7 @@
 package com.microsoft.adaptivecards.core.parsing
 
 import com.microsoft.adaptivecards.core.models.*
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
@@ -27,10 +28,52 @@ import kotlinx.serialization.json.jsonPrimitive
  * During serialization, injects the "type" discriminator field that @Transient suppresses.
  * During deserialization, routes to the correct concrete serializer based on the "type" JSON field,
  * falling back to [UnknownElement] for unrecognised types.
+ *
+ * Performance optimisations over the original implementation:
+ * - **HashMap lookup** for O(1) type→serializer dispatch (vs linear when-expression)
+ * - **Image handling isolated** to a dedicated [ImageDeserializer] — avoids branching on
+ *   every element in the hot path
  */
 @OptIn(InternalSerializationApi::class)
 object CardElementSerializer : KSerializer<CardElement> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("CardElement")
+
+    /** Pre-built map from JSON "type" values to their concrete deserializers. O(1) lookup. */
+    private val deserializerMap: Map<String, DeserializationStrategy<out CardElement>> = buildMap {
+        put("TextBlock", TextBlock.serializer())
+        put("Image", ImageDeserializer)
+        put("Container", Container.serializer())
+        put("ColumnSet", ColumnSet.serializer())
+        put("FactSet", FactSet.serializer())
+        put("ImageSet", ImageSet.serializer())
+        put("ActionSet", ActionSet.serializer())
+        put("Media", Media.serializer())
+        put("RichTextBlock", RichTextBlock.serializer())
+        put("Table", Table.serializer())
+        put("Icon", Icon.serializer())
+        put("Badge", Badge.serializer())
+        put("Input.Text", InputText.serializer())
+        put("Input.Number", InputNumber.serializer())
+        put("Input.Date", InputDate.serializer())
+        put("Input.Time", InputTime.serializer())
+        put("Input.Toggle", InputToggle.serializer())
+        put("Input.ChoiceSet", InputChoiceSet.serializer())
+        put("Carousel", Carousel.serializer())
+        put("Accordion", Accordion.serializer())
+        put("CodeBlock", CodeBlock.serializer())
+        put("Rating", RatingDisplay.serializer())
+        put("Input.Rating", RatingInput.serializer())
+        put("ProgressBar", ProgressBar.serializer())
+        put("Spinner", Spinner.serializer())
+        put("TabSet", TabSet.serializer())
+        put("List", ListElement.serializer())
+        put("CompoundButton", CompoundButton.serializer())
+        put("DonutChart", DonutChart.serializer())
+        put("BarChart", BarChart.serializer())
+        put("LineChart", LineChart.serializer())
+        put("PieChart", PieChart.serializer())
+        put("Input.DataGrid", InputDataGrid.serializer())
+    }
 
     override fun serialize(encoder: Encoder, value: CardElement) {
         val jsonEncoder = encoder as? JsonEncoder ?: return
@@ -52,74 +95,52 @@ object CardElementSerializer : KSerializer<CardElement> {
             return jsonDecoder.json.decodeFromJsonElement(UnknownElement.serializer(), element)
         }
 
-        val serializer: KSerializer<out CardElement>? = when (type) {
-            "TextBlock" -> TextBlock.serializer()
-            "Image" -> Image.serializer()
-            "Container" -> Container.serializer()
-            "ColumnSet" -> ColumnSet.serializer()
-            "FactSet" -> FactSet.serializer()
-            "ImageSet" -> ImageSet.serializer()
-            "ActionSet" -> ActionSet.serializer()
-            "Media" -> Media.serializer()
-            "RichTextBlock" -> RichTextBlock.serializer()
-            "Table" -> Table.serializer()
-            "Icon" -> Icon.serializer()
-            "Badge" -> Badge.serializer()
-            "Input.Text" -> InputText.serializer()
-            "Input.Number" -> InputNumber.serializer()
-            "Input.Date" -> InputDate.serializer()
-            "Input.Time" -> InputTime.serializer()
-            "Input.Toggle" -> InputToggle.serializer()
-            "Input.ChoiceSet" -> InputChoiceSet.serializer()
-            "Carousel" -> Carousel.serializer()
-            "Accordion" -> Accordion.serializer()
-            "CodeBlock" -> CodeBlock.serializer()
-            "Rating" -> RatingDisplay.serializer()
-            "Input.Rating" -> RatingInput.serializer()
-            "ProgressBar" -> ProgressBar.serializer()
-            "Spinner" -> Spinner.serializer()
-            "TabSet" -> TabSet.serializer()
-            "List" -> ListElement.serializer()
-            "CompoundButton" -> CompoundButton.serializer()
-            "DonutChart" -> DonutChart.serializer()
-            "BarChart" -> BarChart.serializer()
-            "LineChart" -> LineChart.serializer()
-            "PieChart" -> PieChart.serializer()
-            "Input.DataGrid" -> InputDataGrid.serializer()
-            else -> null
+        val deserializer = deserializerMap[type]
+        return if (deserializer != null) {
+            jsonDecoder.json.decodeFromJsonElement(deserializer, element)
+        } else {
+            val unknown = jsonDecoder.json.decodeFromJsonElement(UnknownElement.serializer(), element)
+            unknown.copy(unknownType = type)
         }
+    }
+}
 
-        // Pre-process: sanitise Image elements before deserialization.
-        // themedUrls is expected as a JSON object (Map) but some cards send a JSON array — strip it.
-        val sanitisedElement = if (serializer != null && type == "Image") {
-            val obj = element.jsonObject
+/**
+ * Dedicated deserializer for Image elements, isolated from the main dispatch path.
+ *
+ * Handles two quirks that require pre-processing:
+ * 1. `themedUrls` may arrive as a JSON array (invalid) instead of a JSON object — strip it.
+ * 2. `height` may contain pixel values like "32px" that the BlockElementHeight enum can't
+ *    represent — extract into the transient `pixelHeight` field.
+ */
+private object ImageDeserializer : DeserializationStrategy<Image> {
+    private val delegate = Image.serializer()
+    override val descriptor: SerialDescriptor = delegate.descriptor
+
+    override fun deserialize(decoder: Decoder): Image {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return delegate.deserialize(decoder)
+        val element = jsonDecoder.decodeJsonElement()
+        val obj = element.jsonObject
+
+        // Sanitise: strip themedUrls if it arrived as an array instead of an object
+        val sanitised = run {
             val themed = obj["themedUrls"]
             if (themed != null && themed is JsonArray) {
                 JsonObject(obj.filterKeys { it != "themedUrls" })
             } else {
                 element
             }
-        } else {
-            element
         }
 
-        return if (serializer != null) {
-            val decoded = jsonDecoder.json.decodeFromJsonElement(serializer, sanitisedElement)
-            // For Image elements, extract pixel height (e.g. "32px") which the base
-            // BlockElementHeight enum cannot represent
-            if (decoded is Image) {
-                val rawHeight = sanitisedElement.jsonObject["height"]?.jsonPrimitive?.content
-                if (rawHeight != null && rawHeight.contains("px", ignoreCase = true)) {
-                    decoded.copy(pixelHeight = rawHeight)
-                } else {
-                    decoded
-                }
-            } else {
-                decoded
-            }
+        val image = jsonDecoder.json.decodeFromJsonElement(delegate, sanitised)
+
+        // Extract pixel height (e.g. "32px") which the BlockElementHeight enum cannot represent
+        val rawHeight = obj["height"]?.jsonPrimitive?.content
+        return if (rawHeight != null && rawHeight.contains("px", ignoreCase = true)) {
+            image.copy(pixelHeight = rawHeight)
         } else {
-            val unknown = jsonDecoder.json.decodeFromJsonElement(UnknownElement.serializer(), element)
-            unknown.copy(unknownType = type)
+            image
         }
     }
 }

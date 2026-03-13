@@ -36,7 +36,7 @@ https://github.com/VikrantSingh01/AdaptiveCards-Mobile/raw/main/download/AC_Mobi
 
 | Platform | Modules Built | Tests | Sample App |
 |----------|---------------|-------|------------|
-| **iOS** | 11/11 | 235 passed (100%) | Running on iPhone 16e Simulator |
+| **iOS** | 11/11 | 235 passed (100%) | Running on iPhone 16 Pro Simulator |
 | **Android** | 12/12 | All passing (100%) | Running on Pixel 10 AVD (API 36) |
 
 ### Module Overview
@@ -672,7 +672,7 @@ Located in `ios/SampleApp/`, features:
 - **Settings**: Theme, font scale, accessibility options
 - **Deep Link Navigation**: `adaptivecards://` URL scheme for automated testing and demo scripts
 
-**Status**: Running on iPhone 16e Simulator. Card rendering aligned to Figma iOS design spec with platform-native `.SF UI Text` typography.
+**Status**: Running on iPhone 16 Pro Simulator. Card rendering aligned to Figma iOS design spec with platform-native `.SF UI Text` typography.
 
 Build and run:
 ```bash

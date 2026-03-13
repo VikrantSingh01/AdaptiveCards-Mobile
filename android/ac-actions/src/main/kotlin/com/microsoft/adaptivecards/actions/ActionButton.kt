@@ -24,24 +24,29 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.microsoft.adaptivecards.core.hostconfig.HostConfig
+import com.microsoft.adaptivecards.core.hostconfig.HostConfigParser
 import com.microsoft.adaptivecards.core.models.ActionStyle
 import com.microsoft.adaptivecards.core.models.CardAction
 
 /**
- * Styled action button based on ActionStyle
+ * Styled action button based on ActionStyle.
+ * Colors are read from HostConfig for consistency with the rendering layer.
  */
 @Composable
 fun ActionButton(
     action: CardAction,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hostConfig: HostConfig = HostConfigParser.default()
 ) {
+    val foregroundColors = hostConfig.containerStyles.default.foregroundColors
     val buttonColors = when (action.style) {
         ActionStyle.Positive -> ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF92C353)
+            containerColor = Color(android.graphics.Color.parseColor(foregroundColors.good.default))
         )
         ActionStyle.Destructive -> ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFC4314B)
+            containerColor = Color(android.graphics.Color.parseColor(foregroundColors.attention.default))
         )
         else -> ButtonDefaults.buttonColors()
     }

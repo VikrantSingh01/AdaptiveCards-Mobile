@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -122,6 +124,15 @@ fun MainScreen() {
                         label = { Text(screen.label) },
                         selected = selected,
                         onClick = {
+                            // Pop any non-tab destinations (e.g. card_detail) first
+                            val currentRoute = navController.currentBackStackEntry?.destination?.route
+                            val tabRoutes = items.map { it.route }.toSet()
+                            if (currentRoute != null && currentRoute !in tabRoutes) {
+                                navController.popBackStack(
+                                    navController.graph.findStartDestination().id,
+                                    inclusive = false
+                                )
+                            }
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -154,7 +165,13 @@ fun MainScreen() {
             composable(Screen.More.route) {
                 MoreScreen(navController, actionLogState, settingsState, bookmarkState)
             }
-            composable("card_detail/{cardId}") { backStackEntry ->
+            composable(
+                "card_detail/{cardId}",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
+            ) { backStackEntry ->
                 val cardId = backStackEntry.arguments?.getString("cardId") ?: ""
                 CardDetailScreen(cardId, actionLogState, bookmarkState, navController, editorState, perfStore, pendingActionTitle)
             }
@@ -508,9 +525,9 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
             val segments = uri.pathSegments
             if (segments.isNotEmpty()) {
                 val cardFilename = segments.joinToString("/") + ".json"
-                navController.navigate("card_detail/${Uri.encode(cardFilename)}") {
-                    launchSingleTop = true
-                }
+                // Pop current card detail (if any) then push new one for slide transition
+                navController.popBackStack("card_detail/{cardId}", inclusive = true)
+                navController.navigate("card_detail/${Uri.encode(cardFilename)}")
             }
         }
         "gallery" -> {

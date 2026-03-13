@@ -68,7 +68,7 @@ Build: `android/settings.gradle.kts` + `android/build.gradle.kts` (Gradle, JDK 1
 | Platform | Target | App ID |
 |---|---|---|
 | Android | AVD: `Medium_Phone_API_36.1` | `com.microsoft.adaptivecards.sample` (launch: `.MainActivity`) |
-| iOS | Simulator: `iPhone 16e` | `com.microsoft.adaptivecards.sampleapp` |
+| iOS | Simulator: `iPhone 16 Pro` | `com.microsoft.adaptivecards.sampleapp` |
 
 ## Build & Run Commands
 
@@ -80,11 +80,11 @@ cd ios && swift build
 
 # Build sample app for simulator
 xcodebuild -project ios/SampleApp.xcodeproj -scheme ACVisualizer \
-  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16e' build
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
 
 # Install & launch sample app
-xcrun simctl install "iPhone 16e" <derived-data-path>/ACVisualizer.app
-xcrun simctl launch "iPhone 16e" com.microsoft.adaptivecards.sampleapp
+xcrun simctl install "iPhone 16 Pro" <derived-data-path>/ACVisualizer.app
+xcrun simctl launch "iPhone 16 Pro" com.microsoft.adaptivecards.sampleapp
 ```
 
 ### Android
@@ -116,7 +116,7 @@ Test targets: ACCoreTests, ACRenderingTests, ACInputsTests, ACTemplatingTests, A
 cd ios && xcodebuild test \
   -scheme AdaptiveCards-Package \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 16e' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:VisualTests/CardElementSnapshotTests \
   CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```

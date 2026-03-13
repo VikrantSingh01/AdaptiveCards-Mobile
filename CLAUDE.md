@@ -67,7 +67,7 @@ Build: `android/settings.gradle.kts` + `android/build.gradle.kts` (Gradle, JDK 1
 | Platform | Target | App ID |
 |---|---|---|
 | Android | AVD: `Medium_Phone_API_36.1` | `com.microsoft.adaptivecards.sample` (launch: `.MainActivity`) |
-| iOS | Simulator: `iPhone 16e` | `com.microsoft.adaptivecards.sampleapp` |
+| iOS | Simulator: `iPhone 16 Pro` | `com.microsoft.adaptivecards.sampleapp` |
 
 ## Build & Run Commands
 
@@ -79,11 +79,11 @@ cd ios && swift build
 
 # Build sample app for simulator
 xcodebuild -project ios/SampleApp.xcodeproj -scheme ACVisualizer \
-  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16e' build
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
 
 # Install & launch sample app
-xcrun simctl install "iPhone 16e" <derived-data-path>/ACVisualizer.app
-xcrun simctl launch "iPhone 16e" com.microsoft.adaptivecards.sampleapp
+xcrun simctl install "iPhone 16 Pro" <derived-data-path>/ACVisualizer.app
+xcrun simctl launch "iPhone 16 Pro" com.microsoft.adaptivecards.sampleapp
 ```
 
 ### iOS Sample App — Deep Links for Testing
@@ -92,13 +92,13 @@ The iOS sample app supports `adaptivecards://` deep links for automated testing:
 
 ```bash
 # Navigate directly to a specific card (no manual tapping needed)
-xcrun simctl openurl "iPhone 16e" "adaptivecards://card/teams-official-samples/cafe-menu"
+xcrun simctl openurl "iPhone 16 Pro" "adaptivecards://card/teams-official-samples/cafe-menu"
 
 # Return to gallery
-xcrun simctl openurl "iPhone 16e" "adaptivecards://gallery"
+xcrun simctl openurl "iPhone 16 Pro" "adaptivecards://gallery"
 
 # Take a screenshot for visual verification
-xcrun simctl io "iPhone 16e" screenshot /tmp/card-screenshot.png
+xcrun simctl io "iPhone 16 Pro" screenshot /tmp/card-screenshot.png
 ```
 
 ### Automated Visual Test Loop
@@ -143,7 +143,7 @@ Test targets: ACCoreTests, ACRenderingTests, ACInputsTests, ACTemplatingTests, A
 cd ios && xcodebuild test \
   -scheme AdaptiveCards-Package \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 16e' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:VisualTests/CardElementSnapshotTests \
   CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```

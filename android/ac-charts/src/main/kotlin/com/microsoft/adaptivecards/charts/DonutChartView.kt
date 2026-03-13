@@ -4,6 +4,7 @@
 
 package com.microsoft.adaptivecards.charts
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -33,7 +34,7 @@ fun DonutChartView(chart: DonutChart) {
     var animationPlayed by remember { mutableStateOf(false) }
     val animationProgress by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(800),
+        animationSpec = tween(800, easing = FastOutSlowInEasing),
         label = "donut_animation"
     )
     

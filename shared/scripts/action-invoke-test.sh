@@ -24,7 +24,7 @@
 #   bash shared/scripts/action-invoke-test.sh --wait 5
 #
 # Prerequisites:
-#   - iOS Simulator "iPhone 16e" booted with sample app installed
+#   - iOS Simulator "iPhone 16 Pro" booted with sample app installed
 #   - Android emulator running with sample app installed
 #   - Accessibility / input automation permissions granted
 # =============================================================================
@@ -40,7 +40,7 @@ IOS_ONLY=false
 ANDROID_ONLY=false
 
 # Platform config
-IOS_SIMULATOR="iPhone 16e"
+IOS_SIMULATOR="iPhone 16 Pro"
 IOS_APP_ID="com.microsoft.adaptivecards.sampleapp"
 ANDROID_APP_ID="com.microsoft.adaptivecards.sample"
 

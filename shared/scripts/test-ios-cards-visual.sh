@@ -9,7 +9,7 @@
 # and analyzes it for rendering failures.
 #
 # Prerequisites:
-#   - iOS Simulator booted with iPhone 16e
+#   - iOS Simulator booted with iPhone 16 Pro
 #   - ACVisualizer installed and on the Gallery screen
 #   - Simulator window visible (not minimized)
 #
@@ -24,7 +24,7 @@
 
 set -euo pipefail
 
-SIMULATOR="iPhone 16e"
+SIMULATOR="iPhone 16 Pro"
 SCREENSHOT_DIR="/tmp/card-visual-tests"
 REPORT_FILE="/tmp/card-visual-report.txt"
 CARD_NAME="${1:-all}"

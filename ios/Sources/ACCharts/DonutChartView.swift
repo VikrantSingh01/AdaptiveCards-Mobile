@@ -31,6 +31,10 @@ public struct DonutChartView: View {
         CGFloat(chart.innerRadiusRatio ?? 0.5)
     }
 
+    private var showLegend: Bool {
+        chart.showLegend ?? true
+    }
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let title = chart.title {
@@ -38,14 +42,22 @@ public struct DonutChartView: View {
                     .font(.headline)
             }
 
-            HStack(alignment: .center, spacing: 20) {
-                donutChart
-                    .frame(height: chartSize.height)
+            GeometryReader { geometry in
+                let chartDiameter = showLegend
+                    ? min(geometry.size.width * 0.45, geometry.size.height)
+                    : min(geometry.size.width * 0.8, geometry.size.height)
 
-                if chart.showLegend ?? true {
-                    legend
+                HStack(alignment: .center, spacing: 20) {
+                    donutSlices(diameter: chartDiameter)
+                        .frame(width: chartDiameter, height: chartDiameter)
+
+                    if showLegend {
+                        legend
+                    }
                 }
+                .frame(width: geometry.size.width, height: geometry.size.height)
             }
+            .frame(height: chartSize.height)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityDescription)
@@ -56,47 +68,46 @@ public struct DonutChartView: View {
         }
     }
 
-    private var donutChart: some View {
-        GeometryReader { geometry in
-            let size = min(geometry.size.width, geometry.size.height)
-            let radius = size / 2
-            let lineWidth = radius * (1 - innerRadiusRatio)
+    private func donutSlices(diameter: CGFloat) -> some View {
+        ZStack {
+            ForEach(Array(chart.data.enumerated()), id: \.element.id) { index, dataPoint in
+                let percentage = dataPoint.value / total
+                let startFraction = chart.data.prefix(index).reduce(0) { $0 + $1.value / total }
+                let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count]
 
-            Canvas { context, canvasSize in
-                var startAngle = Angle.degrees(-90)
-
-                for (index, dataPoint) in chart.data.enumerated() {
-                    let percentage = dataPoint.value / total // safe: total guarded >= 1 in computed property
-                    let sweepAngle = Angle.degrees(360 * percentage * Double(animationProgress))
-
-                    let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
-
-                    var path = Path()
-                    path.addArc(
-                        center: CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2),
-                        radius: radius - lineWidth / 2,
-                        startAngle: startAngle,
-                        endAngle: startAngle + sweepAngle,
-                        clockwise: false
+                DonutSliceShape(innerRadiusRatio: innerRadiusRatio)
+                    .trim(from: startFraction, to: startFraction + percentage * animationProgress)
+                    .stroke(
+                        selectedIndex == index ? color.opacity(0.7) : color,
+                        lineWidth: diameter / 2 * (1 - innerRadiusRatio)
                     )
-
-                    context.stroke(
-                        path,
-                        with: .color(selectedIndex == index ? color.opacity(0.7) : color),
-                        lineWidth: lineWidth
-                    )
-
-                    startAngle += sweepAngle
-                }
-            }
-            .frame(width: size, height: size)
-            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            .contentShape(Rectangle())
-            .onTapGesture { location in
-                selectedIndex = indexForTap(at: location, in: geometry, radius: radius)
             }
         }
-        .aspectRatio(1, contentMode: .fit)
+        .contentShape(Rectangle())
+        .onTapGesture { location in
+            let center = CGPoint(x: diameter / 2, y: diameter / 2)
+            let radius = diameter / 2
+            let dx = location.x - center.x
+            let dy = location.y - center.y
+            let distance = sqrt(dx * dx + dy * dy)
+            guard distance <= radius && distance >= radius * innerRadiusRatio else {
+                selectedIndex = nil
+                return
+            }
+            var angle = atan2(dy, dx) + .pi / 2
+            if angle < 0 { angle += 2 * .pi }
+            var startAngle: Double = 0
+            for (index, dataPoint) in chart.data.enumerated() {
+                let percentage = dataPoint.value / total
+                let sweepAngle = 2 * .pi * percentage
+                if angle >= startAngle && angle < startAngle + sweepAngle {
+                    selectedIndex = selectedIndex == index ? nil : index
+                    return
+                }
+                startAngle += sweepAngle
+            }
+            selectedIndex = nil
+        }
     }
 
     private var legend: some View {
@@ -125,31 +136,6 @@ public struct DonutChartView: View {
         }
     }
 
-    private func indexForTap(at location: CGPoint, in geometry: GeometryProxy, radius: CGFloat) -> Int? {
-        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-        let dx = location.x - center.x
-        let dy = location.y - center.y
-        let distance = sqrt(dx * dx + dy * dy)
-
-        guard distance <= radius && distance >= radius * innerRadiusRatio else { return nil }
-
-        var angle = atan2(dy, dx) + .pi / 2
-        if angle < 0 { angle += 2 * .pi }
-
-        var startAngle: Double = 0
-        for (index, dataPoint) in chart.data.enumerated() {
-            let percentage = dataPoint.value / total // safe: total guarded >= 1 in computed property
-            let sweepAngle = 2 * .pi * percentage
-
-            if angle >= startAngle && angle < startAngle + sweepAngle {
-                return index
-            }
-            startAngle += sweepAngle
-        }
-
-        return nil
-    }
-
     private var accessibilityDescription: String {
         var description = "Donut chart"
         if let title = chart.title {
@@ -164,5 +150,28 @@ public struct DonutChartView: View {
 
         description += segments
         return description
+    }
+}
+
+/// A circular arc shape used for donut chart slices.
+/// Uses `.trim(from:to:)` + `.stroke()` for SwiftUI-native animation support.
+private struct DonutSliceShape: Shape {
+    let innerRadiusRatio: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        let lineWidth = radius * (1 - innerRadiusRatio)
+        let arcRadius = radius - lineWidth / 2
+
+        var path = Path()
+        path.addArc(
+            center: center,
+            radius: arcRadius,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(270),
+            clockwise: false
+        )
+        return path
     }
 }

@@ -136,7 +136,7 @@ private fun VerticalSeparatorLine() {
 private fun RowScope.resolveColumnWidth(width: String?): Modifier {
     return when {
         width == null || width == "stretch" -> Modifier.weight(1f)
-        width == "auto" -> Modifier.width(IntrinsicSize.Min)
+        width == "auto" -> Modifier
         width.endsWith("px") -> {
             val pixels = width.removeSuffix("px").toIntOrNull()
             if (pixels != null) Modifier.width(pixels.dp) else Modifier.weight(1f)

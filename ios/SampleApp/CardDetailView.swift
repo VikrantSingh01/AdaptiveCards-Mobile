@@ -89,6 +89,7 @@ struct CardDetailView: View {
                         Text(String(format: "%.1f", parseTime * 1000))
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .monospacedDigit()
+                            .foregroundColor(perfColor(ms: parseTime * 1000))
                         Text("ms")
                             .font(.system(size: 9, weight: .medium))
                             .foregroundStyle(.secondary)
@@ -104,6 +105,7 @@ struct CardDetailView: View {
                         Text(String(format: "%.1f", renderTime * 1000))
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .monospacedDigit()
+                            .foregroundColor(perfColor(ms: renderTime * 1000))
                         Text("ms")
                             .font(.system(size: 9, weight: .medium))
                             .foregroundStyle(.secondary)
@@ -164,6 +166,16 @@ struct CardDetailView: View {
         }
         .task {
             measurePerformance()
+        }
+    }
+
+    /// Maps a performance metric (ms) to a color: green < 10, blue < 20, orange < 40, red >= 40.
+    private func perfColor(ms: Double) -> Color {
+        switch ms {
+        case ..<10: return Color(red: 0.204, green: 0.780, blue: 0.349) // #34C759 green
+        case ..<20: return Color(red: 0.0,   green: 0.471, blue: 0.831) // #0078D4 blue
+        case ..<40: return Color(red: 1.0,   green: 0.584, blue: 0.0)   // #FF9500 orange
+        default:    return Color(red: 1.0,   green: 0.231, blue: 0.188) // #FF3B30 red
         }
     }
 

@@ -4,6 +4,7 @@
 
 package com.microsoft.adaptivecards.charts
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -35,7 +36,7 @@ fun BarChartView(chart: BarChart) {
     var animationPlayed by remember { mutableStateOf(false) }
     val animationProgress by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(600),
+        animationSpec = tween(600, easing = LinearOutSlowInEasing),
         label = "bar_animation"
     )
     

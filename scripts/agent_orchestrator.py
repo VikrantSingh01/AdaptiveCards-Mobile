@@ -70,7 +70,7 @@ All changes **must** pass these tests before the PR can be merged:
 cd ios && xcodebuild test \\
   -scheme AdaptiveCards-Package \\
   -sdk iphonesimulator \\
-  -destination 'platform=iOS Simulator,name=iPhone 16e' \\
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \\
   -only-testing:VisualTests/CardElementSnapshotTests \\
   CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
@@ -364,7 +364,7 @@ def _build_enforcement_comment(repo: str, pr_num: int) -> str:
     cd ios && xcodebuild test \\
       -scheme AdaptiveCards-Package \\
       -sdk iphonesimulator \\
-      -destination 'platform=iOS Simulator,name=iPhone 16e' \\
+      -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \\
       -only-testing:VisualTests/CardElementSnapshotTests \\
       CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
     ```

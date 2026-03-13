@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -188,12 +189,12 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                         ) {
                             FilledTonalIconButton(
                                 onClick = { showJson = !showJson },
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(32.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Code,
                                     contentDescription = if (showJson) "Hide JSON" else "Show JSON",
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
@@ -201,54 +202,60 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                         Spacer(modifier = Modifier.weight(1f))
 
                         // Parse metric
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
                             Text(
-                                "PARSE ",
+                                "PARSE",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 String.format("%.1f", parseTimeMs),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = perfColor(parseTimeMs),
+                                fontFamily = FontFamily.Monospace
                             )
                             Text(
                                 "ms",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 2.dp)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         VerticalDivider(
                             modifier = Modifier
                                 .height(20.dp)
-                                .padding(horizontal = 12.dp)
+                                .padding(horizontal = 10.dp)
                         )
 
                         // Render metric
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
                             Text(
-                                "RENDER ",
+                                "RENDER",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 String.format("%.1f", renderTimeMs),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = perfColor(renderTimeMs),
+                                fontFamily = FontFamily.Monospace
                             )
                             Text(
                                 "ms",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 2.dp)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -267,12 +274,12 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                                         android.content.ClipData.newPlainText("Card JSON", card?.jsonString ?: "")
                                     )
                                 },
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(32.dp)
                             ) {
                                 Icon(
                                     Icons.Default.ContentCopy,
                                     contentDescription = "Copy JSON",
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
@@ -309,6 +316,14 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
             }
         }
     }
+}
+
+/** Maps a performance metric (ms) to a color: green < 10, blue < 20, orange < 40, red >= 40. */
+private fun perfColor(ms: Double): Color = when {
+    ms < 10 -> Color(0xFF34C759)  // Green — excellent
+    ms < 20 -> Color(0xFF0078D4)  // Blue — good
+    ms < 40 -> Color(0xFFFF9500)  // Orange — moderate
+    else    -> Color(0xFFFF3B30)  // Red — slow
 }
 
 /**

@@ -48,6 +48,8 @@ class DeepLinkRouter: ObservableObject {
     @Published var pendingFilter: String?
     /// Set by deep link to trigger an action by title on the currently displayed card
     @Published var pendingActionTitle: String?
+    /// Signals CardGalleryView to pop its navigation stack to root
+    @Published var pendingGalleryPopToRoot = false
 
     func handle(_ url: URL) {
         guard url.scheme == "adaptivecards" else { return }
@@ -56,13 +58,18 @@ class DeepLinkRouter: ObservableObject {
             let filename = url.pathComponents.dropFirst().joined(separator: "/")
             guard !filename.isEmpty else { return }
             let allCards = TestCardLoader.loadAllCards()
-            activeCard = allCards.first {
+            let card = allCards.first {
                 $0.filename == filename ||
                 $0.filename == "\(filename).json" ||
                 $0.filename.replacingOccurrences(of: ".json", with: "") == filename
             }
+            if card != nil {
+                pendingScreen = "gallery"
+            }
+            activeCard = card
         case "gallery":
             activeCard = nil
+            pendingGalleryPopToRoot = true
             // Check for filter path: adaptivecards://gallery/{filter}
             let filter = url.pathComponents.dropFirst().first
             pendingFilter = filter

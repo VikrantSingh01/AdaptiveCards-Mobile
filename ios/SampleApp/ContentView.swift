@@ -52,16 +52,6 @@ struct ContentView: View {
         }
         .tint(Color(red: 0.0, green: 0.47, blue: 0.83))
         .preferredColorScheme(colorScheme)
-        .fullScreenCover(item: $deepLink.activeCard) { card in
-            NavigationStack {
-                CardDetailView(card: card)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("Close") { deepLink.dismiss() }
-                        }
-                    }
-            }
-        }
         .onChange(of: deepLink.pendingScreen) { _, screen in
             guard let screen else { return }
             deepLink.pendingScreen = nil

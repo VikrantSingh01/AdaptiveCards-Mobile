@@ -61,6 +61,7 @@ struct PerformanceDashboardView: View {
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Performance")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var emptyState: some View {

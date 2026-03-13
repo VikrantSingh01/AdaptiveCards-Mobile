@@ -14,11 +14,12 @@
 #   2. Scroll to filter chips                   — brief
 #   3. Select "Teams Official" filter           — 2s
 #   4. Walk bookmarked cards (Z→A) detail pages — card wait + 1s extra
-#   5. Last card detail → show card preview     — 3s
-#   6. More page                                — 3s
-#   7. Performance Dashboard                    — 3s
-#   8. Settings                                 — 3s
-#   9. Return to Home                           — 2s
+#   5. Charts card with scroll (all chart types)— 7s
+#   6. Last card detail → show card preview     — 3s
+#   7. More page                                — 3s
+#   8. Performance Dashboard                    — 3s
+#   9. Settings                                 — 3s
+#  10. Return to Home                           — 2s
 #
 # Design: ZERO builds — UI navigation only via deep links for minimal latency.
 #
@@ -28,7 +29,7 @@
 #   bash shared/scripts/demo-bookmarks.sh --screenshots    # capture screenshots
 #
 # Prerequisites:
-#   - iOS Simulator "iPhone 16e" booted
+#   - iOS Simulator "iPhone 16 Pro" booted
 #   - Android emulator running
 #   - Both sample apps previously installed (warm boot — no build)
 # =============================================================================
@@ -48,7 +49,7 @@ TAKE_SCREENSHOTS=false
 REPORT_DIR="/tmp/demo-bookmarks-$(date +%Y%m%d-%H%M%S)"
 
 # Platform config
-IOS_SIMULATOR="iPhone 16e"
+IOS_SIMULATOR="iPhone 16 Pro"
 IOS_APP_ID="com.microsoft.adaptivecards.sampleapp"
 ANDROID_APP_ID="com.microsoft.adaptivecards.sample"
 ANDROID_MAIN_ACTIVITY="$ANDROID_APP_ID/.MainActivity"
@@ -141,6 +142,36 @@ navigate() {
     $IOS_READY && ios_open "$route"
     sleep "$IOS_HEAD_START"
     $ANDROID_READY && android_open "$route"
+}
+
+# Scroll both platforms (swipe up to reveal more content)
+scroll_down() {
+    if $IOS_READY; then
+        # Scroll iOS Simulator via Accessibility API (AXScrollDownByPage).
+        # JXA recursively finds the first AXScrollArea in the Simulator window
+        # and triggers a page-down scroll — works regardless of window position.
+        osascript -l JavaScript -e '
+            var se = Application("System Events");
+            var win = se.processes["Simulator"].windows[0];
+            function find(el, d) {
+                if (d > 20) return null;
+                try {
+                    var ch = el.uiElements();
+                    for (var i = 0; i < ch.length; i++) {
+                        if (ch[i].role() === "AXScrollArea") return ch[i];
+                        var r = find(ch[i], d + 1);
+                        if (r) return r;
+                    }
+                } catch(e) {}
+                return null;
+            }
+            var sa = find(win, 0);
+            if (sa) sa.actions["AXScrollDownByPage"].perform();
+        ' &>/dev/null 2>&1 || true
+    fi
+    if $ANDROID_READY; then
+        "$ADB" shell input swipe 540 1600 540 600 300 &>/dev/null
+    fi
 }
 
 take_screenshots() {
@@ -348,15 +379,42 @@ echo "  ✅ All $total bookmarked cards shown."
 echo ""
 
 # =============================================================================
-# Step 5: Last Card Detail — Show Card Preview
+# Step 5: Charts Card — Show All Chart Types with Scroll
 # =============================================================================
-echo "━━━ Step 5: Card Detail Preview ━━━"
+echo "━━━ Step 5: Charts Card ━━━"
+
+navigate "card/charts"
+sleep 3
+take_screenshots "05-charts-top"
+echo "  📊 Charts card — donut + bar charts (3s)"
+
+# Scroll down to reveal more chart types
+scroll_down
+sleep 2
+take_screenshots "05-charts-mid"
+echo "  📊 Charts card — scrolled to more charts (2s)"
+
+scroll_down
+sleep 2
+take_screenshots "05-charts-mid2"
+echo "  📊 Charts card — scrolled to more charts (2s)"
+
+scroll_down
+sleep 2
+take_screenshots "05-charts-bottom"
+echo "  📊 Charts card — scrolled to bottom (2s)"
+
+echo ""
+
+# =============================================================================
+# Step 6: Last Card Detail — Show Card Preview
+# =============================================================================
+echo "━━━ Step 6: Card Detail Preview ━━━"
 
 if [ -n "$last_card_path" ]; then
-    # Re-navigate to last card to ensure we're on its detail page
     navigate "card/$last_card_path"
     sleep 3
-    take_screenshots "05-card-detail-preview"
+    take_screenshots "06-card-detail-preview"
 
     echo "  🔍 Card detail preview: $(basename "$last_card_path") (3s)"
 else
@@ -365,49 +423,49 @@ fi
 echo ""
 
 # =============================================================================
-# Step 6: More Page
+# Step 7: More Page
 # =============================================================================
-echo "━━━ Step 6: More Page ━━━"
+echo "━━━ Step 7: More Page ━━━"
 
 navigate "more"
 sleep "$MORE_WAIT"
-take_screenshots "06-more-page"
+take_screenshots "07-more-page"
 
 echo "  📋 More page displayed (${MORE_WAIT}s)"
 echo ""
 
 # =============================================================================
-# Step 7: Performance Dashboard
+# Step 8: Performance Dashboard
 # =============================================================================
-echo "━━━ Step 7: Performance Dashboard ━━━"
+echo "━━━ Step 8: Performance Dashboard ━━━"
 
 navigate "performance"
 sleep "$PERF_WAIT"
-take_screenshots "07-performance"
+take_screenshots "08-performance"
 
 echo "  📊 Performance dashboard displayed (${PERF_WAIT}s)"
 echo ""
 
 # =============================================================================
-# Step 8: Settings
+# Step 9: Settings
 # =============================================================================
-echo "━━━ Step 8: Settings ━━━"
+echo "━━━ Step 9: Settings ━━━"
 
 navigate "settings"
 sleep "$SETTINGS_WAIT"
-take_screenshots "08-settings"
+take_screenshots "09-settings"
 
 echo "  ⚙️  Settings displayed (${SETTINGS_WAIT}s)"
 echo ""
 
 # =============================================================================
-# Step 9: Return to Home
+# Step 10: Return to Home
 # =============================================================================
-echo "━━━ Step 9: Back to Home ━━━"
+echo "━━━ Step 10: Back to Home ━━━"
 
 navigate "gallery"
 sleep "$HOME_WAIT"
-take_screenshots "09-home-final"
+take_screenshots "10-home-final"
 
 echo "  🏠 Gallery home displayed (${HOME_WAIT}s)"
 echo ""
@@ -421,11 +479,12 @@ echo "  Step 1  🏠 Home page"
 echo "  Step 2  🔖 Filter chips"
 echo "  Step 3  🏷️  Teams Official filter"
 echo "  Step 4  📚 $total bookmarked cards (Z→A)"
-echo "  Step 5  🔍 Card detail preview"
-echo "  Step 6  📋 More page"
-echo "  Step 7  📊 Performance dashboard"
-echo "  Step 8  ⚙️  Settings"
-echo "  Step 9  🏠 Back to home"
+echo "  Step 5  📊 Charts card (scrolled)"
+echo "  Step 6  🔍 Card detail preview"
+echo "  Step 7  📋 More page"
+echo "  Step 8  📊 Performance dashboard"
+echo "  Step 9  ⚙️  Settings"
+echo "  Step 10 🏠 Back to home"
 if $TAKE_SCREENSHOTS; then
     echo ""
     echo "  📸 Screenshots: $REPORT_DIR"

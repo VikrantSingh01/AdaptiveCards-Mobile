@@ -18,7 +18,7 @@
 #   bash shared/scripts/action-test-loop.sh --screenshots
 #
 # Prerequisites:
-#   - iOS Simulator "iPhone 16e" booted
+#   - iOS Simulator "iPhone 16 Pro" booted
 #   - Android emulator running
 #   - Both sample apps previously installed
 # =============================================================================
@@ -32,7 +32,7 @@ RENDER_WAIT=3
 TAKE_SCREENSHOTS=false
 
 # Platform config
-IOS_SIMULATOR="iPhone 16e"
+IOS_SIMULATOR="iPhone 16 Pro"
 IOS_APP_ID="com.microsoft.adaptivecards.sampleapp"
 ANDROID_APP_ID="com.microsoft.adaptivecards.sample"
 

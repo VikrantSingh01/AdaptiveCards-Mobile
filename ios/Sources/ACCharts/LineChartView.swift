@@ -55,79 +55,49 @@ public struct LineChartView: View {
 
     private var lineChart: some View {
         GeometryReader { geometry in
+            let padding: CGFloat = 20
+            let availableWidth = geometry.size.width - padding * 2
+            let availableHeight = geometry.size.height - padding * 2
+            let valueRange = max(maxValue - minValue, Double.leastNonzeroMagnitude)
+            let lineColor = colors.first ?? .blue
+
             ZStack {
-                // Grid lines
+                // Static grid lines (Canvas is fine for non-animated content)
                 Canvas { context, size in
                     let gridColor = Color.secondary.opacity(0.2)
                     for i in 0...4 {
                         let y = size.height * CGFloat(i) / 4
-                        var path = Path()
-                        path.move(to: CGPoint(x: 0, y: y))
-                        path.addLine(to: CGPoint(x: size.width, y: y))
-                        context.stroke(path, with: .color(gridColor), lineWidth: 1)
+                        var gridPath = Path()
+                        gridPath.move(to: CGPoint(x: 0, y: y))
+                        gridPath.addLine(to: CGPoint(x: size.width, y: y))
+                        context.stroke(gridPath, with: .color(gridColor), lineWidth: 1)
                     }
                 }
 
-                // Line path
-                Canvas { context, size in
-                    guard chart.data.count > 1 else { return }
-
-                    let padding: CGFloat = 20
-                    let availableWidth = size.width - padding * 2
-                    let availableHeight = size.height - padding * 2
-                    let valueRange = max(maxValue - minValue, Double.leastNonzeroMagnitude)
-
-                    let points = chart.data.enumerated().map { index, dataPoint in
-                        let x = padding + (availableWidth * CGFloat(index) / CGFloat(chart.data.count - 1)) // safe: guarded by count > 1 on line 69
-                        let normalizedValue = (dataPoint.value - minValue) / valueRange // safe: valueRange uses max(..., .leastNonzeroMagnitude)
-                        let y = size.height - padding - (availableHeight * normalizedValue)
-                        return CGPoint(x: x, y: y)
-                    }
-
-                    // Draw line
-                    var path = Path()
-                    if let firstPoint = points.first {
-                        path.move(to: firstPoint)
-
-                        if chart.smooth ?? false {
-                            // Smooth curve using Catmull-Rom spline
-                            for i in 0..<points.count - 1 {
-                                let current = points[i]
-                                let next = points[i + 1]
-                                let controlPoint1 = CGPoint(
-                                    x: current.x + (next.x - current.x) * 0.4,
-                                    y: current.y
-                                )
-                                let controlPoint2 = CGPoint(
-                                    x: current.x + (next.x - current.x) * 0.6,
-                                    y: next.y
-                                )
-                                path.addCurve(to: next, control1: controlPoint1, control2: controlPoint2)
-                            }
-                        } else {
-                            // Straight lines
-                            for point in points.dropFirst() {
-                                path.addLine(to: point)
-                            }
-                        }
-                    }
-
-                    let lineColor = colors.first ?? .blue
-                    context.stroke(
-                        path.trimmedPath(from: 0, to: animationProgress),
-                        with: .color(lineColor),
-                        lineWidth: 2
+                if chart.data.count > 1 {
+                    // Animated line using Shape (supports .trim() animation natively)
+                    LinePathShape(
+                        data: chart.data,
+                        minValue: minValue,
+                        valueRange: valueRange,
+                        padding: padding,
+                        smooth: chart.smooth ?? false
                     )
+                    .trim(from: 0, to: animationProgress)
+                    .stroke(lineColor, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
 
-                    // Draw data points if enabled
+                    // Data point dots
                     if chart.showDataPoints ?? true {
-                        let visibleCount = Int(Double(points.count) * Double(animationProgress))
-                        for (index, point) in points.prefix(visibleCount).enumerated() {
-                            let dotColor = selectedIndex == index ? lineColor.opacity(0.5) : lineColor
-                            context.fill(
-                                Circle().path(in: CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8)),
-                                with: .color(dotColor)
-                            )
+                        ForEach(Array(chart.data.enumerated()), id: \.offset) { index, dataPoint in
+                            let x = padding + (availableWidth * CGFloat(index) / CGFloat(chart.data.count - 1))
+                            let normalizedValue = (dataPoint.value - minValue) / valueRange
+                            let y = geometry.size.height - padding - (availableHeight * normalizedValue)
+
+                            Circle()
+                                .fill(selectedIndex == index ? lineColor.opacity(0.5) : lineColor)
+                                .frame(width: 8, height: 8)
+                                .position(x: x, y: y)
+                                .opacity(animationProgress > CGFloat(index) / CGFloat(chart.data.count) ? 1 : 0)
                         }
                     }
                 }
@@ -169,7 +139,7 @@ public struct LineChartView: View {
         guard chart.data.count > 1 else { return nil }
 
         let relativeX = location.x - padding
-        let segmentWidth = availableWidth / CGFloat(chart.data.count - 1) // safe: guarded by count > 1 on line 165
+        let segmentWidth = availableWidth / CGFloat(chart.data.count - 1) // safe: guarded by count > 1 above
         let index = Int(round(relativeX / segmentWidth))
 
         return index >= 0 && index < chart.data.count ? index : nil
@@ -188,5 +158,54 @@ public struct LineChartView: View {
 
         description += points
         return description
+    }
+}
+
+/// A Shape that draws the line chart path, supporting SwiftUI's `.trim()` animation.
+private struct LinePathShape: Shape {
+    let data: [ChartDataPoint]
+    let minValue: Double
+    let valueRange: Double
+    let padding: CGFloat
+    let smooth: Bool
+
+    func path(in rect: CGRect) -> Path {
+        guard data.count > 1 else { return Path() }
+
+        let availableWidth = rect.width - padding * 2
+        let availableHeight = rect.height - padding * 2
+
+        let points = data.enumerated().map { index, dataPoint in
+            let x = padding + (availableWidth * CGFloat(index) / CGFloat(data.count - 1)) // safe: guarded by count > 1 above
+            let normalizedValue = (dataPoint.value - minValue) / valueRange // safe: valueRange uses max(..., .leastNonzeroMagnitude)
+            let y = rect.height - padding - (availableHeight * normalizedValue)
+            return CGPoint(x: x, y: y)
+        }
+
+        var path = Path()
+        guard let firstPoint = points.first else { return path }
+        path.move(to: firstPoint)
+
+        if smooth {
+            for i in 0..<points.count - 1 {
+                let current = points[i]
+                let next = points[i + 1]
+                let controlPoint1 = CGPoint(
+                    x: current.x + (next.x - current.x) * 0.4,
+                    y: current.y
+                )
+                let controlPoint2 = CGPoint(
+                    x: current.x + (next.x - current.x) * 0.6,
+                    y: next.y
+                )
+                path.addCurve(to: next, control1: controlPoint1, control2: controlPoint2)
+            }
+        } else {
+            for point in points.dropFirst() {
+                path.addLine(to: point)
+            }
+        }
+
+        return path
     }
 }

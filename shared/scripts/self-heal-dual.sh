@@ -19,7 +19,7 @@
 #   bash shared/scripts/self-heal-dual.sh --retry 3                # custom retry count
 #
 # Prerequisites:
-#   - iOS Simulator "iPhone 16e" booted
+#   - iOS Simulator "iPhone 16 Pro" booted
 #   - Android emulator running (or device connected)
 # =============================================================================
 
@@ -37,7 +37,7 @@ MAX_RETRIES=2
 RENDER_WAIT=4  # max seconds per platform — both must finish within this
 
 # Platform config
-IOS_SIMULATOR="iPhone 16e"
+IOS_SIMULATOR="iPhone 16 Pro"
 IOS_APP_ID="com.microsoft.adaptivecards.sampleapp"
 ANDROID_APP_ID="com.microsoft.adaptivecards.sample"
 ANDROID_MAIN_ACTIVITY="$ANDROID_APP_ID/.MainActivity"
@@ -269,7 +269,7 @@ echo ""
 echo "━━━ Pre-flight Checks ━━━"
 
 if $IOS_READY; then
-    echo "  ✅ iOS:     iPhone 16e ($SIM_UDID) — Booted"
+    echo "  ✅ iOS:     iPhone 16 Pro ($SIM_UDID) — Booted"
 else
     echo "  ❌ iOS:     Not available"
 fi

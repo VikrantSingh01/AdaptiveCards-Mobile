@@ -29,14 +29,14 @@
 #   6. Report             — rich markdown report with all artifacts
 #
 # Prerequisites:
-#   - iOS Simulator "iPhone 16e" booted
+#   - iOS Simulator "iPhone 16 Pro" booted
 #   - Xcode and swift toolchain available
 # =============================================================================
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SIMULATOR="iPhone 16e"
+SIMULATOR="iPhone 16 Pro"
 APP_ID="com.microsoft.adaptivecards.sampleapp"
 REPORT_DIR="/tmp/self-heal-ios-$(date +%Y%m%d-%H%M%S)"
 REPORT_FILE="$REPORT_DIR/report.md"

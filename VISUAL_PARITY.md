@@ -9,7 +9,7 @@
 # Run parity tests
 cd ios
 xcodebuild test -scheme AdaptiveCards-Package \
-  -destination 'platform=iOS Simulator,name=iPhone 16e' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:VisualTests/LegacyParityTests \
   CODE_SIGNING_ALLOWED=NO
 
@@ -125,7 +125,7 @@ When greenfield rendering changes (new features, bug fixes), re-record baselines
 # Option 1: Flag file (works with xcodebuild → simulator)
 touch ios/Tests/VisualTests/Snapshots/.record
 xcodebuild test -scheme AdaptiveCards-Package \
-  -destination 'platform=iOS Simulator,name=iPhone 16e' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:VisualTests/LegacyParityTests \
   CODE_SIGNING_ALLOWED=NO
 rm ios/Tests/VisualTests/Snapshots/.record

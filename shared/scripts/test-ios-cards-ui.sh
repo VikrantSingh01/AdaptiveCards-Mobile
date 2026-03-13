@@ -8,7 +8,7 @@
 # Takes screenshots of each card in the iOS simulator and checks for rendering errors.
 #
 # Prerequisites:
-#   - iOS Simulator booted with iPhone 16e
+#   - iOS Simulator booted with iPhone 16 Pro
 #   - ACVisualizer installed and running
 #
 # Usage: bash test-ios-cards-ui.sh [category]
@@ -18,7 +18,7 @@
 
 set -euo pipefail
 
-SIMULATOR="iPhone 16e"
+SIMULATOR="iPhone 16 Pro"
 APP_ID="com.microsoft.adaptivecards.sampleapp"
 SCREENSHOT_DIR="/tmp/card-screenshots"
 REPORT_FILE="/tmp/card-ui-report.txt"
