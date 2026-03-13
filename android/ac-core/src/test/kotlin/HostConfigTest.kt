@@ -25,7 +25,7 @@ class HostConfigTest {
 
         assertNotNull(config)
         assertTrue(config.supportsInteractivity)
-        assertEquals("#0D16233A", config.separator.lineColor)
+        assertEquals("#3A0D1623", config.separator.lineColor)
         assertEquals("#6264A7", config.containerStyles.default.foregroundColors.accent.default)
     }
     

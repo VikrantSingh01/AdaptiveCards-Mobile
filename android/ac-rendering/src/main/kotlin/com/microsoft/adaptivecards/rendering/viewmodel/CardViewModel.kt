@@ -29,6 +29,7 @@ import com.microsoft.adaptivecards.core.models.ActionPopover
 import com.microsoft.adaptivecards.core.models.ActionSet
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.RichTextBlock
+import com.microsoft.adaptivecards.core.AdaptiveCards as AdaptiveCardsApi
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.templating.TemplateEngine
 import android.util.LruCache
@@ -86,13 +87,11 @@ class CardViewModel : ViewModel() {
     companion object {
         private const val TAG = "CardViewModel"
 
-        /** In-memory LRU cache for parsed AdaptiveCard objects, keyed by JSON hash. */
-        private val parseCache = LruCache<Int, AdaptiveCard>(32)
-
         /** Clears the parse cache. Call on low-memory events. */
+        @Deprecated("Use AdaptiveCards.clearCache() instead", ReplaceWith("AdaptiveCards.clearCache()"))
         @JvmStatic
         fun clearParseCache() {
-            synchronized(parseCache) { parseCache.evictAll() }
+            AdaptiveCardsApi.clearCache()
         }
     }
 
@@ -161,33 +160,21 @@ class CardViewModel : ViewModel() {
                     storedTemplateData = null
                 }
 
-                val cacheKey = cardJson.hashCode()
+                // Use the standalone parse API (handles caching internally)
+                val result = AdaptiveCardsApi.parse(cardJson)
 
-                // Check cache first (fast path on main thread)
-                val cached = synchronized(parseCache) { parseCache.get(cacheKey) }
-
-                val parsedCard: AdaptiveCard
-                if (cached != null) {
-                    parsedCard = cached
-                    _lastParseTimeMs.value = 0.0 // Cache hit — no parse cost
+                if (result.isValid) {
+                    val parsedCard = result.card!!
+                    _card.value = parsedCard
+                    _parseError.value = null
+                    _lastParseTimeMs.value = result.parseTimeMs
+                    validateCardStructure(parsedCard)
+                    initializeVisibilityState(parsedCard)
                 } else {
-                    // Heavy parsing on background thread
-                    val (card, timeMs) = withContext(Dispatchers.Default) {
-                        val startNs = System.nanoTime()
-                        val card = CardParser.parse(cardJson)
-                        val timeMs = (System.nanoTime() - startNs) / 1_000_000.0
-                        Pair(card, timeMs)
-                    }
-                    parsedCard = card
-                    _lastParseTimeMs.value = timeMs
-
-                    synchronized(parseCache) { parseCache.put(cacheKey, parsedCard) }
+                    _card.value = null
+                    _parseError.value = result.error?.message ?: "Unknown parsing error"
+                    Log.e(TAG, "Failed to parse card: ${result.error?.message}")
                 }
-
-                _card.value = parsedCard
-                _parseError.value = null
-                validateCardStructure(parsedCard)
-                initializeVisibilityState(parsedCard)
             } catch (e: Exception) {
                 _card.value = null
                 _parseError.value = e.message ?: "Unknown parsing error"
