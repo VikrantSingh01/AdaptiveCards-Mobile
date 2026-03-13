@@ -23,6 +23,8 @@ The Adaptive Cards Mobile SDK brings the power of [Adaptive Cards](https://adapt
 
 ## 🎬 Demo
 
+> **One cross-platform SDK, one shared card spec, pixel-perfect rendering on iOS & Android — see it live in the Visualizer.**
+
 https://github.com/user-attachments/assets/3a0e7ae5-8362-479a-a9e5-6b25d5f98c18
 
 ## 📊 Platform Status
