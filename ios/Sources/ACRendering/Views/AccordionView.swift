@@ -10,14 +10,16 @@ import ACFluentUI
 struct AccordionView: View {
     let accordion: Accordion
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @State private var expandedPanels: Set<Int>
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.sizeCategory) var sizeCategory
 
-    init(accordion: Accordion, hostConfig: HostConfig) {
+    init(accordion: Accordion, hostConfig: HostConfig, depth: Int = 0) {
         self.accordion = accordion
         self.hostConfig = hostConfig
+        self.depth = depth
 
         // Initialize expanded panels based on isExpanded property
         var initialExpanded = Set<Int>()
@@ -38,6 +40,7 @@ struct AccordionView: View {
                     panelNumber: index + 1,
                     totalPanels: accordion.panels.count,
                     hostConfig: hostConfig,
+                    depth: depth,
                     onToggle: {
                         togglePanel(at: index)
                     }
@@ -72,6 +75,7 @@ struct AccordionPanelView: View {
     let panelNumber: Int
     let totalPanels: Int
     let hostConfig: HostConfig
+    var depth: Int = 0
     let onToggle: () -> Void
 
     @EnvironmentObject var viewModel: CardViewModel
@@ -107,7 +111,7 @@ struct AccordionPanelView: View {
                 VStack(spacing: 0) {
                     ForEach(panel.content) { element in
                         if viewModel.isElementVisible(elementId: element.elementId) {
-                            ElementView(element: element, hostConfig: hostConfig)
+                            ElementView(element: element, hostConfig: hostConfig, depth: depth)
                         }
                     }
                 }

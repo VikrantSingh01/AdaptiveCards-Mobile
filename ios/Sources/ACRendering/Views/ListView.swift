@@ -9,6 +9,7 @@ import ACAccessibility
 struct ListView: View {
     let list: ListElement
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @EnvironmentObject var viewModel: CardViewModel
 
@@ -45,7 +46,7 @@ struct ListView: View {
                         }
 
                         // Render item content
-                        ElementView(element: item, hostConfig: hostConfig)
+                        ElementView(element: item, hostConfig: hostConfig, depth: depth)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(minHeight: Layout.minTouchTarget) // Minimum touch target

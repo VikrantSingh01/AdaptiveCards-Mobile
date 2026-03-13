@@ -11,6 +11,7 @@ struct PopoverContentView: View {
     let content: CardElement?
     let title: String?
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.dismiss) private var dismiss
@@ -20,7 +21,7 @@ struct PopoverContentView: View {
             Group {
                 if let content = content {
                     ScrollView {
-                        ElementView(element: content, hostConfig: hostConfig)
+                        ElementView(element: content, hostConfig: hostConfig, depth: depth)
                             .environmentObject(viewModel)
                             .padding(CGFloat(hostConfig.spacing.padding))
                     }

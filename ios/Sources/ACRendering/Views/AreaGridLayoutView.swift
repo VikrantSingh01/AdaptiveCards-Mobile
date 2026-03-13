@@ -18,11 +18,13 @@ public struct AreaGridLayoutView: View {
     let items: [CardElement]
     let gridLayout: AreaGridLayout
     let hostConfig: HostConfig
+    var depth: Int = 0
 
-    public init(items: [CardElement], gridLayout: AreaGridLayout, hostConfig: HostConfig) {
+    public init(items: [CardElement], gridLayout: AreaGridLayout, hostConfig: HostConfig, depth: Int = 0) {
         self.items = items
         self.gridLayout = gridLayout
         self.hostConfig = hostConfig
+        self.depth = depth
     }
 
     public var body: some View {
@@ -30,7 +32,7 @@ public struct AreaGridLayoutView: View {
             // No areas defined — fall back to vertical stack (graceful degradation)
             VStack(spacing: spacingValue(gridLayout.rowSpacing ?? .default)) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    ElementView(element: item, hostConfig: hostConfig)
+                    ElementView(element: item, hostConfig: hostConfig, depth: depth)
                 }
             }
         } else if #available(iOS 16.0, *) {
@@ -58,7 +60,7 @@ public struct AreaGridLayoutView: View {
                             if !matchingItems.isEmpty {
                                 VStack(spacing: 0) {
                                     ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
-                                        ElementView(element: item, hostConfig: hostConfig)
+                                        ElementView(element: item, hostConfig: hostConfig, depth: depth)
                                     }
                                 }
                                 .gridCellColumns(area.columnSpan ?? 1)
@@ -89,7 +91,7 @@ public struct AreaGridLayoutView: View {
                         let matchingItems = items(for: area.name)
                         VStack(spacing: 0) {
                             ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
-                                ElementView(element: item, hostConfig: hostConfig)
+                                ElementView(element: item, hostConfig: hostConfig, depth: depth)
                             }
                         }
                         .frame(maxWidth: .infinity)

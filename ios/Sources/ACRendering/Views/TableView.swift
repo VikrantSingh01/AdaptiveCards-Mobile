@@ -10,6 +10,7 @@ import ACFluentUI
 struct TableView: View {
     let table: ACCore.Table
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     var body: some View {
         let rowSpacing: CGFloat = table.showGridLines == true ? 0 : CGFloat(hostConfig.table.cellSpacing / 2)
@@ -23,7 +24,8 @@ struct TableView: View {
                         TableCellView(
                             cell: cell,
                             isHeader: isHeaderRow,
-                            hostConfig: hostConfig
+                            hostConfig: hostConfig,
+                            depth: depth
                         )
                         .frame(maxWidth: .infinity)
                         .if(hasColumnWeight(at: cellIndex)) { view in
@@ -63,6 +65,7 @@ struct TableCellView: View {
     let cell: TableCell
     let isHeader: Bool
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @EnvironmentObject var viewModel: CardViewModel
 
@@ -72,19 +75,19 @@ struct TableCellView: View {
                 if let layout = cell.layout {
                     switch layout {
                     case .flow(let flowLayout):
-                        FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig)
+                        FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig, depth: depth)
                     case .areaGrid(let gridLayout):
-                        AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig)
+                        AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig, depth: depth)
                     }
                 } else {
                     VStack(spacing: 0) {
                         ForEach(items) { element in
                             if viewModel.isElementVisible(elementId: element.elementId) {
                                 if isHeader {
-                                    ElementView(element: element, hostConfig: hostConfig)
+                                    ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                         .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
                                 } else {
-                                    ElementView(element: element, hostConfig: hostConfig)
+                                    ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                 }
                             }
                         }

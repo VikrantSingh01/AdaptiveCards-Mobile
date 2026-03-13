@@ -100,6 +100,7 @@ struct ProportionalColumnLayout: SwiftUI.Layout {
 struct ColumnSetView: View {
     let columnSet: ColumnSet
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
@@ -116,7 +117,7 @@ struct ColumnSetView: View {
     var body: some View {
         ProportionalColumnLayout(columns: visibleColumns, columnSpacing: CGFloat(hostConfig.spacing.default)) {
             ForEach(visibleColumns, id: \.stableId) { column in
-                ColumnView(column: column, hostConfig: hostConfig)
+                ColumnView(column: column, hostConfig: hostConfig, depth: depth)
             }
         }
         .frame(minHeight: minHeight)

@@ -9,6 +9,7 @@ import ACAccessibility
 struct ColumnView: View {
     let column: Column
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
@@ -19,7 +20,7 @@ struct ColumnView: View {
             if let items = column.items {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
-                        ElementView(element: element, hostConfig: hostConfig)
+                        ElementView(element: element, hostConfig: hostConfig, depth: depth)
                             .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
                     }
                 }

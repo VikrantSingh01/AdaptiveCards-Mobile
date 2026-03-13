@@ -15,15 +15,17 @@ import ACFluentUI
 struct TabSetView: View {
     let tabSet: TabSet
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @State private var selectedTabId: String
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.sizeCategory) var sizeCategory
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
-    init(tabSet: TabSet, hostConfig: HostConfig) {
+    init(tabSet: TabSet, hostConfig: HostConfig, depth: Int = 0) {
         self.tabSet = tabSet
         self.hostConfig = hostConfig
+        self.depth = depth
 
         // Initialize selected tab
         let initialTabId = tabSet.selectedTabId ?? tabSet.tabs.first?.id ?? ""
@@ -59,7 +61,7 @@ struct TabSetView: View {
 
             // Tab content
             if let selectedTab = tabSet.tabs.first(where: { $0.id == selectedTabId }) {
-                TabContentView(tab: selectedTab, hostConfig: hostConfig)
+                TabContentView(tab: selectedTab, hostConfig: hostConfig, depth: depth)
             }
         }
         .spacing(tabSet.spacing, hostConfig: hostConfig)
@@ -138,6 +140,7 @@ struct TabButton: View {
 struct TabContentView: View {
     let tab: ACCore.Tab
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -147,7 +150,7 @@ struct TabContentView: View {
             VStack(spacing: 0) {
                 ForEach(tab.items) { element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
-                        ElementView(element: element, hostConfig: hostConfig)
+                        ElementView(element: element, hostConfig: hostConfig, depth: depth)
                     }
                 }
             }

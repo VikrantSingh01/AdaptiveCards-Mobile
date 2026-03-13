@@ -7,10 +7,23 @@ import ACCore
 import ACInputs
 import ACCharts
 
-/// Routes to the appropriate view for each element type
+/// Maximum nesting depth for card elements.
+/// Device main thread stack is ~1MB; each SwiftUI view body cycle uses
+/// ~12 stack frames. Depth 10 keeps total well under stack limit.
+let elementViewMaxNestingDepth = 10
+
+/// Routes to the appropriate view for each element type.
+///
+/// Uses `AnyView` to type-erase the 30+ branch `@ViewBuilder` result.
+/// Without this, Swift allocates a single stack frame large enough for the
+/// *union* of every branch (~50-80 KB), and just 13 nested ElementViews
+/// overflow the 1 MB main-thread stack on physical devices.
+/// `AnyView` collapses each branch to a fixed-size existential, keeping
+/// the per-frame cost constant regardless of branch count.
 struct ElementView: View {
     let element: CardElement
     let hostConfig: HostConfig
+    var depth: Int = 0
 
     @Environment(\.validationState) var validationState
     @Environment(\.actionHandler) var actionHandler
@@ -20,47 +33,47 @@ struct ElementView: View {
     @Environment(\.widthCategory) var widthCategory
 
     var body: some View {
-        Group {
-            // Check targetWidth constraint — hide elements that don't match current width
-            if shouldShowForTargetWidth(element.targetWidth, currentCategory: widthCategory) {
-                // Check custom renderer registry first
-                if let customRenderer = ElementRendererRegistry.shared.getRenderer(for: element.typeString) {
-                    customRenderer(element)
-                } else {
-                    // Fall back to built-in renderers
-                    builtInRenderer
-                }
+        if depth >= elementViewMaxNestingDepth {
+            EmptyView()
+        } else if shouldShowForTargetWidth(element.targetWidth, currentCategory: widthCategory) {
+            if let customRenderer = ElementRendererRegistry.shared.getRenderer(for: element.typeString) {
+                customRenderer(element)
+            } else {
+                builtInRenderer
             }
         }
     }
 
-    @ViewBuilder
-    private var builtInRenderer: some View {
+    /// Type-erased renderer to keep per-frame stack usage constant.
+    private var builtInRenderer: AnyView {
+        let childDepth = depth + 1
         switch element {
         case .textBlock(let textBlock):
-            TextBlockView(textBlock: textBlock, hostConfig: hostConfig)
+            return AnyView(TextBlockView(textBlock: textBlock, hostConfig: hostConfig))
         case .image(let image):
-            ImageView(image: image, hostConfig: hostConfig)
+            return AnyView(ImageView(image: image, hostConfig: hostConfig))
         case .media(let media):
-            MediaView(media: media, hostConfig: hostConfig)
+            return AnyView(MediaView(media: media, hostConfig: hostConfig))
         case .richTextBlock(let richTextBlock):
-            RichTextBlockView(richTextBlock: richTextBlock, hostConfig: hostConfig)
+            return AnyView(RichTextBlockView(richTextBlock: richTextBlock, hostConfig: hostConfig))
         case .container(let container):
-            ContainerView(container: container, hostConfig: hostConfig)
+            return AnyView(ContainerView(container: container, hostConfig: hostConfig, depth: childDepth))
         case .columnSet(let columnSet):
-            ColumnSetView(columnSet: columnSet, hostConfig: hostConfig)
+            return AnyView(ColumnSetView(columnSet: columnSet, hostConfig: hostConfig, depth: childDepth))
         case .imageSet(let imageSet):
-            ImageSetView(imageSet: imageSet, hostConfig: hostConfig)
+            return AnyView(ImageSetView(imageSet: imageSet, hostConfig: hostConfig))
         case .factSet(let factSet):
-            FactSetView(factSet: factSet, hostConfig: hostConfig)
+            return AnyView(FactSetView(factSet: factSet, hostConfig: hostConfig))
         case .actionSet(let actionSet):
-            ActionSetView(actions: actionSet.actions, hostConfig: hostConfig)
-                .spacing(actionSet.spacing, hostConfig: hostConfig)
-                .separator(actionSet.separator, hostConfig: hostConfig)
+            return AnyView(
+                ActionSetView(actions: actionSet.actions, hostConfig: hostConfig)
+                    .spacing(actionSet.spacing, hostConfig: hostConfig)
+                    .separator(actionSet.separator, hostConfig: hostConfig)
+            )
         case .table(let table):
-            TableView(table: table, hostConfig: hostConfig)
+            return AnyView(TableView(table: table, hostConfig: hostConfig, depth: childDepth))
         case .textInput(let input):
-            TextInputView(
+            return AnyView(TextInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value ?? ""),
@@ -68,92 +81,93 @@ struct ElementView: View {
                 onInlineAction: input.inlineAction != nil ? { action in
                     actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
                 } : nil
-            )
+            ))
         case .numberInput(let input):
-            NumberInputView(
+            return AnyView(NumberInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value),
                 validationState: validationState
-            )
+            ))
         case .dateInput(let input):
-            DateInputView(
+            return AnyView(DateInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value),
                 validationState: validationState
-            )
+            ))
         case .timeInput(let input):
-            TimeInputView(
+            return AnyView(TimeInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value),
                 validationState: validationState
-            )
+            ))
         case .toggleInput(let input):
             let valueOn = input.valueOn ?? "true"
             let valueOff = input.valueOff ?? "false"
             let initialValue = input.value == valueOn
-            ToggleInputView(
+            return AnyView(ToggleInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: initialValue)
-            )
+            ))
         case .choiceSetInput(let input):
-            ChoiceSetInputView(
+            return AnyView(ChoiceSetInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value),
                 validationState: validationState
-            )
+            ))
         case .carousel(let carousel):
-            CarouselView(carousel: carousel, hostConfig: hostConfig)
+            return AnyView(CarouselView(carousel: carousel, hostConfig: hostConfig, depth: childDepth))
         case .accordion(let accordion):
-            AccordionView(accordion: accordion, hostConfig: hostConfig)
+            return AnyView(AccordionView(accordion: accordion, hostConfig: hostConfig, depth: childDepth))
         case .codeBlock(let codeBlock):
-            CodeBlockView(codeBlock: codeBlock, hostConfig: hostConfig)
+            return AnyView(CodeBlockView(codeBlock: codeBlock, hostConfig: hostConfig))
         case .ratingDisplay(let rating):
-            RatingDisplayView(rating: rating, hostConfig: hostConfig)
+            return AnyView(RatingDisplayView(rating: rating, hostConfig: hostConfig))
         case .ratingInput(let input):
-            RatingInputView(
+            return AnyView(RatingInputView(
                 input: input,
                 hostConfig: hostConfig,
                 value: binding(for: input.id, defaultValue: input.value ?? 0.0),
                 validationState: validationState
-            )
+            ))
         case .progressBar(let progressBar):
-            ProgressBarView(progressBar: progressBar, hostConfig: hostConfig)
+            return AnyView(ProgressBarView(progressBar: progressBar, hostConfig: hostConfig))
         case .spinner(let spinner):
-            SpinnerView(spinner: spinner, hostConfig: hostConfig)
+            return AnyView(SpinnerView(spinner: spinner, hostConfig: hostConfig))
         case .tabSet(let tabSet):
-            TabSetView(tabSet: tabSet, hostConfig: hostConfig)
+            return AnyView(TabSetView(tabSet: tabSet, hostConfig: hostConfig, depth: childDepth))
         case .list(let list):
-            ListView(list: list, hostConfig: hostConfig)
+            return AnyView(ListView(list: list, hostConfig: hostConfig, depth: childDepth))
         case .compoundButton(let button):
-            CompoundButtonView(button: button, hostConfig: hostConfig)
+            return AnyView(CompoundButtonView(button: button, hostConfig: hostConfig))
         case .donutChart(let chart):
-            DonutChartView(chart: chart)
+            return AnyView(DonutChartView(chart: chart))
         case .barChart(let chart):
-            BarChartView(chart: chart)
+            return AnyView(BarChartView(chart: chart))
         case .lineChart(let chart):
-            LineChartView(chart: chart)
+            return AnyView(LineChartView(chart: chart))
         case .pieChart(let chart):
-            PieChartView(chart: chart)
+            return AnyView(PieChartView(chart: chart))
         case .icon(let icon):
-            IconElementView(icon: icon, hostConfig: hostConfig)
+            return AnyView(IconElementView(icon: icon, hostConfig: hostConfig))
         case .badge(let badge):
-            BadgeView(badge: badge, hostConfig: hostConfig)
+            return AnyView(BadgeView(badge: badge, hostConfig: hostConfig))
         case .unknown(let type):
-            // Skip rendering unknown elements, or show placeholder in debug mode
             #if DEBUG
-            Text("Unknown element type: \(type)")
-                .font(.caption)
-                .foregroundColor(.gray)
-                .padding(4)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(4)
+            return AnyView(
+                Text("Unknown element type: \(type)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .padding(4)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(4)
+            )
             #else
-            EmptyView()
+            return AnyView(EmptyView())
             #endif
         }
     }
