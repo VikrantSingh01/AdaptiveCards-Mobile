@@ -62,14 +62,41 @@ class TemplateEngine {
     }
 
     /**
-     * Expand a template string with data binding
+     * Expand a template string with data binding.
+     * If the template is valid JSON, uses structured expansion (parse → expand → serialize)
+     * to ensure the output remains valid JSON. Falls back to string-based expansion.
      * @param template Template string containing ${...} expressions
      * @param data Data object for binding
      * @return Expanded string
      */
     fun expand(template: String, data: Map<String, Any?>): String {
+        // Try structured JSON expansion first (produces valid JSON output)
+        try {
+            val jsonObject = org.json.JSONObject(template)
+            val parsed = jsonToMap(jsonObject)
+            val context = DataContext(data = data)
+            val expanded = expandDictionary(parsed, context)
+            return org.json.JSONObject(expanded).toString()
+        } catch (_: Exception) {
+            // Fallback to string-based expansion for non-JSON templates
+        }
         val context = DataContext(data = data)
         return expandString(template, context)
+    }
+
+    private fun jsonToMap(json: org.json.JSONObject): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        for (key in json.keys()) {
+            map[key] = jsonElementToAny(json.get(key))
+        }
+        return map
+    }
+
+    private fun jsonElementToAny(value: Any?): Any? = when (value) {
+        is org.json.JSONObject -> jsonToMap(value)
+        is org.json.JSONArray -> (0 until value.length()).map { jsonElementToAny(value.get(it)) }
+        org.json.JSONObject.NULL -> null
+        else -> value
     }
 
     /**

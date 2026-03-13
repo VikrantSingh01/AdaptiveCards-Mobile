@@ -27,6 +27,7 @@ object MathFunctions {
         functions["floor"] = Floor()
         functions["ceil"] = Ceil()
         functions["abs"] = Abs()
+        functions["formatNumber"] = FormatNumber()
     }
 
     // MARK: - Function Implementations
@@ -139,6 +140,23 @@ object MathFunctions {
                 throw EvaluationException("abs expects 1 argument, got ${arguments.size}")
             }
             return abs(toNumber(arguments[0]))
+        }
+    }
+
+    /**
+     * Formats a number to a specified number of decimal places.
+     * Usage: formatNumber(128.9, 2) → "128.90"
+     */
+    class FormatNumber : ExpressionFunction {
+        override fun call(arguments: List<Any?>): Any? {
+            if (arguments.size != 2) {
+                throw EvaluationException("formatNumber expects 2 arguments, got ${arguments.size}")
+            }
+
+            val number = toNumber(arguments[0])
+            val decimals = toNumber(arguments[1]).toInt()
+
+            return String.format("%.${decimals}f", number)
         }
     }
 

@@ -37,15 +37,14 @@ fun FactSetView(
     val titleMaxWidth = hostConfig.factSet.title.maxWidth
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(hostConfig.factSet.spacing.dp)
     ) {
         element.facts.forEach { fact ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Title (key)
+                // Title (key) — use fixed max width, wrap content
                 Text(
                     text = fact.title,
                     fontWeight = titleWeight,
@@ -55,14 +54,12 @@ fun FactSetView(
                     fontFamily = resolveFontFamily(hostConfig.factSet.title.fontType),
                     maxLines = if (hostConfig.factSet.title.wrap) Int.MAX_VALUE else 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = if (titleMaxWidth > 0) {
-                        Modifier.widthIn(max = titleMaxWidth.dp)
-                    } else {
-                        Modifier.weight(0.4f)
-                    }
+                    modifier = Modifier.widthIn(
+                        max = if (titleMaxWidth > 0) titleMaxWidth.dp else 150.dp
+                    )
                 )
 
-                // Value
+                // Value — wrap content, no weight
                 Text(
                     text = fact.value,
                     fontWeight = valueWeight,
@@ -71,8 +68,7 @@ fun FactSetView(
                     color = valueColor,
                     fontFamily = resolveFontFamily(hostConfig.factSet.value.fontType),
                     maxLines = if (hostConfig.factSet.value.wrap) Int.MAX_VALUE else 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

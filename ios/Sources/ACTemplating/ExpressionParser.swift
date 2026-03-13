@@ -341,6 +341,26 @@ public final class ExpressionParser {
                 } else {
                     throw ParsingError.invalidPropertyAccess
                 }
+            } else if case .leftBracket = currentToken() {
+                // Array subscript: expr[index] → convert to property path
+                advance() // consume '['
+                let indexExpr = try parseExpression()
+                guard case .rightBracket = currentToken() else {
+                    throw ParsingError.expectedRightBracket
+                }
+                advance() // consume ']'
+
+                // Convert expr[index] to a property path like "review.0"
+                if case .propertyAccess(let path) = expr,
+                   case .literal(let indexValue) = indexExpr {
+                    if let idx = indexValue as? Double {
+                        expr = .propertyAccess("\(path).\(Int(idx))")
+                    } else if let idx = indexValue as? Int {
+                        expr = .propertyAccess("\(path).\(idx)")
+                    } else if let key = indexValue as? String {
+                        expr = .propertyAccess("\(path).\(key)")
+                    }
+                }
             } else if case .leftParen = currentToken() {
                 // Function call
                 guard case .propertyAccess(let funcName) = expr else {
@@ -416,6 +436,7 @@ public enum ParsingError: Error, LocalizedError {
     case expectedRightParen
     case expectedColon
     case invalidPropertyAccess
+    case expectedRightBracket
 
     public var errorDescription: String? {
         switch self {
@@ -433,6 +454,8 @@ public enum ParsingError: Error, LocalizedError {
             return "Expected ':' in ternary expression"
         case .invalidPropertyAccess:
             return "Invalid property access"
+        case .expectedRightBracket:
+            return "Expected ']'"
         }
     }
 }

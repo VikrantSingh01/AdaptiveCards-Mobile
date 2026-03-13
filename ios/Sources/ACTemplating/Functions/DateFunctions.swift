@@ -9,6 +9,7 @@ public struct DateFunctions {
     public static func register(into functions: inout [String: ExpressionFunction]) {
         functions["formatDateTime"] = FormatDateTime()
         functions["formatTicks"] = FormatTicks()
+        functions["formatEpoch"] = FormatEpoch()
         functions["addDays"] = AddDays()
         functions["addHours"] = AddHours()
         functions["getYear"] = GetYear()
@@ -66,6 +67,38 @@ public struct DateFunctions {
             let formatter = DateFormatter()
             formatter.dateFormat = formatString ?? "yyyy-MM-dd"
             return formatter.string(from: date)
+        }
+    }
+
+    /// Converts Unix epoch seconds to a formatted date string.
+    /// Usage: formatEpoch(1556913600, 'yyyy-MM-ddTHH:mm:ssZ') → "2019-05-03T20:00:00+0000"
+    struct FormatEpoch: ExpressionFunction {
+        func call(_ arguments: [Any?]) throws -> Any? {
+            guard arguments.count >= 1 && arguments.count <= 2 else {
+                throw EvaluationError.invalidArgumentCount(expected: 1, actual: arguments.count)
+            }
+
+            let epochSeconds: Double
+            if let num = arguments[0] as? Double {
+                epochSeconds = num
+            } else if let num = arguments[0] as? Int {
+                epochSeconds = Double(num)
+            } else if let str = arguments[0] as? String, let num = Double(str) {
+                epochSeconds = num
+            } else {
+                throw EvaluationError.invalidArgument("formatEpoch requires a numeric epoch value")
+            }
+
+            let date = Date(timeIntervalSince1970: epochSeconds)
+
+            // Always use ISO8601DateFormatter for reliable UTC output that the
+            // DateTimeMacroExpander can parse (produces +00:00 or Z format).
+            // This avoids issues with DateFormatter's Z pattern producing +0000
+            // which ISO8601DateFormatter cannot parse back.
+            let iso = ISO8601DateFormatter()
+            iso.formatOptions = [.withInternetDateTime]
+            iso.timeZone = TimeZone(identifier: "UTC")
+            return iso.string(from: date)
         }
     }
 

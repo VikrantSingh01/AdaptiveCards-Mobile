@@ -60,13 +60,26 @@ public final class TemplateEngine {
         return result
     }
 
-    /// Expand a template string with data binding
+    /// Expand a template string with data binding.
+    /// If the template is valid JSON, uses structured expansion (parse → expand → serialize)
+    /// to ensure the output remains valid JSON. Falls back to string-based expansion.
     /// - Parameters:
     ///   - template: Template string containing ${...} expressions
     ///   - data: Data object for binding
     /// - Returns: Expanded string
     /// - Throws: TemplatingError if expansion fails
     public func expand(template: String, data: [String: Any]) throws -> String {
+        // Try structured JSON expansion first (produces valid JSON output)
+        if let jsonData = template.data(using: .utf8),
+           let jsonObject = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+            let context = DataContext(data: data)
+            let expanded = try expandDictionary(jsonObject, context: context)
+            if let outputData = try? JSONSerialization.data(withJSONObject: expanded, options: [.sortedKeys]),
+               let outputString = String(data: outputData, encoding: .utf8) {
+                return outputString
+            }
+        }
+        // Fallback to string-based expansion for non-JSON templates
         let context = DataContext(data: data)
         return try expandString(template, context: context)
     }
@@ -247,6 +260,20 @@ public final class TemplateEngine {
             return bool ? "true" : "false"
         } else if value == nil {
             return ""
+        } else if let dict = value as? [String: Any] {
+            // Serialize dictionaries as valid JSON
+            if let data = try? JSONSerialization.data(withJSONObject: dict),
+               let json = String(data: data, encoding: .utf8) {
+                return json
+            }
+            return "{}"
+        } else if let array = value as? [Any] {
+            // Serialize arrays as valid JSON
+            if let data = try? JSONSerialization.data(withJSONObject: array),
+               let json = String(data: data, encoding: .utf8) {
+                return json
+            }
+            return "[]"
         } else {
             return String(describing: value as Any)
         }

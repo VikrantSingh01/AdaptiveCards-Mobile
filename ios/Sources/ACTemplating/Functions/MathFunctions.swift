@@ -18,6 +18,7 @@ public struct MathFunctions {
         functions["floor"] = Floor()
         functions["ceil"] = Ceil()
         functions["abs"] = Abs()
+        functions["formatNumber"] = FormatNumber()
     }
 
     // MARK: - Function Implementations
@@ -145,6 +146,21 @@ public struct MathFunctions {
             }
 
             return Swift.abs(toNumber(arguments[0]))
+        }
+    }
+
+    /// Formats a number to a specified number of decimal places.
+    /// Usage: formatNumber(128.9, 2) → "128.90"
+    struct FormatNumber: ExpressionFunction {
+        func call(_ arguments: [Any?]) throws -> Any? {
+            guard arguments.count == 2 else {
+                throw EvaluationError.invalidArgumentCount(expected: 2, actual: arguments.count)
+            }
+
+            let number = toNumber(arguments[0])
+            let decimals = Int(toNumber(arguments[1]))
+
+            return String(format: "%.\(decimals)f", number)
         }
     }
 

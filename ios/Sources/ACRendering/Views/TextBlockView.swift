@@ -17,7 +17,8 @@ struct TextBlockView: View {
     @Environment(\.layoutDirection) var layoutDirection
 
     private var displayText: String {
-        textBlock.text ?? ""
+        let raw = textBlock.text ?? ""
+        return DateTimeMacroExpander.expand(raw)
     }
 
     var body: some View {

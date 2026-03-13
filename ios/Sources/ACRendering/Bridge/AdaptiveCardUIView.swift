@@ -94,7 +94,7 @@ public final class AdaptiveCardUIView: UIView {
 
     private func setupHostingController() {
         guard let card = card else { return }
-        let onAction = { [weak self] (event: CardActionEvent) in
+        let onAction: (CardActionEvent) -> Void = { [weak self] event in
             self?.onAction?(event)
         }
         let onLifecycle = { [weak self] (event: CardLifecycleEvent) in
@@ -110,7 +110,7 @@ public final class AdaptiveCardUIView: UIView {
             .cardHandle(handle)
 
         let hc = UIHostingController(rootView: AnyView(swiftUIView))
-        hc.view.backgroundColor = .clear
+        hc.view.backgroundColor = UIColor.clear
         hc.view.translatesAutoresizingMaskIntoConstraints = false
 
         addSubview(hc.view)

@@ -579,4 +579,96 @@ class TemplateEngineTest {
         val result = engine.expand(template, data)
         assertEquals("John Doe", result)
     }
+
+    // MARK: - Stock Update Template Regression Tests
+
+    @Test
+    fun `testFormatNumber`() {
+        val result = engine.expand("\${formatNumber(latestPrice, 2)}", mapOf("latestPrice" to 128.9))
+        assertEquals("128.90", result)
+    }
+
+    @Test
+    fun `testFormatNumberInJSON`() {
+        val template = """{"text": "${"\${formatNumber(latestPrice, 2)}"} "}"""
+        val data = mapOf("latestPrice" to 128.9)
+        val result = engine.expand(template, data)
+        assertTrue(result.contains("128.90"), "Expected 128.90 in: $result")
+    }
+
+    @Test
+    fun `testIfWithComparison`() {
+        val result = engine.expand("\${if(change >= 0, 'good', 'attention')}", mapOf("change" to 2.69))
+        assertEquals("good", result)
+    }
+
+    @Test
+    fun `testFormatNumberWithJavaInteger`() {
+        // org.json.JSONObject returns Integer for small whole numbers
+        val data = mapOf<String, Any?>("latestPrice" to java.lang.Integer.valueOf(128))
+        val result = engine.expand("\${formatNumber(latestPrice, 2)}", data)
+        assertEquals("128.00", result)
+    }
+
+    @Test
+    fun `testFormatEpochWithInteger`() {
+        // org.json.JSONObject returns Integer for epoch values in int range
+        val data = mapOf<String, Any?>("latestUpdate" to java.lang.Integer.valueOf(1556913600))
+        val result = engine.expand("\${formatEpoch(latestUpdate, 'yyyy-MM-dd')}", data)
+        assertEquals("2019-05-03", result)
+    }
+
+    @Test
+    fun `testFullStockUpdateExpansion`() {
+        // Use the actual StockUpdate template and data, matching org.json types
+        val templateJson = """{"type":"AdaptiveCard","body":[{"type":"TextBlock","text":"${"\${formatNumber(latestPrice, 2)}"} "},{"type":"TextBlock","text":"${"\${if(change >= 0, '▲', '▼')}"} ${"\${formatNumber(change, 2)}"} USD (${"\${formatNumber(changePercent * 100, 2)}"}%)","color":"${"\${if(change >= 0, 'good', 'attention')}"}"}]}"""
+
+        // Simulate org.json types: Double for decimal numbers, Integer for whole numbers
+        val data = mapOf<String, Any?>(
+            "latestPrice" to 128.9,
+            "change" to 2.69,
+            "changePercent" to 0.02131,
+            "latestUpdate" to 1556913600
+        )
+        val result = engine.expand(templateJson, data)
+        println("Full StockUpdate expansion: $result")
+        assertTrue(result.contains("128.90"), "Expected 128.90 in: $result")
+        assertTrue(result.contains("▲"), "Expected ▲ in: $result")
+        assertTrue(result.contains("good"), "Expected good in: $result")
+    }
+
+    @Test
+    fun `testStockUpdateColumnSet`() {
+        val template = """{
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {"type": "TextBlock", "text": "${"\${formatNumber(latestPrice, 2)}"} "},
+                        {"type": "TextBlock", "text": "${"\${if(change >= 0, '▲', '▼')}"} ${"\${formatNumber(change, 2)}"} USD"}
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "items": [
+                        {"type": "TextBlock", "text": "${"\${open}"} "}
+                    ]
+                }
+            ]
+        }"""
+        val data = mapOf(
+            "latestPrice" to 128.9,
+            "change" to 2.69,
+            "open" to 127.42
+        )
+        val result = engine.expand(template, data)
+        println("StockUpdate ColumnSet expanded: $result")
+        assertTrue(result.contains("128.90"), "Expected 128.90 in: $result")
+        assertTrue(result.contains("▲"), "Expected ▲ in: $result")
+        assertTrue(result.contains("2.69"), "Expected 2.69 in: $result")
+        assertTrue(result.contains("127.42"), "Expected 127.42 in: $result")
+    }
 }

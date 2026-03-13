@@ -95,10 +95,13 @@ fun TextBlockView(
         modifier
     }
 
+    // Expand {{DATE(...)}} and {{TIME(...)}} Adaptive Cards macros
+    val displayText = DateTimeMacroExpander.expand(element.text)
+
     // Check if text contains markdown
-    if (element.text.containsMarkdown()) {
+    if (displayText.containsMarkdown()) {
         // Render with markdown support
-        val tokens = MarkdownParser.parse(element.text)
+        val tokens = MarkdownParser.parse(displayText)
         val annotatedString = MarkdownRenderer.render(tokens, textSize, textColor)
         val uriHandler = LocalUriHandler.current
 
@@ -132,7 +135,7 @@ fun TextBlockView(
     } else {
         // Render plain text
         Text(
-            text = element.text,
+            text = displayText,
             fontSize = textSize,
             fontWeight = fontWeight,
             fontFamily = fontFamily,

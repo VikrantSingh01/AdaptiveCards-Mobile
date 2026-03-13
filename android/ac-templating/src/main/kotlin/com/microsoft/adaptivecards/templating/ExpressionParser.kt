@@ -341,6 +341,27 @@ class ExpressionParser {
                         throw ParsingException("Invalid property access")
                     }
                 }
+                is Token.LeftBracket -> {
+                    // Array subscript: expr[index] → convert to property path
+                    advance() // consume '['
+                    val indexExpr = parseExpression()
+                    if (currentToken() !is Token.RightBracket) {
+                        throw ParsingException("Expected ']'")
+                    }
+                    advance() // consume ']'
+
+                    // Convert expr[index] to property path like "review.0"
+                    if (expr is Expression.PropertyAccess && indexExpr is Expression.Literal) {
+                        val idx = indexExpr.value
+                        val suffix = when (idx) {
+                            is Double -> idx.toInt().toString()
+                            is Int -> idx.toString()
+                            is String -> idx
+                            else -> idx.toString()
+                        }
+                        expr = Expression.PropertyAccess("${expr.path}.$suffix")
+                    }
+                }
                 is Token.LeftParen -> {
                     // Function call
                     if (expr !is Expression.PropertyAccess) {

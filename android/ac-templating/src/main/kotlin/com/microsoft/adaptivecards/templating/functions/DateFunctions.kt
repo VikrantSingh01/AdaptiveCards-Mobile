@@ -16,6 +16,7 @@ object DateFunctions {
     fun register(functions: MutableMap<String, ExpressionFunction>) {
         functions["formatDateTime"] = FormatDateTime()
         functions["formatTicks"] = FormatTicks()
+        functions["formatEpoch"] = FormatEpoch()
         functions["addDays"] = AddDays()
         functions["addHours"] = AddHours()
         functions["getYear"] = GetYear()
@@ -70,6 +71,36 @@ object DateFunctions {
 
             val formatString = if (arguments.size > 1) arguments[1] as? String else "yyyy-MM-dd"
             val formatter = SimpleDateFormat(formatString ?: "yyyy-MM-dd", Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
+            return formatter.format(date)
+        }
+    }
+
+    /**
+     * Converts Unix epoch seconds to a formatted date string.
+     * Usage: formatEpoch(1556913600, 'yyyy-MM-ddTHH:mm:ssZ') → "2019-05-03T20:00:00+0000"
+     */
+    class FormatEpoch : ExpressionFunction {
+        override fun call(arguments: List<Any?>): Any? {
+            if (arguments.isEmpty() || arguments.size > 2) {
+                throw EvaluationException("formatEpoch expects 1 or 2 arguments, got ${arguments.size}")
+            }
+
+            val epochSeconds: Long = when (val arg = arguments[0]) {
+                is Long -> arg
+                is Int -> arg.toLong()
+                is Double -> arg.toLong()
+                is String -> arg.toLongOrNull()
+                    ?: throw EvaluationException("formatEpoch requires a numeric epoch value")
+                else -> throw EvaluationException("formatEpoch requires a numeric epoch value")
+            }
+
+            val date = Date(epochSeconds * 1000L)
+
+            // Always output ISO 8601 with Z suffix for reliable downstream parsing
+            // by DateTimeMacroExpander. Ignoring custom format string since the purpose
+            // of formatEpoch is to produce dates for {{DATE()}} and {{TIME()}} macros.
+            val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             formatter.timeZone = TimeZone.getTimeZone("UTC")
             return formatter.format(date)
         }

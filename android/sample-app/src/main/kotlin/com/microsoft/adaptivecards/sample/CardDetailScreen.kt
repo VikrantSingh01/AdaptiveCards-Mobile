@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.rendering.composables.AdaptiveCardView
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
+import org.json.JSONObject
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkState: BookmarkState, navController: NavController, editorState: EditorState? = null, perfStore: PerformanceStore? = null, pendingActionTitle: MutableState<String?>? = null) {
@@ -47,6 +48,19 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     val context = LocalContext.current
     val card = remember(cardId) {
         CardCache.getCards(context).find { it.filename == cardId }
+    }
+    // Load template data for .template.json cards
+    val templateData: Map<String, Any?>? = remember(cardId) {
+        if (card != null && TestCardLoader.hasTemplateData(card.filename)) {
+            val dataJson = TestCardLoader.loadTemplateData(context, card.filename)
+            if (dataJson != null) {
+                try {
+                    jsonToMap(JSONObject(dataJson))
+                } catch (_: Exception) {
+                    null
+                }
+            } else null
+        } else null
     }
     val cardViewModel: CardViewModel = viewModel(key = "detail_${cardId}_$refreshKey")
     val actionHandler = remember(actionLogState) { LoggingActionHandler(actionLogState) }
@@ -79,7 +93,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                 // Render: ViewModel parse (cache-miss) + state initialization
                 CardViewModel.clearParseCache()
                 val renderStart = System.nanoTime()
-                cardViewModel.parseCard(it.jsonString)
+                cardViewModel.parseCard(it.jsonString, templateData)
                 renderTimeMs = (System.nanoTime() - renderStart) / 1_000_000.0
 
                 // Persist to store (accumulates across sessions)
@@ -158,6 +172,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                 } else {
                     AdaptiveCardView(
                         cardJson = card?.jsonString ?: "",
+                        templateData = templateData,
                         hostConfig = com.microsoft.adaptivecards.core.hostconfig.TeamsHostConfig.createLight(),
                         actionHandler = actionHandler,
                         modifier = Modifier
@@ -316,6 +331,22 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
             }
         }
     }
+}
+
+/** Recursively converts a JSONObject to a Map<String, Any?> for template data binding. */
+private fun jsonToMap(json: JSONObject): Map<String, Any?> {
+    val map = mutableMapOf<String, Any?>()
+    for (key in json.keys()) {
+        map[key] = jsonToAny(json.get(key))
+    }
+    return map
+}
+
+private fun jsonToAny(value: Any?): Any? = when (value) {
+    is JSONObject -> jsonToMap(value)
+    is org.json.JSONArray -> (0 until value.length()).map { jsonToAny(value.get(it)) }
+    JSONObject.NULL -> null
+    else -> value
 }
 
 /** Maps a performance metric (ms) to a color: green < 10, blue < 20, orange < 40, red >= 40. */
