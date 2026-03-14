@@ -212,9 +212,24 @@ struct CarouselPageView: View {
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
 
+    /// Per AC spec, carousel pages must not contain input elements or media.
+    /// Filter forbidden element types to match Android behavior.
+    private var allowedItems: [CardElement] {
+        page.items.filter { element in
+            switch element {
+            case .textInput, .numberInput, .dateInput, .timeInput,
+                 .toggleInput, .choiceSetInput, .dataGridInput, .ratingInput,
+                 .media:
+                return false
+            default:
+                return true
+            }
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(page.items) { element in
+            ForEach(allowedItems) { element in
                 if viewModel.isElementVisible(elementId: element.elementId) {
                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
                 }
