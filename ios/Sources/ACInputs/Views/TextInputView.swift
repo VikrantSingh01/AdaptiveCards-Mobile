@@ -42,7 +42,7 @@ public struct TextInputView: View {
                     .foregroundColor(.secondary)
             }
 
-            if input.isMultiline == true {
+            if input.isMultiline == true && input.style != .password {
                 TextEditor(text: $value)
                     .scrollContentBackground(.hidden)
                     .frame(minHeight: 80)
@@ -55,6 +55,24 @@ public struct TextInputView: View {
                     .onChange(of: value) { _ in
                         validateIfNeeded()
                     }
+            } else if input.style == .password {
+                HStack(spacing: 4) {
+                    SecureField(input.placeholder ?? "", text: $value)
+                        .textFieldStyle(.plain)
+                        .padding(8)
+                        .background(Color(white: 1.0))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                        .onChange(of: value) { _ in
+                            validateIfNeeded()
+                        }
+
+                    if let inlineAction = input.inlineAction {
+                        inlineActionButton(for: inlineAction)
+                    }
+                }
             } else {
                 HStack(spacing: 4) {
                     #if os(iOS)

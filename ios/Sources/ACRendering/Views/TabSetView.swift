@@ -86,7 +86,7 @@ struct TabButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            VStack(spacing: 2) {
                 if let iconName = tab.icon {
                     Image(systemName: iconName)
                         .font(adaptiveIconSize)
@@ -96,6 +96,7 @@ struct TabButton: View {
                 Text(tab.title)
                     .font(adaptiveTextSize)
                     .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
             }
             .foregroundColor(isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default) : Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
             .padding(.horizontal, adaptiveHorizontalPadding)

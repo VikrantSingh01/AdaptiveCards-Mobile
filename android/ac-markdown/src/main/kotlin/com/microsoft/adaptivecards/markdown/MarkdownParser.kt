@@ -65,18 +65,27 @@ class MarkdownParser private constructor() {
                 continue
             }
 
-            // Check for bullet list
+            // Check for bullet list — parse inline markdown within content
             if (line.startsWith("- ")) {
                 val content = line.substring(2)
-                tokens.add(MarkdownToken.BulletItem(content))
+                tokens.add(MarkdownToken.Text("\u2022 "))
+                tokens.addAll(parseInlineMarkdown(content))
+                tokens.add(MarkdownToken.LineBreak)
                 continue
             }
 
-            // Check for numbered list
-            val numberedToken = parseNumberedList(line)
-            if (numberedToken != null) {
-                tokens.add(numberedToken)
-                continue
+            // Check for numbered list — parse inline markdown within content
+            val numberedMatch = Regex("""^(\d+)\.\s+(.+)$""").matchEntire(line)
+            if (numberedMatch != null) {
+                val number = numberedMatch.groupValues[1].toIntOrNull()
+                val content = numberedMatch.groupValues[2]
+                if (number != null) {
+                    // Emit the number prefix as text, then inline-parse the content
+                    tokens.add(MarkdownToken.Text("$number. "))
+                    tokens.addAll(parseInlineMarkdown(content))
+                    tokens.add(MarkdownToken.LineBreak)
+                    continue
+                }
             }
 
             // Parse inline markdown

@@ -114,8 +114,17 @@ struct ColumnSetView: View {
         }
     }
 
+    /// Adaptive column spacing: reduce when many columns to prevent text wrapping
+    private var columnSpacing: CGFloat {
+        let defaultSpacing = CGFloat(hostConfig.spacing.default)
+        if visibleColumns.count > 4 {
+            return min(defaultSpacing, CGFloat(hostConfig.spacing.small))
+        }
+        return defaultSpacing
+    }
+
     var body: some View {
-        ProportionalColumnLayout(columns: visibleColumns, columnSpacing: CGFloat(hostConfig.spacing.default)) {
+        ProportionalColumnLayout(columns: visibleColumns, columnSpacing: columnSpacing) {
             ForEach(visibleColumns, id: \.stableId) { column in
                 ColumnView(column: column, hostConfig: hostConfig, depth: depth)
             }

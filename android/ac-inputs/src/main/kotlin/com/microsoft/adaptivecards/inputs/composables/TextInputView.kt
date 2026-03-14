@@ -5,15 +5,21 @@
 package com.microsoft.adaptivecards.inputs.composables
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.models.InputText
 import com.microsoft.adaptivecards.core.models.TextInputStyle
 import com.microsoft.adaptivecards.inputs.validation.InputValidator
@@ -26,7 +32,8 @@ import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 fun TextInputView(
     element: InputText,
     viewModel: CardViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onInlineAction: ((com.microsoft.adaptivecards.core.models.CardAction) -> Unit)? = null
 ) {
     var textValue by remember { mutableStateOf(element.value ?: "") }
     var hasInteracted by remember { mutableStateOf(false) }
@@ -49,7 +56,10 @@ fun TextInputView(
             }
         }
     }
-    
+
+    // Password style ignores multiline flag (AC spec)
+    val effectiveMultiline = element.isMultiline == true && element.style != TextInputStyle.Password
+
     Column(modifier = modifier.fillMaxWidth()) {
         // Label
         element.label?.let { label ->
@@ -57,21 +67,50 @@ fun TextInputView(
                 text = if (element.isRequired) "$label *" else label
             )
         }
-        
-        // Input field
-        OutlinedTextField(
-            value = textValue,
-            onValueChange = { hasInteracted = true; textValue = it },
-            placeholder = { element.placeholder?.let { Text(it) } },
-            isError = error != null,
-            singleLine = element.isMultiline != true,
-            maxLines = if (element.isMultiline == true) Int.MAX_VALUE else 1,
-            keyboardOptions = getKeyboardOptions(element.style),
-            visualTransformation = if (element.style == TextInputStyle.Password) 
-                PasswordVisualTransformation() else VisualTransformation.None,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
+
+        // Input field with optional inline action
+        if (element.inlineAction != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = textValue,
+                    onValueChange = { hasInteracted = true; textValue = it },
+                    placeholder = { element.placeholder?.let { Text(it) } },
+                    isError = error != null,
+                    singleLine = !effectiveMultiline,
+                    minLines = if (effectiveMultiline) 3 else 1,
+                    maxLines = if (effectiveMultiline) Int.MAX_VALUE else 1,
+                    keyboardOptions = getKeyboardOptions(element.style),
+                    visualTransformation = if (element.style == TextInputStyle.Password)
+                        PasswordVisualTransformation() else VisualTransformation.None,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                val action = element.inlineAction!!
+                OutlinedButton(
+                    onClick = { onInlineAction?.invoke(action) }
+                ) {
+                    Text(action.title ?: "Go")
+                }
+            }
+        } else {
+            OutlinedTextField(
+                value = textValue,
+                onValueChange = { hasInteracted = true; textValue = it },
+                placeholder = { element.placeholder?.let { Text(it) } },
+                isError = error != null,
+                singleLine = !effectiveMultiline,
+                minLines = if (effectiveMultiline) 3 else 1,
+                maxLines = if (effectiveMultiline) Int.MAX_VALUE else 1,
+                keyboardOptions = getKeyboardOptions(element.style),
+                visualTransformation = if (element.style == TextInputStyle.Password)
+                    PasswordVisualTransformation() else VisualTransformation.None,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         // Error message
         error?.let { errorText ->
             Text(
