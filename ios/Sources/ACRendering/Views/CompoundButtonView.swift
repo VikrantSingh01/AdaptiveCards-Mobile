@@ -39,6 +39,19 @@ struct CompoundButtonView: View {
         .accessibilityHint(accessibilityHint)
     }
 
+    private var isStyledButton: Bool {
+        let s = button.style ?? "default"
+        return ["emphasis", "positive", "destructive"].contains(s)
+    }
+
+    private var primaryTextColor: Color {
+        isStyledButton ? .white : Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default)
+    }
+
+    private var secondaryTextColor: Color {
+        isStyledButton ? .white.opacity(0.8) : Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle)
+    }
+
     @ViewBuilder
     private var content: some View {
         HStack(alignment: .center, spacing: Layout.iconTextSpacing) {
@@ -50,7 +63,7 @@ struct CompoundButtonView: View {
                 HStack {
                     Text(button.title)
                         .font(.system(size: CGFloat(hostConfig.fontSizes.large), weight: titleFontWeight))
-                        .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
+                        .foregroundColor(primaryTextColor)
                         .lineLimit(2)
                         .truncationMode(.tail)
 
@@ -69,7 +82,7 @@ struct CompoundButtonView: View {
                 if let description = button.description {
                     Text(description)
                         .font(.system(size: CGFloat(hostConfig.fontSizes.default)))
-                        .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle))
+                        .foregroundColor(secondaryTextColor)
                         .lineLimit(2)
                         .truncationMode(.tail)
                 }
@@ -83,7 +96,7 @@ struct CompoundButtonView: View {
             // Chevron indicator
             Image(systemName: "chevron.right")
                 .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: titleFontWeight))
-                .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.subtle))
+                .foregroundColor(secondaryTextColor)
         }
         .padding(.horizontal, Layout.horizontalPadding)
         .padding(.vertical, Layout.verticalPadding)
@@ -130,7 +143,7 @@ struct CompoundButtonView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: Layout.iconSize, height: Layout.iconSize)
-                    .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
+                    .foregroundColor(primaryTextColor)
             }
         }
     }
@@ -208,14 +221,19 @@ struct CompoundButtonStyle: ButtonStyle {
             )
     }
 
+    private var isStyledButton: Bool {
+        ["emphasis", "positive", "destructive"].contains(style)
+    }
+
     private var backgroundColor: Color {
+        let colors = hostConfig.containerStyles.default.foregroundColors
         switch style {
         case "emphasis":
-            return Color(hex: hostConfig.containerStyles.accent.backgroundColor)
+            return Color(hex: colors.accent.`default`)
         case "positive":
-            return Color(hex: hostConfig.containerStyles.good.backgroundColor)
+            return Color(hex: colors.good.`default`)
         case "destructive":
-            return Color(hex: hostConfig.containerStyles.attention.backgroundColor)
+            return Color(hex: colors.attention.`default`)
         default:
             return Color(hex: hostConfig.containerStyles.default.backgroundColor)
         }
