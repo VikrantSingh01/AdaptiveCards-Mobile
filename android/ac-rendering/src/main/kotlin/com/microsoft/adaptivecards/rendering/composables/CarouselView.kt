@@ -88,7 +88,8 @@ fun CarouselView(
             } ?: 0f
 
             val estimated = maxPageHeight + pagePadding
-            val minimum = if (isTablet) 160f else 100f
+            // Use generous minimum to ensure content is visible (matching iOS sizing)
+            val minimum = if (isTablet) 200f else 180f
             val maxHeight = screenHeightDp * 0.65f
             maxOf(estimated, minimum).coerceAtMost(maxHeight)
         }
@@ -204,9 +205,12 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
             }
             is FactSet -> lineHeight * item.facts.size.coerceAtLeast(1)
             else -> when (item.type) {
-                "TextBlock" -> lineHeight * 2
-                "Image" -> contentWidth * 0.75f
-                "ImageSet" -> contentWidth * 0.4f
+                // TextBlocks in carousels typically wrap — estimate 3 lines for parity with iOS
+                "TextBlock" -> lineHeight * 3
+                // Images default to ~1:1 aspect ratio to match iOS sizing (was 0.75x, too small)
+                "Image" -> contentWidth
+                "ImageSet" -> contentWidth * 0.5f
+                "RichTextBlock" -> lineHeight * 3
                 else -> lineHeight * 2
             }
         }

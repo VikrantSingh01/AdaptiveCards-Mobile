@@ -235,6 +235,8 @@ public final class TemplateEngine {
                             }
                             continue
                         }
+                        // $data resolved to nil — skip this item (matches Android behavior)
+                        continue
                     } else {
                         // Non-string $data (Int, Dict, Array, etc.) — use as literal data context
                         let childContext = DataContext(data: dataBindingValue, root: context.root, index: nil, parent: context)
@@ -295,12 +297,25 @@ public final class TemplateEngine {
                     }
                 }
                 if firstCloseIndex == chars.count - 1 {
-                    // Pure expression — return native value
+                    // Pure expression — evaluate and return
                     let expression = String(chars[2..<(chars.count - 1)])
                     if let parsed = try? parser.parse(expression) {
                         let evaluator = ExpressionEvaluator(context: context)
                         if let result = try? evaluator.evaluate(parsed) {
-                            return result
+                            // Preserve native types for collections (needed for $data
+                            // array iteration and structural template expansion).
+                            if result is [Any] || result is [String: Any] {
+                                return result
+                            }
+                            // Return strings as-is
+                            if result is String {
+                                return result
+                            }
+                            // Stringify scalar non-string values (Int, Double, Bool)
+                            // to maintain JSON string type consistency and prevent
+                            // Codable type-mismatch decode failures (e.g., FactSet
+                            // "value" field expects String, not a native number).
+                            return stringValue(result)
                         }
                         // Evaluation failed; fall through to expandString
                     }
@@ -320,11 +335,18 @@ public final class TemplateEngine {
 
     /// Extracts a raw expression from a template string.
     /// If the string is of the form "${expr}", returns "expr".
+    /// Also handles single-brace "{expr}" pattern (legacy/shorthand syntax).
     /// Otherwise returns the string as-is (assumed to be a raw expression).
     private func extractExpression(from template: String) -> String {
         let trimmed = template.trimmingCharacters(in: .whitespaces)
         if trimmed.hasPrefix("${") && trimmed.hasSuffix("}") {
             let start = trimmed.index(trimmed.startIndex, offsetBy: 2)
+            let end = trimmed.index(before: trimmed.endIndex)
+            return String(trimmed[start..<end])
+        }
+        // Handle single-brace {expr} pattern — treat as expression reference
+        if trimmed.hasPrefix("{") && trimmed.hasSuffix("}") && trimmed.count > 2 {
+            let start = trimmed.index(after: trimmed.startIndex)
             let end = trimmed.index(before: trimmed.endIndex)
             return String(trimmed[start..<end])
         }
