@@ -69,7 +69,7 @@ public struct RatingInputView: View {
                     .accessibilityAddTraits(.isStaticText)
             }
         }
-        // TODO: Re-add spacing and separator modifiers if ACRendering is added as dependency
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(input.label ?? "Rating input")
         .accessibilityValue("\(Int(value.rounded(.up))) out of \(maxStars) stars selected")

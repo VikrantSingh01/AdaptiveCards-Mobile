@@ -356,7 +356,9 @@ public struct DataGridInputView: View {
         case .string(let str):
             return str
         case .number(let num):
-            return String(format: "%.2f", num)
+            return num.truncatingRemainder(dividingBy: 1) == 0
+                ? String(format: "%.0f", num)
+                : String(num)
         case .bool(let bool):
             return bool ? "Yes" : "No"
         case .null:
@@ -382,7 +384,9 @@ public struct DataGridInputView: View {
         case .string(let str):
             return str.isEmpty ? "empty" : str
         case .number(let num):
-            return String(format: "%.2f", num)
+            return num.truncatingRemainder(dividingBy: 1) == 0
+                ? String(format: "%.0f", num)
+                : String(num)
         case .bool(let bool):
             return bool ? "checked" : "unchecked"
         case .null:

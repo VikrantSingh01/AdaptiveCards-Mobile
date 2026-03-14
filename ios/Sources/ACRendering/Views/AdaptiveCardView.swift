@@ -219,7 +219,7 @@ public struct AdaptiveCardView: View {
                 }
             }
             .padding(CGFloat(hostConfig.spacing.padding))
-            .containerStyle(.default, hostConfig: hostConfig)
+            .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
         }
         .background(
             GeometryReader { geometry in

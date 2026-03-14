@@ -138,6 +138,7 @@ struct TableCellView: View {
                     .frame(minHeight: 20)
             }
         }
+        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: combinedAlignment)
         .frame(width: proportionalCellWidth, alignment: combinedAlignment)
         .frame(minHeight: minHeight)

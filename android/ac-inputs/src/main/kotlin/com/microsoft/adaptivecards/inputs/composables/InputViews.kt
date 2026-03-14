@@ -7,9 +7,11 @@ package com.microsoft.adaptivecards.inputs.composables
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -169,7 +171,7 @@ fun TimeInputView(
             val timePickerState = rememberTimePickerState(
                 initialHour = initialHour,
                 initialMinute = initialMinute,
-                is24Hour = true
+                is24Hour = false
             )
 
             AlertDialog(
@@ -276,31 +278,39 @@ fun ChoiceSetInputView(
 
         when (element.style) {
             ChoiceInputStyle.Compact -> {
-                // Dropdown
+                // Bordered dropdown with chevron (matching iOS)
                 var expanded by remember { mutableStateOf(false) }
 
-                OutlinedButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        element.choices.find { it.value == selectedValue }?.title
-                            ?: element.placeholder ?: "Select..."
-                    )
-                }
-
-                DropdownMenu(
+                @OptIn(ExperimentalMaterial3Api::class)
+                ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onExpandedChange = { expanded = it }
                 ) {
-                    element.choices.forEach { choice ->
-                        DropdownMenuItem(
-                            text = { Text(choice.title) },
-                            onClick = {
-                                selectedValue = choice.value
-                                expanded = false
-                            }
-                        )
+                    OutlinedTextField(
+                        value = element.choices.find { it.value == selectedValue }?.title
+                            ?: element.placeholder ?: "Select...",
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        element.choices.forEach { choice ->
+                            DropdownMenuItem(
+                                text = { Text(choice.title) },
+                                onClick = {
+                                    selectedValue = choice.value
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -406,7 +416,7 @@ fun ChoiceSetInputView(
 private fun formatDateForDisplay(isoDate: String): String {
     return try {
         val date = LocalDate.parse(isoDate)
-        date.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
+        date.format(DateTimeFormatter.ofPattern("MMM d, yyyy", java.util.Locale.US))
     } catch (_: Exception) {
         isoDate
     }
@@ -424,7 +434,7 @@ private fun parseDateToMillis(isoDate: String): Long? {
 private fun formatTimeForDisplay(time: String): String {
     return try {
         val t = LocalTime.parse(time)
-        t.format(DateTimeFormatter.ofPattern("HH:mm"))
+        t.format(DateTimeFormatter.ofPattern("h:mm a"))
     } catch (_: Exception) {
         time
     }
