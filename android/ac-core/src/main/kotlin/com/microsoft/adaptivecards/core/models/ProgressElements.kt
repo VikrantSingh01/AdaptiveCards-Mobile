@@ -44,6 +44,24 @@ data class ProgressBar(
 }
 
 @Serializable
+@SerialName("ProgressRing")
+data class ProgressRing(
+    @Transient override val type: String = "ProgressRing",
+    override val id: String? = null,
+    override val isVisible: Boolean = true,
+    override val separator: Boolean = false,
+    override val spacing: Spacing? = null,
+    override val height: BlockElementHeight? = null,
+    override val requires: Map<String, String>? = null,
+    override val fallback: JsonElement? = null,
+    val label: String? = null,
+    val labelPosition: String? = null,
+    val size: String? = null,
+    val color: String? = null,
+    val horizontalAlignment: HorizontalAlignment? = null
+) : CardElement
+
+@Serializable
 @SerialName("Spinner")
 data class Spinner(
     @Transient override val type: String = "Spinner",

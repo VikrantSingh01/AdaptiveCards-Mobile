@@ -28,6 +28,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
     case ratingDisplay(RatingDisplay)
     case ratingInput(RatingInput)
     case progressBar(ProgressBar)
+    case progressRing(ProgressRing)
     case spinner(Spinner)
     case tabSet(TabSet)
     case list(ListElement)
@@ -108,6 +109,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             self = .ratingInput(try RatingInput(from: decoder))
         case "ProgressBar":
             self = .progressBar(try ProgressBar(from: decoder))
+        case "ProgressRing":
+            self = .progressRing(try ProgressRing(from: decoder))
         case "Spinner":
             self = .spinner(try Spinner(from: decoder))
         case "TabSet":
@@ -182,6 +185,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             try element.encode(to: encoder)
         case .progressBar(let element):
             try element.encode(to: encoder)
+        case .progressRing(let element):
+            try element.encode(to: encoder)
         case .spinner(let element):
             try element.encode(to: encoder)
         case .tabSet(let element):
@@ -234,6 +239,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .ratingDisplay(let element): return element.id
         case .ratingInput(let element): return element.id
         case .progressBar(let element): return element.id
+        case .progressRing(let element): return element.id
         case .spinner(let element): return element.id
         case .tabSet(let element): return element.id
         case .list(let element): return element.id
@@ -287,6 +293,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .ratingDisplay(let element): return element.isVisible ?? true
         case .ratingInput(let element): return element.isVisible ?? true
         case .progressBar(let element): return element.isVisible ?? true
+        case .progressRing(let element): return element.isVisible ?? true
         case .spinner(let element): return element.isVisible ?? true
         case .tabSet(let element): return element.isVisible ?? true
         case .list(let element): return element.isVisible ?? true
@@ -327,6 +334,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .ratingDisplay(let e): return e.spacing
         case .ratingInput(let e): return e.spacing
         case .progressBar(let e): return e.spacing
+        case .progressRing(let e): return e.spacing
         case .spinner(let e): return e.spacing
         case .tabSet(let e): return e.spacing
         case .list(let e): return e.spacing
@@ -384,6 +392,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .ratingDisplay: return "Rating"
         case .ratingInput: return "Input.Rating"
         case .progressBar: return "ProgressBar"
+        case .progressRing: return "ProgressRing"
         case .spinner: return "Spinner"
         case .tabSet: return "TabSet"
         case .list: return "List"

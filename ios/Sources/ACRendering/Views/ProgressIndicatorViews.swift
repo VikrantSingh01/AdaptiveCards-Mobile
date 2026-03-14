@@ -80,6 +80,119 @@ struct ProgressBarView: View {
     }
 }
 
+// MARK: - Progress Ring View
+
+struct ProgressRingView: View {
+    let progressRing: ProgressRing
+    let hostConfig: HostConfig
+
+    @Environment(\.layoutDirection) var layoutDirection
+
+    private var ringSize: CGFloat {
+        switch progressRing.size?.lowercased() {
+        case "tiny": return 16
+        case "small": return 24
+        case "large": return 48
+        default: return 32
+        }
+    }
+
+    private var lineWidth: CGFloat {
+        switch progressRing.size?.lowercased() {
+        case "tiny": return 2
+        case "small": return 3
+        case "large": return 5
+        default: return 4
+        }
+    }
+
+    private var ringColor: Color {
+        guard let colorString = progressRing.color else {
+            return Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
+        }
+        let fg = hostConfig.containerStyles.default.foregroundColors
+        switch colorString.lowercased() {
+        case "default": return Color(hex: fg.default.default)
+        case "dark": return Color(hex: fg.dark.default)
+        case "light": return Color(hex: fg.light.default)
+        case "accent": return Color(hex: fg.accent.default)
+        case "good", "green": return Color(hex: fg.good.default)
+        case "warning", "yellow": return Color(hex: fg.warning.default)
+        case "attention", "red": return Color(hex: fg.attention.default)
+        default: return Color(hex: colorString)
+        }
+    }
+
+    private var frameAlignment: Alignment {
+        .from(
+            horizontal: progressRing.horizontalAlignment,
+            vertical: nil,
+            layoutDirection: layoutDirection
+        )
+    }
+
+    var body: some View {
+        let labelPosition = progressRing.labelPosition?.lowercased() ?? "above"
+        let ringContent = IndeterminateRing(color: ringColor, size: ringSize, lineWidth: lineWidth)
+
+        Group {
+            switch labelPosition {
+            case "below":
+                VStack(spacing: CGFloat(hostConfig.spacing.small)) {
+                    ringContent
+                    labelText
+                }
+            case "before":
+                HStack(spacing: CGFloat(hostConfig.spacing.small)) {
+                    labelText
+                    ringContent
+                }
+            case "after":
+                HStack(spacing: CGFloat(hostConfig.spacing.small)) {
+                    ringContent
+                    labelText
+                }
+            default:
+                VStack(spacing: CGFloat(hostConfig.spacing.small)) {
+                    labelText
+                    ringContent
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: frameAlignment)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(progressRing.label ?? "Loading")
+        .accessibilityValue("In progress")
+    }
+
+    @ViewBuilder
+    private var labelText: some View {
+        if let label = progressRing.label {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+private struct IndeterminateRing: View {
+    let color: Color
+    let size: CGFloat
+    let lineWidth: CGFloat
+
+    @State private var isAnimating = false
+
+    var body: some View {
+        Circle()
+            .trim(from: 0.0, to: 0.75)
+            .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+            .frame(width: size, height: size)
+            .rotationEffect(.degrees(isAnimating ? 360 : 0))
+            .animation(.linear(duration: 1.0).repeatForever(autoreverses: false), value: isAnimating)
+            .onAppear { isAnimating = true }
+    }
+}
+
 // MARK: - Spinner View
 
 struct SpinnerView: View {
