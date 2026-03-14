@@ -153,7 +153,7 @@ fun CodeBlockView(
                             if (element.startLineNumber != null) {
                                 Text(
                                     text = "${startLineNumber + index}  ",
-                                    color = Color.White.copy(alpha = 0.4f),
+                                    color = Color.White.copy(alpha = 1.0f),
                                     fontSize = lineNumberFontSize,
                                     fontFamily = FontFamily.Monospace,
                                     modifier = Modifier.padding(end = if (isTablet) 12.dp else 8.dp)
