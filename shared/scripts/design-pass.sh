@@ -271,7 +271,9 @@ FAIL=0
 
 for i in "${!cards_to_test[@]}"; do
     card_path="${cards_to_test[$i]}"
-    card_name=$(basename "$card_path")
+    # Use full path with / replaced by - to avoid collisions
+    # (e.g., teams-official-samples/list → teams-official-samples-list)
+    card_name=$(echo "$card_path" | tr '/' '-')
     idx=$((i + 1))
 
     printf "  [%d/%d] %s" "$idx" "$TOTAL" "$card_name"
@@ -328,6 +330,9 @@ bash "$SCRIPT_DIR/generate-design-catalog.sh" "$OUTPUT_DIR"
 
 # Copy index.html to top-level test-results for stable access
 cp "$OUTPUT_DIR/index.html" "$REPO_ROOT/shared/test-results/index.html"
+
+# Create/update screenshots symlink so top-level index.html can find images
+ln -sfn "$OUTPUT_DIR/screenshots" "$REPO_ROOT/shared/test-results/screenshots"
 
 # =============================================================================
 # Done

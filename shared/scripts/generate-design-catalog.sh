@@ -65,7 +65,11 @@ map_cards_from_dir() {
             [ -f "$f" ] || continue
             local basename_no_ext
             basename_no_ext=$(basename "$f" .json)
-            echo "${basename_no_ext}|${category}|${dir}/$(basename "$f")" >> "$CARD_MAP_FILE"
+            # Screenshot key uses dir-basename (e.g., teams-official-samples-list)
+            # to match design-pass.sh naming that avoids collisions
+            local screenshot_key
+            screenshot_key=$(echo "$dir/$basename_no_ext" | tr '/' '-')
+            echo "${screenshot_key}|${category}|${dir}/$(basename "$f")" >> "$CARD_MAP_FILE"
         done
     fi
 }
@@ -230,7 +234,7 @@ for name in "${APP_SCREENS[@]}"; do
     android_exists="false"
     [ -f "$IOS_DIR/${name}.png" ] && ios_exists="true"
     [ -f "$ANDROID_DIR/${name}.png" ] && android_exists="true"
-    echo "  { name: \"$display_name\", screenshot: \"$name\", category: \"App Screen\", jsonUrl: \"\", isApp: true, ios: $ios_exists, android: $android_exists }," >> "$OUTPUT_HTML"
+    echo "  { name: \"$display_name\", screenshot: \"$name\", category: \"Visualizer Screen\", jsonUrl: \"\", isApp: true, ios: $ios_exists, android: $android_exists }," >> "$OUTPUT_HTML"
 done
 
 # Card screenshots
@@ -312,7 +316,7 @@ function renderCatalog() {
 
   // Defined category order
   const categoryOrder = [
-    'App Screen',
+    'Visualizer Screen',
     'Teams Official',
     'Official Samples',
     'Element Samples',
@@ -323,10 +327,10 @@ function renderCatalog() {
     'Versioned v1.6'
   ];
 
-  // App Screen: custom item order (Gallery, Performance, More, Settings first)
+  // Visualizer Screen: custom item order (Gallery, Performance, More, Settings first)
   const appScreenOrder = ['Gallery', 'Performance', 'More', 'Settings'];
-  if (groups['App Screen']) {
-    groups['App Screen'].sort((a, b) => {
+  if (groups['Visualizer Screen']) {
+    groups['Visualizer Screen'].sort((a, b) => {
       const ai = appScreenOrder.indexOf(a.name);
       const bi = appScreenOrder.indexOf(b.name);
       if (ai !== -1 && bi !== -1) return ai - bi;
@@ -339,7 +343,7 @@ function renderCatalog() {
   // Render in defined order
   categoryOrder.forEach(cat => {
     if (groups[cat]) {
-      const label = cat === 'App Screen' ? 'App Screens' : cat + ' (' + groups[cat].length + ')';
+      const label = cat === 'Visualizer Screen' ? 'Visualizer Screens' : cat + ' (' + groups[cat].length + ')';
       html += renderSection(label, groups[cat]);
       delete groups[cat];
     }
