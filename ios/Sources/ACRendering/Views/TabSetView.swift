@@ -126,11 +126,11 @@ struct TabButton: View {
     }
 
     private var adaptiveTextSize: Font {
-        sizeCategory.isAccessibilityCategory ? .body : .subheadline
+        sizeCategory.isAccessibilityCategory ? .body : .callout
     }
 
     private var adaptiveHorizontalPadding: CGFloat {
-        sizeCategory.isAccessibilityCategory ? CGFloat(hostConfig.spacing.extraLarge) : CGFloat(hostConfig.spacing.large)
+        sizeCategory.isAccessibilityCategory ? CGFloat(hostConfig.spacing.large) : CGFloat(hostConfig.spacing.medium)
     }
 
     private var adaptiveVerticalPadding: CGFloat {

@@ -22,11 +22,16 @@ struct CodeBlockView: View {
     @State private var showCopied = false
     @Environment(\.sizeCategory) var sizeCategory
 
+    private static let darkBackground = Color(red: 0x1E / 255.0, green: 0x1E / 255.0, blue: 0x1E / 255.0)
+    private static let darkHeaderBackground = Color(red: 0x2D / 255.0, green: 0x2D / 255.0, blue: 0x30 / 255.0)
+    private static let codeTextColor = Color(red: 0xD4 / 255.0, green: 0xD4 / 255.0, blue: 0xD4 / 255.0)
+
     var body: some View {
-        VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.small)) {
+        VStack(alignment: .leading, spacing: 0) {
             headerView
             codeContentView
         }
+        .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["container"] ?? 8)))
         .spacing(codeBlock.spacing, hostConfig: hostConfig)
         .separator(codeBlock.separator, hostConfig: hostConfig)
     }
@@ -34,22 +39,18 @@ struct CodeBlockView: View {
     private var headerView: some View {
         HStack {
             if let language = codeBlock.language {
-                Text(language)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(language.uppercased())
+                    .font(.system(size: adaptiveFontSize, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.7))
                     .accessibilityLabel("Programming language: \(language)")
             }
 
             Spacer()
 
             Button(action: copyToClipboard) {
-                HStack(spacing: 4) {
-                    Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
-                    Text(showCopied ? "Copied" : "Copy")
-                        .font(.caption)
-                }
-                .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default))
-                .frame(minWidth: 44, minHeight: 44)
+                Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
+                    .foregroundColor(.white.opacity(0.7))
+                    .frame(minWidth: 32, minHeight: 32)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(showCopied ? "Code copied to clipboard" : "Copy code to clipboard")
@@ -57,7 +58,8 @@ struct CodeBlockView: View {
             .accessibilityAddTraits(.isButton)
         }
         .padding(.horizontal, CGFloat(hostConfig.spacing.small))
-        .padding(.top, CGFloat(hostConfig.spacing.small))
+        .padding(.vertical, CGFloat(hostConfig.spacing.small))
+        .background(Self.darkHeaderBackground)
     }
 
     private var codeContentView: some View {
@@ -69,8 +71,7 @@ struct CodeBlockView: View {
             }
             .padding(CGFloat(hostConfig.spacing.small))
         }
-        .background(backgroundColor)
-        .cornerRadius(CGFloat(hostConfig.cornerRadius["container"] ?? 4))
+        .background(Self.darkBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Code block")
         .accessibilityValue(codeBlock.code)
@@ -82,24 +83,20 @@ struct CodeBlockView: View {
             if let startLine = codeBlock.startLineNumber {
                 Text("\(startLine + index)")
                     .font(.system(size: adaptiveFontSize, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.4))
                     .frame(minWidth: 30, alignment: .trailing)
                     .accessibilityHidden(true)
             }
 
             Text(line)
                 .font(.system(size: adaptiveFontSize, design: .monospaced))
-                .foregroundColor(.primary)
+                .foregroundColor(Self.codeTextColor)
                 .lineLimit(codeBlock.wrap == true ? nil : 1)
         }
     }
 
     private var codeLines: [String] {
         return codeBlock.code.components(separatedBy: .newlines)
-    }
-
-    private var backgroundColor: Color {
-        return Color(hex: hostConfig.containerStyles.emphasis.backgroundColor)
     }
 
     private var adaptiveFontSize: CGFloat {
