@@ -104,8 +104,17 @@ struct ImageView: View {
                         if shouldFillWidth {
                             img
                                 .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .aspectRatio(contentMode: fitModeContentMode ?? .fit)
                                 .frame(maxWidth: .infinity)
+                                .clipped()
+                                .clipShape(imageShape)
+                        } else if let fitMode = fitModeContentMode, fitMode == .fill {
+                            // Cover/fill: scale to fill the frame and clip overflow
+                            img
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: imageWidth, height: imageHeight)
+                                .clipped()
                                 .clipShape(imageShape)
                         } else {
                             img
@@ -194,6 +203,19 @@ struct ImageView: View {
     private var shouldFillWidth: Bool {
         // Match Android: when no explicit size/width/height, fill container width
         image.size == nil && image.width == nil && image.height == nil
+    }
+
+    /// Maps fitMode JSON string to SwiftUI ContentMode
+    private var fitModeContentMode: ContentMode? {
+        guard let fitMode = image.fitMode?.lowercased() else { return nil }
+        switch fitMode {
+        case "cover", "fill":
+            return .fill
+        case "contain":
+            return .fit
+        default:
+            return nil
+        }
     }
 
     private var imageWidth: CGFloat? {

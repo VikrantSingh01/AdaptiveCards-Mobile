@@ -88,6 +88,7 @@ data class Image(
     val targetWidth: String? = null,
     val themedUrls: Map<String, String>? = null,
     val forceLoad: Boolean? = null,
+    val fitMode: String? = null,
     /** Explicit pixel height from JSON (e.g. "32px"). Extracted by CardElementSerializer because
      *  the base `height` field is typed as BlockElementHeight enum. */
     @Transient val pixelHeight: String? = null

@@ -140,6 +140,6 @@ private struct FlowItemModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .frame(width: itemWidth)
-            .frame(minWidth: minWidth, maxWidth: maxWidth ?? .infinity)
+            .frame(minWidth: minWidth, maxWidth: maxWidth)
     }
 }

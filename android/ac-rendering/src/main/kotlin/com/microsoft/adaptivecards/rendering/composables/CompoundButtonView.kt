@@ -7,6 +7,8 @@ package com.microsoft.adaptivecards.rendering.composables
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -141,6 +143,9 @@ fun CompoundButtonView(
                     )
 
                     element.badge?.let { badge ->
+                        val badgeColor = parseHostColor(
+                            hostConfig.containerStyles.default.foregroundColors.accent.default
+                        ) ?: MaterialTheme.colorScheme.primary
                         Text(
                             text = badge,
                             fontSize = CompoundButtonLayout.BadgeFontSize,
@@ -149,7 +154,7 @@ fun CompoundButtonView(
                             maxLines = 1,
                             modifier = Modifier
                                 .background(
-                                    MaterialTheme.colorScheme.primary,
+                                    badgeColor,
                                     RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -175,9 +180,9 @@ fun CompoundButtonView(
 
             // Chevron indicator
             Icon(
-                painter = painterResource(android.R.drawable.ic_menu_more),
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(16.dp),
                 tint = contentColor.copy(alpha = 0.5f)
             )
         }
