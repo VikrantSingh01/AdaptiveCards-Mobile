@@ -105,7 +105,7 @@ struct ImageView: View {
                             img
                                 .resizable()
                                 .aspectRatio(contentMode: fitModeContentMode ?? .fit)
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: .infinity, alignment: frameAlignment)
                                 .clipped()
                                 .clipShape(imageShape)
                         } else if let fitMode = fitModeContentMode, fitMode == .fill {
