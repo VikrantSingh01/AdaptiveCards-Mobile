@@ -147,29 +147,36 @@ class CardViewModel : ViewModel() {
     fun parseCard(jsonString: String, templateData: Map<String, Any?>? = null) {
         viewModelScope.launch {
             try {
-                // Resolve ${rs:key} string resources before any other processing
-                var cardJson = templateEngine.resolveStringResources(jsonString)
-
-                // If template data provided, expand template first
+                // Store template references on main thread before background work
                 if (templateData != null) {
                     storedTemplate = jsonString
                     storedTemplateData = templateData
-                    cardJson = templateEngine.expand(cardJson, templateData)
                 } else {
                     storedTemplate = null
                     storedTemplateData = null
                 }
 
-                // Use the standalone parse API (handles caching internally)
-                val result = AdaptiveCardsApi.parse(cardJson)
+                // Heavy work (template expansion + JSON parsing) on background thread
+                val result = withContext(Dispatchers.Default) {
+                    var cardJson = templateEngine.resolveStringResources(jsonString)
+                    if (templateData != null) {
+                        cardJson = templateEngine.expand(cardJson, templateData)
+                    }
+                    AdaptiveCardsApi.parse(cardJson)
+                }
 
+                // UI state updates on main thread
                 if (result.isValid) {
                     val parsedCard = result.card!!
                     _card.value = parsedCard
                     _parseError.value = null
                     _lastParseTimeMs.value = result.parseTimeMs
-                    validateCardStructure(parsedCard)
                     initializeVisibilityState(parsedCard)
+
+                    // Run structural validation off the critical path (debug/warning only)
+                    launch(Dispatchers.Default) {
+                        validateCardStructure(parsedCard)
+                    }
                 } else {
                     _card.value = null
                     _parseError.value = result.error?.message ?: "Unknown parsing error"

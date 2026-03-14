@@ -134,6 +134,32 @@ cd android && ./gradlew :sample-app:installDebug
 adb shell am start -n com.microsoft.adaptivecards.sample/.MainActivity
 ```
 
+### Android Sample App — Deep Links for Testing
+
+The Android sample app supports `adaptivecards://` deep links. The card path must match the **asset directory structure** under `shared/test-cards/`:
+
+```bash
+# Root-level card (e.g., shared/test-cards/rich-text.json)
+adb shell am start -a android.intent.action.VIEW -d "adaptivecards://card/rich-text" com.microsoft.adaptivecards.sample
+
+# Subdirectory card — use directory/ prefix (e.g., shared/test-cards/templates/WeatherLarge.template.json)
+adb shell am start -a android.intent.action.VIEW -d "adaptivecards://card/templates/WeatherLarge.template" com.microsoft.adaptivecards.sample
+
+# Versioned card — use versioned/v1.x/ prefix (e.g., shared/test-cards/versioned/v1.6/CompoundButton.json)
+adb shell am start -a android.intent.action.VIEW -d "adaptivecards://card/versioned/v1.6/CompoundButton" com.microsoft.adaptivecards.sample
+
+# Other subdirectories: teams-official-samples/, official-samples/, element-samples/
+adb shell am start -a android.intent.action.VIEW -d "adaptivecards://card/teams-official-samples/cafe-menu" com.microsoft.adaptivecards.sample
+
+# Return to gallery
+adb shell am start -a android.intent.action.VIEW -d "adaptivecards://gallery" com.microsoft.adaptivecards.sample
+
+# Take a screenshot for visual verification
+adb exec-out screencap -p > /tmp/android-screenshot.png
+```
+
+**Note:** The `.json` extension is appended automatically — do not include it in the deep link path. Routing logic is in `MainActivity.kt` lines 525-546.
+
 ## Testing
 
 ### iOS
