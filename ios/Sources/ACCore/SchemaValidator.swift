@@ -21,7 +21,7 @@ public struct SchemaValidator {
         // Input elements (v1.5+)
         "Input.DataGrid",
         // Advanced elements (v1.3+)
-        "Carousel", "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "Spinner",
+        "Carousel", "Accordion", "CodeBlock", "Rating", "Input.Rating", "ProgressBar", "ProgressRing", "Spinner",
         "TabSet", "List",
         // v1.6 elements
         "Table", "CompoundButton",

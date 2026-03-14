@@ -310,6 +310,7 @@ fun RenderElement(
             is CodeBlock -> CodeBlockView(element, elementModifier)
             is RatingDisplay -> RatingDisplayView(element, elementModifier)
             is ProgressBar -> ProgressBarView(element, elementModifier)
+            is ProgressRing -> ProgressRingView(element, elementModifier)
             is Spinner -> SpinnerView(element, elementModifier)
             is TabSet -> TabSetView(element, viewModel, actionHandler, elementModifier)
             is ListElement -> ListView(element, viewModel, actionHandler, elementModifier)

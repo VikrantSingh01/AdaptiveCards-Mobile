@@ -63,31 +63,21 @@ fun TabSetView(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
                         text = {
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(
-                                    horizontal = if (isTablet) 8.dp else 4.dp,
-                                    vertical = if (isTablet) 4.dp else 0.dp
-                                )
-                            ) {
-                                // Icon — resolve SF Symbol / Fluent names to Material icons
-                                tab.icon?.let { icon ->
-                                    Icon(
-                                        imageVector = resolveIconName(icon),
-                                        contentDescription = icon,
-                                        modifier = Modifier.size(if (isTablet) 22.dp else 18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(if (isTablet) 6.dp else 4.dp))
+                            Text(
+                                text = tab.title,
+                                style = if (isTablet) {
+                                    MaterialTheme.typography.titleMedium
+                                } else {
+                                    MaterialTheme.typography.titleSmall
                                 }
-                                
-                                // Title
-                                Text(
-                                    text = tab.title,
-                                    style = if (isTablet) {
-                                        MaterialTheme.typography.titleMedium
-                                    } else {
-                                        MaterialTheme.typography.titleSmall
-                                    }
+                            )
+                        },
+                        icon = tab.icon?.let { iconName ->
+                            {
+                                Icon(
+                                    imageVector = resolveIconName(iconName),
+                                    contentDescription = iconName,
+                                    modifier = Modifier.size(if (isTablet) 22.dp else 18.dp)
                                 )
                             }
                         },

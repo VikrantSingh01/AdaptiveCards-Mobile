@@ -64,6 +64,7 @@ object CardElementSerializer : KSerializer<CardElement> {
         put("Rating", RatingDisplay.serializer())
         put("Input.Rating", RatingInput.serializer())
         put("ProgressBar", ProgressBar.serializer())
+        put("ProgressRing", ProgressRing.serializer())
         put("Spinner", Spinner.serializer())
         put("TabSet", TabSet.serializer())
         put("List", ListElement.serializer())

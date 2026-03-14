@@ -141,6 +141,8 @@ struct ElementView: View {
             ))
         case .progressBar(let progressBar):
             return AnyView(ProgressBarView(progressBar: progressBar, hostConfig: hostConfig))
+        case .progressRing(let progressRing):
+            return AnyView(ProgressRingView(progressRing: progressRing, hostConfig: hostConfig))
         case .spinner(let spinner):
             return AnyView(SpinnerView(spinner: spinner, hostConfig: hostConfig))
         case .tabSet(let tabSet):
@@ -162,7 +164,6 @@ struct ElementView: View {
         case .badge(let badge):
             return AnyView(BadgeView(badge: badge, hostConfig: hostConfig))
         case .unknown(let type):
-            #if DEBUG
             return AnyView(
                 Text("Unknown element type: \(type)")
                     .font(.caption)
@@ -171,9 +172,6 @@ struct ElementView: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(4)
             )
-            #else
-            return AnyView(EmptyView())
-            #endif
         }
     }
 
