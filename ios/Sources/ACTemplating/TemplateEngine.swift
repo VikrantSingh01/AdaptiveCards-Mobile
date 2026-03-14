@@ -125,17 +125,25 @@ public final class TemplateEngine {
             }
 
             guard braceCount == 0 else {
-                throw TemplatingError.unmatchedBrace
+                // Unmatched brace — skip this pattern and continue
+                searchIndex = result.index(after: startRange.lowerBound)
+                continue
             }
 
             // Extract expression
             let expressionStart = startRange.upperBound
             let expression = String(result[expressionStart..<endIndex])
 
-            // Evaluate expression
-            let parsedExpression = try parser.parse(expression)
+            // Evaluate expression — on failure, leave the ${...} unresolved and continue
+            guard let parsedExpression = try? parser.parse(expression) else {
+                searchIndex = result.index(after: endIndex)
+                continue
+            }
             let evaluator = ExpressionEvaluator(context: context)
-            let value = try evaluator.evaluate(parsedExpression)
+            guard let value = try? evaluator.evaluate(parsedExpression) else {
+                searchIndex = result.index(after: endIndex)
+                continue
+            }
 
             // Replace ${expression} with value
             let replacement = stringValue(value)
@@ -157,13 +165,13 @@ public final class TemplateEngine {
             if key == "$when" {
                 if let condition = value as? String {
                     let expressionStr = extractExpression(from: condition)
-                    let parsedExpression = try parser.parse(expressionStr)
-                    let evaluator = ExpressionEvaluator(context: context)
-                    let conditionResult = try evaluator.evaluate(parsedExpression)
-
-                    // If condition is false, skip this entire dictionary
-                    if !toBool(conditionResult) {
-                        return [:]
+                    if let parsedExpression = try? parser.parse(expressionStr) {
+                        let evaluator = ExpressionEvaluator(context: context)
+                        if let conditionResult = try? evaluator.evaluate(parsedExpression) {
+                            if !toBool(conditionResult) {
+                                return [:]
+                            }
+                        }
                     }
                 }
                 continue // Don't include $when in output
@@ -181,46 +189,46 @@ public final class TemplateEngine {
 
         for item in array {
             if let dict = item as? [String: Any] {
-                // Check for $data iteration
-                if let dataBinding = dict["$data"] as? String {
-                    let expressionStr = extractExpression(from: dataBinding)
-                    // Gracefully handle unparseable $data values (e.g. "{hello}")
-                    guard let parsedExpression = try? parser.parse(expressionStr) else {
-                        // Treat as literal string data context
-                        let childContext = DataContext(data: dataBinding, root: context.root, index: nil, parent: context)
-                        var itemTemplate = dict
-                        itemTemplate.removeValue(forKey: "$data")
-                        let expandedItem = try expandDictionary(itemTemplate, context: childContext)
-                        if !expandedItem.isEmpty {
-                            result.append(expandedItem)
-                        }
-                        continue
-                    }
-                    let evaluator = ExpressionEvaluator(context: context)
-                    let dataValue = try evaluator.evaluate(parsedExpression)
+                // Check for $data iteration — handle both String and non-String values
+                if let dataBindingValue = dict["$data"] {
+                    var itemTemplate = dict
+                    itemTemplate.removeValue(forKey: "$data")
 
-                    if let dataArray = dataValue as? [Any] {
-                        // Iterate over data array
-                        for (index, dataItem) in dataArray.enumerated() {
-                            let childContext = context.createChild(data: dataItem, index: index)
-
-                            // Expand the template for this item (excluding $data key)
-                            var itemTemplate = dict
-                            itemTemplate.removeValue(forKey: "$data")
-
+                    if let dataBinding = dataBindingValue as? String {
+                        let expressionStr = extractExpression(from: dataBinding)
+                        // Gracefully handle unparseable $data values (e.g. "{hello}")
+                        guard let parsedExpression = try? parser.parse(expressionStr) else {
+                            // Treat as literal string data context
+                            let childContext = DataContext(data: dataBinding, root: context.root, index: nil, parent: context)
                             let expandedItem = try expandDictionary(itemTemplate, context: childContext)
-
-                            // Only add if not empty (could be filtered by $when)
                             if !expandedItem.isEmpty {
                                 result.append(expandedItem)
                             }
+                            continue
                         }
-                        continue
-                    } else if dataValue != nil {
-                        // Single object: set as data context for this element
-                        let childContext = DataContext(data: dataValue, root: context.root, index: nil, parent: context)
-                        var itemTemplate = dict
-                        itemTemplate.removeValue(forKey: "$data")
+                        let evaluator = ExpressionEvaluator(context: context)
+                        let dataValue = try evaluator.evaluate(parsedExpression)
+
+                        if let dataArray = dataValue as? [Any] {
+                            for (index, dataItem) in dataArray.enumerated() {
+                                let childContext = context.createChild(data: dataItem, index: index)
+                                let expandedItem = try expandDictionary(itemTemplate, context: childContext)
+                                if !expandedItem.isEmpty {
+                                    result.append(expandedItem)
+                                }
+                            }
+                            continue
+                        } else if dataValue != nil {
+                            let childContext = DataContext(data: dataValue, root: context.root, index: nil, parent: context)
+                            let expandedItem = try expandDictionary(itemTemplate, context: childContext)
+                            if !expandedItem.isEmpty {
+                                result.append(expandedItem)
+                            }
+                            continue
+                        }
+                    } else {
+                        // Non-string $data (Int, Dict, Array, etc.) — use as literal data context
+                        let childContext = DataContext(data: dataBindingValue, root: context.root, index: nil, parent: context)
                         let expandedItem = try expandDictionary(itemTemplate, context: childContext)
                         if !expandedItem.isEmpty {
                             result.append(expandedItem)

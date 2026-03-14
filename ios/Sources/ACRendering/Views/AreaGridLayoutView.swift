@@ -13,7 +13,7 @@ import ACCore
 /// A SwiftUI view that renders items in a CSS Grid-like area layout.
 ///
 /// Items are placed into named grid areas defined by the AreaGridLayout.
-/// Each item references an area by name via its `layout.targetArea` property.
+/// Each item references an area by name via its `grid.area` property.
 ///
 /// Ported from production AdaptiveCards C++ ObjectModel's AreaGridLayout concept,
 /// implemented natively in SwiftUI using LazyVGrid/Grid (iOS 16+) with fallback.
@@ -49,13 +49,11 @@ public struct AreaGridLayoutView: View {
 
     @available(iOS 16.0, *)
     private var nativeGridView: some View {
-        // Use screen width as a proxy for available width (avoids GeometryReader height collapse)
         #if canImport(UIKit)
         let screenWidth = UIScreen.main.bounds.width
         #else
         let screenWidth: CGFloat = 375
         #endif
-        // Approximate container padding (card padding + any parent insets)
         let containerPadding: CGFloat = CGFloat(hostConfig.spacing.padding) * 2
         let availableWidth = screenWidth - containerPadding
 
@@ -77,8 +75,11 @@ public struct AreaGridLayoutView: View {
                     ForEach(1...max(columnCount, 1), id: \.self) { col in
                         if let area = areaAt(row: row, col: col) {
                             let matchingItems = items(for: area.name)
-                            let colIdx = area.column - 1
-                            let width = colIdx < columnWidths.count ? columnWidths[colIdx] : nil
+                            let spanWidth = resolveSpanWidth(
+                                area: area,
+                                columnWidths: columnWidths,
+                                colSpacing: colSpacing
+                            )
                             if !matchingItems.isEmpty {
                                 VStack(spacing: 0) {
                                     ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
@@ -86,11 +87,16 @@ public struct AreaGridLayoutView: View {
                                     }
                                 }
                                 .gridCellColumns(area.columnSpan ?? 1)
-                                .frame(width: width, alignment: .leading)
+                                .frame(
+                                    minWidth: 0,
+                                    maxWidth: spanWidth ?? .infinity,
+                                    alignment: .leading
+                                )
+                                .clipped()
                             } else {
                                 Color.clear
                                     .gridCellColumns(area.columnSpan ?? 1)
-                                    .frame(width: width)
+                                    .frame(maxWidth: spanWidth ?? .infinity)
                             }
                         } else if !isCoveredBySpan(row: row, col: col) {
                             Color.clear
@@ -139,7 +145,7 @@ public struct AreaGridLayoutView: View {
             let areaEndCol = area.column + (area.columnSpan ?? 1) - 1
             return row >= area.row && row <= areaEndRow &&
                    col >= area.column && col <= areaEndCol &&
-                   !(row == area.row && col == area.column)  // Exclude the origin cell
+                   !(row == area.row && col == area.column)
         }
     }
 
@@ -152,11 +158,8 @@ public struct AreaGridLayoutView: View {
     }
 
     /// Find items that target a specific grid area by name.
-    /// Items specify their target area via a `"layout.targetArea"` custom property.
+    /// Matches items to areas by sequential index (items[0] → areas[0], etc.).
     private func items(for areaName: String) -> [CardElement] {
-        // For now, match items by position in the items array to areas by index.
-        // A full implementation would read `layout.targetArea` from each item's JSON.
-        // This is a simplified matching that pairs items sequentially to areas.
         guard let areaIndex = gridLayout.areas.firstIndex(where: { $0.name == areaName }) else {
             return []
         }
@@ -166,10 +169,40 @@ public struct AreaGridLayoutView: View {
         return []
     }
 
+    /// Calculate total width for an area spanning one or more columns.
+    /// Returns nil when all spanned columns are flexible (Grid distributes space).
+    private func resolveSpanWidth(
+        area: GridArea,
+        columnWidths: [CGFloat?],
+        colSpacing: CGFloat
+    ) -> CGFloat? {
+        let span = area.columnSpan ?? 1
+        let colIdx = area.column - 1
+
+        var total: CGFloat = 0
+        var allResolved = true
+        for c in colIdx..<min(colIdx + span, columnWidths.count) {
+            if let w = columnWidths[c] {
+                total += w
+            } else {
+                allResolved = false
+                break
+            }
+        }
+
+        guard allResolved else { return nil }
+
+        if span > 1 {
+            total += colSpacing * CGFloat(span - 1)
+        }
+        return total
+    }
+
     /// Resolve column definitions into concrete widths.
     /// - Plain numbers (e.g., "35") → percentage of available width
     /// - "Npx" suffix (e.g., "100px") → fixed pixel value
     /// - "auto" / "Nfr" / "*" → nil (flexible, SwiftUI Grid distributes remaining space)
+    /// - No column defs: auto-generate equal widths from available space
     private func resolveColumnWidths(
         columnDefs: [String],
         columnCount: Int,
@@ -179,8 +212,17 @@ public struct AreaGridLayoutView: View {
         let totalSpacing = spacing * CGFloat(max(columnCount - 1, 0))
         let usableWidth = availableWidth - totalSpacing
 
+        // When no column definitions are provided, distribute available width equally
+        if columnDefs.isEmpty && columnCount > 0 {
+            let equalWidth = usableWidth / CGFloat(columnCount)
+            return Array(repeating: equalWidth, count: columnCount)
+        }
+
         return (0..<columnCount).map { idx in
-            guard idx < columnDefs.count else { return nil }
+            guard idx < columnDefs.count else {
+                // Extra columns beyond definitions get equal share of remaining space
+                return usableWidth / CGFloat(columnCount)
+            }
             let def = columnDefs[idx].trimmingCharacters(in: .whitespaces)
 
             // "auto", "1fr", "*" → flexible
@@ -219,4 +261,3 @@ public struct AreaGridLayoutView: View {
         }
     }
 }
-

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import com.microsoft.adaptivecards.core.models.Carousel
+import com.microsoft.adaptivecards.core.models.CarouselPage
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
@@ -65,6 +66,22 @@ fun CarouselView(
         }
     }
 
+    // Estimate pager height based on page content (matching iOS parity)
+    val pagerHeight = remember(element, visiblePages, configuration) {
+        val screenWidthDp = configuration.screenWidthDp.toFloat()
+        val hPad = if (isTablet) 80f else 48f
+        val contentWidth = screenWidthDp - hPad
+        val pagePadding = if (isTablet) 48f else 32f
+
+        val maxPageHeight = visiblePages.maxOfOrNull { page ->
+            estimatePageHeight(page, contentWidth)
+        } ?: 0f
+
+        val estimated = maxPageHeight + pagePadding
+        val minimum = if (isTablet) 160f else 100f
+        maxOf(estimated, minimum)
+    }
+
     Column(
         modifier = modifier.semantics {
             contentDescription = "Carousel with ${visiblePages.size} pages, currently on page ${pagerState.currentPage + 1}"
@@ -75,15 +92,17 @@ fun CarouselView(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
+                .height(pagerHeight.dp)
                 .semantics {
                     contentDescription = "Page ${pagerState.currentPage + 1} of ${visiblePages.size}"
                 }
         ) { page ->
             val carouselPage = visiblePages.getOrNull(page) ?: return@HorizontalPager
-            
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .fillMaxHeight()
                     .padding(
                         horizontal = if (isTablet) 16.dp else 8.dp,
                         vertical = 8.dp
@@ -145,4 +164,27 @@ fun CarouselView(
             }
         }
     }
+}
+
+/**
+ * Estimate the content height (in dp) for a carousel page based on element types.
+ * Matches iOS estimatePageContentHeight logic for cross-platform parity.
+ */
+private fun estimatePageHeight(page: CarouselPage, contentWidth: Float): Float {
+    val lineHeight = 20f
+    var height = 0f
+
+    for (item in page.items) {
+        when (item.type) {
+            "TextBlock" -> height += lineHeight * 2
+            "Image" -> height += contentWidth * 0.75f
+            "ColumnSet" -> height += 150f
+            "Container" -> height += lineHeight * 6
+            "FactSet" -> height += lineHeight * 3
+            "ImageSet" -> height += contentWidth * 0.4f
+            else -> height += lineHeight * 2
+        }
+    }
+
+    return height
 }
