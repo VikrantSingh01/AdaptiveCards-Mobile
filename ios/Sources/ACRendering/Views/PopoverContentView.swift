@@ -48,7 +48,7 @@ struct PopoverContentView: View {
             }
         }
         #if canImport(UIKit)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         #endif
     }

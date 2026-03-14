@@ -103,10 +103,10 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
         var totalWidth: CGFloat = 0
 
         for subview in subviews {
-            // Measure with nil width so FlowItemModifier's frame constraints take effect.
-            // Proposing full maxWidth caused every item to stretch to container width,
-            // producing a single-column layout instead of multi-column wrapping.
-            let size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            // Measure with a bounded proposal so items don't expand beyond container width.
+            // Using 0 width proposal asks for the item's minimum/ideal size, which respects
+            // FlowItemModifier frame constraints while keeping items compact for wrapping.
+            let size = subview.sizeThatFits(ProposedViewSize(width: 0, height: nil))
             let clampedWidth = min(size.width, maxWidth)
             let clampedSize = CGSize(width: clampedWidth, height: size.height)
 
@@ -143,8 +143,11 @@ private struct FlowItemModifier: ViewModifier {
     let itemFit: ItemFit
 
     func body(content: Content) -> some View {
+        // Ensure maxWidth is bounded: use explicit maxWidth, or fall back to itemWidth.
+        // Without a bounded maxWidth, items expand to fill container → single-column layout.
+        let constrainedMax = maxWidth ?? itemWidth
         content
             .frame(width: itemWidth)
-            .frame(minWidth: minWidth, maxWidth: maxWidth)
+            .frame(minWidth: minWidth, maxWidth: constrainedMax)
     }
 }

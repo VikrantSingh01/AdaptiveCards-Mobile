@@ -33,6 +33,7 @@ import com.microsoft.adaptivecards.core.AdaptiveCards as AdaptiveCardsApi
 import com.microsoft.adaptivecards.core.parsing.CardParser
 import com.microsoft.adaptivecards.templating.TemplateEngine
 import android.util.LruCache
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -82,7 +83,9 @@ import kotlinx.coroutines.withContext
  * val value = viewModel.inputValues["myInput"]
  * ```
  */
-class CardViewModel : ViewModel() {
+class CardViewModel(
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default
+) : ViewModel() {
 
     companion object {
         private const val TAG = "CardViewModel"
@@ -157,7 +160,7 @@ class CardViewModel : ViewModel() {
                 }
 
                 // Heavy work (template expansion + JSON parsing) on background thread
-                val result = withContext(Dispatchers.Default) {
+                val result = withContext(backgroundDispatcher) {
                     var cardJson = templateEngine.resolveStringResources(jsonString)
                     if (templateData != null) {
                         cardJson = templateEngine.expand(cardJson, templateData)
@@ -174,7 +177,7 @@ class CardViewModel : ViewModel() {
                     initializeVisibilityState(parsedCard)
 
                     // Run structural validation off the critical path (debug/warning only)
-                    launch(Dispatchers.Default) {
+                    launch(backgroundDispatcher) {
                         validateCardStructure(parsedCard)
                     }
                 } else {

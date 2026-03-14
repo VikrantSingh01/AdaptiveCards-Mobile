@@ -140,9 +140,9 @@ data class HighlightColorConfig(
 
 @Serializable
 data class ImageSizesConfig(
-    val small: Int = 32,
-    val medium: Int = 52,
-    val large: Int = 100
+    val small: Int = 80,
+    val medium: Int = 120,
+    val large: Int = 180
 )
 
 @Serializable

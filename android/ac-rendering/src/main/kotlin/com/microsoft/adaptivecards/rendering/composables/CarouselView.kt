@@ -83,6 +83,15 @@ fun CarouselView(
         val contentWidth = screenWidthDp - hPad
         val pagePadding = if (isTablet) 48f else 32f
 
+        // If heightInPixels is set, use it directly (matching iOS)
+        val explicitHeight = element.heightInPixels
+            ?.replace("px", "", ignoreCase = true)
+            ?.trim()
+            ?.toFloatOrNull()
+        if (explicitHeight != null) {
+            return@remember explicitHeight
+        }
+
         // If height is stretch, use 65% of screen height (matching iOS)
         if (element.height == BlockElementHeight.Stretch) {
             screenHeightDp * 0.65f
@@ -214,8 +223,8 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
             is FactSet -> lineHeight * item.facts.size.coerceAtLeast(1)
             is TextBlock -> {
                 // Estimate lines based on text length relative to available width
-                // ~7dp per character at default font size, adjusted for larger sizes
-                val charsPerLine = (contentWidth / 7f).coerceAtLeast(1f)
+                // ~5dp per character at default font size (conservative to avoid undersizing)
+                val charsPerLine = (contentWidth / 5f).coerceAtLeast(1f)
                 val textLen = item.text.length.toFloat()
                 val baseFontScale = when (item.size) {
                     FontSize.ExtraLarge -> 1.8f

@@ -22,7 +22,9 @@ data class Carousel(
     override val fallback: JsonElement? = null,
     val pages: List<CarouselPage>,
     val timer: Int? = null,
-    val initialPage: Int? = null
+    val initialPage: Int? = null,
+    val heightInPixels: String? = null,
+    val orientation: String? = null
 ) : CardElement
 
 @Serializable

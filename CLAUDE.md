@@ -399,6 +399,77 @@ ACCore (no deps)                  ac-core (no deps)
 └─ ACTeams → Core, Rendering      └─ ac-teams → core, rendering
 ```
 
+## Pre-Merge Regression Testing Policy (MANDATORY)
+
+**Zero regressions policy**: Every change MUST have all impacted cards, flows, and recreation scenarios tested and verified before merge. No exceptions.
+
+### Before Merging Any Change
+
+1. **Identify Impact Scope** — Determine which modules, card types, elements, actions, and rendering flows are affected by the change. Use the module dependency graph above to trace downstream impact.
+
+2. **Run All Impacted Unit Tests**
+   - iOS: `cd ios && swift test --filter <ImpactedModule>Tests` for each affected module
+   - Android: `cd android && ./gradlew :<impacted-module>:test`
+   - If unsure of scope, run full test suites: `swift test` (iOS) and `./gradlew test` (Android)
+
+3. **Run Visual Snapshot Regression Tests** (for ANY rendering/layout/styling change)
+   - iOS: `cd ios && xcodebuild test -scheme AdaptiveCards-Package -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -only-testing:VisualTests/CardElementSnapshotTests CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO`
+   - Android: `cd android && ./gradlew :ac-rendering:verifyPaparazziDebug`
+
+4. **Run Card Parsing Regression Tests** (for ANY model/parsing change)
+   - `cd ios && swift test --filter CardParsingRegressionTests`
+
+5. **Test All Impacted Cards on Both Platforms** — Use deep links to navigate to each impacted card in the sample app and visually verify rendering:
+   ```bash
+   # iOS
+   xcrun simctl openurl "iPhone 16 Pro" "adaptivecards://card/<card-path>"
+   xcrun simctl io "iPhone 16 Pro" screenshot /tmp/ios-<card>.png
+
+   # Android
+   adb shell am start -a android.intent.action.VIEW -d "adaptivecards://card/<card-path>" com.microsoft.adaptivecards.sample
+   adb exec-out screencap -p > /tmp/android-<card>.png
+   ```
+
+6. **Run OCR Validation on Screenshots** — Catches unresolved template expressions and error messages:
+   ```bash
+   bash shared/scripts/check-screenshot-text.sh /tmp/ios-<card>.png
+   bash shared/scripts/check-screenshot-text.sh /tmp/android-<card>.png
+   ```
+
+7. **Run Schema Parity Check** (for element/action type changes):
+   ```bash
+   bash shared/scripts/compare-schema-coverage.sh
+   ```
+
+8. **Test Template Cards** (for ANY templating engine change):
+   ```bash
+   bash shared/scripts/test-template-cards-dual.sh
+   ```
+
+### Impact Scope Reference
+
+| Change Area | Impacted Tests & Cards |
+|---|---|
+| **ACCore / ac-core** (models, parsing) | CardParsingRegressionTests, ALL card types that use the modified model, OfficialSamplesParserTests |
+| **ACRendering / ac-rendering** (views, composables) | VisualTests/CardElementSnapshotTests, Paparazzi snapshots, all cards using the modified view |
+| **ACTemplating / ac-templating** (template engine) | ACTemplatingTests, ALL template cards (`shared/test-cards/templates/`), `test-template-cards-dual.sh` |
+| **ACInputs / ac-inputs** (input elements) | ACInputsTests, cards with input elements (e.g., `input-*.json`, `restaurant-order.json`) |
+| **ACActions / ac-actions** (action handling) | ACActionsTests, `action-test-loop.sh`, cards with actions (Submit, OpenUrl, ShowCard, etc.) |
+| **ACMarkdown / ac-markdown** (markdown rendering) | ACMarkdownTests, cards with rich text / markdown content |
+| **ACCharts / ac-charts** (chart components) | ACChartsTests, chart cards (`donut-chart.json`, `bar-chart.json`, etc.) |
+| **HostConfig** (theming, styling) | HostConfigTests, ALL cards (host config affects global rendering) |
+| **SchemaValidator** (element/action types) | SchemaValidatorTests, `compare-schema-coverage.sh`, parity gate |
+| **Sample App** (deep links, navigation) | Manual deep link testing for all card categories |
+
+### Automated Pre-Merge Validation Script
+
+Run the full pre-merge validation suite:
+```bash
+bash shared/scripts/pre-merge-validation.sh
+```
+
+This script runs all unit tests, visual regression tests, card parsing regression tests, schema parity checks, and template card validation across both platforms. **It must pass before any merge to main.**
+
 ## Common Pitfalls
 
 - **Android tests use JUnit 5** — use `@Test` from `org.junit.jupiter.api`, not `org.junit`. All test tasks need `useJUnitPlatform()`.
