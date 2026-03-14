@@ -247,8 +247,14 @@ public final class TemplateEngine {
                 }
 
                 // Regular dictionary expansion
-                if let expandedDict = try? expandDictionary(dict, context: context), !expandedDict.isEmpty {
-                    result.append(expandedDict)
+                // Separate "expansion threw" from "$when filtered this item":
+                // - expandDictionary returns [:] when $when is false → omit item
+                // - expandDictionary throws → keep original as graceful fallback
+                if let expandedDict = try? expandDictionary(dict, context: context) {
+                    if !expandedDict.isEmpty {
+                        result.append(expandedDict)
+                    }
+                    // else: item was filtered by $when — intentionally omit
                 } else {
                     result.append(dict)
                 }
