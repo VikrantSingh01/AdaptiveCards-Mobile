@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
@@ -95,18 +96,34 @@ fun TextBlockView(
         modifier
     }
 
-    // Expand {{DATE(...)}} and {{TIME(...)}} Adaptive Cards macros
-    val displayText = DateTimeMacroExpander.expand(element.text)
+    // Expand {{DATE(...)}} and {{TIME(...)}} Adaptive Cards macros — guard against exceptions
+    val displayText = try {
+        DateTimeMacroExpander.expand(element.text)
+    } catch (_: Exception) {
+        element.text
+    }
 
-    // Check if text contains markdown
-    if (displayText.containsMarkdown()) {
+    // Pre-compute markdown data outside composable scope so exceptions don't crash the card.
+    // If markdown parsing fails, fall back to plain text rendering.
+    val markdownResult = remember(displayText, textSize, textColor) {
+        if (displayText.containsMarkdown()) {
+            try {
+                val tokens = MarkdownParser.parse(displayText)
+                MarkdownRenderer.render(tokens, textSize, textColor)
+            } catch (_: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    if (markdownResult != null) {
         // Render with markdown support
-        val tokens = MarkdownParser.parse(displayText)
-        val annotatedString = MarkdownRenderer.render(tokens, textSize, textColor)
         val uriHandler = LocalUriHandler.current
 
         ClickableText(
-            text = annotatedString,
+            text = markdownResult,
             modifier = alignedModifier,
             style = LocalTextStyle.current.copy(
                 fontSize = textSize,
@@ -120,12 +137,12 @@ fun TextBlockView(
             overflow = overflow,
             onClick = { offset ->
                 // Handle link clicks — only open URLs with safe schemes
-                annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                markdownResult.getStringAnnotations(tag = "URL", start = offset, end = offset)
                     .firstOrNull()?.let { annotation ->
                         if (MarkdownRenderer.isSafeUrl(annotation.item)) {
                             try {
                                 uriHandler.openUri(annotation.item)
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 // Handle URI opening error gracefully
                             }
                         }
