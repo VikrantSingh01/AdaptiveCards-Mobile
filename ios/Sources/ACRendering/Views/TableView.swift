@@ -203,13 +203,12 @@ struct TableCellView: View {
         #else
         let screenWidth: CGFloat = 375
         #endif
-        // Account for card padding + table cell spacing + safe area margins
+        // Account for card padding + table cell spacing
         let cardPadding = CGFloat(hostConfig.spacing.padding) * 2
-        let extraMargin: CGFloat = 16 // scroll view + safe area insets
         let cellSpacing = CGFloat(hostConfig.table.cellSpacing) * 2 // per-cell horizontal padding
         let numCols = max(CGFloat(table?.columns?.count ?? 1), 1)
         let totalCellPadding = cellSpacing * numCols
-        let available = screenWidth - cardPadding - extraMargin - totalCellPadding
+        let available = screenWidth - cardPadding - totalCellPadding
         return max(available * CGFloat(ratio), 20)
     }
 

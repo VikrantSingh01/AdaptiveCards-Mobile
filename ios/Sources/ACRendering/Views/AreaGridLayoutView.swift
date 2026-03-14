@@ -92,7 +92,7 @@ public struct AreaGridLayoutView: View {
                                     maxWidth: spanWidth ?? .infinity,
                                     alignment: .leading
                                 )
-                                .clipped()
+                                .fixedSize(horizontal: false, vertical: true)
                             } else {
                                 Color.clear
                                     .gridCellColumns(area.columnSpan ?? 1)
