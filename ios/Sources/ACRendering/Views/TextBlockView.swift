@@ -19,7 +19,9 @@ struct TextBlockView: View {
 
     private var displayText: String {
         let raw = textBlock.text ?? ""
-        return DateTimeMacroExpander.expand(raw)
+        let expanded = DateTimeMacroExpander.expand(raw)
+        // AC spec: literal \n in text should render as line breaks
+        return expanded.replacingOccurrences(of: "\\n", with: "\n")
     }
 
     var body: some View {

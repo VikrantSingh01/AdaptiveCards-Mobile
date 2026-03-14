@@ -98,9 +98,10 @@ fun TextBlockView(
 
     // Expand {{DATE(...)}} and {{TIME(...)}} Adaptive Cards macros — guard against exceptions
     val displayText = try {
-        DateTimeMacroExpander.expand(element.text)
+        // AC spec: literal \n in text should render as line breaks
+        DateTimeMacroExpander.expand(element.text).replace("\\n", "\n")
     } catch (_: Exception) {
-        element.text
+        element.text.replace("\\n", "\n")
     }
 
     // Pre-compute markdown data outside composable scope so exceptions don't crash the card.
