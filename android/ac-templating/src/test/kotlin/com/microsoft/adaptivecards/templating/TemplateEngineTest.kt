@@ -613,10 +613,10 @@ class TemplateEngineTest {
     @Test
     fun `testFormatEpochWithInteger`() {
         // org.json.JSONObject returns Integer for epoch values in int range
-        // formatEpoch always outputs ISO 8601 with Z suffix for DATE/TIME macro processing
+        // formatEpoch respects the provided format string
         val data = mapOf<String, Any?>("latestUpdate" to java.lang.Integer.valueOf(1556913600))
         val result = engine.expand("\${formatEpoch(latestUpdate, 'yyyy-MM-dd')}", data)
-        assertEquals("2019-05-03T20:00:00Z", result)
+        assertEquals("2019-05-03", result)
     }
 
     @Test

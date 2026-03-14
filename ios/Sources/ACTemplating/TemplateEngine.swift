@@ -145,13 +145,10 @@ public final class TemplateEngine {
                 continue
             }
             let evaluator = ExpressionEvaluator(context: context)
-            guard let value = try? evaluator.evaluate(parsedExpression) else {
-                searchIndex = result.index(after: endIndex)
-                continue
-            }
+            let evalResult = try? evaluator.evaluate(parsedExpression)
 
-            // Replace ${expression} with value
-            let replacement = stringValue(value)
+            // Replace ${expression} with value, or empty string if unresolved
+            let replacement = evalResult.map { stringValue($0) } ?? ""
             let replacementRange = startRange.lowerBound..<result.index(after: endIndex)
             result.replaceSubrange(replacementRange, with: replacement)
 
@@ -301,7 +298,8 @@ public final class TemplateEngine {
                     let expression = String(chars[2..<(chars.count - 1)])
                     if let parsed = try? parser.parse(expression) {
                         let evaluator = ExpressionEvaluator(context: context)
-                        if let result = try? evaluator.evaluate(parsed) {
+                        let evalResult = try? evaluator.evaluate(parsed)
+                        if let result = evalResult {
                             // Preserve native types for collections (needed for $data
                             // array iteration and structural template expansion).
                             if result is [Any] || result is [String: Any] {
@@ -316,8 +314,10 @@ public final class TemplateEngine {
                             // Codable type-mismatch decode failures (e.g., FactSet
                             // "value" field expects String, not a native number).
                             return stringValue(result)
+                        } else {
+                            // Expression resolved to nil (missing property) — return empty string
+                            return ""
                         }
-                        // Evaluation failed; fall through to expandString
                     }
                 }
             }
