@@ -102,7 +102,7 @@ public struct ChoiceSetInputView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(
+            .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(Color.secondary.opacity(0.4), lineWidth: 1)
             )
