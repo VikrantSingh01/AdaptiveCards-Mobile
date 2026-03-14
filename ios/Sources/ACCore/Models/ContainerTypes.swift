@@ -324,7 +324,7 @@ public struct FactSet: Codable, Equatable {
         public var title: String
         public var value: String
 
-        public var id: String { title }
+        public var id: String { "\(title)_\(value)" }
 
         public init(title: String, value: String) {
             self.title = title

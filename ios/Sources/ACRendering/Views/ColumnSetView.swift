@@ -114,13 +114,11 @@ struct ColumnSetView: View {
         }
     }
 
-    /// Adaptive column spacing: reduce when many columns to prevent text wrapping
+    /// Use small spacing between columns (not default element spacing which is too wide
+    /// and can clip columns in ColumnSets with 5+ columns like WeatherLarge).
+    /// Matches Android ColumnSetView spacing for cross-platform parity.
     private var columnSpacing: CGFloat {
-        let defaultSpacing = CGFloat(hostConfig.spacing.default)
-        if visibleColumns.count > 4 {
-            return min(defaultSpacing, CGFloat(hostConfig.spacing.small))
-        }
-        return defaultSpacing
+        CGFloat(hostConfig.spacing.small)
     }
 
     var body: some View {
