@@ -41,11 +41,33 @@
 
 ## Design Review
 
+**Live Catalog**: https://vikrantsingh01.github.io/AdaptiveCards-Mobile/
+
 | Script | Purpose |
 |---|---|
 | [design-pass.sh](design-pass.sh) | End-to-end design review: captures all card + app screenshots on both platforms, generates an HTML catalog with side-by-side comparison |
 | [generate-design-catalog.sh](generate-design-catalog.sh) | Generates a self-contained `index.html` from a screenshot directory with category filters, search, and lightbox |
 | [deploy-catalog.sh](deploy-catalog.sh) | Deploys the latest (or specified) design catalog to GitHub Pages (`gh-pages` branch) |
+
+### Quick Start
+
+```bash
+# Full refresh: re-capture all 286 cards + 6 app screens (~25 min)
+bash shared/scripts/design-pass.sh
+
+# Deploy to GitHub Pages (~10 sec)
+bash shared/scripts/deploy-catalog.sh
+
+# Or deploy a specific catalog
+bash shared/scripts/deploy-catalog.sh shared/test-results/design-catalog-20260313-161006
+```
+
+### Regenerate HTML only (no re-capture)
+
+```bash
+bash shared/scripts/generate-design-catalog.sh shared/test-results/design-catalog-20260313-161006
+bash shared/scripts/deploy-catalog.sh
+```
 
 ## Utilities
 
