@@ -651,13 +651,14 @@ public struct Image: Codable, Equatable, Identifiable {
     public var themedUrls: [String: String]?
     public var backgroundColor: String?
     public var forceLoad: Bool?
+    public var fitMode: String?
     public var fallback: CardElement?
 
     enum CodingKeys: String, CodingKey {
         case type, id, url, altText, size, style, width, height
         case horizontalAlignment, selectAction, spacing, separator
         case isVisible, requires, targetWidth, themedUrls
-        case backgroundColor, forceLoad, fallback
+        case backgroundColor, forceLoad, fitMode, fallback
     }
 
     // Stable identifier using id property or url as fallback
@@ -686,6 +687,7 @@ public struct Image: Codable, Equatable, Identifiable {
         themedUrls: [String: String]? = nil,
         backgroundColor: String? = nil,
         forceLoad: Bool? = nil,
+        fitMode: String? = nil,
         fallback: CardElement? = nil
     ) {
         self.id = id
@@ -705,6 +707,7 @@ public struct Image: Codable, Equatable, Identifiable {
         self.themedUrls = themedUrls
         self.backgroundColor = backgroundColor
         self.forceLoad = forceLoad
+        self.fitMode = fitMode
         self.fallback = fallback
     }
 

@@ -326,9 +326,14 @@ fun RenderElement(
                 if (customRenderer != null) {
                     customRenderer(element, elementModifier)
                 } else {
-                    // Show fallback for unknown element types (matches iOS behavior)
+                    // Show fallback with original type name (not generic "Unknown")
+                    val displayType = if (element is UnknownElement) {
+                        element.unknownType ?: element.type
+                    } else {
+                        element.type
+                    }
                     Text(
-                        text = "Unknown element type: ${element.type}",
+                        text = "Unknown element type: $displayType",
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         style = MaterialTheme.typography.bodySmall,
                         modifier = elementModifier
