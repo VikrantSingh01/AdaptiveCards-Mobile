@@ -326,6 +326,9 @@ echo "=== Phase 3: Generating design catalog ==="
 
 bash "$SCRIPT_DIR/generate-design-catalog.sh" "$OUTPUT_DIR"
 
+# Copy index.html to top-level test-results for stable access
+cp "$OUTPUT_DIR/index.html" "$REPO_ROOT/shared/test-results/index.html"
+
 # =============================================================================
 # Done
 # =============================================================================
@@ -335,6 +338,7 @@ echo " Design Pass Complete"
 echo "=============================================="
 echo ""
 echo "  Catalog: $OUTPUT_DIR/index.html"
+echo "  Stable:  shared/test-results/index.html"
 echo "  Cards: $PASS/$TOTAL  |  App screens: ${#APP_SCREENS[@]}"
 echo "  To share: zip -r design-catalog.zip \"$OUTPUT_DIR\""
 echo ""
