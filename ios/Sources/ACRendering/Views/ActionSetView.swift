@@ -94,6 +94,7 @@ struct ActionSetView: View {
     private var actionContent: some View {
         ForEach(visibleActions) { action in
             actionButtonView(for: action)
+                .fixedSize(horizontal: !isStretch, vertical: false)
                 .if(isStretch) { view in
                     view.frame(maxWidth: .infinity)
                 }
