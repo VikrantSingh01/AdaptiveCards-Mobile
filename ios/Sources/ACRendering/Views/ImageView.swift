@@ -113,12 +113,21 @@ struct ImageView: View {
                             // Use medium image size as default when no explicit dimensions.
                             let w = imageWidth ?? CGFloat(hostConfig.imageSizes.medium)
                             let h = imageHeight ?? CGFloat(hostConfig.imageSizes.medium)
-                            img
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: w, height: h)
-                                .clipped()
-                                .clipShape(imageShape)
+                            if isCoverMode {
+                                // Cover: maintain aspect ratio, clip overflow (like Android Crop)
+                                img
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: w, height: h)
+                                    .clipped()
+                                    .clipShape(imageShape)
+                            } else {
+                                // Fill: stretch to fill bounds (like Android FillBounds)
+                                img
+                                    .resizable()
+                                    .frame(width: w, height: h)
+                                    .clipShape(imageShape)
+                            }
                         } else {
                             img
                                 .resizable()
@@ -211,6 +220,9 @@ struct ImageView: View {
     }
 
     /// Maps fitMode JSON string to SwiftUI ContentMode
+    /// "cover" scales to fill frame (maintaining aspect ratio, clipping overflow)
+    /// "fill" stretches to fill frame (may distort aspect ratio)
+    /// "contain" scales to fit within frame (maintaining aspect ratio)
     private var fitModeContentMode: ContentMode? {
         guard let fitMode = image.fitMode?.lowercased() else { return nil }
         switch fitMode {
@@ -221,6 +233,11 @@ struct ImageView: View {
         default:
             return nil
         }
+    }
+
+    /// Whether this image has a cover fitMode (needs clipping, not stretching)
+    private var isCoverMode: Bool {
+        image.fitMode?.lowercased() == "cover"
     }
 
     private var imageWidth: CGFloat? {

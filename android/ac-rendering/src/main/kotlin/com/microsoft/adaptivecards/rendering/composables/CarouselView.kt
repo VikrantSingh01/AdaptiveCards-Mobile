@@ -101,8 +101,9 @@ fun CarouselView(
             } ?: 0f
 
             val estimated = maxPageHeight + pagePadding
-            // Use generous minimum to ensure content is visible (matching iOS sizing)
-            val minimum = if (isTablet) 200f else 180f
+            // Use generous minimum to ensure nested content (e.g., weather forecast
+            // grids with multiple ColumnSets) is fully visible
+            val minimum = if (isTablet) 240f else 220f
             val maxHeight = screenHeightDp * 0.65f
             maxOf(estimated, minimum).coerceAtMost(maxHeight)
         }
@@ -216,9 +217,12 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
             }
             is ColumnSet -> {
                 val columns = item.columns ?: emptyList()
-                columns.maxOfOrNull { col ->
+                // Use sum of tallest column + extra padding for complex nested content
+                val tallestColumn = columns.maxOfOrNull { col ->
                     estimateElementsHeight(col.items ?: emptyList(), contentWidth / columns.size.coerceAtLeast(1))
                 } ?: (lineHeight * 3)
+                // Add minimum baseline for ColumnSets with content
+                tallestColumn.coerceAtLeast(lineHeight * 3)
             }
             is FactSet -> lineHeight * item.facts.size.coerceAtLeast(1)
             is TextBlock -> {

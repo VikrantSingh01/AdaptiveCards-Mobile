@@ -51,22 +51,33 @@ class MarkdownParser private constructor() {
     private fun parseText(text: String): List<MarkdownToken> {
         val tokens = mutableListOf<MarkdownToken>()
         val lines = text.lines()
-        
+
+        // Track ordered list continuation for auto-incrementing
+        var orderedListStart: Int? = null
+        var orderedListIndex = 0
+
         for (line in lines) {
             if (line.isEmpty()) {
+                // Reset ordered list tracking on blank line
+                orderedListStart = null
+                orderedListIndex = 0
                 tokens.add(MarkdownToken.LineBreak)
                 continue
             }
-            
+
             // Check for headers
             val headerToken = if (line.startsWith("#")) parseHeader(line) else null
             if (headerToken != null) {
+                orderedListStart = null
+                orderedListIndex = 0
                 tokens.add(headerToken)
                 continue
             }
 
             // Check for bullet list — parse inline markdown within content
             if (line.startsWith("- ")) {
+                orderedListStart = null
+                orderedListIndex = 0
                 val content = line.substring(2)
                 tokens.add(MarkdownToken.Text("\u2022 "))
                 tokens.addAll(parseInlineMarkdown(content))
@@ -77,16 +88,28 @@ class MarkdownParser private constructor() {
             // Check for numbered list — parse inline markdown within content
             val numberedMatch = Regex("""^(\d+)\.\s+(.+)$""").matchEntire(line)
             if (numberedMatch != null) {
-                val number = numberedMatch.groupValues[1].toIntOrNull()
+                val sourceNumber = numberedMatch.groupValues[1].toIntOrNull()
                 val content = numberedMatch.groupValues[2]
-                if (number != null) {
-                    // Emit the number prefix as text, then inline-parse the content
-                    tokens.add(MarkdownToken.Text("$number. "))
+                if (sourceNumber != null) {
+                    // Auto-increment: use source number for first item, then increment
+                    val displayNumber = if (orderedListStart == null) {
+                        orderedListStart = sourceNumber
+                        orderedListIndex = 0
+                        sourceNumber
+                    } else {
+                        orderedListIndex++
+                        orderedListStart!! + orderedListIndex
+                    }
+                    tokens.add(MarkdownToken.Text("$displayNumber. "))
                     tokens.addAll(parseInlineMarkdown(content))
                     tokens.add(MarkdownToken.LineBreak)
                     continue
                 }
             }
+
+            // Non-list line resets ordered list tracking
+            orderedListStart = null
+            orderedListIndex = 0
 
             // Parse inline markdown
             tokens.addAll(parseInlineMarkdown(line))
