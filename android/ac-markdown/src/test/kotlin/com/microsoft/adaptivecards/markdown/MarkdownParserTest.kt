@@ -71,20 +71,28 @@ class MarkdownParserTest {
     @Test
     fun `test bullet list parsing`() {
         val tokens = MarkdownParser.parse("- Item 1")
-        
-        val bulletToken = tokens[0]
-        assertTrue(bulletToken is MarkdownToken.BulletItem)
-        assertEquals("Item 1", (bulletToken as MarkdownToken.BulletItem).text)
+
+        // Bullet lists now emit Text("• ") + inline-parsed content + LineBreak
+        val bulletPrefix = tokens[0]
+        assertTrue(bulletPrefix is MarkdownToken.Text)
+        assertEquals("\u2022 ", (bulletPrefix as MarkdownToken.Text).text)
+        // Content follows as inline-parsed tokens
+        val contentToken = tokens[1]
+        assertTrue(contentToken is MarkdownToken.Text)
+        assertEquals("Item 1", (contentToken as MarkdownToken.Text).text)
     }
-    
+
     @Test
     fun `test numbered list parsing`() {
         val tokens = MarkdownParser.parse("1. First item")
-        
-        val numberedToken = tokens[0]
-        assertTrue(numberedToken is MarkdownToken.NumberedItem)
-        assertEquals(1, (numberedToken as MarkdownToken.NumberedItem).number)
-        assertEquals("First item", numberedToken.text)
+
+        // Numbered lists now emit Text("1. ") + inline-parsed content + LineBreak
+        val numberPrefix = tokens[0]
+        assertTrue(numberPrefix is MarkdownToken.Text)
+        assertEquals("1. ", (numberPrefix as MarkdownToken.Text).text)
+        val contentToken = tokens[1]
+        assertTrue(contentToken is MarkdownToken.Text)
+        assertEquals("First item", (contentToken as MarkdownToken.Text).text)
     }
     
     @Test
