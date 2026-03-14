@@ -193,7 +193,7 @@ cat > "$OUTPUT_HTML" << 'HTML_HEADER'
 
 <div class="header">
   <h1>Adaptive Cards Mobile — Design Review Catalog</h1>
-  <p>Side-by-side iOS & Android rendering for design review</p>
+  <p>Side-by-side iOS & Android rendering for design review | <a href="https://vikrantsingh01.github.io/AdaptiveCards-Mobile/" style="color:#7ec8e3">Live Catalog</a></p>
   <div class="stats" id="stats"></div>
 </div>
 
