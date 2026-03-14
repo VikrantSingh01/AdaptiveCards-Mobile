@@ -109,11 +109,14 @@ struct ImageView: View {
                                 .clipped()
                                 .clipShape(imageShape)
                         } else if let fitMode = fitModeContentMode, fitMode == .fill {
-                            // Cover/fill: scale to fill the frame and clip overflow
+                            // Cover/fill: scale to fill the frame and clip overflow.
+                            // Use medium image size as default when no explicit dimensions.
+                            let w = imageWidth ?? CGFloat(hostConfig.imageSizes.medium)
+                            let h = imageHeight ?? CGFloat(hostConfig.imageSizes.medium)
                             img
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: imageWidth, height: imageHeight)
+                                .frame(width: w, height: h)
                                 .clipped()
                                 .clipShape(imageShape)
                         } else {
@@ -136,7 +139,7 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .frame(maxWidth: .infinity, alignment: frameAlignment)
+        .frame(maxWidth: shouldFillWidth ? .infinity : nil, alignment: frameAlignment)
         .spacing(image.spacing, hostConfig: hostConfig)
         .separator(image.separator, hostConfig: hostConfig)
         .accessibilityElement(label: image.altText ?? "Image")
@@ -201,8 +204,10 @@ struct ImageView: View {
 
     /// Whether the image should fill available width (matching Android FillWidth behavior)
     private var shouldFillWidth: Bool {
-        // Match Android: when no explicit size/width/height, fill container width
-        image.size == nil && image.width == nil && image.height == nil
+        // Fill container width when no explicit size/width/height AND no fitMode.
+        // Images with fitMode (cover/fill) should respect their explicit or default
+        // dimensions rather than expanding to fill the entire viewport.
+        image.size == nil && image.width == nil && image.height == nil && image.fitMode == nil
     }
 
     /// Maps fitMode JSON string to SwiftUI ContentMode

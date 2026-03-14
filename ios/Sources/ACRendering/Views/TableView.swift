@@ -203,13 +203,11 @@ struct TableCellView: View {
         #else
         let screenWidth: CGFloat = 375
         #endif
-        // Account for card padding + table cell spacing
+        // Account for card padding only; per-cell padding is handled by
+        // the cell's own .padding modifier and shouldn't reduce available width twice
         let cardPadding = CGFloat(hostConfig.spacing.padding) * 2
-        let cellSpacing = CGFloat(hostConfig.table.cellSpacing) * 2 // per-cell horizontal padding
-        let numCols = max(CGFloat(table?.columns?.count ?? 1), 1)
-        let totalCellPadding = cellSpacing * numCols
-        let available = screenWidth - cardPadding - totalCellPadding
-        return max(available * CGFloat(ratio), 20)
+        let available = screenWidth - cardPadding
+        return max(available * CGFloat(ratio), 30)
     }
 
     private var minHeight: CGFloat? {
