@@ -15,12 +15,13 @@ public struct Carousel: Codable, Equatable {
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
+    public var heightInPixels: String?
     public var isVisible: Bool?
     public var requires: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case type, id, pages, timer, initialPage, spacing
-        case separator, height, isVisible, requires
+        case separator, height, heightInPixels, isVisible, requires
     }
 
     public init(
@@ -31,6 +32,7 @@ public struct Carousel: Codable, Equatable {
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
+        heightInPixels: String? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil
     ) {
@@ -41,6 +43,7 @@ public struct Carousel: Codable, Equatable {
         self.spacing = spacing
         self.separator = separator
         self.height = height
+        self.heightInPixels = heightInPixels
         self.isVisible = isVisible
         self.requires = requires
     }
@@ -59,6 +62,7 @@ public struct Carousel: Codable, Equatable {
         self.spacing = try container.decodeIfPresent(Spacing.self, forKey: .spacing)
         self.separator = try container.decodeIfPresent(Bool.self, forKey: .separator)
         self.height = try container.decodeIfPresent(BlockElementHeight.self, forKey: .height)
+        self.heightInPixels = try container.decodeIfPresent(String.self, forKey: .heightInPixels)
         self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
         self.requires = try container.decodeIfPresent([String: String].self, forKey: .requires)
     }

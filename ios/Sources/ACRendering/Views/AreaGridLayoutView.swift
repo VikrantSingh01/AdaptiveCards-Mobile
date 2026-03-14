@@ -3,6 +3,9 @@
 // Licensed under the MIT License.
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import ACCore
 
 // MARK: - AreaGridLayoutView
@@ -46,12 +49,27 @@ public struct AreaGridLayoutView: View {
 
     @available(iOS 16.0, *)
     private var nativeGridView: some View {
-        // Derive column count from areas when columns array is empty
+        // Use screen width as a proxy for available width (avoids GeometryReader height collapse)
+        #if canImport(UIKit)
+        let screenWidth = UIScreen.main.bounds.width
+        #else
+        let screenWidth: CGFloat = 375
+        #endif
+        // Approximate container padding (card padding + any parent insets)
+        let containerPadding: CGFloat = CGFloat(hostConfig.spacing.padding) * 2
+        let availableWidth = screenWidth - containerPadding
+
         let maxAreaCol = gridLayout.areas.map { $0.column + ($0.columnSpan ?? 1) - 1 }.max() ?? 1
         let columnCount = max(gridLayout.columns.count, maxAreaCol)
         let maxRow = gridLayout.areas.map { $0.row + ($0.rowSpan ?? 1) - 1 }.max() ?? 1
         let colSpacing = spacingValue(gridLayout.columnSpacing ?? .default)
         let rowSpacing = spacingValue(gridLayout.rowSpacing ?? .default)
+        let columnWidths = resolveColumnWidths(
+            columnDefs: gridLayout.columns,
+            columnCount: columnCount,
+            availableWidth: availableWidth,
+            spacing: colSpacing
+        )
 
         return Grid(horizontalSpacing: colSpacing, verticalSpacing: rowSpacing) {
             ForEach(1...maxRow, id: \.self) { row in
@@ -59,6 +77,8 @@ public struct AreaGridLayoutView: View {
                     ForEach(1...max(columnCount, 1), id: \.self) { col in
                         if let area = areaAt(row: row, col: col) {
                             let matchingItems = items(for: area.name)
+                            let colIdx = area.column - 1
+                            let width = colIdx < columnWidths.count ? columnWidths[colIdx] : nil
                             if !matchingItems.isEmpty {
                                 VStack(spacing: 0) {
                                     ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
@@ -66,9 +86,11 @@ public struct AreaGridLayoutView: View {
                                     }
                                 }
                                 .gridCellColumns(area.columnSpan ?? 1)
+                                .frame(width: width, alignment: .leading)
                             } else {
                                 Color.clear
                                     .gridCellColumns(area.columnSpan ?? 1)
+                                    .frame(width: width)
                             }
                         } else if !isCoveredBySpan(row: row, col: col) {
                             Color.clear
@@ -144,6 +166,46 @@ public struct AreaGridLayoutView: View {
         return []
     }
 
+    /// Resolve column definitions into concrete widths.
+    /// - Plain numbers (e.g., "35") → percentage of available width
+    /// - "Npx" suffix (e.g., "100px") → fixed pixel value
+    /// - "auto" / "Nfr" / "*" → nil (flexible, SwiftUI Grid distributes remaining space)
+    private func resolveColumnWidths(
+        columnDefs: [String],
+        columnCount: Int,
+        availableWidth: CGFloat,
+        spacing: CGFloat
+    ) -> [CGFloat?] {
+        let totalSpacing = spacing * CGFloat(max(columnCount - 1, 0))
+        let usableWidth = availableWidth - totalSpacing
+
+        return (0..<columnCount).map { idx in
+            guard idx < columnDefs.count else { return nil }
+            let def = columnDefs[idx].trimmingCharacters(in: .whitespaces)
+
+            // "auto", "1fr", "*" → flexible
+            if def == "auto" || def.hasSuffix("fr") || def == "*" {
+                return nil
+            }
+
+            // "100px" → fixed pixel
+            if def.hasSuffix("px") {
+                let numeric = def.replacingOccurrences(of: "px", with: "")
+                if let value = Double(numeric) {
+                    return CGFloat(value)
+                }
+                return nil
+            }
+
+            // Plain number → percentage of usable width
+            if let value = Double(def) {
+                return usableWidth * CGFloat(value) / 100.0
+            }
+
+            return nil
+        }
+    }
+
     private func spacingValue(_ spacing: Spacing) -> CGFloat {
         switch spacing {
         case .none: return 0
@@ -157,3 +219,4 @@ public struct AreaGridLayoutView: View {
         }
     }
 }
+
