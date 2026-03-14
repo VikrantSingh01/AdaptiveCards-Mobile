@@ -70,15 +70,12 @@ fun TabSetView(
                                     vertical = if (isTablet) 4.dp else 0.dp
                                 )
                             ) {
-                                // Icon (emoji)
+                                // Icon — resolve SF Symbol / Fluent names to Material icons
                                 tab.icon?.let { icon ->
-                                    Text(
-                                        text = icon,
-                                        style = if (isTablet) {
-                                            MaterialTheme.typography.titleMedium
-                                        } else {
-                                            MaterialTheme.typography.titleSmall
-                                        }
+                                    Icon(
+                                        imageVector = resolveIconName(icon),
+                                        contentDescription = icon,
+                                        modifier = Modifier.size(if (isTablet) 22.dp else 18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(if (isTablet) 6.dp else 4.dp))
                                 }

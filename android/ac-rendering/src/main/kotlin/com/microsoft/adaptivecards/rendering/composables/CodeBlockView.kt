@@ -125,17 +125,18 @@ fun CodeBlockView(
                 }
             }
 
-            // Code content
+            // Code content — no verticalScroll here; the card is already inside
+            // a vertically-scrollable parent, so nesting would crash with
+            // infinite height constraints. Horizontal scroll is kept for
+            // non-wrapping code.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
                         if (element.wrap == true) {
-                            Modifier.verticalScroll(scrollState)
-                        } else {
                             Modifier
-                                .horizontalScroll(horizontalScrollState)
-                                .verticalScroll(scrollState)
+                        } else {
+                            Modifier.horizontalScroll(horizontalScrollState)
                         }
                     )
                     .padding(

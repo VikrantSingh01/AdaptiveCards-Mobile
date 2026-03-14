@@ -119,6 +119,11 @@ struct ElementView: View {
                 value: binding(for: input.id, defaultValue: input.value),
                 validationState: validationState
             ))
+        case .dataGridInput(let input):
+            return AnyView(DataGridInputView(
+                input: input,
+                gridData: gridDataBinding(for: input)
+            ))
         case .carousel(let carousel):
             return AnyView(CarouselView(carousel: carousel, hostConfig: hostConfig, depth: childDepth))
         case .accordion(let accordion):
@@ -170,6 +175,21 @@ struct ElementView: View {
             return AnyView(EmptyView())
             #endif
         }
+    }
+
+    private func gridDataBinding(for input: DataGridInput) -> Binding<[[DataGridCellValue]]> {
+        let defaultRows = input.rows ?? []
+        return Binding(
+            get: {
+                if let value = viewModel.getInputValue(forId: input.id) as? [[DataGridCellValue]] {
+                    return value
+                }
+                return defaultRows
+            },
+            set: { newValue in
+                viewModel.setInputValue(id: input.id, value: newValue)
+            }
+        )
     }
 
     private func binding<T>(for inputId: String, defaultValue: T) -> Binding<T> {

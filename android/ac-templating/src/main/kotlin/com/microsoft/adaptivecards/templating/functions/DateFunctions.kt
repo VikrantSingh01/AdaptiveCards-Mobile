@@ -37,8 +37,31 @@ object DateFunctions {
             val date = parseDate(arguments[0])
             val formatString = if (arguments.size > 1) arguments[1] as? String else "yyyy-MM-dd"
 
-            val formatter = SimpleDateFormat(formatString ?: "yyyy-MM-dd", Locale.US)
+            // Auto-quote non-pattern letters (e.g. literal 'T' in ISO formats)
+            val javaFormat = mapToJavaFormat(formatString ?: "yyyy-MM-dd")
+            val formatter = SimpleDateFormat(javaFormat, Locale.US)
             return formatter.format(date)
+        }
+
+        private fun mapToJavaFormat(format: String): String = when (format) {
+            "dddd" -> "EEEE"
+            "ddd" -> "EEE"
+            else -> {
+                val sdfPatternChars = "GyYMLwWdDFEuaHhKkmsSzZX"
+                val sb = StringBuilder()
+                var inQuote = false
+                for (ch in format) {
+                    if (ch == '\'') {
+                        sb.append(ch)
+                        inQuote = !inQuote
+                    } else if (!inQuote && ch.isLetter() && ch !in sdfPatternChars) {
+                        sb.append("'").append(ch).append("'")
+                    } else {
+                        sb.append(ch)
+                    }
+                }
+                sb.toString()
+            }
         }
     }
 
@@ -254,8 +277,14 @@ object DateFunctions {
                 // Ignore and try other formats
             }
 
+            // Try ISO 8601 with timezone offset (+0000 / +00:00)
+            try {
+                val tzFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
+                return tzFormatter.parse(value) ?: Date()
+            } catch (_: Exception) { }
+
             // Try standard formats
-            val formats = listOf("yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy")
+            val formats = listOf("yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy")
             for (format in formats) {
                 try {
                     val formatter = SimpleDateFormat(format, Locale.US)

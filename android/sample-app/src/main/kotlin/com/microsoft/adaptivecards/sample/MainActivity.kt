@@ -172,7 +172,7 @@ fun MainScreen() {
                 popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
                 popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
             ) { backStackEntry ->
-                val cardId = backStackEntry.arguments?.getString("cardId") ?: ""
+                val cardId = Uri.decode(backStackEntry.arguments?.getString("cardId") ?: "")
                 CardDetailScreen(cardId, actionLogState, bookmarkState, navController, editorState, perfStore, pendingActionTitle)
             }
             composable("bookmarks") {
@@ -524,7 +524,13 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
         "card" -> {
             val segments = uri.pathSegments
             if (segments.isNotEmpty()) {
-                val cardFilename = segments.joinToString("/") + ".json"
+                val joined = segments.joinToString("/") + ".json"
+                // Versioned cards are stored under versioned/ prefix (e.g., versioned/v1.6/CompoundButton.json)
+                val cardFilename = if (segments.first().matches(Regex("v\\d+\\.\\d+"))) {
+                    "versioned/$joined"
+                } else {
+                    joined
+                }
                 // Pop current card detail (if any) then push new one for slide transition
                 navController.popBackStack("card_detail/{cardId}", inclusive = true)
                 navController.navigate("card_detail/${Uri.encode(cardFilename)}")

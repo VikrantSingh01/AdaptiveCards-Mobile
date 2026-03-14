@@ -7,6 +7,8 @@ package com.microsoft.adaptivecards.rendering.composables
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -322,6 +324,14 @@ fun RenderElement(
                 val customRenderer = GlobalElementRendererRegistry.getRenderer(element.type)
                 if (customRenderer != null) {
                     customRenderer(element, elementModifier)
+                } else {
+                    // Show fallback for unknown element types (matches iOS behavior)
+                    Text(
+                        text = "Unknown element type: ${element.type}",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = elementModifier
+                    )
                 }
             }
         }

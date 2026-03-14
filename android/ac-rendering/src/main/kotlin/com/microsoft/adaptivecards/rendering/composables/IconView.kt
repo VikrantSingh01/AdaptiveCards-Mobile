@@ -63,10 +63,16 @@ fun IconView(
  * Maps Fluent icon names to Material Icons equivalents.
  * Covers the most commonly used Adaptive Card icon names.
  */
-private fun resolveIconName(name: String, style: String? = null): ImageVector {
+internal fun resolveIconName(name: String, style: String? = null): ImageVector {
     val isFilled = style?.lowercase() == "filled"
 
-    return when (name.lowercase()) {
+    // Normalize SF Symbol names: strip ".fill"/".circle" suffix, replace dots with empty
+    val normalized = name.lowercase()
+        .removeSuffix(".fill")
+        .removeSuffix(".circle")
+        .replace(".", "")
+
+    return when (normalized) {
         // Checkmarks
         "checkmarkcircle" -> if (isFilled) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle
         "checkmark" -> Icons.Filled.Check
@@ -199,6 +205,30 @@ private fun resolveIconName(name: String, style: String? = null): ImageVector {
         "design", "paintbrush" -> Icons.Outlined.Palette
         "battery" -> Icons.Filled.BatteryFull
         "flash" -> Icons.Filled.FlashOn
+        // SF Symbol name mappings (iOS → Material)
+        "house" -> Icons.Filled.Home
+        "checklist" -> Icons.Filled.Checklist
+        "person3" -> Icons.Outlined.People
+        "chartbar" -> Icons.Filled.BarChart
+        "gearshape" -> Icons.Outlined.Settings
+        "magnifyingglass" -> Icons.Filled.Search
+        "envelope" -> Icons.Outlined.Email
+        "paperplane" -> Icons.Filled.Send
+        "trash" -> Icons.Outlined.Delete
+        "pencil" -> Icons.Outlined.Edit
+        "plus" -> Icons.Filled.Add
+        "xmark" -> Icons.Filled.Close
+        "bolt" -> Icons.Filled.FlashOn
+        "bell" -> Icons.Outlined.Notifications
+        "mappin" -> Icons.Outlined.LocationOn
+        "phone" -> Icons.Filled.Call
+        "doc" -> Icons.Outlined.Description
+        "photo" -> Icons.Outlined.Image
+        "mic" -> Icons.Filled.Mic
+        "speaker" -> Icons.Filled.VolumeUp
+        "wifi" -> Icons.Filled.Wifi
+        "icloud" -> Icons.Filled.Cloud
+        "questionmark" -> Icons.Outlined.HelpOutline
         // Default fallback
         else -> Icons.Outlined.HelpOutline
     }

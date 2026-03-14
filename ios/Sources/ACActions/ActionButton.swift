@@ -139,38 +139,46 @@ public struct ActionButton: View {
         }
     }
 
-    /// Outlined button background — transparent for all styles per Figma
+    /// Button background — filled for positive/destructive, outlined for default
     private var buttonBackgroundColor: Color {
-        return .clear
+        let actionStyle = style ?? .default
+        let colors = hostConfig.containerStyles.default.foregroundColors
+
+        switch actionStyle {
+        case .positive:
+            return Color(hex: colors.good.`default`)
+        case .destructive:
+            return Color(hex: colors.attention.`default`)
+        case .default, .other:
+            return .clear
+        }
     }
 
-    /// Outlined button text color per Figma spec
+    /// Button text color — white for filled positive/destructive, accent for default
     private var buttonForegroundColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
 
         switch actionStyle {
+        case .positive, .destructive:
+            return .white
         case .default, .other:
             return Color(hex: colors.accent.`default`)
-        case .positive:
-            return Color(hex: colors.good.`default`)
-        case .destructive:
-            return Color(hex: colors.attention.`default`)
         }
     }
 
-    /// Outlined button border color per Figma spec
+    /// Button border color — matches background for filled, accent for outlined
     private var buttonBorderColor: Color {
         let actionStyle = style ?? .default
         let colors = hostConfig.containerStyles.default.foregroundColors
 
         switch actionStyle {
-        case .default, .other:
-            return Color(hex: colors.accent.`default`)
         case .positive:
             return Color(hex: colors.good.`default`)
         case .destructive:
             return Color(hex: colors.attention.`default`)
+        case .default, .other:
+            return Color(hex: colors.accent.`default`)
         }
     }
 

@@ -203,7 +203,7 @@ public struct AdaptiveCardView: View {
     private func cardContent(card: AdaptiveCard) -> some View {
         GeometryReader { geometry in
             ScrollView {
-                LazyVStack(spacing: 0) {
+                VStack(spacing: 0) {
                     if let body = card.body, !body.isEmpty {
                         ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
                             if viewModel.isElementVisible(elementId: element.elementId) {

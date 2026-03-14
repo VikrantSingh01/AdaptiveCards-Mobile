@@ -21,6 +21,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
     case timeInput(TimeInput)
     case toggleInput(ToggleInput)
     case choiceSetInput(ChoiceSetInput)
+    case dataGridInput(DataGridInput)
     case carousel(Carousel)
     case accordion(Accordion)
     case codeBlock(CodeBlock)
@@ -93,6 +94,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             self = .toggleInput(try ToggleInput(from: decoder))
         case "Input.ChoiceSet":
             self = .choiceSetInput(try ChoiceSetInput(from: decoder))
+        case "Input.DataGrid":
+            self = .dataGridInput(try DataGridInput(from: decoder))
         case "Carousel":
             self = .carousel(try Carousel(from: decoder))
         case "Accordion":
@@ -165,6 +168,8 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             try element.encode(to: encoder)
         case .choiceSetInput(let element):
             try element.encode(to: encoder)
+        case .dataGridInput(let element):
+            try element.encode(to: encoder)
         case .carousel(let element):
             try element.encode(to: encoder)
         case .accordion(let element):
@@ -222,6 +227,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .timeInput(let element): return element.id
         case .toggleInput(let element): return element.id
         case .choiceSetInput(let element): return element.id
+        case .dataGridInput(let element): return element.id
         case .carousel(let element): return element.id
         case .accordion(let element): return element.id
         case .codeBlock(let element): return element.id
@@ -274,6 +280,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .timeInput(let element): return element.isVisible ?? true
         case .toggleInput(let element): return element.isVisible ?? true
         case .choiceSetInput(let element): return element.isVisible ?? true
+        case .dataGridInput(let element): return element.isVisible ?? true
         case .carousel(let element): return element.isVisible ?? true
         case .accordion(let element): return element.isVisible ?? true
         case .codeBlock(let element): return element.isVisible ?? true
@@ -313,6 +320,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .timeInput(let e): return e.spacing
         case .toggleInput(let e): return e.spacing
         case .choiceSetInput(let e): return e.spacing
+        case .dataGridInput(let e): return e.spacing
         case .carousel(let e): return e.spacing
         case .accordion(let e): return e.spacing
         case .codeBlock(let e): return e.spacing
@@ -369,6 +377,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .timeInput: return "Input.Time"
         case .toggleInput: return "Input.Toggle"
         case .choiceSetInput: return "Input.ChoiceSet"
+        case .dataGridInput: return "Input.DataGrid"
         case .carousel: return "Carousel"
         case .accordion: return "Accordion"
         case .codeBlock: return "CodeBlock"

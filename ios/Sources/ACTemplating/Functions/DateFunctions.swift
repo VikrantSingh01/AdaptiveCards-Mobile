@@ -30,8 +30,12 @@ public struct DateFunctions {
             let date = try parseDate(arguments[0])
             let formatString = arguments.count > 1 ? (arguments[1] as? String) : "yyyy-MM-dd"
 
+            // Quote unrecognized letters (e.g., literal 'T' in ISO date formats)
+            // to avoid undefined behavior in DateFormatter
+            let safeFormat = sanitizeFormat(formatString ?? "yyyy-MM-dd")
             let formatter = DateFormatter()
-            formatter.dateFormat = formatString ?? "yyyy-MM-dd"
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = safeFormat
             return formatter.string(from: date)
         }
     }
@@ -206,9 +210,18 @@ public struct DateFunctions {
                 return date
             }
 
+            // Try ISO 8601 with timezone offset (+0000 / +00:00)
+            let tzFormatter = DateFormatter()
+            tzFormatter.locale = Locale(identifier: "en_US_POSIX")
+            tzFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+            if let date = tzFormatter.date(from: str) {
+                return date
+            }
+
             // Try standard formats
             let dateFormatter = DateFormatter()
-            let formats = ["yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy"]
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            let formats = ["yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy"]
             for format in formats {
                 dateFormatter.dateFormat = format
                 if let date = dateFormatter.date(from: str) {
@@ -219,5 +232,34 @@ public struct DateFunctions {
 
         // Default to current date if parsing fails
         return Date()
+    }
+
+    /// Quote unrecognized letters in a date format string so DateFormatter
+    /// doesn't produce undefined behavior. Recognized pattern letters follow
+    /// Unicode TR35 (used by NSDateFormatter / DateFormatter).
+    private static func sanitizeFormat(_ format: String) -> String {
+        // .NET/AC day-name shortcuts → DateFormatter equivalents
+        switch format {
+        case "dddd": return "EEEE"
+        case "ddd": return "EEE"
+        default: break
+        }
+
+        let recognized: Set<Character> = Set("GyYuUrQqMLlwWdDFgEecahHKkjJmsSAzZOvVXx")
+        var result = ""
+        var inQuote = false
+        for ch in format {
+            if ch == "'" {
+                result.append(ch)
+                inQuote = !inQuote
+            } else if !inQuote && ch.isLetter && !recognized.contains(ch) {
+                result.append("'")
+                result.append(ch)
+                result.append("'")
+            } else {
+                result.append(ch)
+            }
+        }
+        return result
     }
 }

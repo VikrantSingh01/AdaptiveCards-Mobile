@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.microsoft.adaptivecards.core.models.CompoundButton
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 
 // Layout constants for consistency
@@ -49,15 +50,27 @@ fun CompoundButtonView(
     actionHandler: ActionHandler,
     modifier: Modifier = Modifier
 ) {
+    val hostConfig = LocalHostConfig.current
+
+    // Use hostConfig containerStyles to match iOS styling (subtle fills, not solid blocks)
     val containerColor = when (element.style) {
-        "emphasis" -> MaterialTheme.colorScheme.primary
-        "positive" -> Color(0xFF4CAF50)
-        "destructive" -> Color(0xFFF44336)
-        else -> MaterialTheme.colorScheme.surface
+        "emphasis" -> parseHostColor(hostConfig.containerStyles.accent.backgroundColor)
+            ?: MaterialTheme.colorScheme.primaryContainer
+        "positive" -> parseHostColor(hostConfig.containerStyles.good.backgroundColor)
+            ?: Color(0xFFD5F0DD)
+        "destructive" -> parseHostColor(hostConfig.containerStyles.attention.backgroundColor)
+            ?: Color(0xFFF7E9E9)
+        else -> parseHostColor(hostConfig.containerStyles.default.backgroundColor)
+            ?: MaterialTheme.colorScheme.surface
     }
 
     val contentColor = when (element.style) {
-        "emphasis", "positive", "destructive" -> Color.White
+        "emphasis" -> parseHostColor(hostConfig.containerStyles.accent.foregroundColors.default.default)
+            ?: MaterialTheme.colorScheme.onPrimaryContainer
+        "positive" -> parseHostColor(hostConfig.containerStyles.good.foregroundColors.default.default)
+            ?: MaterialTheme.colorScheme.onSurface
+        "destructive" -> parseHostColor(hostConfig.containerStyles.attention.foregroundColors.default.default)
+            ?: MaterialTheme.colorScheme.onSurface
         else -> MaterialTheme.colorScheme.onSurface
     }
 
@@ -194,5 +207,14 @@ private fun IconView(iconString: String?, tintColor: Color) {
             modifier = Modifier.size(CompoundButtonLayout.IconSize),
             tint = tintColor
         )
+    }
+}
+
+private fun parseHostColor(hex: String?): Color? {
+    if (hex == null) return null
+    return try {
+        Color(android.graphics.Color.parseColor(hex))
+    } catch (_: Exception) {
+        null
     }
 }

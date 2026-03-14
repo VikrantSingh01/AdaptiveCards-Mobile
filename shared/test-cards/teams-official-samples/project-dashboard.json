@@ -59,7 +59,7 @@
                 {
                     "type": "Layout.AreaGrid",
                     "targetWidth": "atLeast:Standard",
-                    "columns": [25, 25, 25],
+                    "columns": [25, 25, 25, 25],
                     "areas": [
                         { "name": "kpi1" },
                         { "name": "kpi2", "column": 2 },
