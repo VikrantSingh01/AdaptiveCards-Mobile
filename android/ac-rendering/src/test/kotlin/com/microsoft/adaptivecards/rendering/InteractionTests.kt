@@ -31,7 +31,7 @@ class InteractionTests {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = CardViewModel()
+        viewModel = CardViewModel(backgroundDispatcher = testDispatcher)
     }
 
     @AfterEach

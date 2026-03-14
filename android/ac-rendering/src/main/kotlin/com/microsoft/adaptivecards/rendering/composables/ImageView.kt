@@ -36,7 +36,7 @@ import com.microsoft.adaptivecards.accessibility.imageSemantics
 /**
  * Renders an Image element using Coil for async loading.
  *
- * Sizes resolved from HostConfig.imageSizes (Figma: small=32, medium=52, large=100).
+ * Sizes resolved from HostConfig.imageSizes (small=80, medium=120, large=180 — matching iOS).
  * Corner radius applied from HostConfig.cornerRadius.image (4dp) except for Person style.
  * SVG images supported via Coil's SvgDecoder (both URL and data:image/svg+xml URIs).
  */
@@ -125,21 +125,26 @@ fun ImageView(
         .crossfade(true)
         .build()
 
-    AsyncImage(
-        model = model,
-        contentDescription = element.altText,
-        contentScale = when {
+    // Resolve content scale — fitMode takes priority over size-based heuristics
+    val contentScale = when (element.fitMode?.lowercase()) {
+        "cover" -> ContentScale.Crop
+        "fill" -> ContentScale.FillBounds
+        "contain" -> ContentScale.Fit
+        else -> when {
             element.size == ImageSize.Stretch -> ContentScale.Crop
             element.size == null || element.size == ImageSize.Auto -> {
                 val hasExplicitSize = element.width != null || element.pixelHeight != null
                 val hasAutoHeight = element.height != null && element.pixelHeight == null
-                // Use FillWidth for auto-sized images that expand to container width
-                // (no explicit dimensions), matching iOS ScaleToFill behavior.
-                // Use Fit when explicit size or auto-height constrains dimensions.
                 if (hasExplicitSize || hasAutoHeight) ContentScale.Fit else ContentScale.FillWidth
             }
             else -> ContentScale.Fit
-        },
+        }
+    }
+
+    AsyncImage(
+        model = model,
+        contentDescription = element.altText,
+        contentScale = contentScale,
         modifier = finalModifier
             .imageSemantics(element.altText)
             .selectAction(element.selectAction, actionHandler)

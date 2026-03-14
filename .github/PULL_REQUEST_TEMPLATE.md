@@ -25,6 +25,44 @@
 - [ ] **Shared Test Card**: Added/updated test card in `shared/test-cards/` (if applicable)
 - [ ] **Parity Gate Passes**: CI parity gate passes (iOS + Android tests)
 
+## Impact & Regression Testing (MANDATORY — Zero Regressions Policy)
+
+**Every impacted card, flow, and scenario MUST be tested before merge.**
+
+### Impact Analysis
+
+<!-- List ALL modules, card types, elements, and flows affected by this change -->
+
+**Impacted modules**: <!-- e.g., ACRendering, ac-rendering, ACCore -->
+**Impacted card types**: <!-- e.g., TextBlock, Carousel, all template cards -->
+**Impacted flows**: <!-- e.g., card parsing, template expansion, action handling -->
+
+### Regression Test Results
+
+- [ ] **Unit Tests for impacted modules**: Ran and passed on both iOS and Android
+- [ ] **Full Test Suite**: `swift test` (iOS) and `./gradlew test` (Android) pass
+- [ ] **Visual Snapshot Tests**: Ran visual regression tests (iOS VisualTests + Android Paparazzi) — no regressions
+- [ ] **Card Parsing Regression**: `swift test --filter CardParsingRegressionTests` passes
+- [ ] **Impacted Cards Verified**: Tested ALL impacted cards via deep links on BOTH platforms with screenshot verification
+- [ ] **OCR Validation**: Ran `check-screenshot-text.sh` on all screenshots — no unresolved templates or error text
+- [ ] **Schema Parity**: `compare-schema-coverage.sh` passes (if element/action types changed)
+- [ ] **Template Cards**: `test-template-cards-dual.sh` passes (if templating changed)
+- [ ] **Pre-Merge Validation**: `shared/scripts/pre-merge-validation.sh` passes
+
+### Cards Tested
+
+<!-- List each card tested with platform and result -->
+<!-- Example:
+| Card | iOS | Android | Notes |
+|------|-----|---------|-------|
+| cafe-menu | ✅ | ✅ | |
+| restaurant-order | ✅ | ✅ | |
+-->
+
+| Card | iOS | Android | Notes |
+|------|-----|---------|-------|
+| | | | |
+
 ## Testing Checklist
 
 - [ ] **Unit Tests**: Added/updated unit tests

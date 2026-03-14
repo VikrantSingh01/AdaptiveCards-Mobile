@@ -4,10 +4,13 @@
 
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.microsoft.adaptivecards.core.hostconfig.HostConfig
 import com.microsoft.adaptivecards.core.models.*
@@ -347,6 +351,11 @@ fun RenderElement(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         style = MaterialTheme.typography.bodySmall,
                         modifier = elementModifier
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(4.dp)
                     )
                 }
             }

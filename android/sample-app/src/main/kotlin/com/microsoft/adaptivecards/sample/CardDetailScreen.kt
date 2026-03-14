@@ -167,11 +167,10 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Card preview — scrollable, fills remaining space
+            // Card preview — fills remaining space (AdaptiveCardView handles scrolling internally)
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState())
             ) {
                 if (parseError != null) {
                     Text(
