@@ -88,13 +88,13 @@ done
 # Lookup helpers
 lookup_category() {
     local result
-    result=$(grep "^${1}|" "$CARD_MAP_FILE" | head -1 | cut -d'|' -f2)
+    result=$(awk -F'|' -v name="$1" '$1 == name { print $2; exit }' "$CARD_MAP_FILE")
     echo "${result:-Unknown}"
 }
 
 lookup_json_path() {
     local result
-    result=$(grep "^${1}|" "$CARD_MAP_FILE" | head -1 | cut -d'|' -f3)
+    result=$(awk -F'|' -v name="$1" '$1 == name { print $3; exit }' "$CARD_MAP_FILE")
     echo "$result"
 }
 
