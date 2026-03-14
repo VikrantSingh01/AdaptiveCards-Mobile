@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.microsoft.adaptivecards.core.models.Column
 import com.microsoft.adaptivecards.core.models.ColumnSet
 import com.microsoft.adaptivecards.core.models.VerticalContentAlignment
@@ -131,12 +132,15 @@ private fun VerticalSeparatorLine() {
 /**
  * Resolve column width string to a Modifier.
  * Supports: "auto", "stretch", numeric weights (e.g. "2"), pixel widths (e.g. "100px").
+ *
+ * Auto columns use IntrinsicSize.Max to prevent children with fillMaxWidth() (e.g. centered
+ * TextBlocks) from expanding the column beyond its natural content width.
  */
 @Composable
 private fun RowScope.resolveColumnWidth(width: String?): Modifier {
     return when {
         width == null || width == "stretch" -> Modifier.weight(1f)
-        width == "auto" -> Modifier
+        width == "auto" -> Modifier.width(IntrinsicSize.Max)
         width.endsWith("px") -> {
             val pixels = width.removeSuffix("px").toIntOrNull()
             if (pixels != null) Modifier.width(pixels.dp) else Modifier.weight(1f)

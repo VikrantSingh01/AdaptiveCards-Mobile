@@ -21,7 +21,7 @@ struct ActionSetView: View {
         VStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
             Group {
                 if orientation == .horizontal {
-                    HStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
+                    ActionFlowLayout(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
                         actionContent
                     }
                 } else {
@@ -178,5 +178,67 @@ struct ActionSetView: View {
     enum Orientation {
         case horizontal
         case vertical
+    }
+}
+
+// MARK: - ActionFlowLayout
+
+/// A wrapping flow layout for action buttons, matching Android's FlowRow behavior.
+/// Buttons flow horizontally and wrap to the next row when they exceed available width.
+private struct ActionFlowLayout: SwiftUI.Layout {
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = arrange(proposal: proposal, subviews: subviews)
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrange(proposal: proposal, subviews: subviews)
+        for (index, position) in result.positions.enumerated() where index < subviews.count {
+            subviews[index].place(
+                at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y),
+                proposal: ProposedViewSize(result.sizes[index])
+            )
+        }
+    }
+
+    private struct LayoutResult {
+        var size: CGSize
+        var positions: [CGPoint]
+        var sizes: [CGSize]
+    }
+
+    private func arrange(proposal: ProposedViewSize, subviews: Subviews) -> LayoutResult {
+        let maxWidth = proposal.width ?? .infinity
+        var positions: [CGPoint] = []
+        var sizes: [CGSize] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var totalWidth: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+
+            if currentX + size.width > maxWidth && currentX > 0 {
+                currentX = 0
+                currentY += rowHeight + spacing
+                rowHeight = 0
+            }
+
+            positions.append(CGPoint(x: currentX, y: currentY))
+            sizes.append(size)
+            rowHeight = max(rowHeight, size.height)
+            currentX += size.width + spacing
+            totalWidth = max(totalWidth, currentX - spacing)
+        }
+
+        let totalHeight = currentY + rowHeight
+        return LayoutResult(
+            size: CGSize(width: totalWidth, height: totalHeight),
+            positions: positions,
+            sizes: sizes
+        )
     }
 }

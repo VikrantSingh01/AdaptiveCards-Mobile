@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.microsoft.adaptivecards.core.hostconfig.ForegroundColorsConfig
 import com.microsoft.adaptivecards.core.models.ProgressBar
 import com.microsoft.adaptivecards.core.models.Spinner
 import com.microsoft.adaptivecards.core.models.SpinnerSize
@@ -32,17 +33,12 @@ fun ProgressBarView(
     val hostConfig = LocalHostConfig.current
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
-    
-    val progressColor = element.color?.let { 
-        try {
-            Color(android.graphics.Color.parseColor(it))
-        } catch (e: Exception) {
-            try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
-        }
-    } ?: try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
-    
+
+    val fgColors = hostConfig.containerStyles.default.foregroundColors
+    val progressColor = resolveNamedColor(element.color, fgColors)
+
     val percentage = (element.normalizedValue * 100).toInt()
-    
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -53,17 +49,31 @@ fun ProgressBarView(
                 }
             }
     ) {
-        // Label
+        // Label + percentage (only shown when label is present, matching iOS)
         element.label?.let { label ->
-            Text(
-                text = label,
-                style = if (isTablet) {
-                    MaterialTheme.typography.bodyLarge
-                } else {
-                    MaterialTheme.typography.bodyMedium
-                },
-                modifier = Modifier.padding(bottom = if (isTablet) 6.dp else 4.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = label,
+                    style = if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    }
+                )
+                Text(
+                    text = "$percentage%",
+                    style = if (isTablet) {
+                        MaterialTheme.typography.bodyMedium
+                    } else {
+                        MaterialTheme.typography.bodySmall
+                    },
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+            Spacer(modifier = Modifier.height(if (isTablet) 6.dp else 4.dp))
         }
 
         // Progress bar
@@ -74,18 +84,6 @@ fun ProgressBarView(
                 .height(if (isTablet) 10.dp else 8.dp),
             color = progressColor,
             trackColor = progressColor.copy(alpha = 0.2f)
-        )
-
-        // Percentage text
-        Text(
-            text = "$percentage%",
-            style = if (isTablet) {
-                MaterialTheme.typography.bodyMedium
-            } else {
-                MaterialTheme.typography.bodySmall
-            },
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            modifier = Modifier.padding(top = if (isTablet) 6.dp else 4.dp)
         )
     }
 }
@@ -103,14 +101,14 @@ fun SpinnerView(
     val hostConfig = LocalHostConfig.current
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
-    
+
     val baseSize = when (element.size ?: SpinnerSize.MEDIUM) {
         SpinnerSize.SMALL -> 24.dp
         SpinnerSize.MEDIUM -> 40.dp
         SpinnerSize.LARGE -> 56.dp
     }
     val size = if (isTablet) baseSize + 8.dp else baseSize
-    
+
     val strokeWidth = when (element.size ?: SpinnerSize.MEDIUM) {
         SpinnerSize.SMALL -> if (isTablet) 3.dp else 2.dp
         SpinnerSize.MEDIUM -> if (isTablet) 4.dp else 3.dp
@@ -126,9 +124,10 @@ fun SpinnerView(
         },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val fgColors = hostConfig.containerStyles.default.foregroundColors
         CircularProgressIndicator(
             modifier = Modifier.size(size),
-            color = try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) },
+            color = resolveNamedColor(null, fgColors),
             strokeWidth = strokeWidth
         )
 
@@ -145,5 +144,26 @@ fun SpinnerView(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
         }
+    }
+}
+
+/**
+ * Resolve a named AC color (Accent, Good, Warning, Attention) or hex string to a Compose Color.
+ */
+private fun resolveNamedColor(colorName: String?, fgColors: ForegroundColorsConfig): Color {
+    val hexString = when (colorName?.lowercase()) {
+        "accent" -> fgColors.accent.default
+        "good" -> fgColors.good.default
+        "warning" -> fgColors.warning.default
+        "attention" -> fgColors.attention.default
+        "dark" -> fgColors.dark.default
+        "light" -> fgColors.light.default
+        null -> fgColors.accent.default
+        else -> colorName // Assume hex string
+    }
+    return try {
+        Color(android.graphics.Color.parseColor(hexString))
+    } catch (_: Exception) {
+        Color(0xFF0078D4)
     }
 }

@@ -279,5 +279,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for coding standards and detailed guideli
 - [Adaptive Cards Specification](https://adaptivecards.io/)
 - [Adaptive Cards Designer](https://adaptivecards.io/designer/)
 - [Schema Explorer](https://adaptivecards.io/explorer/)
+- [Releases](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/releases)
 - [GitHub Issues](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/issues)
 - [GitHub Discussions](https://github.com/VikrantSingh01/AdaptiveCards-Mobile/discussions)
