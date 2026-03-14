@@ -47,8 +47,14 @@ public class MarkdownParser {
         var tokens: [MarkdownToken] = []
         let lines = text.components(separatedBy: .newlines)
 
+        // Track ordered list continuation for auto-incrementing
+        var orderedListStart: Int?
+        var orderedListIndex = 0
+
         for line in lines {
             if line.isEmpty {
+                orderedListStart = nil
+                orderedListIndex = 0
                 tokens.append(.lineBreak)
                 continue
             }
@@ -56,23 +62,46 @@ public class MarkdownParser {
             // Check for headers
             if line.hasPrefix("#") {
                 if let headerToken = parseHeader(line) {
+                    orderedListStart = nil
+                    orderedListIndex = 0
                     tokens.append(headerToken)
                     continue
                 }
             }
 
-            // Check for bullet list
+            // Check for bullet list — parse inline markdown within content
             if line.hasPrefix("- ") {
+                orderedListStart = nil
+                orderedListIndex = 0
                 let content = String(line.dropFirst(2))
-                tokens.append(.bulletItem(content))
+                tokens.append(.text("• "))
+                tokens.append(contentsOf: parseInlineMarkdown(content))
+                tokens.append(.lineBreak)
                 continue
             }
 
-            // Check for numbered list
-            if let numberedToken = parseNumberedList(line) {
-                tokens.append(numberedToken)
+            // Check for numbered list — parse inline markdown within content
+            if let numberedMatch = parseNumberedList(line) {
+                if case .numberedItem(let sourceNumber, let content) = numberedMatch {
+                    let displayNumber: Int
+                    if orderedListStart == nil {
+                        orderedListStart = sourceNumber
+                        orderedListIndex = 0
+                        displayNumber = sourceNumber
+                    } else {
+                        orderedListIndex += 1
+                        displayNumber = orderedListStart! + orderedListIndex
+                    }
+                    tokens.append(.text("\(displayNumber). "))
+                    tokens.append(contentsOf: parseInlineMarkdown(content))
+                    tokens.append(.lineBreak)
+                }
                 continue
             }
+
+            // Non-list line resets ordered list tracking
+            orderedListStart = nil
+            orderedListIndex = 0
 
             // Parse inline markdown
             tokens.append(contentsOf: parseInlineMarkdown(line))
