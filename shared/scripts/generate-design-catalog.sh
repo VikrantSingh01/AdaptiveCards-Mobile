@@ -148,38 +148,40 @@ cat > "$OUTPUT_HTML" << 'HTML_HEADER'
 <title>Adaptive Cards Mobile — Design Review Catalog</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
-  .header { text-align: center; padding: 30px 20px; background: #2c3e50; color: white; border-radius: 12px; margin-bottom: 24px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+  .header { text-align: center; padding: 30px 20px; background: #16213e; color: white; border-radius: 12px; margin-bottom: 24px; border: 1px solid #2a2a4a; }
   .header h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-  .header p { font-size: 14px; opacity: 0.8; }
+  .header p { font-size: 14px; opacity: 0.7; }
   .stats { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
-  .stat { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+  .stat { background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 13px; }
   .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-  .controls select, .controls input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white; }
+  .controls select, .controls input { padding: 8px 12px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 14px; background: #2a2a4a; color: #e0e0e0; }
   .controls input { flex: 1; min-width: 200px; }
+  .controls input::placeholder { color: #888; }
   .controls select { min-width: 180px; }
-  .section-title { font-size: 18px; font-weight: 600; color: #2c3e50; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #2c3e50; }
+  .section-title { font-size: 18px; font-weight: 600; color: #7ec8e3; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #7ec8e3; }
   .grid { display: grid; gap: 16px; }
-  .card-row { display: grid; grid-template-columns: 180px 80px 1fr 1fr; gap: 16px; background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); align-items: start; transition: box-shadow 0.2s; }
-  .card-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-  .card-row.missing { background: #fff5f5; border-left: 3px solid #e74c3c; }
+  .card-row { display: grid; grid-template-columns: 180px 80px 1fr 1fr; gap: 16px; background: #16213e; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); align-items: start; transition: box-shadow 0.2s; border: 1px solid #2a2a4a; }
+  .card-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.4); border-color: #3a3a5a; }
+  .card-row.missing { background: #2a1a1a; border-left: 3px solid #e74c3c; }
   .card-info { display: flex; flex-direction: column; gap: 6px; }
-  .card-name { font-weight: 600; font-size: 14px; color: #2c3e50; word-break: break-word; }
-  .card-category { font-size: 12px; color: #7f8c8d; background: #ecf0f1; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+  .card-name { font-weight: 600; font-size: 14px; color: #e0e0e0; word-break: break-word; }
+  .card-category { font-size: 12px; color: #aaa; background: #2a2a4a; padding: 2px 8px; border-radius: 10px; display: inline-block; }
   .card-link { display: flex; align-items: center; justify-content: center; }
-  .card-link a { color: #3498db; text-decoration: none; font-size: 13px; font-weight: 500; padding: 4px 10px; border: 1px solid #3498db; border-radius: 6px; transition: all 0.2s; }
-  .card-link a:hover { background: #3498db; color: white; }
+  .card-link a { color: #7ec8e3; text-decoration: none; font-size: 13px; font-weight: 500; padding: 4px 10px; border: 1px solid #7ec8e3; border-radius: 6px; transition: all 0.2s; }
+  .card-link a:hover { background: #7ec8e3; color: #1a1a2e; }
   .screenshot-col { text-align: center; }
-  .screenshot-col img { max-width: 100%; width: 270px; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
-  .screenshot-col img:hover { transform: scale(1.02); }
-  .screenshot-col .platform-label { font-size: 11px; color: #95a5a6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .screenshot-col img { max-width: 100%; width: 270px; border: 1px solid #3a3a5a; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
+  .screenshot-col img:hover { transform: scale(1.02); border-color: #7ec8e3; }
+  .screenshot-col .platform-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
   .no-screenshot { color: #e74c3c; font-size: 13px; font-style: italic; padding: 40px 0; }
   /* Lightbox */
-  .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; cursor: pointer; }
+  .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; cursor: pointer; }
   .lightbox.active { display: flex; }
   .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
   .lightbox .close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer; }
-  .footer { text-align: center; margin-top: 40px; padding: 20px; color: #95a5a6; font-size: 13px; }
+  .footer { text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 13px; }
+  .footer a { color: #7ec8e3; }
   @media (max-width: 900px) {
     .card-row { grid-template-columns: 1fr; }
     .card-link { justify-content: flex-start; }
