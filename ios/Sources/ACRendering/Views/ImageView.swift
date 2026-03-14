@@ -31,13 +31,36 @@ private struct SVGWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         let w = width.map { "\(Int($0))px" } ?? "100%"
         let h = height.map { "\(Int($0))px" } ?? "auto"
-        let imgTag = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
+        let bodyContent: String
+        if svgSource.hasPrefix("data:image/svg+xml") {
+            // For data URIs, decode and embed SVG inline for better rendering
+            if let svgMarkup = decodeSVGDataURI(svgSource) {
+                bodyContent = "<div style=\"width:\(w);height:\(h);max-width:100%\">\(svgMarkup)</div>"
+            } else {
+                bodyContent = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
+            }
+        } else {
+            bodyContent = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
+        }
         let html = """
         <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-        <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}</style></head>
-        <body>\(imgTag)</body></html>
+        <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}svg{max-width:100%;height:auto}</style></head>
+        <body>\(bodyContent)</body></html>
         """
         webView.loadHTMLString(html, baseURL: nil)
+    }
+
+    private func decodeSVGDataURI(_ uri: String) -> String? {
+        if uri.contains("base64,"), let base64Part = uri.components(separatedBy: "base64,").last {
+            guard let data = Data(base64Encoded: base64Part),
+                  let svg = String(data: data, encoding: .utf8) else { return nil }
+            return svg
+        }
+        // URL-encoded SVG
+        if uri.contains(","), let encodedPart = uri.components(separatedBy: ",").last {
+            return encodedPart.removingPercentEncoding
+        }
+        return nil
     }
 }
 #endif
