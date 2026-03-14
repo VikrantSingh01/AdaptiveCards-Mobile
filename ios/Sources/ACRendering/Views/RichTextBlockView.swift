@@ -40,7 +40,9 @@ struct RichTextBlockView: View {
     }
 
     private func attributedString(for textRun: TextRun) -> AttributedString {
-        let expandedText = DateTimeMacroExpander.expand(textRun.text)
+        let expanded = DateTimeMacroExpander.expand(textRun.text)
+        // AC spec: literal \n in text should render as line breaks
+        let expandedText = expanded.replacingOccurrences(of: "\\n", with: "\n")
         var runText = AttributedString(expandedText)
 
         let size = fontSize(for: textRun)

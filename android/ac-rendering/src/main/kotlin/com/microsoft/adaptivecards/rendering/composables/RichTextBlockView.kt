@@ -47,7 +47,8 @@ fun RichTextBlockView(
                 is TextRun -> {
                     val textRun = inline
                     val start = length
-                    append(DateTimeMacroExpander.expand(textRun.text))
+                    // AC spec: literal \n in text should render as line breaks
+                    append(DateTimeMacroExpander.expand(textRun.text).replace("\\n", "\n"))
                     val end = length
 
                     // Resolve font size from HostConfig
