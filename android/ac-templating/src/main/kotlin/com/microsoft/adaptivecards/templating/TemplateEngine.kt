@@ -307,15 +307,17 @@ class TemplateEngine {
     private fun expandValue(value: Any?, context: DataContext): Any? {
         return when (value) {
             is String -> {
-                // If the entire string is a single ${expr}, return the native evaluated value
-                // (preserving arrays, objects, numbers, booleans) instead of stringifying.
-                val trimmed = value.trim()
-                if (trimmed.startsWith("\${") && trimmed.endsWith("}")) {
+                // If the entire string is a single ${expr} with no surrounding content,
+                // return the native evaluated value (preserving arrays, objects, numbers,
+                // booleans) instead of stringifying.
+                // IMPORTANT: Do NOT trim whitespace — "${open} " must go through string
+                // expansion to produce "127.42 " (a string), not the native Double 127.42.
+                if (value.startsWith("\${") && value.endsWith("}")) {
                     // Verify it's a single expression (no text before/after, balanced braces)
                     var braceCount = 0
                     var firstCloseIndex = -1
-                    for (i in 2 until trimmed.length) {
-                        when (trimmed[i]) {
+                    for (i in 2 until value.length) {
+                        when (value[i]) {
                             '{' -> braceCount++
                             '}' -> {
                                 if (braceCount == 0) {
@@ -326,9 +328,9 @@ class TemplateEngine {
                             }
                         }
                     }
-                    if (firstCloseIndex == trimmed.length - 1) {
+                    if (firstCloseIndex == value.length - 1) {
                         // Pure expression — return native value
-                        val expression = trimmed.substring(2, trimmed.length - 1)
+                        val expression = value.substring(2, value.length - 1)
                         try {
                             val parsed = parser.parse(expression)
                             val evaluator = ExpressionEvaluator(context)

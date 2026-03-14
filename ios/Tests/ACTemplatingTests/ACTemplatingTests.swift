@@ -1,5 +1,6 @@
 import XCTest
 @testable import ACTemplating
+import ACCore
 
 final class ACTemplatingTests: XCTestCase {
 
@@ -8,6 +9,41 @@ final class ACTemplatingTests: XCTestCase {
     override func setUp() {
         super.setUp()
         engine = TemplateEngine()
+    }
+
+    // MARK: - Regression: trailing-space expressions must produce strings, not native numbers
+
+    /// Verifies that "${open} " (with trailing space) expands to the string "127.42 "
+    /// rather than the native Double 127.42. The trailing space signals that the result
+    /// should be a string, not a native value. Without this, FactSet values become numbers
+    /// in the serialized JSON, which fails Codable decoding and produces blank cards.
+    func testTrailingSpaceExpressionProducesString() throws {
+        let template = """
+        {"type":"AdaptiveCard","version":"1.5","body":[{"type":"FactSet","facts":[{"title":"Open","value":"${open} "},{"title":"Pure","value":"${open}"}]}]}
+        """
+        let data: [String: Any] = ["open": 127.42]
+        let expanded = try engine.expand(template: template, data: data)
+        let result = AdaptiveCards.parse(expanded)
+        XCTAssertNotNil(result.card, "Card with trailing-space FactSet values should parse")
+        XCTAssertEqual(result.card?.body?.count, 1, "Should have 1 body element")
+    }
+
+    /// Full StockUpdate template card: template expansion + parsing must produce 2 body elements.
+    func testStockUpdateTemplateExpansion() throws {
+        let templateJson = """
+        {"$schema":"http://adaptivecards.io/schemas/adaptive-card.json","type":"AdaptiveCard","version":"1.5","body":[{"type":"Container","items":[{"type":"TextBlock","text":"${companyName}","size":"medium","wrap":true,"style":"heading"},{"type":"TextBlock","text":"${primaryExchange}: ${symbol}","isSubtle":true,"spacing":"none","wrap":true},{"type":"TextBlock","text":"{{DATE(${formatEpoch(latestUpdate, 'yyyy-MM-ddTHH:mm:ssZ')}, SHORT)}} {{TIME(${formatEpoch(latestUpdate, 'yyyy-MM-ddTHH:mm:ssZ')})}}","wrap":true}]},{"type":"Container","spacing":"none","items":[{"type":"ColumnSet","columns":[{"type":"Column","width":"stretch","items":[{"type":"TextBlock","text":"${formatNumber(latestPrice, 2)} ","size":"extraLarge","wrap":true},{"type":"TextBlock","text":"${if(change >= 0, '▲', '▼')} ${formatNumber(change,2)} USD (${formatNumber(changePercent * 100, 2)}%)","color":"${if(change >= 0, 'good', 'attention')}","spacing":"none","wrap":true}]},{"type":"Column","width":"auto","items":[{"type":"FactSet","facts":[{"title":"Open","value":"${open} "},{"title":"High","value":"${high} "},{"title":"Low","value":"${low} "}]}]}]}]}]}
+        """
+        let data: [String: Any] = [
+            "symbol": "MSFT", "companyName": "Microsoft Corporation",
+            "primaryExchange": "Nasdaq Global Select",
+            "open": 127.42, "high": 129.43, "low": 127.25,
+            "latestPrice": 128.9, "latestUpdate": 1556913600,
+            "change": 2.69, "changePercent": 0.02131
+        ]
+        let expanded = try engine.expand(template: templateJson, data: data)
+        let result = AdaptiveCards.parse(expanded)
+        XCTAssertNotNil(result.card, "StockUpdate card should parse after template expansion")
+        XCTAssertEqual(result.card?.body?.count, 2, "Should have 2 body containers")
     }
 
     // MARK: - String Expansion Tests

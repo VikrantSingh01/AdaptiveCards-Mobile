@@ -266,13 +266,17 @@ public final class TemplateEngine {
 
     private func expandValue(_ value: Any, context: DataContext) throws -> Any {
         if let string = value as? String {
-            // If the entire string is a single ${expr}, return the native evaluated value
-            // (preserving arrays, objects, numbers, booleans) instead of stringifying.
-            let trimmed = string.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasPrefix("${") && trimmed.hasSuffix("}") {
+            // If the entire string is a single ${expr} with no surrounding content,
+            // return the native evaluated value (preserving arrays, objects, numbers,
+            // booleans) instead of stringifying.
+            // IMPORTANT: Do NOT trim whitespace — "${open} " must go through string
+            // expansion to produce "127.42 " (a string), not the native Double 127.42.
+            // Trimming caused FactSet values and other string fields to become numbers,
+            // which then failed Codable decoding and produced blank cards.
+            if string.hasPrefix("${") && string.hasSuffix("}") {
                 var braceCount = 0
                 var firstCloseIndex = -1
-                let chars = Array(trimmed)
+                let chars = Array(string)
                 for i in 2..<chars.count {
                     if chars[i] == "{" {
                         braceCount += 1

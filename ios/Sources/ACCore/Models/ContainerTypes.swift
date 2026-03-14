@@ -330,6 +330,38 @@ public struct FactSet: Codable, Equatable {
             self.title = title
             self.value = value
         }
+
+        // Defense in depth: template expansion may produce numeric values for
+        // string fields. Coerce numbers/bools to String so decoding doesn't fail.
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.title = try Self.decodeStringOrNumber(container, forKey: .title)
+            self.value = try Self.decodeStringOrNumber(container, forKey: .value)
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case title, value
+        }
+
+        private static func decodeStringOrNumber(
+            _ container: KeyedDecodingContainer<CodingKeys>,
+            forKey key: CodingKeys
+        ) throws -> String {
+            if let str = try? container.decode(String.self, forKey: key) {
+                return str
+            }
+            if let num = try? container.decode(Double.self, forKey: key) {
+                return num.truncatingRemainder(dividingBy: 1) == 0
+                    ? String(Int(num)) : String(num)
+            }
+            if let num = try? container.decode(Int.self, forKey: key) {
+                return String(num)
+            }
+            if let bool = try? container.decode(Bool.self, forKey: key) {
+                return String(bool)
+            }
+            return try container.decode(String.self, forKey: key)
+        }
     }
 }
 
