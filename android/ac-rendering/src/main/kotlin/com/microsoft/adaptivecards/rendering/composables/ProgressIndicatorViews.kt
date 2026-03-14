@@ -76,9 +76,9 @@ fun ProgressBarView(
             Spacer(modifier = Modifier.height(if (isTablet) 6.dp else 4.dp))
         }
 
-        // Progress bar
+        // Progress bar — use lambda overload (Material3 1.1+)
         LinearProgressIndicator(
-            progress = element.normalizedValue.toFloat(),
+            progress = { element.normalizedValue.toFloat() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(if (isTablet) 10.dp else 8.dp),

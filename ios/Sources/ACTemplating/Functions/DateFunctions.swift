@@ -76,6 +76,8 @@ public struct DateFunctions {
 
     /// Converts Unix epoch seconds to a formatted date string.
     /// Usage: formatEpoch(1556913600, 'yyyy-MM-ddTHH:mm:ssZ') → "2019-05-03T20:00:00+0000"
+    /// Usage: formatEpoch(1556913600, 'dddd') → "Friday"
+    /// Default (no format): ISO 8601 for downstream {{DATE()}} / {{TIME()}} macros.
     struct FormatEpoch: ExpressionFunction {
         func call(_ arguments: [Any?]) throws -> Any? {
             guard arguments.count >= 1 && arguments.count <= 2 else {
@@ -95,10 +97,18 @@ public struct DateFunctions {
 
             let date = Date(timeIntervalSince1970: epochSeconds)
 
-            // Always use ISO8601DateFormatter for reliable UTC output that the
-            // DateTimeMacroExpander can parse (produces +00:00 or Z format).
-            // This avoids issues with DateFormatter's Z pattern producing +0000
-            // which ISO8601DateFormatter cannot parse back.
+            // When a format argument is provided, use DateFormatter with that format
+            // (matches Android parity and allows day-name, month-name, custom patterns).
+            if arguments.count > 1, let formatString = arguments[1] as? String {
+                let safeFormat = sanitizeFormat(formatString)
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(identifier: "UTC")
+                formatter.dateFormat = safeFormat
+                return formatter.string(from: date)
+            }
+
+            // Default: ISO 8601 for reliable UTC output that DateTimeMacroExpander can parse.
             let iso = ISO8601DateFormatter()
             iso.formatOptions = [.withInternetDateTime]
             iso.timeZone = TimeZone(identifier: "UTC")

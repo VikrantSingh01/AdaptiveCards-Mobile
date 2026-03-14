@@ -108,11 +108,11 @@ fun ActionSetView(
         showCardActions.forEach { showCardAction ->
             val actionId = showCardAction.id ?: "showCard_${showCardAction.title ?: "unknown"}"
             if (viewModel.isShowCardExpanded(actionId)) {
-                val emphasisBg = Color(
-                    android.graphics.Color.parseColor(
-                        hostConfig.containerStyles.emphasis.backgroundColor
-                    )
-                )
+                val emphasisBg = try {
+                    Color(android.graphics.Color.parseColor(hostConfig.containerStyles.emphasis.backgroundColor))
+                } catch (_: Exception) {
+                    Color(0xFFF5F5F5)
+                }
                 val cornerRadius = hostConfig.cornerRadius.container.dp
 
                 Column(
@@ -218,11 +218,11 @@ fun ActionButton(
     modifier: Modifier = Modifier
 ) {
     val hostConfig = LocalHostConfig.current
-    val accentColor = Color(
-        android.graphics.Color.parseColor(
-            hostConfig.containerStyles.default.foregroundColors.accent.default
-        )
-    )
+    val accentColor = try {
+        Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default))
+    } catch (_: Exception) {
+        Color(0xFF0078D4)
+    }
 
     // Use tooltip as content description for accessibility when available
     val tooltipText = action.tooltip
@@ -232,7 +232,7 @@ fun ActionButton(
 
     when (action.style) {
         ActionStyle.Positive -> {
-            val goodColor = Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.good.default))
+            val goodColor = try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.good.default)) } catch (_: Exception) { Color(0xFF4CAF50) }
             Button(
                 onClick = { handleAction(action, actionHandler, viewModel) },
                 enabled = action.isEnabled,
@@ -248,7 +248,7 @@ fun ActionButton(
             }
         }
         ActionStyle.Destructive -> {
-            val attentionColor = Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.attention.default))
+            val attentionColor = try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.attention.default)) } catch (_: Exception) { Color(0xFFF44336) }
             Button(
                 onClick = { handleAction(action, actionHandler, viewModel) },
                 enabled = action.isEnabled,

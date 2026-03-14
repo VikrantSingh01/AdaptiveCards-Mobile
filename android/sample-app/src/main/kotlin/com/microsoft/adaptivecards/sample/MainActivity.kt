@@ -524,12 +524,17 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
         "card" -> {
             val segments = uri.pathSegments
             if (segments.isNotEmpty()) {
-                val joined = segments.joinToString("/") + ".json"
                 // Versioned cards are stored under versioned/ prefix (e.g., versioned/v1.6/CompoundButton.json)
+                // Cards in subdirectories keep their path (e.g., teams-official-samples/cafe-menu.json)
+                // Root-level cards have no directory prefix (e.g., markdown.json) — strip the category slug
+                val knownAssetDirs = setOf("teams-official-samples", "templates", "teams-templated", "official-samples")
                 val cardFilename = if (segments.first().matches(Regex("v\\d+\\.\\d+"))) {
-                    "versioned/$joined"
+                    "versioned/${segments.joinToString("/")}.json"
+                } else if (segments.size >= 2 && segments.first() in knownAssetDirs) {
+                    segments.joinToString("/") + ".json"
                 } else {
-                    joined
+                    // Root-level card: first segment is category slug, not a directory
+                    segments.last() + ".json"
                 }
                 // Pop current card detail (if any) then push new one for slide transition
                 navController.popBackStack("card_detail/{cardId}", inclusive = true)

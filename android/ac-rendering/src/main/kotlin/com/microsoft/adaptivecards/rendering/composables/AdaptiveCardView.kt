@@ -274,7 +274,7 @@ fun RenderElement(
 
         // Apply spacing and render element
         val elementModifier = Modifier.adaptiveSpacing(element.spacing, isFirst)
-        
+
         when (element) {
             is TextBlock -> TextBlockView(element, elementModifier)
             is Image -> ImageView(element, elementModifier, actionHandler)

@@ -42,7 +42,9 @@ fun ColumnSetView(
     val columns = allColumns.filter { col ->
         shouldShowForTargetWidth(col.targetWidth, widthCategory)
     }
-    val spacing = hostConfig.spacing.default.dp
+    // Use small spacing between columns (not default element spacing which is too wide
+    // and can clip columns in ColumnSets with 5+ columns like WeatherLarge)
+    val spacing = hostConfig.spacing.small.dp
 
     val cornerRadius = hostConfig.cornerRadius.columnSet
 

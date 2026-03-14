@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -69,7 +70,8 @@ fun ImageView(
                 // collapsing to tiny or expanding to full width in auto-width columns
                 hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: display at natural size constrained to container width.
-                else -> modifier.fillMaxWidth()
+                // Use widthIn (not fillMaxWidth) so auto-width columns can measure intrinsic size.
+                else -> modifier.widthIn(max = 500.dp)
             }
         }
     }
@@ -107,7 +109,7 @@ fun ImageView(
             element.size == null || element.size == ImageSize.Auto -> {
                 val hasExplicitSize = element.width != null || element.pixelHeight != null
                 val hasAutoHeight = element.height != null && element.pixelHeight == null
-                if (hasExplicitSize || hasAutoHeight) ContentScale.Fit else ContentScale.FillWidth
+                ContentScale.Fit
             }
             else -> ContentScale.Fit
         },
