@@ -31,9 +31,7 @@ struct TableView: View {
                             columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil
                         )
                         .frame(maxWidth: .infinity)
-                        .if(hasColumnWeight(at: cellIndex)) { view in
-                            view.frame(maxWidth: .infinity)
-                        }
+                        .layoutPriority(columnLayoutPriority(at: cellIndex))
 
                         if table.showGridLines == true && cellIndex < row.cells.count - 1 {
                             Divider()
@@ -51,6 +49,7 @@ struct TableView: View {
                 }
             }
         }
+        .fixedSize(horizontal: false, vertical: true)
         .containerStyle(table.gridStyle, hostConfig: hostConfig)
         .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["table"] ?? 0)))
         .spacing(table.spacing, hostConfig: hostConfig)
@@ -58,9 +57,21 @@ struct TableView: View {
         .accessibilityContainer(label: "Table")
     }
 
-    private func hasColumnWeight(at index: Int) -> Bool {
-        guard let columns = table.columns, index < columns.count else { return true }
-        return columns[index].width != nil
+    private func columnLayoutPriority(at index: Int) -> Double {
+        guard let columns = table.columns, index < columns.count,
+              let width = columns[index].width else {
+            return 1
+        }
+        switch width {
+        case .weighted(let weight):
+            return weight
+        case .pixels:
+            return 0
+        case .stretch:
+            return 2
+        case .auto:
+            return 0
+        }
     }
 }
 
