@@ -35,7 +35,8 @@ struct TableView: View {
                             table: table,
                             row: row,
                             columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil,
-                            proportionalWidth: totalWeight > 0 ? weight / totalWeight : nil
+                            proportionalWidth: totalWeight > 0 ? weight / totalWeight : nil,
+                            totalColumns: weights.count
                         )
 
                         if table.showGridLines == true && cellIndex < row.cells.count - 1 {
@@ -105,6 +106,7 @@ struct TableCellView: View {
     var row: ACCore.TableRow? = nil
     var columnDef: TableColumnDefinition? = nil
     var proportionalWidth: Double? = nil
+    var totalColumns: Int = 1
 
     @EnvironmentObject var viewModel: CardViewModel
 
@@ -203,10 +205,10 @@ struct TableCellView: View {
         #else
         let screenWidth: CGFloat = 375
         #endif
-        // Account for card padding only; per-cell padding is handled by
-        // the cell's own .padding modifier and shouldn't reduce available width twice
+        // Account for card padding and per-cell padding (horizontal padding on each cell)
         let cardPadding = CGFloat(hostConfig.spacing.padding) * 2
-        let available = screenWidth - cardPadding
+        let cellPaddingTotal = CGFloat(hostConfig.table.cellSpacing) * 2 * CGFloat(totalColumns)
+        let available = screenWidth - cardPadding - cellPaddingTotal
         return max(available * CGFloat(ratio), 30)
     }
 
