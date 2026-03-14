@@ -18,10 +18,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import android.util.Base64
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import java.nio.ByteBuffer
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.ImageStyle
@@ -93,8 +95,18 @@ fun ImageView(
     }
 
     // Build image request — add SVG decoder for SVG content
+    // For data:image/svg+xml;base64,... URIs, decode the base64 payload into a ByteBuffer
+    // so Coil can process it with SvgDecoder (Coil doesn't natively handle data URIs).
+    val imageData: Any = if (element.url.startsWith("data:image/svg+xml;base64,")) {
+        val base64Part = element.url.substringAfter("data:image/svg+xml;base64,")
+        val bytes = Base64.decode(base64Part, Base64.DEFAULT)
+        ByteBuffer.wrap(bytes)
+    } else {
+        element.url
+    }
+
     val model = ImageRequest.Builder(context)
-        .data(element.url)
+        .data(imageData)
         .apply {
             if (isSvg) {
                 decoderFactory(SvgDecoder.Factory())
@@ -115,7 +127,10 @@ fun ImageView(
             element.size == null || element.size == ImageSize.Auto -> {
                 val hasExplicitSize = element.width != null || element.pixelHeight != null
                 val hasAutoHeight = element.height != null && element.pixelHeight == null
-                ContentScale.Fit
+                // Use FillWidth for auto-sized images that expand to container width
+                // (no explicit dimensions), matching iOS ScaleToFill behavior.
+                // Use Fit when explicit size or auto-height constrains dimensions.
+                if (hasExplicitSize || hasAutoHeight) ContentScale.Fit else ContentScale.FillWidth
             }
             else -> ContentScale.Fit
         },
