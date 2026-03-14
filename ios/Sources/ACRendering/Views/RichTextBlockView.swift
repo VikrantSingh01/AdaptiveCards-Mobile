@@ -40,7 +40,8 @@ struct RichTextBlockView: View {
     }
 
     private func attributedString(for textRun: TextRun) -> AttributedString {
-        var runText = AttributedString(textRun.text)
+        let expandedText = DateTimeMacroExpander.expand(textRun.text)
+        var runText = AttributedString(expandedText)
 
         let size = fontSize(for: textRun)
         #if canImport(UIKit)

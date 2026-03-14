@@ -119,7 +119,8 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                     Text(
                         card?.title ?: "Card Detail",
                         maxLines = 2,
-                        style = MaterialTheme.typography.titleMedium
+                        softWrap = true,
+                        style = MaterialTheme.typography.titleSmall
                     )
                 },
                 navigationIcon = {

@@ -47,7 +47,7 @@ fun RichTextBlockView(
                 is TextRun -> {
                     val textRun = inline
                     val start = length
-                    append(textRun.text)
+                    append(DateTimeMacroExpander.expand(textRun.text))
                     val end = length
 
                     // Resolve font size from HostConfig
