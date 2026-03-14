@@ -46,8 +46,9 @@ public struct AreaGridLayoutView: View {
 
     @available(iOS 16.0, *)
     private var nativeGridView: some View {
-        let maxColumnFromAreas = gridLayout.areas.map { $0.column + ($0.columnSpan ?? 1) - 1 }.max() ?? 1
-        let columnCount = max(gridLayout.columns.count, maxColumnFromAreas)
+        // Derive column count from areas when columns array is empty
+        let maxAreaCol = gridLayout.areas.map { $0.column + ($0.columnSpan ?? 1) - 1 }.max() ?? 1
+        let columnCount = max(gridLayout.columns.count, maxAreaCol)
         let maxRow = gridLayout.areas.map { $0.row + ($0.rowSpan ?? 1) - 1 }.max() ?? 1
         let colSpacing = spacingValue(gridLayout.columnSpacing ?? .default)
         let rowSpacing = spacingValue(gridLayout.rowSpacing ?? .default)

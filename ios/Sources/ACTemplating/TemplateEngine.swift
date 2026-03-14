@@ -184,7 +184,18 @@ public final class TemplateEngine {
                 // Check for $data iteration
                 if let dataBinding = dict["$data"] as? String {
                     let expressionStr = extractExpression(from: dataBinding)
-                    let parsedExpression = try parser.parse(expressionStr)
+                    // Gracefully handle unparseable $data values (e.g. "{hello}")
+                    guard let parsedExpression = try? parser.parse(expressionStr) else {
+                        // Treat as literal string data context
+                        let childContext = DataContext(data: dataBinding, root: context.root, index: nil, parent: context)
+                        var itemTemplate = dict
+                        itemTemplate.removeValue(forKey: "$data")
+                        let expandedItem = try expandDictionary(itemTemplate, context: childContext)
+                        if !expandedItem.isEmpty {
+                            result.append(expandedItem)
+                        }
+                        continue
+                    }
                     let evaluator = ExpressionEvaluator(context: context)
                     let dataValue = try evaluator.evaluate(parsedExpression)
 
@@ -233,6 +244,34 @@ public final class TemplateEngine {
 
     private func expandValue(_ value: Any, context: DataContext) throws -> Any {
         if let string = value as? String {
+            // If the entire string is a single ${expr}, return the native evaluated value
+            // (preserving arrays, objects, numbers, booleans) instead of stringifying.
+            let trimmed = string.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("${") && trimmed.hasSuffix("}") {
+                var braceCount = 0
+                var firstCloseIndex = -1
+                let chars = Array(trimmed)
+                for i in 2..<chars.count {
+                    if chars[i] == "{" {
+                        braceCount += 1
+                    } else if chars[i] == "}" {
+                        if braceCount == 0 {
+                            firstCloseIndex = i
+                            break
+                        }
+                        braceCount -= 1
+                    }
+                }
+                if firstCloseIndex == chars.count - 1 {
+                    // Pure expression — return native value
+                    let expression = String(chars[2..<(chars.count - 1)])
+                    if let parsed = try? parser.parse(expression) {
+                        let evaluator = ExpressionEvaluator(context: context)
+                        let result = try evaluator.evaluate(parsed)
+                        return result ?? ""
+                    }
+                }
+            }
             return try expandString(string, context: context)
         } else if let dict = value as? [String: Any] {
             return try expandDictionary(dict, context: context)

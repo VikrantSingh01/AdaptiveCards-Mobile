@@ -92,6 +92,10 @@ struct ImageView: View {
                             Color.clear
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 1)
+                        } else if let w = imageWidth {
+                            // Width known but height unknown: reserve space for loading
+                            ProgressView()
+                                .frame(width: w, height: w)
                         } else {
                             Color.clear
                                 .frame(width: 0, height: 0)
