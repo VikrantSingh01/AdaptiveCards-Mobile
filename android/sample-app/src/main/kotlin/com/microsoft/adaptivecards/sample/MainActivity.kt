@@ -527,8 +527,12 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 // Versioned cards are stored under versioned/ prefix (e.g., versioned/v1.6/CompoundButton.json)
                 // Cards in subdirectories keep their path (e.g., teams-official-samples/cafe-menu.json)
                 // Root-level cards have no directory prefix (e.g., markdown.json) — strip the category slug
-                val knownAssetDirs = setOf("teams-official-samples", "templates", "teams-templated", "official-samples")
-                val cardFilename = if (segments.first().matches(Regex("v\\d+\\.\\d+"))) {
+                val knownAssetDirs = setOf("teams-official-samples", "templates", "teams-templated", "official-samples", "element-samples")
+                val cardFilename = if (segments.first() == "versioned" && segments.size >= 3) {
+                    // Deep link: adaptivecards://card/versioned/v1.5/Action.IsEnabled
+                    segments.joinToString("/") + ".json"
+                } else if (segments.first().matches(Regex("v\\d+\\.\\d+"))) {
+                    // Deep link: adaptivecards://card/v1.5/Action.IsEnabled (legacy short form)
                     "versioned/${segments.joinToString("/")}.json"
                 } else if (segments.size >= 2 && segments.first() in knownAssetDirs) {
                     segments.joinToString("/") + ".json"
