@@ -51,10 +51,19 @@ fun ImageView(
     if (element.url.startsWith("symbol:")) return
 
     // Determine image size
+    val isSvg = element.url.endsWith(".svg", ignoreCase = true) ||
+        element.url.startsWith("data:image/svg+xml")
     val imageModifier = when (element.size ?: ImageSize.Auto) {
         ImageSize.Small -> modifier.size(hostConfig.imageSizes.small.dp)
-        ImageSize.Medium -> modifier.size(hostConfig.imageSizes.medium.dp)
-        ImageSize.Large -> modifier.size(hostConfig.imageSizes.large.dp)
+        ImageSize.Medium -> {
+            // SVGs with named sizes should preserve aspect ratio, not force square
+            if (isSvg) modifier.width(hostConfig.imageSizes.medium.dp)
+            else modifier.size(hostConfig.imageSizes.medium.dp)
+        }
+        ImageSize.Large -> {
+            if (isSvg) modifier.width(hostConfig.imageSizes.large.dp)
+            else modifier.size(hostConfig.imageSizes.large.dp)
+        }
         ImageSize.Stretch -> modifier.fillMaxWidth()
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
@@ -69,9 +78,9 @@ fun ImageView(
                 // When height="auto" with no width, use medium default size to avoid
                 // collapsing to tiny or expanding to full width in auto-width columns
                 hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
-                // Auto per AC spec: display at natural size constrained to container width.
-                // Use widthIn (not fillMaxWidth) so auto-width columns can measure intrinsic size.
-                else -> modifier.widthIn(max = 500.dp)
+                // Auto per AC spec: fill container width to match iOS parity.
+                // Images without explicit size should expand to fill available width.
+                else -> modifier.fillMaxWidth()
             }
         }
     }
@@ -84,9 +93,6 @@ fun ImageView(
     }
 
     // Build image request — add SVG decoder for SVG content
-    val isSvg = element.url.endsWith(".svg", ignoreCase = true) ||
-        element.url.startsWith("data:image/svg+xml")
-
     val model = ImageRequest.Builder(context)
         .data(element.url)
         .apply {
