@@ -3,6 +3,9 @@
 // Licensed under the MIT License.
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import ACCore
 import ACAccessibility
 import ACFluentUI
@@ -14,6 +17,7 @@ struct TableView: View {
 
     var body: some View {
         let rowSpacing: CGFloat = table.showGridLines == true ? 0 : CGFloat(hostConfig.table.cellSpacing / 2)
+        let weights = resolveColumnWeights()
 
         VStack(spacing: rowSpacing) {
             ForEach(Array(table.rows.enumerated()), id: \.offset) { rowIndex, row in
@@ -21,7 +25,8 @@ struct TableView: View {
 
                 HStack(spacing: 0) {
                     ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
-                        let weight = columnWeight(at: cellIndex)
+                        let weight = cellIndex < weights.count ? weights[cellIndex] : 1.0
+                        let totalWeight = weights.reduce(0, +)
                         TableCellView(
                             cell: cell,
                             isHeader: isHeaderRow,
@@ -29,10 +34,9 @@ struct TableView: View {
                             depth: depth,
                             table: table,
                             row: row,
-                            columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil
+                            columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil,
+                            proportionalWidth: totalWeight > 0 ? weight / totalWeight : nil
                         )
-                        .frame(maxWidth: .infinity)
-                        .layoutPriority(columnWeight(at: cellIndex))
 
                         if table.showGridLines == true && cellIndex < row.cells.count - 1 {
                             Divider()
@@ -58,15 +62,22 @@ struct TableView: View {
         .accessibilityContainer(label: "Table")
     }
 
-    private func columnWeight(at index: Int) -> Double {
-        guard let columns = table.columns, index < columns.count,
-              let width = columns[index].width else { return 1.0 }
-        switch width {
-        case .weighted(let w): return w
-        case .pixels(let px):
-            return Double(Int(px.replacingOccurrences(of: "px", with: "")) ?? 1)
-        case .auto: return 0.5
-        case .stretch: return 1.0
+    /// Resolve all column weights for proportional sizing.
+    /// Uses the max cell count across all rows if columns aren't explicitly defined.
+    private func resolveColumnWeights() -> [Double] {
+        let maxCells = table.rows.map { $0.cells.count }.max() ?? 0
+        let columnCount = max(table.columns?.count ?? 0, maxCells)
+        return (0..<columnCount).map { index in
+            guard let columns = table.columns, index < columns.count,
+                  let width = columns[index].width else { return 1.0 }
+            switch width {
+            case .weighted(let w): return w
+            case .pixels(let px):
+                // Normalize pixel values to proportional weights
+                return max(Double(Int(px.replacingOccurrences(of: "px", with: "")) ?? 1) / 100.0, 0.1)
+            case .auto: return 0.5
+            case .stretch: return 1.0
+            }
         }
     }
 }
@@ -79,6 +90,7 @@ struct TableCellView: View {
     var table: ACCore.Table? = nil
     var row: ACCore.TableRow? = nil
     var columnDef: TableColumnDefinition? = nil
+    var proportionalWidth: Double? = nil
 
     @EnvironmentObject var viewModel: CardViewModel
 
@@ -112,6 +124,7 @@ struct TableCellView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: combinedAlignment)
+        .frame(width: proportionalCellWidth, alignment: combinedAlignment)
         .frame(minHeight: minHeight)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
         .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
@@ -156,6 +169,24 @@ struct TableCellView: View {
         }()
 
         return Alignment(horizontal: h, vertical: v)
+    }
+
+    /// Calculate proportional cell width from the weight ratio and available screen width
+    private var proportionalCellWidth: CGFloat? {
+        guard let ratio = proportionalWidth, ratio > 0 else { return nil }
+        #if canImport(UIKit)
+        let screenWidth = UIScreen.main.bounds.width
+        #else
+        let screenWidth: CGFloat = 375
+        #endif
+        // Account for card padding + table cell spacing + safe area margins
+        let cardPadding = CGFloat(hostConfig.spacing.padding) * 2
+        let extraMargin: CGFloat = 16 // scroll view + safe area insets
+        let cellSpacing = CGFloat(hostConfig.table.cellSpacing) * 2 // per-cell horizontal padding
+        let numCols = max(CGFloat(table?.columns?.count ?? 1), 1)
+        let totalCellPadding = cellSpacing * numCols
+        let available = screenWidth - cardPadding - extraMargin - totalCellPadding
+        return max(available * CGFloat(ratio), 20)
     }
 
     private var minHeight: CGFloat? {
