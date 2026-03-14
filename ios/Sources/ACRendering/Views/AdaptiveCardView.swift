@@ -22,6 +22,7 @@ public struct AdaptiveCardView: View {
 
     @StateObject private var viewModel = CardViewModel()
     @StateObject private var validationState = ValidationState()
+    @State private var cardWidth: CGFloat = 0
     private let actionHandler: ActionHandler
 
     // MARK: - New API (Phase 2)
@@ -201,29 +202,35 @@ public struct AdaptiveCardView: View {
     }
 
     private func cardContent(card: AdaptiveCard) -> some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 0) {
-                    if let body = card.body, !body.isEmpty {
-                        ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
-                            if viewModel.isElementVisible(elementId: element.elementId) {
-                                ElementView(element: element, hostConfig: hostConfig)
-                                    .padding(.top, index > 0 ? Self.spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
-                            }
+        ScrollView {
+            VStack(spacing: 0) {
+                if let body = card.body, !body.isEmpty {
+                    ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
+                        if viewModel.isElementVisible(elementId: element.elementId) {
+                            ElementView(element: element, hostConfig: hostConfig)
+                                .padding(.top, index > 0 ? Self.spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
                         }
                     }
-
-                    if let actions = card.actions, !actions.isEmpty {
-                        ActionSetView(actions: actions, hostConfig: hostConfig)
-                            .padding(.top, CGFloat(hostConfig.spacing.default))
-                    }
                 }
-                .padding(CGFloat(hostConfig.spacing.padding))
-                .containerStyle(.default, hostConfig: hostConfig)
+
+                if let actions = card.actions, !actions.isEmpty {
+                    ActionSetView(actions: actions, hostConfig: hostConfig)
+                        .padding(.top, CGFloat(hostConfig.spacing.default))
+                }
             }
-            .environment(\.widthCategory, WidthCategory.from(width: geometry.size.width, hostConfig: hostConfig))
-            .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
+            .padding(CGFloat(hostConfig.spacing.padding))
+            .containerStyle(.default, hostConfig: hostConfig)
         }
+        .background(
+            GeometryReader { geometry in
+                Color.clear.preference(key: CardWidthPreferenceKey.self, value: geometry.size.width)
+            }
+        )
+        .onPreferenceChange(CardWidthPreferenceKey.self) { width in
+            if width > 0 { cardWidth = width }
+        }
+        .environment(\.widthCategory, WidthCategory.from(width: cardWidth, hostConfig: hostConfig))
+        .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
     }
 
     private static func spacingValue(for spacing: Spacing?, hostConfig: HostConfig) -> CGFloat {
@@ -254,6 +261,15 @@ public struct AdaptiveCardView: View {
                 .foregroundColor(.secondary)
         }
         .padding()
+    }
+}
+
+// MARK: - Preference Keys
+
+private struct CardWidthPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 

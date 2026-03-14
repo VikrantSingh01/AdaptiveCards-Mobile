@@ -21,6 +21,7 @@ struct TableView: View {
 
                 HStack(spacing: 0) {
                     ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
+                        let weight = columnWeight(at: cellIndex)
                         TableCellView(
                             cell: cell,
                             isHeader: isHeaderRow,
@@ -31,9 +32,7 @@ struct TableView: View {
                             columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil
                         )
                         .frame(maxWidth: .infinity)
-                        .if(hasColumnWeight(at: cellIndex)) { view in
-                            view.frame(maxWidth: .infinity)
-                        }
+                        .layoutPriority(weight)
 
                         if table.showGridLines == true && cellIndex < row.cells.count - 1 {
                             Divider()
@@ -58,9 +57,16 @@ struct TableView: View {
         .accessibilityContainer(label: "Table")
     }
 
-    private func hasColumnWeight(at index: Int) -> Bool {
-        guard let columns = table.columns, index < columns.count else { return true }
-        return columns[index].width != nil
+    private func columnWeight(at index: Int) -> Double {
+        guard let columns = table.columns, index < columns.count,
+              let width = columns[index].width else { return 1.0 }
+        switch width {
+        case .weighted(let w): return w
+        case .pixels(let px):
+            return Double(Int(px.replacingOccurrences(of: "px", with: "")) ?? 1)
+        case .auto: return 0.5
+        case .stretch: return 1.0
+        }
     }
 }
 
@@ -137,7 +143,11 @@ struct TableCellView: View {
         }()
 
         let v: SwiftUI.VerticalAlignment = {
-            switch cell.verticalContentAlignment {
+            let alignment = cell.verticalContentAlignment
+                ?? columnDef?.verticalCellContentAlignment
+                ?? row?.verticalCellContentAlignment
+                ?? table?.verticalCellContentAlignment
+            switch alignment {
             case .top: return .top
             case .bottom: return .bottom
             default: return .center

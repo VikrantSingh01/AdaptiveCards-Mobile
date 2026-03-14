@@ -164,7 +164,7 @@ struct IconElementView: View {
             "peopleteam": "person.2",
         ]
 
-        let lowered = fluentName.lowercased()
-        return map[lowered] ?? "questionmark.square"
+        let lowered = fluentName.split(separator: ",").first.map { String($0).lowercased() } ?? fluentName.lowercased()
+        return map[lowered] ?? "questionmark.circle"
     }
 }
