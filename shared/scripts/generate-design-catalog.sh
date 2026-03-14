@@ -310,15 +310,43 @@ function renderCatalog() {
 
   let html = '';
 
-  // App Screens first
+  // Defined category order
+  const categoryOrder = [
+    'App Screen',
+    'Teams Official',
+    'Official Samples',
+    'Element Samples',
+    'Root',
+    'Templates',
+    'Host Configs',
+    'Versioned v1.5',
+    'Versioned v1.6'
+  ];
+
+  // App Screen: custom item order (Gallery, Performance, More, Settings first)
+  const appScreenOrder = ['Gallery', 'Performance', 'More', 'Settings'];
   if (groups['App Screen']) {
-    html += renderSection('App Screens', groups['App Screen']);
-    delete groups['App Screen'];
+    groups['App Screen'].sort((a, b) => {
+      const ai = appScreenOrder.indexOf(a.name);
+      const bi = appScreenOrder.indexOf(b.name);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return a.name.localeCompare(b.name);
+    });
   }
 
-  // Then all card categories
-  const sortedCategories = Object.keys(groups).sort();
-  sortedCategories.forEach(cat => {
+  // Render in defined order
+  categoryOrder.forEach(cat => {
+    if (groups[cat]) {
+      const label = cat === 'App Screen' ? 'App Screens' : cat + ' (' + groups[cat].length + ')';
+      html += renderSection(label, groups[cat]);
+      delete groups[cat];
+    }
+  });
+
+  // Any remaining categories not in the defined order
+  Object.keys(groups).sort().forEach(cat => {
     html += renderSection(cat + ' (' + groups[cat].length + ')', groups[cat]);
   });
 
