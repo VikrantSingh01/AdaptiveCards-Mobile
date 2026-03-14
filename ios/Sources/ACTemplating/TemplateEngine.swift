@@ -73,10 +73,15 @@ public final class TemplateEngine {
         if let jsonData = template.data(using: .utf8),
            let jsonObject = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
             let context = DataContext(data: data)
-            let expanded = try expandDictionary(jsonObject, context: context)
-            if let outputData = try? JSONSerialization.data(withJSONObject: expanded, options: [.sortedKeys]),
-               let outputString = String(data: outputData, encoding: .utf8) {
-                return outputString
+            // Use do/catch so structured expansion failures fall through to string expansion
+            do {
+                let expanded = try expandDictionary(jsonObject, context: context)
+                if let outputData = try? JSONSerialization.data(withJSONObject: expanded, options: [.sortedKeys]),
+                   let outputString = String(data: outputData, encoding: .utf8) {
+                    return outputString
+                }
+            } catch {
+                // Structured expansion failed; fall through to string-based expansion
             }
         }
         // Fallback to string-based expansion for non-JSON templates
@@ -177,8 +182,12 @@ public final class TemplateEngine {
                 continue // Don't include $when in output
             }
 
-            // Expand value
-            result[key] = try expandValue(value, context: context)
+            // Expand value — gracefully handle per-field failures to avoid blank cards
+            if let expanded = try? expandValue(value, context: context) {
+                result[key] = expanded
+            } else {
+                result[key] = value
+            }
         }
 
         return result
@@ -238,12 +247,17 @@ public final class TemplateEngine {
                 }
 
                 // Regular dictionary expansion
-                let expandedDict = try expandDictionary(dict, context: context)
-                if !expandedDict.isEmpty {
+                if let expandedDict = try? expandDictionary(dict, context: context), !expandedDict.isEmpty {
                     result.append(expandedDict)
+                } else {
+                    result.append(dict)
                 }
             } else {
-                result.append(try expandValue(item, context: context))
+                if let expanded = try? expandValue(item, context: context) {
+                    result.append(expanded)
+                } else {
+                    result.append(item)
+                }
             }
         }
 
@@ -275,8 +289,10 @@ public final class TemplateEngine {
                     let expression = String(chars[2..<(chars.count - 1)])
                     if let parsed = try? parser.parse(expression) {
                         let evaluator = ExpressionEvaluator(context: context)
-                        let result = try evaluator.evaluate(parsed)
-                        return result ?? ""
+                        if let result = try? evaluator.evaluate(parsed) {
+                            return result
+                        }
+                        // Evaluation failed; fall through to expandString
                     }
                 }
             }
