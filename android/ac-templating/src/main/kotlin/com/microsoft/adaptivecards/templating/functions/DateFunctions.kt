@@ -79,6 +79,8 @@ object DateFunctions {
     /**
      * Converts Unix epoch seconds to a formatted date string.
      * Usage: formatEpoch(1556913600, 'yyyy-MM-ddTHH:mm:ssZ') → "2019-05-03T20:00:00+0000"
+     * Usage: formatEpoch(1556913600, 'dddd') → "Friday"
+     * Default (no format): ISO 8601 for downstream {{DATE()}} / {{TIME()}} macros.
      */
     class FormatEpoch : ExpressionFunction {
         override fun call(arguments: List<Any?>): Any? {
@@ -97,12 +99,39 @@ object DateFunctions {
 
             val date = Date(epochSeconds * 1000L)
 
-            // Always output ISO 8601 with Z suffix for reliable downstream parsing
-            // by DateTimeMacroExpander. Ignoring custom format string since the purpose
-            // of formatEpoch is to produce dates for {{DATE()}} and {{TIME()}} macros.
-            val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            val formatString = if (arguments.size > 1) arguments[1] as? String else null
+            // Map .NET/AC format patterns to Java SimpleDateFormat
+            val javaFormat = formatString?.let { mapToJavaFormat(it) }
+                ?: "yyyy-MM-dd'T'HH:mm:ss'Z'"
+            val formatter = SimpleDateFormat(javaFormat, Locale.US)
             formatter.timeZone = TimeZone.getTimeZone("UTC")
             return formatter.format(date)
+        }
+
+        /** Map common .NET-style format patterns to Java SimpleDateFormat equivalents. */
+        private fun mapToJavaFormat(format: String): String = when (format) {
+            "dddd" -> "EEEE"           // Full day name (Monday, Tuesday…)
+            "ddd" -> "EEE"             // Abbreviated day name (Mon, Tue…)
+            "MMMM" -> "MMMM"          // Full month name
+            "MMM" -> "MMM"             // Abbreviated month name
+            else -> {
+                // Quote unrecognized ASCII letters that aren't SimpleDateFormat pattern chars.
+                // Common case: literal 'T' separator in ISO dates (yyyy-MM-ddTHH:mm:ssZ).
+                val sdfPatternChars = "GyYMLwWdDFEuaHhKkmsSzZX"
+                val sb = StringBuilder()
+                var inQuote = false
+                for (ch in format) {
+                    if (ch == '\'') {
+                        sb.append(ch)
+                        inQuote = !inQuote
+                    } else if (!inQuote && ch.isLetter() && ch !in sdfPatternChars) {
+                        sb.append("'").append(ch).append("'")
+                    } else {
+                        sb.append(ch)
+                    }
+                }
+                sb.toString()
+            }
         }
     }
 

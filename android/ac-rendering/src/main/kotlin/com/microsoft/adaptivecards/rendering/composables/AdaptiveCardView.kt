@@ -264,14 +264,14 @@ fun RenderElement(
         return
     }
     
-    Column {
+    Column(modifier = modifier) {
         // Render separator
         if (element.separator && !isFirst) {
             SeparatorLine()
         }
-        
+
         // Apply spacing and render element
-        val elementModifier = modifier.adaptiveSpacing(element.spacing, isFirst)
+        val elementModifier = Modifier.adaptiveSpacing(element.spacing, isFirst)
         
         when (element) {
             is TextBlock -> TextBlockView(element, elementModifier)

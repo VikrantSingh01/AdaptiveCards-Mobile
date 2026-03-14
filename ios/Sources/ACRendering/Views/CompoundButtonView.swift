@@ -60,7 +60,7 @@ struct CompoundButtonView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color(hex: hostConfig.containerStyles.accent.backgroundColor))
+                            .background(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.`default`))
                             .cornerRadius(4)
                             .lineLimit(1)
                     }
