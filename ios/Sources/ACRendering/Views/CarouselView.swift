@@ -34,14 +34,19 @@ struct CarouselView: View {
         horizontalSizeClass == .regular && verticalSizeClass == .regular
     }
 
+    private var visiblePages: [CarouselPage] {
+        carousel.pages.filter { !$0.items.isEmpty }
+    }
+
     var body: some View {
+        let pages = visiblePages
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
-                ForEach(Array(carousel.pages.enumerated()), id: \.offset) { index, page in
+                ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
                     CarouselPageView(page: page, hostConfig: hostConfig, isTablet: isTablet, depth: depth)
                         .tag(index)
                         .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Page \(index + 1) of \(carousel.pages.count)")
+                        .accessibilityLabel("Page \(index + 1) of \(pages.count)")
                 }
             }
             #if os(iOS)
@@ -50,9 +55,9 @@ struct CarouselView: View {
             .frame(height: estimatedHeight)
 
             // Custom page indicators (matching Android accent-colored dots)
-            if carousel.pages.count > 1 {
+            if pages.count > 1 {
                 HStack(spacing: 8) {
-                    ForEach(0..<carousel.pages.count, id: \.self) { index in
+                    ForEach(0..<pages.count, id: \.self) { index in
                         Circle()
                             .fill(index == currentPage ? accentColor : Color.gray.opacity(0.5))
                             .frame(width: isTablet ? 10 : 8, height: isTablet ? 10 : 8)
@@ -61,7 +66,7 @@ struct CarouselView: View {
                 }
                 .padding(.vertical, isTablet ? 12 : 8)
                 .accessibilityElement(children: .contain)
-                .accessibilityLabel("Page indicator: \(currentPage + 1) of \(carousel.pages.count)")
+                .accessibilityLabel("Page indicator: \(currentPage + 1) of \(pages.count)")
             }
         }
         .spacing(carousel.spacing, hostConfig: hostConfig)
@@ -84,11 +89,10 @@ struct CarouselView: View {
             }
         }
         .onAppear {
-            // Ensure initialPage is applied after TabView renders
-            let initialPage = carousel.initialPage ?? 0
-            if initialPage > 0 && initialPage < carousel.pages.count {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // safe: struct View, no retain cycle
-                    currentPage = initialPage
+            let clampedInitial = min(carousel.initialPage ?? 0, max(visiblePages.count - 1, 0))
+            if clampedInitial > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    currentPage = clampedInitial
                 }
             }
             setupAutoAdvance()
@@ -107,7 +111,7 @@ struct CarouselView: View {
     /// reasonable height based on the element types present in each page.
     private var estimatedHeight: CGFloat {
         let pagePadding: CGFloat = isTablet ? 64 : 48 // inner + outer padding
-        let maxPageContent = carousel.pages.map { page -> CGFloat in
+        let maxPageContent = visiblePages.map { page -> CGFloat in
             estimatePageContentHeight(page)
         }.max() ?? 0
 
@@ -175,9 +179,10 @@ struct CarouselView: View {
 
         timer?.invalidate()
 
+        let pageCount = visiblePages.count
         timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(timerInterval) / 1000.0, repeats: true) { _ in
             withAnimation {
-                currentPage = (currentPage + 1) % carousel.pages.count
+                currentPage = (currentPage + 1) % pageCount
             }
         }
     }

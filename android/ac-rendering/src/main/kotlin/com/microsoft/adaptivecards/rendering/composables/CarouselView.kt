@@ -42,19 +42,23 @@ fun CarouselView(
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
     
+    val visiblePages = remember(element.pages) {
+        element.pages.filter { it.items.isNotEmpty() }
+    }
+
     val pagerState = rememberPagerState(
-        initialPage = element.initialPage ?: 0,
-        pageCount = { element.pages.size }
+        initialPage = (element.initialPage ?: 0).coerceAtMost((visiblePages.size - 1).coerceAtLeast(0)),
+        pageCount = { visiblePages.size }
     )
     val scope = rememberCoroutineScope()
 
     // Auto-advance timer
     LaunchedEffect(pagerState.currentPage, element.timer) {
         element.timer?.let { timerMs ->
-            if (timerMs > 0 && element.pages.isNotEmpty()) {
+            if (timerMs > 0 && visiblePages.isNotEmpty()) {
                 scope.launch {
                     delay(timerMs.toLong())
-                    val nextPage = (pagerState.currentPage + 1) % element.pages.size
+                    val nextPage = (pagerState.currentPage + 1) % visiblePages.size
                     pagerState.animateScrollToPage(nextPage)
                 }
             }
@@ -63,7 +67,7 @@ fun CarouselView(
 
     Column(
         modifier = modifier.semantics {
-            contentDescription = "Carousel with ${element.pages.size} pages, currently on page ${pagerState.currentPage + 1}"
+            contentDescription = "Carousel with ${visiblePages.size} pages, currently on page ${pagerState.currentPage + 1}"
         }
     ) {
         // Horizontal pager for carousel pages
@@ -72,10 +76,10 @@ fun CarouselView(
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics {
-                    contentDescription = "Page ${pagerState.currentPage + 1} of ${element.pages.size}"
+                    contentDescription = "Page ${pagerState.currentPage + 1} of ${visiblePages.size}"
                 }
         ) { page ->
-            val carouselPage = element.pages.getOrNull(page) ?: return@HorizontalPager
+            val carouselPage = visiblePages.getOrNull(page) ?: return@HorizontalPager
             
             Card(
                 modifier = Modifier
@@ -106,17 +110,17 @@ fun CarouselView(
         }
 
         // Page indicators
-        if (element.pages.size > 1) {
+        if (visiblePages.size > 1) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = if (isTablet) 12.dp else 8.dp)
                     .semantics {
-                        contentDescription = "Page indicator: ${pagerState.currentPage + 1} of ${element.pages.size}"
+                        contentDescription = "Page indicator: ${pagerState.currentPage + 1} of ${visiblePages.size}"
                     },
                 horizontalArrangement = Arrangement.Center
             ) {
-                repeat(element.pages.size) { index ->
+                repeat(visiblePages.size) { index ->
                     val color = if (pagerState.currentPage == index) {
                         try { Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default)) } catch (e: Exception) { Color(0xFF0078D4) }
                     } else {

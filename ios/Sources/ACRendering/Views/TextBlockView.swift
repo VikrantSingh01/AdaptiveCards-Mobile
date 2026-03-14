@@ -34,11 +34,9 @@ struct TextBlockView: View {
             Text(attributedString)
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
+                .frame(maxWidth: .infinity, alignment: frameAlignment)
                 .if(textBlock.wrap == true) { view in
-                    view.frame(maxWidth: .infinity, alignment: frameAlignment)
-                }
-                .if(textBlock.wrap != true) { view in
-                    view.frame(maxWidth: .infinity, alignment: frameAlignment)
+                    view.fixedSize(horizontal: false, vertical: true)
                 }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
@@ -52,6 +50,9 @@ struct TextBlockView: View {
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
+                .if(textBlock.wrap == true) { view in
+                    view.fixedSize(horizontal: false, vertical: true)
+                }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
                 .accessibilityElement(label: displayText)
