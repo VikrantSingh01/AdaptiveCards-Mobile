@@ -14,7 +14,7 @@ import kotlinx.serialization.json.JsonElement
 data class Carousel(
     @Transient override val type: String = "Carousel",
     override val id: String? = null,
-    override val isVisible: Boolean = true,
+    @Transient override val isVisible: Boolean = true,
     override val separator: Boolean = false,
     override val spacing: Spacing? = null,
     override val height: BlockElementHeight? = null,

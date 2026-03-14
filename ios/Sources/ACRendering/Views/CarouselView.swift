@@ -41,21 +41,23 @@ struct CarouselView: View {
     var body: some View {
         let pages = visiblePages
         VStack(spacing: 0) {
-            TabView(selection: $currentPage) {
-                ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
-                    CarouselPageView(page: page, hostConfig: hostConfig, isTablet: isTablet, depth: depth)
-                        .tag(index)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Page \(index + 1) of \(pages.count)")
+            if !pages.isEmpty {
+                TabView(selection: $currentPage) {
+                    ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
+                        CarouselPageView(page: page, hostConfig: hostConfig, isTablet: isTablet, depth: depth)
+                            .tag(index)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("Page \(index + 1) of \(pages.count)")
+                    }
                 }
+                #if os(iOS)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                #endif
+                .frame(height: estimatedHeight)
             }
-            #if os(iOS)
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            #endif
-            .frame(height: estimatedHeight)
 
-            // Custom page indicators (matching Android accent-colored dots)
-            if pages.count > 1 {
+            // Custom page indicators — show when total carousel pages > 1
+            if carousel.pages.count > 1 && !pages.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(0..<pages.count, id: \.self) { index in
                         Circle()
@@ -125,7 +127,13 @@ struct CarouselView: View {
         let estimated = maxPageContent + pagePadding
         // Compact minimum — avoid excessive whitespace for small content
         let minimum: CGFloat = isTablet ? 160 : 100
-        let result = max(estimated, minimum)
+        // Cap to prevent carousel from consuming all vertical space (leaves room for actions)
+        #if canImport(UIKit)
+        let maxHeight: CGFloat = UIScreen.main.bounds.height * 0.65
+        #else
+        let maxHeight: CGFloat = 500
+        #endif
+        let result = min(max(estimated, minimum), maxHeight)
 
         if sizeCategory.isAccessibilityCategory {
             return result * 1.3
