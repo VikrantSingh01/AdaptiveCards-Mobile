@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -49,10 +50,16 @@ fun TabSetView(
     ) {
         // Tab Row
         if (element.tabs.size > 1) {
+            val accentColor = try {
+                Color(android.graphics.Color.parseColor(hostConfig.containerStyles.default.foregroundColors.accent.default))
+            } catch (_: Exception) {
+                MaterialTheme.colorScheme.primary
+            }
+
             ScrollableTabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary,
+                contentColor = accentColor,
                 edgePadding = if (isTablet) 8.dp else 0.dp,
                 modifier = Modifier.semantics {
                     contentDescription = "Tab navigation with ${element.tabs.size} tabs"
