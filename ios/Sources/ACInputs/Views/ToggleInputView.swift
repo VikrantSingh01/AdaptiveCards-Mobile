@@ -37,5 +37,12 @@ public struct ToggleInputView: View {
             value: value ? "On" : "Off",
             isRequired: false
         )
+        .onAppear {
+            let valueOn = input.valueOn ?? "true"
+            let shouldBeOn = input.value == valueOn
+            if value != shouldBeOn {
+                value = shouldBeOn
+            }
+        }
     }
 }

@@ -77,20 +77,36 @@ public struct ChoiceSetInputView: View {
     }
 
     private var singleSelectCompactView: some View {
-        Picker(input.placeholder ?? "Select", selection: Binding(
-            get: { value ?? "" },
-            set: { newValue in
-                value = newValue
-                validateIfNeeded()
-            }
-        )) {
-            Text(input.placeholder ?? "Select").tag("")
+        Menu {
             ForEach(input.choices, id: \.value) { choice in
-                Text(choice.title).tag(choice.value)
+                Button(action: {
+                    value = choice.value
+                    validateIfNeeded()
+                }) {
+                    if value == choice.value {
+                        Label(choice.title, systemImage: "checkmark")
+                    } else {
+                        Text(choice.title)
+                    }
+                }
             }
+        } label: {
+            HStack {
+                Text(input.choices.first(where: { $0.value == value })?.title
+                     ?? input.placeholder ?? "Select...")
+                    .foregroundColor(value == nil || value?.isEmpty == true ? .secondary : .primary)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.secondary.opacity(0.4), lineWidth: 1)
+            )
         }
-        .pickerStyle(.menu)
-        .tint(.blue)
     }
 
     private var multiSelectCompactView: some View {
