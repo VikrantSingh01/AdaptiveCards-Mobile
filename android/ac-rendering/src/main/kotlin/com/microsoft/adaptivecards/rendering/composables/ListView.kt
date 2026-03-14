@@ -6,6 +6,7 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +43,10 @@ private object ListLayout {
 }
 
 /**
- * Renders a List element with support for different styles and scrolling
+ * Renders a List element with support for different styles and scrolling.
+ * Uses LazyColumn only when maxHeight is set (self-scrolling list);
+ * otherwise uses Column to avoid nested-scrolling crashes when the card
+ * itself is inside a scrollable parent.
  */
 @Composable
 fun ListView(
@@ -49,74 +55,98 @@ fun ListView(
     actionHandler: ActionHandler,
     modifier: Modifier = Modifier
 ) {
-    val listState = rememberLazyListState()
     val maxHeightDp = parseMaxHeight(element.maxHeight)
     val listStyle = element.style ?: "default"
-    
-    val listModifier = if (maxHeightDp != null) {
-        modifier.heightIn(max = maxHeightDp)
-    } else {
-        modifier
-    }
-    
-    LazyColumn(
-        state = listState,
-        modifier = listModifier
-            .fillMaxWidth()
-            .semantics {
-                collectionInfo = CollectionInfo(
-                    rowCount = element.items.size,
-                    columnCount = 1
-                )
-            },
-        verticalArrangement = Arrangement.spacedBy(ListLayout.ItemSpacingVertical)
-    ) {
-        itemsIndexed(element.items) { index, item ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = ListLayout.MinTouchTarget),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.Top
-            ) {
-                // Render list item prefix based on style
-                when (listStyle) {
-                    "bulleted" -> {
-                        Text(
-                            text = "•",
-                            fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .width(ListLayout.BulletWidth)
-                                .padding(end = ListLayout.ItemSpacing)
-                        )
-                    }
-                    "numbered" -> {
-                        Text(
-                            text = "${index + 1}.",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .width(ListLayout.NumberWidth)
-                                .padding(end = ListLayout.ItemSpacing)
-                        )
-                    }
-                }
-                
-                // Render item content
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = ListLayout.ItemVerticalPadding)
-                ) {
-                    RenderElement(
-                        element = item,
-                        isFirst = false,
-                        viewModel = viewModel,
-                        actionHandler = actionHandler
+
+    if (maxHeightDp != null) {
+        // Bounded list: use LazyColumn for efficient scrolling within maxHeight
+        val listState = rememberLazyListState()
+        LazyColumn(
+            state = listState,
+            modifier = modifier
+                .heightIn(max = maxHeightDp)
+                .fillMaxWidth()
+                .semantics {
+                    collectionInfo = CollectionInfo(
+                        rowCount = element.items.size,
+                        columnCount = 1
                     )
-                }
+                },
+            verticalArrangement = Arrangement.spacedBy(ListLayout.ItemSpacingVertical)
+        ) {
+            itemsIndexed(element.items) { index, item ->
+                ListItemRow(index, item, listStyle, viewModel, actionHandler)
             }
+        }
+    } else {
+        // Unbounded list: use Column to participate in parent scroll container
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .semantics {
+                    collectionInfo = CollectionInfo(
+                        rowCount = element.items.size,
+                        columnCount = 1
+                    )
+                },
+            verticalArrangement = Arrangement.spacedBy(ListLayout.ItemSpacingVertical)
+        ) {
+            element.items.forEachIndexed { index, item ->
+                ListItemRow(index, item, listStyle, viewModel, actionHandler)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ListItemRow(
+    index: Int,
+    item: com.microsoft.adaptivecards.core.models.CardElement,
+    listStyle: String,
+    viewModel: CardViewModel,
+    actionHandler: ActionHandler
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = ListLayout.MinTouchTarget),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.Top
+    ) {
+        when (listStyle) {
+            "bulleted" -> {
+                Text(
+                    text = "•",
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .width(ListLayout.BulletWidth)
+                        .padding(end = ListLayout.ItemSpacing)
+                )
+            }
+            "numbered" -> {
+                Text(
+                    text = "${index + 1}.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .width(ListLayout.NumberWidth)
+                        .padding(end = ListLayout.ItemSpacing)
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = ListLayout.ItemVerticalPadding)
+        ) {
+            RenderElement(
+                element = item,
+                isFirst = false,
+                viewModel = viewModel,
+                actionHandler = actionHandler
+            )
         }
     }
 }

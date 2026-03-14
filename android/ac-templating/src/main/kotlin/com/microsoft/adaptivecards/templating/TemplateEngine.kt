@@ -333,8 +333,8 @@ class TemplateEngine {
                             val parsed = parser.parse(expression)
                             val evaluator = ExpressionEvaluator(context)
                             val result = evaluator.evaluate(parsed)
-                            // Return native type for complex values; stringify only for text
-                            return result
+                            // Return native type for complex values; coerce null to empty string
+                            return result ?: ""
                         } catch (_: Exception) {
                             return value // Leave as-is on error
                         }
