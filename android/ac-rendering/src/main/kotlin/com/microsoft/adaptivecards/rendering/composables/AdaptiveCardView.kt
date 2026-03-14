@@ -7,6 +7,8 @@ package com.microsoft.adaptivecards.rendering.composables
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -134,7 +136,11 @@ fun AdaptiveCardView(
                         LocalWidthCategory provides widthCategory,
                         LocalCardViewModel provides viewModel
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                        ) {
                             // Render body elements
                             adaptiveCard.body?.forEachIndexed { index, element ->
                                 RenderElement(
@@ -213,7 +219,11 @@ fun AdaptiveCardView(
                         LocalWidthCategory provides widthCategory,
                         LocalCardViewModel provides viewModel
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                        ) {
                             adaptiveCard.body?.forEachIndexed { index, element ->
                                 RenderElement(
                                     element = element,

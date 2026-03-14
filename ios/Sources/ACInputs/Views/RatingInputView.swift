@@ -52,9 +52,10 @@ public struct RatingInputView: View {
                         starImage(for: starIndex)
                             .foregroundColor(starIndex <= Int(value.rounded(.up)) ? .yellow : .gray)
                             .font(adaptiveStarSize)
+                            .frame(minWidth: 28, minHeight: 28)
                     }
                     .buttonStyle(.plain)
-                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle().size(width: 44, height: 44))
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("\(starIndex) star\(starIndex == 1 ? "" : "s")")
                     .accessibilityHint(starIndex <= Int(value.rounded(.up)) ? "Selected" : "Not selected. Double tap to select")

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -178,12 +179,12 @@ fun CompoundButtonView(
                 IconView(element.iconName, contentColor)
             }
 
-            // Chevron indicator
+            // Chevron indicator (matching iOS chevron.right style)
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = contentColor.copy(alpha = 0.5f)
+                modifier = Modifier.size(20.dp),
+                tint = contentColor.copy(alpha = 0.6f)
             )
         }
     }
@@ -206,12 +207,42 @@ private fun IconView(iconString: String?, tintColor: Color) {
             placeholder = painterResource(android.R.drawable.ic_menu_gallery)
         )
     } else {
+        // Resolve Fluent icon name to Material filled icon (matching iOS SF Symbol style)
+        val resolved = resolveCompoundButtonIcon(iconString)
         Icon(
-            painter = painterResource(android.R.drawable.ic_menu_info_details),
+            imageVector = resolved,
             contentDescription = null,
             modifier = Modifier.size(CompoundButtonLayout.IconSize),
             tint = tintColor
         )
+    }
+}
+
+private fun resolveCompoundButtonIcon(name: String): androidx.compose.ui.graphics.vector.ImageVector {
+    val lookup = name.split(",").firstOrNull()?.lowercase() ?: name.lowercase()
+    return when (lookup) {
+        "calendar" -> Icons.Filled.DateRange
+        "send" -> Icons.Filled.Send
+        "edit" -> Icons.Filled.Edit
+        "delete" -> Icons.Filled.Delete
+        "add" -> Icons.Filled.Add
+        "search" -> Icons.Filled.Search
+        "share" -> Icons.Filled.Share
+        "star" -> Icons.Filled.Star
+        "heart" -> Icons.Filled.Favorite
+        "bookmark" -> Icons.Filled.Bookmark
+        "info" -> Icons.Filled.Info
+        "warning" -> Icons.Filled.Warning
+        "settings" -> Icons.Filled.Settings
+        "mail", "email" -> Icons.Filled.Email
+        "phone", "call" -> Icons.Filled.Call
+        "location" -> Icons.Filled.LocationOn
+        "person", "peopleteam" -> Icons.Filled.Person
+        "home" -> Icons.Filled.Home
+        "notification", "bell", "alert" -> Icons.Filled.Notifications
+        "check", "checkmark" -> Icons.Filled.Check
+        "close", "dismiss" -> Icons.Filled.Close
+        else -> Icons.Filled.Info
     }
 }
 

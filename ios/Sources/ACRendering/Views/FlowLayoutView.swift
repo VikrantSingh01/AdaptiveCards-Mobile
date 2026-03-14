@@ -103,9 +103,14 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
         var totalWidth: CGFloat = 0
 
         for subview in subviews {
-            let size = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+            // Measure with nil width so FlowItemModifier's frame constraints take effect.
+            // Proposing full maxWidth caused every item to stretch to container width,
+            // producing a single-column layout instead of multi-column wrapping.
+            let size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            let clampedWidth = min(size.width, maxWidth)
+            let clampedSize = CGSize(width: clampedWidth, height: size.height)
 
-            if currentX + size.width > maxWidth && currentX > 0 {
+            if currentX + clampedWidth > maxWidth && currentX > 0 {
                 // Wrap to next row
                 currentX = 0
                 currentY += rowHeight + verticalSpacing
@@ -113,9 +118,9 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
 
             positions.append(CGPoint(x: currentX, y: currentY))
-            sizes.append(size)
-            rowHeight = max(rowHeight, size.height)
-            currentX += size.width + horizontalSpacing
+            sizes.append(clampedSize)
+            rowHeight = max(rowHeight, clampedSize.height)
+            currentX += clampedWidth + horizontalSpacing
             totalWidth = max(totalWidth, currentX - horizontalSpacing)
         }
 
