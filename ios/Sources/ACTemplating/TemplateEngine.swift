@@ -114,7 +114,7 @@ public final class TemplateEngine {
 
             // Find matching }
             var braceCount = 1
-            var endIndex = result.index(after: startRange.upperBound)
+            var endIndex = startRange.upperBound
 
             while endIndex < result.endIndex && braceCount > 0 {
                 let char = result[endIndex]
@@ -335,18 +335,12 @@ public final class TemplateEngine {
 
     /// Extracts a raw expression from a template string.
     /// If the string is of the form "${expr}", returns "expr".
-    /// Also handles single-brace "{expr}" pattern (legacy/shorthand syntax).
+    /// Single-brace "{value}" is treated as a literal string (not an expression).
     /// Otherwise returns the string as-is (assumed to be a raw expression).
     private func extractExpression(from template: String) -> String {
         let trimmed = template.trimmingCharacters(in: .whitespaces)
         if trimmed.hasPrefix("${") && trimmed.hasSuffix("}") {
             let start = trimmed.index(trimmed.startIndex, offsetBy: 2)
-            let end = trimmed.index(before: trimmed.endIndex)
-            return String(trimmed[start..<end])
-        }
-        // Handle single-brace {expr} pattern — treat as expression reference
-        if trimmed.hasPrefix("{") && trimmed.hasSuffix("}") && trimmed.count > 2 {
-            let start = trimmed.index(after: trimmed.startIndex)
             let end = trimmed.index(before: trimmed.endIndex)
             return String(trimmed[start..<end])
         }

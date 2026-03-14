@@ -26,6 +26,10 @@ import com.microsoft.adaptivecards.core.models.CarouselPage
 import com.microsoft.adaptivecards.core.models.ColumnSet
 import com.microsoft.adaptivecards.core.models.Container
 import com.microsoft.adaptivecards.core.models.FactSet
+import com.microsoft.adaptivecards.core.models.FontSize
+import com.microsoft.adaptivecards.core.models.Image
+import com.microsoft.adaptivecards.core.models.ImageSize
+import com.microsoft.adaptivecards.core.models.TextBlock
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
@@ -189,9 +193,13 @@ private fun estimatePageHeight(page: CarouselPage, contentWidth: Float): Float {
 
 private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float): Float {
     val lineHeight = 20f
+    val defaultSpacing = 8f
     var height = 0f
 
-    for (item in items) {
+    for ((index, item) in items.withIndex()) {
+        // Add inter-item spacing (matching default AC spacing)
+        if (index > 0) height += defaultSpacing
+
         height += when (item) {
             is Container -> {
                 val nested = item.items ?: emptyList()
@@ -204,11 +212,42 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
                 } ?: (lineHeight * 3)
             }
             is FactSet -> lineHeight * item.facts.size.coerceAtLeast(1)
+            is TextBlock -> {
+                // Estimate lines based on text length relative to available width
+                // ~7dp per character at default font size, adjusted for larger sizes
+                val charsPerLine = (contentWidth / 7f).coerceAtLeast(1f)
+                val textLen = item.text.length.toFloat()
+                val baseFontScale = when (item.size) {
+                    FontSize.ExtraLarge -> 1.8f
+                    FontSize.Large -> 1.4f
+                    FontSize.Medium -> 1.2f
+                    FontSize.Small -> 0.85f
+                    else -> 1f
+                }
+                val estimatedLines = if (item.wrap == true) {
+                    ((textLen / charsPerLine) * baseFontScale).coerceIn(1f, 8f)
+                } else {
+                    1f
+                }
+                (lineHeight * baseFontScale * estimatedLines).coerceAtLeast(lineHeight)
+            }
+            is Image -> {
+                // Use named sizes instead of always assuming 1:1 aspect with content width
+                val widthPx = item.width?.removeSuffix("px")?.toIntOrNull()
+                val heightPx = item.pixelHeight?.removeSuffix("px")?.toIntOrNull()
+                when {
+                    heightPx != null -> heightPx.toFloat()
+                    widthPx != null -> widthPx.toFloat() // approximate 1:1
+                    else -> when (item.size) {
+                        ImageSize.Small -> 32f
+                        ImageSize.Medium -> 52f
+                        ImageSize.Large -> 100f
+                        ImageSize.Stretch -> contentWidth * 0.75f
+                        ImageSize.Auto, null -> contentWidth * 0.75f
+                    }
+                }
+            }
             else -> when (item.type) {
-                // TextBlocks in carousels typically wrap — estimate 3 lines for parity with iOS
-                "TextBlock" -> lineHeight * 3
-                // Images default to ~1:1 aspect ratio to match iOS sizing (was 0.75x, too small)
-                "Image" -> contentWidth
                 "ImageSet" -> contentWidth * 0.5f
                 "RichTextBlock" -> lineHeight * 3
                 else -> lineHeight * 2

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,9 +53,11 @@ fun ImageView(
     // Skip symbol: URLs (platform-specific, not renderable)
     if (element.url.startsWith("symbol:")) return
 
-    // Determine image size
+    // Determine image size — detect SVG from URL, themedUrls, and content type hints
     val isSvg = element.url.endsWith(".svg", ignoreCase = true) ||
-        element.url.startsWith("data:image/svg+xml")
+        element.url.startsWith("data:image/svg+xml") ||
+        element.url.contains("/svg", ignoreCase = true) ||
+        element.themedUrls?.values?.any { it.endsWith(".svg", ignoreCase = true) || it.contains("svg", ignoreCase = true) } == true
     val imageModifier = when (element.size ?: ImageSize.Auto) {
         ImageSize.Small -> modifier.size(hostConfig.imageSizes.small.dp)
         ImageSize.Medium -> {
@@ -82,7 +85,9 @@ fun ImageView(
                 hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: fill container width to match iOS parity.
                 // Images without explicit size should expand to fill available width.
-                else -> modifier.fillMaxWidth()
+                // Add minimum height to prevent zero-height collapse before image loads,
+                // ensuring the layout reserves space matching iOS sizing behavior.
+                else -> modifier.fillMaxWidth().heightIn(min = 100.dp)
             }
         }
     }
@@ -108,9 +113,10 @@ fun ImageView(
     val model = ImageRequest.Builder(context)
         .data(imageData)
         .apply {
-            if (isSvg) {
-                decoderFactory(SvgDecoder.Factory())
-            }
+            // Always add SvgDecoder — it checks content type/magic bytes internally,
+            // so it's safe as a fallback and handles SVGs served from URLs without
+            // .svg extension (e.g., CDN-hosted brand logos like Disney).
+            decoderFactory(SvgDecoder.Factory())
             if (element.forceLoad == true) {
                 memoryCachePolicy(CachePolicy.DISABLED)
                 diskCachePolicy(CachePolicy.DISABLED)
