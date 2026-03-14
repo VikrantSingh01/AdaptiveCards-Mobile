@@ -45,6 +45,7 @@
 |---|---|
 | [design-pass.sh](design-pass.sh) | End-to-end design review: captures all card + app screenshots on both platforms, generates an HTML catalog with side-by-side comparison |
 | [generate-design-catalog.sh](generate-design-catalog.sh) | Generates a self-contained `index.html` from a screenshot directory with category filters, search, and lightbox |
+| [deploy-catalog.sh](deploy-catalog.sh) | Deploys the latest (or specified) design catalog to GitHub Pages (`gh-pages` branch) |
 
 ## Utilities
 
