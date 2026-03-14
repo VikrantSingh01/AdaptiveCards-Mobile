@@ -82,6 +82,20 @@ struct TableView: View {
     }
 }
 
+// MARK: - Table Cell Alignment Environment
+
+/// Environment key to pass table cell horizontal alignment down to child TextBlocks
+struct TableCellAlignmentKey: EnvironmentKey {
+    static let defaultValue: ACCore.HorizontalAlignment? = nil
+}
+
+extension EnvironmentValues {
+    var tableCellHorizontalAlignment: ACCore.HorizontalAlignment? {
+        get { self[TableCellAlignmentKey.self] }
+        set { self[TableCellAlignmentKey.self] = newValue }
+    }
+}
+
 struct TableCellView: View {
     let cell: TableCell
     let isHeader: Bool
@@ -117,6 +131,7 @@ struct TableCellView: View {
                             }
                         }
                     }
+                    .environment(\.tableCellHorizontalAlignment, resolvedACHorizontalAlignment)
                 }
             } else {
                 Text("")
@@ -129,6 +144,14 @@ struct TableCellView: View {
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
         .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
         .containerStyle(cell.style, hostConfig: hostConfig)
+    }
+
+    /// Resolved horizontal alignment as ACCore enum, for environment propagation
+    private var resolvedACHorizontalAlignment: ACCore.HorizontalAlignment? {
+        cell.horizontalCellContentAlignment
+            ?? columnDef?.horizontalCellContentAlignment
+            ?? row?.horizontalCellContentAlignment
+            ?? table?.horizontalCellContentAlignment
     }
 
     private var resolvedHStackAlignment: SwiftUI.HorizontalAlignment {

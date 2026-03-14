@@ -15,6 +15,7 @@ struct TextBlockView: View {
     let hostConfig: HostConfig
 
     @Environment(\.layoutDirection) var layoutDirection
+    @Environment(\.tableCellHorizontalAlignment) var tableCellAlignment
 
     private var displayText: String {
         let raw = textBlock.text ?? ""
@@ -216,15 +217,25 @@ struct TextBlockView: View {
     }
 
     private var textAlignment: TextAlignment {
-        .from(textBlock.horizontalAlignment)
+        // Use TextBlock's own alignment, falling back to table cell alignment
+        if textBlock.horizontalAlignment != nil {
+            return .from(textBlock.horizontalAlignment)
+        }
+        if let cellAlign = tableCellAlignment {
+            return .from(cellAlign)
+        }
+        return .from(textBlock.horizontalAlignment)
     }
 
     private var frameAlignment: Alignment {
-        .from(
-            horizontal: textBlock.horizontalAlignment,
-            vertical: nil,
-            layoutDirection: layoutDirection
-        )
+        // Use TextBlock's own alignment, falling back to table cell alignment
+        if textBlock.horizontalAlignment != nil {
+            return .from(horizontal: textBlock.horizontalAlignment, vertical: nil, layoutDirection: layoutDirection)
+        }
+        if let cellAlign = tableCellAlignment {
+            return .from(horizontal: cellAlign, vertical: nil, layoutDirection: layoutDirection)
+        }
+        return .from(horizontal: textBlock.horizontalAlignment, vertical: nil, layoutDirection: layoutDirection)
     }
 
     /// Computes the effective line limit based on wrap and maxLines properties.
