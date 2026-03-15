@@ -38,14 +38,9 @@ public struct DataGridInputView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     headerRow
 
-                    ScrollView(.vertical, showsIndicators: true) {
-                        VStack(spacing: 0) {
-                            ForEach(0..<gridData.count, id: \.self) { rowIndex in
-                                dataRow(rowIndex: rowIndex)
-                            }
-                        }
+                    ForEach(0..<gridData.count, id: \.self) { rowIndex in
+                        dataRow(rowIndex: rowIndex)
                     }
-                    .frame(maxHeight: 400)
                 }
             }
 
