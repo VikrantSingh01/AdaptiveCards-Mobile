@@ -110,7 +110,7 @@ public struct ChoiceSetInputView: View {
     }
 
     private var multiSelectCompactView: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Menu {
             ForEach(input.choices, id: \.value) { choice in
                 Button(action: {
                     if selectedValues.contains(choice.value) {
@@ -120,18 +120,39 @@ public struct ChoiceSetInputView: View {
                     }
                     updateMultiSelectValue()
                 }) {
-                    HStack {
-                        Image(systemName: selectedValues.contains(choice.value) ? "checkmark.square.fill" : "square")
-                            .foregroundColor(selectedValues.contains(choice.value) ? .blue : .secondary)
+                    if selectedValues.contains(choice.value) {
+                        Label(choice.title, systemImage: "checkmark")
+                    } else {
                         Text(choice.title)
-                        Spacer()
                     }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .foregroundColor(.primary)
             }
+        } label: {
+            HStack {
+                Text(multiSelectSummary)
+                    .foregroundColor(selectedValues.isEmpty ? .secondary : .primary)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.secondary.opacity(0.4), lineWidth: 1)
+            )
         }
+    }
+
+    private var multiSelectSummary: String {
+        if selectedValues.isEmpty {
+            return input.placeholder ?? "Select..."
+        }
+        let titles = input.choices
+            .filter { selectedValues.contains($0.value) }
+            .map(\.title)
+        return titles.joined(separator: ", ")
     }
 
     private var expandedView: some View {
