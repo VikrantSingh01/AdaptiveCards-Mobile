@@ -43,6 +43,7 @@ struct ContainerView: View {
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
         .frame(minHeight: minHeight)
+        .modifier(OverflowModifier(maxHeight: maxHeight, overflow: container.overflow))
 
         Group {
             if let bgImage = container.backgroundImage {
@@ -129,7 +130,12 @@ struct ContainerView: View {
 
     private var minHeight: CGFloat? {
         guard let minHeightStr = container.minHeight else { return nil }
-        return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)
+        return parsePixelValue(minHeightStr)
+    }
+
+    private var maxHeight: CGFloat? {
+        guard let maxHeightStr = container.maxHeight else { return nil }
+        return parsePixelValue(maxHeightStr)
     }
 
     /// Resolves element spacing to a CGFloat value, falling back to hostConfig default.
@@ -146,6 +152,45 @@ struct ContainerView: View {
         case .large: return CGFloat(hostConfig.spacing.large)
         case .extraLarge: return CGFloat(hostConfig.spacing.extraLarge)
         case .padding: return CGFloat(hostConfig.spacing.padding)
+        }
+    }
+}
+
+/// Parses a pixel string like "200px" or "200" to a CGFloat value.
+private func parsePixelValue(_ value: String) -> CGFloat? {
+    let cleaned = value.replacingOccurrences(of: "px", with: "").trimmingCharacters(in: .whitespaces)
+    guard let num = Double(cleaned), num > 0 else { return nil }
+    return CGFloat(num)
+}
+
+/// Applies maxHeight + overflow behavior to a container.
+/// - `scroll`: wraps content in a ScrollView capped at maxHeight
+/// - `hidden`: clips content at maxHeight
+/// - `visible` / nil: just constrains maxHeight without clipping
+private struct OverflowModifier: ViewModifier {
+    let maxHeight: CGFloat?
+    let overflow: Overflow?
+
+    func body(content: Content) -> some View {
+        if let maxH = maxHeight {
+            switch overflow {
+            case .scroll:
+                ScrollView(.vertical, showsIndicators: true) {
+                    content
+                }
+                .frame(maxHeight: maxH)
+                .accessibilityElement(children: .contain)
+                .accessibilityHint("Scrollable content")
+            case .hidden:
+                content
+                    .frame(maxHeight: maxH)
+                    .clipped()
+            default:
+                content
+                    .frame(maxHeight: maxH)
+            }
+        } else {
+            content
         }
     }
 }

@@ -44,7 +44,11 @@ data class CardConfiguration(
     /** Provider for dynamic typeahead choices (Data.Query).
      *  When set, ChoiceSet inputs with `choices.data` will call this provider
      *  to fetch choices dynamically as the user types. */
-    val dataQueryProvider: DataQueryProvider? = null
+    val dataQueryProvider: DataQueryProvider? = null,
+
+    /** When true, shows a floating diagnostics overlay on the card with
+     *  performance metrics, element counts, and rendering details. */
+    val diagnosticsEnabled: Boolean = false
 ) {
     companion object {
         /** Default configuration using Teams light host config */
