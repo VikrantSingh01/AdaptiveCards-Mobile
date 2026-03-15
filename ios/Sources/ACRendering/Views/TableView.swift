@@ -56,6 +56,7 @@ struct TableView: View {
             }
         }
         .fixedSize(horizontal: false, vertical: true)
+        .clipped()
         .containerStyle(table.gridStyle, hostConfig: hostConfig)
         .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["table"] ?? 0)))
         .spacing(table.spacing, hostConfig: hostConfig)
@@ -182,8 +183,9 @@ struct TableCellView: View {
             }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: combinedAlignment)
+        .frame(maxHeight: .infinity, alignment: combinedAlignment)
         .frame(minHeight: minHeight)
+        .clipped()
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
         .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
         .containerStyle(cell.style, hostConfig: hostConfig)

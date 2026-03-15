@@ -105,24 +105,27 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
         for subview in subviews {
             // Measure with unspecified width to get ideal/natural size.
             // Items with explicit FlowItemModifier frame constraints will respect those.
-            var size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            let idealSize = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
 
-            // If item reports near-zero width (e.g., nested containers that need
-            // explicit width to lay out), re-measure with available width.
-            if size.width < 1 && maxWidth < .infinity {
-                size = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+            // Determine actual item width: use ideal width, but fall back to
+            // available width for nested containers that need explicit width.
+            var itemWidth = idealSize.width
+            if itemWidth < 1 && maxWidth < .infinity {
+                itemWidth = maxWidth
+            }
+            itemWidth = min(itemWidth, maxWidth)
+
+            // Re-measure at final width to get correct height.
+            // Nested flow layouts and tables need this to compute wrapped height.
+            let clampedSize: CGSize
+            if itemWidth < idealSize.width && maxWidth < .infinity {
+                let remeasured = subview.sizeThatFits(ProposedViewSize(width: itemWidth, height: nil))
+                clampedSize = CGSize(width: itemWidth, height: remeasured.height)
+            } else {
+                clampedSize = CGSize(width: itemWidth, height: idealSize.height)
             }
 
-            let clampedWidth = min(size.width, maxWidth)
-            // Always re-measure with actual placement width when container has finite width.
-            // The nil-width measurement computes height at infinite width (single row),
-            // which is wrong for nested containers/flow layouts that need wrapping.
-            if maxWidth < .infinity {
-                size = subview.sizeThatFits(ProposedViewSize(width: clampedWidth, height: nil))
-            }
-            let clampedSize = CGSize(width: clampedWidth, height: size.height)
-
-            if currentX + clampedWidth > maxWidth && currentX > 0 {
+            if currentX + clampedSize.width > maxWidth && currentX > 0 {
                 // Wrap to next row
                 currentX = 0
                 currentY += rowHeight + verticalSpacing
@@ -132,7 +135,7 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             positions.append(CGPoint(x: currentX, y: currentY))
             sizes.append(clampedSize)
             rowHeight = max(rowHeight, clampedSize.height)
-            currentX += clampedWidth + horizontalSpacing
+            currentX += clampedSize.width + horizontalSpacing
             totalWidth = max(totalWidth, currentX - horizontalSpacing)
         }
 
