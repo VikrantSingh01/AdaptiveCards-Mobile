@@ -88,7 +88,8 @@ fun CarouselView(
         val screenHeightDp = configuration.screenHeightDp.toFloat()
         val hPad = if (isTablet) 80f else 48f
         val contentWidth = screenWidthDp - hPad
-        val pagePadding = if (isTablet) 48f else 32f
+        // Account for Card vertical padding (8dp*2=16dp) + Column internal padding (16dp*2=32dp)
+        val pagePadding = if (isTablet) 64f else 48f
 
         // If heightInPixels is set, use it directly (matching iOS)
         val explicitHeight = element.heightInPixels
@@ -280,10 +281,9 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
                         ImageSize.Medium -> 52f
                         ImageSize.Large -> 100f
                         ImageSize.Stretch -> contentWidth * 0.75f
-                        // Auto images fill their container width with a small minimum
-                        // height (40dp). In narrow columns, the image height will match
-                        // the column width (for square images), clamped to the minimum.
-                        ImageSize.Auto, null -> maxOf(contentWidth, 40f)
+                        // Auto images fill container width; assume landscape 4:3 aspect
+                        // ratio (matching iOS) to avoid undersizing carousel pages.
+                        ImageSize.Auto, null -> maxOf(contentWidth * 0.75f, 40f)
                     }
                 }
             }
