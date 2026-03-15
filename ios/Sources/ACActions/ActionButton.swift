@@ -50,7 +50,8 @@ public struct ActionButton: View {
 
                 if let title = title {
                     Text(title)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .font(.system(size: 14, weight: .medium))
