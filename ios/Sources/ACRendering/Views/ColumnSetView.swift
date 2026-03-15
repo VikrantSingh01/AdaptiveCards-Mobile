@@ -131,12 +131,24 @@ struct ColumnSetView: View {
     }
 
     var body: some View {
-        ProportionalColumnLayout(columns: visibleColumns, columnSpacing: columnSpacing) {
+        let content = ProportionalColumnLayout(columns: visibleColumns, columnSpacing: columnSpacing) {
             ForEach(visibleColumns, id: \.stableId) { column in
                 ColumnView(column: column, hostConfig: hostConfig, depth: depth)
             }
         }
         .frame(minHeight: minHeight)
+
+        Group {
+            if columnSet.overflow == Overflow.scroll {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    content
+                }
+            } else if columnSet.overflow == Overflow.hidden {
+                content.clipped()
+            } else {
+                content
+            }
+        }
         .containerStyle(columnSet.style, hostConfig: hostConfig)
         .spacing(columnSet.spacing, hostConfig: hostConfig)
         .separator(columnSet.separator, hostConfig: hostConfig)

@@ -5,7 +5,9 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -51,11 +53,16 @@ fun ColumnSetView(
 
     val cornerRadius = hostConfig.cornerRadius.columnSet
 
+    val isScrollable = element.overflow?.equals("Scroll", ignoreCase = true) == true
+    val isClipped = element.overflow?.equals("Hidden", ignoreCase = true) == true
+
     Row(
         modifier = modifier
             .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
             .containerStyle(element.style, cornerRadius)
-            .fillMaxWidth(),
+            .then(if (isScrollable) Modifier.horizontalScroll(rememberScrollState()) else Modifier)
+            .then(if (isClipped) Modifier.clip(RoundedCornerShape(0.dp)) else Modifier)
+            .then(if (!isScrollable) Modifier.fillMaxWidth() else Modifier),
         horizontalArrangement = Arrangement.spacedBy(spacing)
     ) {
         columns.forEachIndexed { index, column ->
