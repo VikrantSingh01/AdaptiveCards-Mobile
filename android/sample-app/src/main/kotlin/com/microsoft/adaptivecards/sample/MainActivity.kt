@@ -169,8 +169,9 @@ fun MainScreen() {
                 popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
                 popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
             ) { backStackEntry ->
-                val cardId = Uri.decode(backStackEntry.arguments?.getString("cardId") ?: "")
-                CardDetailScreen(cardId, actionLogState, bookmarkState, navController, editorState, perfStore, pendingActionTitle)
+                val rawCardId = backStackEntry.arguments?.getString("cardId") ?: ""
+                // Pass the raw (possibly Base64-encoded) cardId — CardDetailScreen handles decoding
+                CardDetailScreen(rawCardId, actionLogState, bookmarkState, navController, editorState, perfStore, pendingActionTitle)
             }
             composable("bookmarks") {
                 BookmarksScreen(bookmarkState, navController)
@@ -543,9 +544,14 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 }
                 // Pop current card detail (if any) then push new one for slide transition
                 navController.popBackStack("card_detail/{cardId}", inclusive = true)
-                // Encode dots as %2E to prevent Navigation Compose 2.7.x route
-                // matching issues with multi-dot filenames (e.g. Container.Nested.Flow.json)
-                val encoded = Uri.encode(cardFilename).replace(".", "%2E")
+                // Encode the entire filename so slashes and dots don't interfere
+                // with Navigation Compose route matching. Uri.encode does NOT encode
+                // '/' by default, and dots cause issues in Navigation Compose 2.7.x.
+                // Use android.util.Base64 URL-safe encoding for a clean round-trip.
+                val encoded = android.util.Base64.encodeToString(
+                    cardFilename.toByteArray(Charsets.UTF_8),
+                    android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP
+                )
                 navController.navigate("card_detail/$encoded")
             }
         }
