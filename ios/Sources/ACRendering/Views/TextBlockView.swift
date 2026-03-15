@@ -16,6 +16,7 @@ struct TextBlockView: View {
 
     @Environment(\.layoutDirection) var layoutDirection
     @Environment(\.tableCellHorizontalAlignment) var tableCellAlignment
+    @Environment(\.isInsideTableCell) var isInsideTableCell
 
     private var displayText: String {
         let raw = textBlock.text ?? ""
@@ -38,7 +39,7 @@ struct TextBlockView: View {
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
-                .if(textBlock.wrap == true) { view in
+                .if(textBlock.wrap == true || isInsideTableCell) { view in
                     view.fixedSize(horizontal: false, vertical: true)
                 }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
@@ -56,7 +57,7 @@ struct TextBlockView: View {
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
-                .if(textBlock.wrap == true) { view in
+                .if(textBlock.wrap == true || isInsideTableCell) { view in
                     view.fixedSize(horizontal: false, vertical: true)
                 }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
@@ -277,10 +278,14 @@ struct TextBlockView: View {
 
     /// Computes the effective line limit based on wrap and maxLines properties.
     /// When wrap is false/nil and no maxLines set, limit to 1 line (legacy behavior).
+    /// Inside table cells, default to wrapping to match Android behavior.
     private var effectiveLineLimit: Int? {
         if let maxLines = textBlock.maxLines {
             return maxLines
         }
-        return textBlock.wrap == true ? nil : 1
+        if textBlock.wrap == true || isInsideTableCell {
+            return nil
+        }
+        return 1
     }
 }
