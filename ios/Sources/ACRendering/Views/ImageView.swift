@@ -212,12 +212,11 @@ struct ImageView: View {
         return .clear
     }
 
-    /// Whether the image should fill available width (matching Android FillWidth behavior)
+    /// Whether the image should fill available width.
+    /// Only explicit stretch sizing fills width. Auto/nil sizes use natural image size
+    /// constrained by parent (matching Android behavior and AC spec).
     private var shouldFillWidth: Bool {
-        // Fill container width when: no explicit size/width/height AND no fitMode,
-        // OR width is explicitly set to "stretch".
-        if isWidthStretch { return true }
-        return image.size == nil && image.width == nil && image.height == nil && image.fitMode == nil
+        isWidthStretch
     }
 
     /// Whether width is explicitly set to "stretch"
