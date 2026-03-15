@@ -19,7 +19,8 @@ struct RatingDisplayView: View {
             HStack(spacing: 2) {
                 ForEach(0..<maxStars, id: \.self) { index in
                     starImage(for: index)
-                        .foregroundColor(starColor(for: index))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(starColor(for: index), emptyStarColor)
                         .font(starSize)
                         .accessibilityHidden(true)
                 }
@@ -68,6 +69,10 @@ struct RatingDisplayView: View {
             return .title3
         }
         return baseSize
+    }
+
+    private var emptyStarColor: Color {
+        Color(hex: hostConfig.ratingLabel.emptyStar.marigoldColor)
     }
 
     private func starColor(for index: Int) -> Color {
