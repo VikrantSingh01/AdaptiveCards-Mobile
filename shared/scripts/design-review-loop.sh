@@ -13,9 +13,9 @@
 #   2. Deploys the HTML catalog to GitHub Pages for team review (deploy-catalog.sh)
 #   3. Runs AI-powered design review via Claude Code (reads screenshots)
 #   4. Generates a structured DESIGN_REVIEW_REPORT.md with P0/P1/P2 issues
-#   5. Spawns 2-3 parallel Claude Code agents in git worktrees to fix issues
+#   5. Spawns up to N parallel Claude Code agents in git worktrees to fix issues (--max-agents)
 #   6. Merges fixes and loops back to step 1
-#   7. Stops when P0=0 and P1=0, or max iterations reached
+#   7. Stops when P1=0 and P2=0, or max iterations reached
 #
 # Usage:
 #   bash shared/scripts/design-review-loop.sh                    # default: 5 iterations
@@ -26,6 +26,7 @@
 #   bash shared/scripts/design-review-loop.sh --review-only      # only run steps 1+2, no fixes
 #   bash shared/scripts/design-review-loop.sh --wait 5           # custom render wait (seconds)
 #   bash shared/scripts/design-review-loop.sh --model opus       # model for review/fix agents
+#   bash shared/scripts/design-review-loop.sh --max-agents 5    # max parallel fix agents (default: 5)
 #
 # Prerequisites:
 #   - iOS Simulator "iPhone 16 Pro" booted
@@ -68,6 +69,7 @@ REVIEW_ONLY=false
 RENDER_WAIT=4
 MODEL="opus"
 EXIT_ON_P2=false
+MAX_AGENTS=5
 
 # Parse args
 while [[ $# -gt 0 ]]; do
@@ -80,6 +82,7 @@ while [[ $# -gt 0 ]]; do
         --wait)           RENDER_WAIT="$2"; shift 2 ;;
         --model)          MODEL="$2"; shift 2 ;;
         --exit-on-p2)     EXIT_ON_P2=true; shift ;;
+        --max-agents)     MAX_AGENTS="$2"; shift 2 ;;
         -h|--help)
             sed -n '/^# Usage:/,/^# ===/{/^# ===/d;s/^# //;p}' "$0"
             exit 0 ;;
@@ -158,10 +161,11 @@ log "Loop artifacts: $LOOP_DIR"
 # Tracking
 # =============================================================================
 CATALOG_DIR=""
-P0_COUNT=999
 P1_COUNT=999
-P2_COUNT=0
+P2_COUNT=999
 P3_COUNT=0
+P4_COUNT=0
+P5_COUNT=0
 PREV_TOTAL_ISSUES=999
 LAST_ITERATION=0
 
@@ -616,27 +620,34 @@ parse_issues() {
     log_section "Iteration $iteration — Phase 3: Triage Issues"
 
     # Save previous values for stall detection
-    PREV_TOTAL_ISSUES=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
-    PREV_P0=$P0_COUNT
+    PREV_TOTAL_ISSUES=$((P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT + P5_COUNT))
     PREV_P1=$P1_COUNT
     PREV_P2=$P2_COUNT
+    PREV_P3=$P3_COUNT
 
-    # If issues.json exists (from review agent), parse it
-    if [ -f "$ISSUES_FILE" ]; then
-        P0_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p0_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
+    # Helper to read priority count from issues.json
+    read_counts_from_json() {
         P1_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p1_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
         P2_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p2_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
         P3_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p3_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-        TOTAL_ISSUES=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
-        log "Issues found: P0=$P0_COUNT  P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  Total=$TOTAL_ISSUES"
+        P4_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p4_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P5_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p5_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        TOTAL_ISSUES=$((P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT + P5_COUNT))
+    }
+
+    # If issues.json exists (from review agent), parse it
+    if [ -f "$ISSUES_FILE" ]; then
+        read_counts_from_json
+        log "Issues found: P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  P4=$P4_COUNT  P5=$P5_COUNT  Total=$TOTAL_ISSUES"
     elif [ -f "$REPORT_FILE" ]; then
-        # Fallback: count from markdown summary table (| # | **P0** | ... rows)
-        P0_COUNT=$(grep -c '| \*\*P0\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        # Fallback: count from markdown summary table (| # | **P1** | ... rows)
         P1_COUNT=$(grep -c '| \*\*P1\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
         P2_COUNT=$(grep -c '| \*\*P2\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
         P3_COUNT=$(grep -c '| \*\*P3\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
-        TOTAL_ISSUES=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
-        log "Issues (from markdown table): P0=$P0_COUNT  P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  Total=$TOTAL_ISSUES"
+        P4_COUNT=$(grep -c '| \*\*P4\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P5_COUNT=$(grep -c '| \*\*P5\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        TOTAL_ISSUES=$((P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT + P5_COUNT))
+        log "Issues (from markdown table): P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  P4=$P4_COUNT  P5=$P5_COUNT  Total=$TOTAL_ISSUES"
         log "WARNING: issues.json not found — using markdown table grep (less reliable)"
 
         # Generate issues.json from report for triage to work
@@ -644,22 +655,18 @@ parse_issues() {
 
         # Re-read counts from generated issues.json (more accurate than markdown grep)
         if [ -f "$ISSUES_FILE" ]; then
-            P0_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p0_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-            P1_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p1_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-            P2_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p2_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-            P3_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p3_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-            TOTAL_ISSUES=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
-            log "Updated counts from issues.json: P0=$P0_COUNT  P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  Total=$TOTAL_ISSUES"
+            read_counts_from_json
+            log "Updated counts from issues.json: P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  P4=$P4_COUNT  P5=$P5_COUNT  Total=$TOTAL_ISSUES"
         fi
     else
         log "ERROR: No report or issues.json found. Cannot triage."
-        P0_COUNT=0; P1_COUNT=0; P2_COUNT=0; P3_COUNT=0; TOTAL_ISSUES=0
+        P1_COUNT=0; P2_COUNT=0; P3_COUNT=0; P4_COUNT=0; P5_COUNT=0; TOTAL_ISSUES=0
         return 1
     fi
 
-    # Partition issues into P0/P1/P2 worklists with file-level conflict detection
+    # Partition issues into P1-P5 worklists with file-level conflict detection
     if [ -f "$ISSUES_FILE" ]; then
-        export ISSUES_FILE LOOP_DIR
+        export ISSUES_FILE LOOP_DIR MAX_AGENTS
         ITERATION="$iteration" python3 << 'PARTITION_EOF'
 import json, sys, os
 
@@ -674,12 +681,12 @@ issues = data.get("issues", [])
 
 # Partition by priority, sort by fix_confidence (high first)
 confidence_order = {"high": 0, "medium": 1, "low": 2}
-worklists = {"P0": [], "P1": [], "P2": []}
+worklists = {"P1": [], "P2": [], "P3": [], "P4": [], "P5": []}
 for issue in issues:
-    p = issue.get("priority", "P2")
+    p = issue.get("priority", "P3")
     if p in worklists:
         worklists[p].append(issue)
-    # P3 issues are not assigned to fix agents
+    # Issues outside P1-P5 (e.g., info-only) are not assigned to fix agents
 
 # Sort each worklist: dependency order first, then high confidence
 # "blocks" field means "this issue blocks issue X" — so issues with blocks entries go first
@@ -706,10 +713,11 @@ for p in worklists:
 
     worklists[p].sort(key=sort_key)
 
-# Compute file ownership — higher priority wins conflicts
-# Process P0 first, then P1, then P2
+# Compute file ownership — higher priority (lower number) wins conflicts
+# Process P1 first, then P2, P3, P4, P5
+priority_order = ["P1", "P2", "P3", "P4", "P5"]
 file_owners = {}
-for priority in ["P0", "P1", "P2"]:
+for priority in priority_order:
     for item in worklists[priority]:
         for f in item.get("affected_files", []):
             if f not in file_owners:
@@ -717,7 +725,7 @@ for priority in ["P0", "P1", "P2"]:
             # If already owned by higher priority, leave it
 
 # Reassign issues whose files are all owned by a higher priority
-for lower in ["P2", "P1"]:
+for lower in reversed(priority_order[1:]):  # P5, P4, P3, P2
     reassigned = []
     for item in worklists[lower]:
         files = item.get("affected_files", [])
@@ -730,25 +738,159 @@ for lower in ["P2", "P1"]:
         worklists[lower].remove(item)
 
 # Write worklists with file ownership metadata
-for priority, items in worklists.items():
-    if not items:
-        continue
-    owned_files = sorted(set(f for f, owner in file_owners.items() if owner == priority))
-    excluded_files = sorted(set(f for f, owner in file_owners.items() if owner != priority))
+# Split large worklists into sub-groups for parallel agents (up to MAX_AGENTS total)
+max_agents = int(os.environ.get("MAX_AGENTS", "5"))
 
-    worklist = {
-        "priority": priority,
-        "issue_count": len(items),
-        "issues": items,
-        "owned_files": owned_files,
-        "excluded_files": excluded_files
-    }
+# Collect all non-empty priority groups
+all_groups = []
+for priority in priority_order:
+    items = worklists[priority]
+    if items:
+        all_groups.append((priority, items))
 
-    outfile = os.path.join(loop_dir, f"worklist-{priority.lower()}-iteration-{iteration}.json")
-    with open(outfile, "w") as out:
-        json.dump(worklist, out, indent=2)
+# Calculate how many agent slots each priority gets (proportional to issue count)
+total_issues = sum(len(items) for _, items in all_groups)
+if total_issues == 0:
+    pass  # nothing to do
+else:
+    # Each priority gets at least 1 slot; distribute remainder proportionally
+    slots = {}
+    remaining_slots = max_agents
+    for priority, items in all_groups:
+        slots[priority] = 1
+        remaining_slots -= 1
 
-    print(f"{priority}: {len(items)} issues, {len(owned_files)} owned files")
+    # Distribute remaining slots proportionally
+    for priority, items in sorted(all_groups, key=lambda x: len(x[1]), reverse=True):
+        if remaining_slots <= 0:
+            break
+        extra = min(remaining_slots, max(0, round(len(items) / total_issues * max_agents) - 1))
+        slots[priority] += extra
+        remaining_slots -= extra
+
+    # Give any leftover slots to the largest group
+    if remaining_slots > 0 and all_groups:
+        largest = max(all_groups, key=lambda x: len(x[1]))[0]
+        slots[largest] += remaining_slots
+
+    for priority, items in all_groups:
+        n_slots = min(slots.get(priority, 1), len(items))  # no more slots than issues
+        owned_files = sorted(set(f for f, owner in file_owners.items() if owner == priority))
+        excluded_files = sorted(set(f for f, owner in file_owners.items() if owner != priority))
+
+        if n_slots <= 1:
+            # Single worklist for this priority
+            worklist = {
+                "priority": priority,
+                "issue_count": len(items),
+                "issues": items,
+                "owned_files": owned_files,
+                "excluded_files": excluded_files
+            }
+            outfile = os.path.join(loop_dir, f"worklist-{priority.lower()}-iteration-{iteration}.json")
+            with open(outfile, "w") as out:
+                json.dump(worklist, out, indent=2)
+            print(f"{priority}: {len(items)} issues, {len(owned_files)} owned files (1 agent)")
+        else:
+            # Split into sub-groups by clustering issues that share files.
+            # Uses union-find to guarantee NO two agents edit the same file.
+            # Issues sharing any file (even via directory overlap) are merged
+            # into the same cluster.
+
+            # Union-Find
+            parent = {}
+            def find(x):
+                while parent.get(x, x) != x:
+                    parent[x] = parent.get(parent[x], parent[x])
+                    x = parent[x]
+                return x
+            def union(a, b):
+                ra, rb = find(a), find(b)
+                if ra != rb:
+                    parent[ra] = rb
+
+            # Helper: check if two file paths overlap (one is a prefix of the other)
+            def paths_overlap(a, b):
+                # Normalize: ensure directories end with /
+                na = a.rstrip("/") + "/" if a.endswith("/") else a
+                nb = b.rstrip("/") + "/" if b.endswith("/") else b
+                # a is a directory containing b, or b is a directory containing a
+                if a.endswith("/") and nb.startswith(na):
+                    return True
+                if b.endswith("/") and na.startswith(nb):
+                    return True
+                return a == b
+
+            # Build file→issue index, respecting directory overlap
+            file_to_issues = {}
+            for i, item in enumerate(items):
+                for f in item.get("affected_files", []):
+                    # Check against existing keys for directory overlap
+                    merged_key = f
+                    for existing_key in list(file_to_issues.keys()):
+                        if paths_overlap(f, existing_key):
+                            merged_key = existing_key
+                            break
+                    if merged_key not in file_to_issues:
+                        file_to_issues[merged_key] = []
+                    file_to_issues[merged_key].append(i)
+
+            # Union issues that share any file (or overlapping directory)
+            for indices in file_to_issues.values():
+                for j in range(1, len(indices)):
+                    union(indices[0], indices[j])
+
+            # Also union issues with no affected_files into one group
+            no_files = [i for i, item in enumerate(items) if not item.get("affected_files")]
+            for j in range(1, len(no_files)):
+                union(no_files[0], no_files[j])
+
+            # Collect clusters
+            from collections import defaultdict
+            clusters = defaultdict(list)
+            for i in range(len(items)):
+                clusters[find(i)].append(i)
+            cluster_list = sorted(clusters.values(), key=lambda c: len(c), reverse=True)
+
+            # Merge smallest clusters until we have at most n_slots groups
+            while len(cluster_list) > n_slots:
+                # Merge the two smallest clusters
+                smallest = cluster_list.pop()
+                cluster_list[-1].extend(smallest)
+                cluster_list.sort(key=lambda c: len(c), reverse=True)
+
+            chunks = [[items[i] for i in cluster] for cluster in cluster_list]
+
+            for idx, chunk in enumerate(chunks):
+                chunk_owned = sorted(set(
+                    f for issue in chunk for f in issue.get("affected_files", [])
+                    if file_owners.get(f) == priority
+                ))
+                chunk_excluded = sorted(set(
+                    f for f, owner in file_owners.items() if f not in chunk_owned
+                ))
+                # Verify no file overlap with other chunks (defensive check)
+                for other_idx, other_chunk in enumerate(chunks):
+                    if other_idx == idx:
+                        continue
+                    other_files = set(
+                        f for issue in other_chunk for f in issue.get("affected_files", [])
+                    )
+                    overlap = set(chunk_owned) & other_files
+                    if overlap:
+                        print(f"  WARNING: file overlap between {priority}-{idx+1} and {priority}-{other_idx+1}: {overlap}", file=sys.stderr)
+
+                worklist = {
+                    "priority": f"{priority}-{idx+1}",
+                    "issue_count": len(chunk),
+                    "issues": chunk,
+                    "owned_files": chunk_owned,
+                    "excluded_files": chunk_excluded
+                }
+                outfile = os.path.join(loop_dir, f"worklist-{priority.lower()}-{idx+1}-iteration-{iteration}.json")
+                with open(outfile, "w") as out:
+                    json.dump(worklist, out, indent=2)
+            print(f"{priority}: {len(items)} issues, {len(owned_files)} owned files ({len(chunks)} agents)")
 
 PARTITION_EOF
         log "Worklists generated."
@@ -769,14 +911,15 @@ Use this exact JSON structure:
   \"catalog\": \"from-report\",
   \"timestamp\": \"$(date '+%Y-%m-%d %H:%M:%S')\",
   \"total_cards\": 287,
-  \"p0_count\": <count>,
   \"p1_count\": <count>,
   \"p2_count\": <count>,
   \"p3_count\": <count>,
+  \"p4_count\": <count>,
+  \"p5_count\": <count>,
   \"issues\": [
     {
       \"id\": 1,
-      \"priority\": \"P0\",
+      \"priority\": \"P1\",
       \"card\": \"card-name\",
       \"category\": \"Root\",
       \"platform\": \"android\",
@@ -824,15 +967,21 @@ run_fixes() {
         return 0
     fi
 
-    # Use indexed tracking instead of arrays to avoid bash array subscript issues with set -u
+    # Discover all worklist files for this iteration (supports split sub-groups)
     local agent_count=0
-    local pid_0="" pid_1="" pid_2=""
-    local name_0="" name_1="" name_2=""
-    local branch_0="" branch_1="" branch_2=""
+    local pids_file="$LOOP_DIR/fix-pids-iteration-${iteration}.txt"
+    > "$pids_file"  # truncate
 
-    for priority in p0 p1 p2; do
-        local worklist="$LOOP_DIR/worklist-${priority}-iteration-${iteration}.json"
-        [ -f "$worklist" ] || continue
+    # Find all worklist files: worklist-p0-iteration-N.json, worklist-p0-1-iteration-N.json, etc.
+    local worklist_files
+    worklist_files=$(find "$LOOP_DIR" -name "worklist-*-iteration-${iteration}.json" | sort)
+
+    for worklist in $worklist_files; do
+        local basename_wl
+        basename_wl=$(basename "$worklist")
+        # Extract priority tag: e.g., "p0", "p0-1", "p1-2" from "worklist-p0-1-iteration-3.json"
+        local priority
+        priority=$(echo "$basename_wl" | sed "s/worklist-//;s/-iteration-${iteration}\.json//")
 
         local issue_count
         issue_count=$(python3 -c "import json; print(json.load(open('$worklist')).get('issue_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
@@ -964,10 +1113,7 @@ When fixing a view on one platform, the counterpart on the other platform is usu
             > "$fix_log" 2>&1 &
 
         local this_pid=$!
-        # Store PID and metadata by index
-        eval "pid_${agent_count}=$this_pid"
-        eval "name_${agent_count}=$PRIORITY_UPPER"
-        eval "branch_${agent_count}=$branch_name"
+        echo "$this_pid $PRIORITY_UPPER $branch_name" >> "$pids_file"
         log "  $PRIORITY_UPPER agent PID: $this_pid (worktree branch: $branch_name)"
         agent_count=$((agent_count + 1))
     done
@@ -980,17 +1126,14 @@ When fixing a view on one platform, the counterpart on the other platform is usu
     # Wait for all agents
     log "Waiting for $agent_count fix agents to complete..."
     local failed=0
-    for i in $(seq 0 $((agent_count - 1))); do
-        local this_pid this_name
-        eval "this_pid=\$pid_${i}"
-        eval "this_name=\$name_${i}"
+    while IFS=' ' read -r this_pid this_name this_branch; do
         if wait "$this_pid"; then
             log "  $this_name agent completed successfully."
         else
             log "  WARNING: $this_name agent exited with errors."
             failed=$((failed + 1))
         fi
-    done
+    done < "$pids_file"
 
     log "Fix phase complete. $failed/$agent_count agents had errors."
 }
@@ -1049,13 +1192,24 @@ merge_fixes() {
     # Clean up orphaned fix branches from prior iterations first
     if [ "$iteration" -gt 1 ]; then
         for old_iter in $(seq 1 $((iteration - 1))); do
-            for old_priority in p0 p1 p2; do
-                local old_name="fix-${old_priority}-round-${old_iter}"
-                local old_branch
-                old_branch=$(resolve_fix_branch "$old_name" 2>/dev/null) || continue
-                log "Cleaning up orphaned branch from iteration $old_iter: $old_branch"
-                cleanup_branch "$old_branch"
-            done
+            local old_pids_file="$LOOP_DIR/fix-pids-iteration-${old_iter}.txt"
+            if [ -f "$old_pids_file" ]; then
+                while IFS=' ' read -r _ _ old_branch_name; do
+                    local old_branch
+                    old_branch=$(resolve_fix_branch "$old_branch_name" 2>/dev/null) || continue
+                    log "Cleaning up orphaned branch from iteration $old_iter: $old_branch"
+                    cleanup_branch "$old_branch"
+                done < "$old_pids_file"
+            else
+                # Fallback: check legacy p0/p1/p2 naming
+                for old_priority in p0 p1 p2; do
+                    local old_name="fix-${old_priority}-round-${old_iter}"
+                    local old_branch
+                    old_branch=$(resolve_fix_branch "$old_name" 2>/dev/null) || continue
+                    log "Cleaning up orphaned branch from iteration $old_iter: $old_branch"
+                    cleanup_branch "$old_branch"
+                done
+            fi
         done
     fi
 
@@ -1064,22 +1218,19 @@ merge_fixes() {
     local merged_count=0
     local empty_count=0
 
-    for priority in p0 p1 p2; do
-        local PRIORITY_UPPER
-        PRIORITY_UPPER=$(echo "$priority" | tr 'a-z' 'A-Z')
-        local worktree_name="fix-${priority}-round-${iteration}"
-        local worklist="$LOOP_DIR/worklist-${priority}-iteration-${iteration}.json"
+    # Discover branches from pids file (supports dynamic agent count)
+    local pids_file="$LOOP_DIR/fix-pids-iteration-${iteration}.txt"
+    if [ ! -f "$pids_file" ] || [ ! -s "$pids_file" ]; then
+        log "No fix agents were launched — nothing to merge."
+        return 0
+    fi
+
+    while IFS=' ' read -r _ agent_name worktree_name; do
+        local PRIORITY_UPPER="$agent_name"
         local branch
         branch=$(resolve_fix_branch "$worktree_name") || {
-            # Only warn if there was a worklist (agent was supposed to run)
-            if [ -f "$worklist" ]; then
-                local expected_issues
-                expected_issues=$(python3 -c "import json; print(json.load(open('$worklist')).get('issue_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-                if [ "$expected_issues" -gt 0 ]; then
-                    log "WARNING: $PRIORITY_UPPER agent was assigned $expected_issues issues but produced NO branch. Agent may have failed silently."
-                    empty_count=$((empty_count + 1))
-                fi
-            fi
+            log "WARNING: $PRIORITY_UPPER agent produced NO branch ($worktree_name). Agent may have failed silently."
+            empty_count=$((empty_count + 1))
             continue
         }
 
@@ -1087,23 +1238,16 @@ merge_fixes() {
         local ahead
         ahead=$(git -C "$REPO_ROOT" rev-list --count "$current_branch..$branch" 2>/dev/null | tr -d '[:space:]' || echo "0")
         if [ "$ahead" -eq 0 ]; then
-            # Check how many issues were assigned to detect silent failures
-            if [ -f "$worklist" ]; then
-                local expected_issues
-                expected_issues=$(python3 -c "import json; print(json.load(open('$worklist')).get('issue_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
-                log "WARNING: $PRIORITY_UPPER agent had $expected_issues issues but produced 0 commits. Likely stuck or all issues outside owned_files."
-                empty_count=$((empty_count + 1))
-            else
-                log "Branch $branch has no new commits — cleaning up."
-            fi
+            log "WARNING: $PRIORITY_UPPER agent produced 0 commits. Likely stuck or all issues outside owned_files."
+            empty_count=$((empty_count + 1))
             cleanup_branch "$branch"
             continue
         fi
 
         # Rebase the fix branch onto current main before merging.
         # Parallel agents fork from the same base commit, so later branches
-        # (P1, P2) don't have earlier branches' (P0) changes. Rebasing first
-        # avoids merge conflicts caused by overlapping fixes.
+        # don't have earlier branches' changes. Rebasing first avoids merge
+        # conflicts caused by overlapping fixes.
         log "Rebasing $branch onto $current_branch before merge..."
         if git -C "$REPO_ROOT" rebase "$current_branch" "$branch" 2>>"$LOOP_LOG"; then
             # Switch back to main after rebase (rebase leaves us on the rebased branch)
@@ -1124,15 +1268,175 @@ merge_fixes() {
             merged_count=$((merged_count + 1))
             cleanup_branch "$branch"
         else
-            log "  WARNING: Merge conflict on $PRIORITY_UPPER branch. Aborting merge."
-            git -C "$REPO_ROOT" merge --abort 2>/dev/null || true
-            log "  Keeping $branch for manual resolution."
+            log "  Merge conflict on $PRIORITY_UPPER branch. Attempting auto-resolution..."
+            auto_resolve_merge "$branch" "$PRIORITY_UPPER" "$current_branch" "$iteration"
+            local resolve_status=$?
+            if [ $resolve_status -eq 0 ]; then
+                log "  Auto-resolved and merged $PRIORITY_UPPER branch successfully."
+                merged_count=$((merged_count + 1))
+                cleanup_branch "$branch"
+            else
+                log "  WARNING: Auto-resolution failed for $PRIORITY_UPPER branch. Keeping for manual resolution."
+            fi
         fi
-    done
+    done < "$pids_file"
 
     log "Merge summary: $merged_count merged, $empty_count agents produced no changes."
     if [ "$empty_count" -gt 0 ]; then
         log "NOTE: $empty_count fix agents produced no output. Check fix logs for errors."
+    fi
+}
+
+# =============================================================================
+# Auto-Resolve Merge Conflicts
+# =============================================================================
+# Called when `git merge` fails with conflicts. Uses Claude to intelligently
+# resolve by understanding both branches' intent from commit messages and diffs.
+# Falls back to abort if resolution fails or introduces syntax errors.
+#
+# Args: $1=branch $2=priority_label $3=target_branch $4=iteration
+# Returns: 0 on success, 1 on failure (merge left aborted)
+
+auto_resolve_merge() {
+    local branch="$1"
+    local priority="$2"
+    local target="$3"
+    local iteration="$4"
+    local resolve_log="$LOOP_DIR/conflict-resolve-${priority}-iteration-${iteration}.log"
+
+    # Collect conflict context
+    local conflicted_files
+    conflicted_files=$(git -C "$REPO_ROOT" diff --name-only --diff-filter=U 2>/dev/null)
+    if [ -z "$conflicted_files" ]; then
+        log "  No conflicted files found (unexpected). Aborting merge."
+        git -C "$REPO_ROOT" merge --abort 2>/dev/null || true
+        return 1
+    fi
+
+    local conflict_count
+    conflict_count=$(echo "$conflicted_files" | wc -l | tr -d ' ')
+    log "  $conflict_count conflicted file(s): $(echo "$conflicted_files" | tr '\n' ' ')"
+
+    # Gather context for the resolution agent
+    local branch_commits
+    branch_commits=$(git -C "$REPO_ROOT" log --oneline "$target..$branch" 2>/dev/null | head -20)
+    local target_recent
+    target_recent=$(git -C "$REPO_ROOT" log --oneline -10 "$target" 2>/dev/null)
+
+    # Build the conflict diff (with markers) for each file
+    local conflict_diffs=""
+    local file_list=""
+    while IFS= read -r cfile; do
+        [ -z "$cfile" ] && continue
+        file_list="$file_list $cfile"
+        conflict_diffs="$conflict_diffs
+=== $cfile ===
+$(cat "$REPO_ROOT/$cfile" 2>/dev/null | head -500)
+"
+    done <<< "$conflicted_files"
+
+    # Build the resolution prompt
+    local resolve_prompt
+    resolve_prompt=$(cat <<RESOLVE_PROMPT_EOF
+You are resolving git merge conflicts in the AdaptiveCards-Mobile repository.
+
+## Context
+
+**Target branch** ($target) recent commits:
+$target_recent
+
+**Incoming branch** ($branch) commits being merged:
+$branch_commits
+
+## Conflicted Files
+
+$conflict_diffs
+
+## Resolution Rules
+
+1. **Read each conflicted file** using the Read tool to see the full context around conflicts.
+2. **Understand the intent of both sides** from the commit messages and surrounding code:
+   - Code between \`<<<<<<< HEAD\` and \`=======\` is from the target branch ($target)
+   - Code between \`=======\` and \`>>>>>>> $branch\` is from the incoming branch ($branch)
+3. **Resolve by combining both changes** when they modify different aspects (e.g., one adds a property, the other changes a comment). Prefer the more complete/correct version when they conflict on the same logic.
+4. **Prioritization rules:**
+   - If one side uses host config / theme values and the other hardcodes, keep the host config version
+   - If one side has a more complete implementation (handles more cases), keep it
+   - If one side is a bug fix and the other is a refactor, keep the bug-fix logic with the refactor structure
+   - If both add new code (non-overlapping), keep both
+   - When modifiers chain (\`modifier.xyz()\` vs \`Modifier.xyz()\`), prefer the chained version that preserves parent context
+5. **Remove ALL conflict markers** (\`<<<<<<<\`, \`=======\`, \`>>>>>>>\`) — the file must be valid source code after resolution.
+6. **Verify syntax**: After editing, ensure the file has balanced braces/brackets and no leftover conflict markers.
+
+## Process
+
+For each conflicted file:
+1. Read the full file
+2. Edit to resolve each conflict region (use the Edit tool to replace the conflicted section)
+3. Verify no conflict markers remain (search for \`<<<<<<<\`)
+
+Files to resolve:$file_list
+
+IMPORTANT: Only edit the conflicted files listed above. Do not modify any other files.
+RESOLVE_PROMPT_EOF
+    )
+
+    # Launch Claude to resolve
+    log "  Launching conflict resolution agent..."
+    if claude --print \
+        --model "$MODEL" \
+        --max-turns 30 \
+        --allowed-tools "Read,Edit,Grep,Glob,Bash" \
+        -p "$resolve_prompt" \
+        > "$resolve_log" 2>&1; then
+        log "  Resolution agent completed."
+    else
+        log "  Resolution agent exited with errors. Checking if conflicts were resolved anyway..."
+    fi
+
+    # Verify: no conflict markers remain in any file
+    local remaining_conflicts
+    remaining_conflicts=$(grep -rl '<<<<<<<' $file_list 2>/dev/null || true)
+    if [ -n "$remaining_conflicts" ]; then
+        log "  FAILED: Conflict markers still present in: $remaining_conflicts"
+        git -C "$REPO_ROOT" merge --abort 2>/dev/null || true
+        return 1
+    fi
+
+    # Verify: files are syntactically valid (basic check — balanced braces for Swift/Kotlin)
+    local syntax_ok=true
+    while IFS= read -r cfile; do
+        [ -z "$cfile" ] && continue
+        local ext="${cfile##*.}"
+        if [ "$ext" = "swift" ] || [ "$ext" = "kt" ]; then
+            local open_braces close_braces
+            open_braces=$(grep -o '{' "$REPO_ROOT/$cfile" 2>/dev/null | wc -l | tr -d ' ')
+            close_braces=$(grep -o '}' "$REPO_ROOT/$cfile" 2>/dev/null | wc -l | tr -d ' ')
+            if [ "$open_braces" -ne "$close_braces" ]; then
+                log "  FAILED: Unbalanced braces in $cfile (open=$open_braces, close=$close_braces)"
+                syntax_ok=false
+            fi
+        fi
+    done <<< "$conflicted_files"
+
+    if [ "$syntax_ok" = false ]; then
+        git -C "$REPO_ROOT" merge --abort 2>/dev/null || true
+        return 1
+    fi
+
+    # Stage resolved files and commit
+    while IFS= read -r cfile; do
+        [ -z "$cfile" ] && continue
+        git -C "$REPO_ROOT" add "$cfile"
+    done <<< "$conflicted_files"
+
+    if git -C "$REPO_ROOT" commit --no-edit 2>>"$LOOP_LOG"; then
+        log "  Merge commit created after auto-resolution."
+        return 0
+    else
+        log "  FAILED: Could not create merge commit."
+        git -C "$REPO_ROOT" merge --abort 2>/dev/null || true
+        return 1
     fi
 }
 
@@ -1205,37 +1509,37 @@ LEARN_EOF
 # =============================================================================
 # Stall Detection (per-priority weighted)
 # =============================================================================
-PREV_P0=999
 PREV_P1=999
-PREV_P2=0
+PREV_P2=999
+PREV_P3=0
 
 check_stall() {
     local iteration=$1
-    local current_total=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
+    local current_total=$((P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT + P5_COUNT))
 
     if [ "$iteration" -le 1 ] || [ "$PREV_TOTAL_ISSUES" -ge 999 ]; then
         return 1  # Not stalled — first iteration or no baseline
     fi
 
-    # Weighted score: P0 issues are 10x worse than P3
-    local prev_weighted=$(( PREV_P0 * 10 + PREV_P1 * 5 + PREV_P2 * 2 + (PREV_TOTAL_ISSUES - PREV_P0 - PREV_P1 - PREV_P2) ))
-    local curr_weighted=$(( P0_COUNT * 10 + P1_COUNT * 5 + P2_COUNT * 2 + P3_COUNT ))
+    # Weighted score: P1 issues are 10x worse than P5
+    local prev_weighted=$(( PREV_P1 * 10 + PREV_P2 * 5 + PREV_P3 * 2 + (PREV_TOTAL_ISSUES - PREV_P1 - PREV_P2 - PREV_P3) ))
+    local curr_weighted=$(( P1_COUNT * 10 + P2_COUNT * 5 + P3_COUNT * 2 + P4_COUNT + P5_COUNT ))
 
-    # Detect P0 regression — always stall if P0 count increased
-    if [ "$P0_COUNT" -gt "$PREV_P0" ] && [ "$PREV_P0" -lt 999 ]; then
-        log "REGRESSION DETECTED: P0 count increased ($PREV_P0 -> $P0_COUNT). Stopping to prevent further damage."
+    # Detect P1 regression — always stall if P1 count increased
+    if [ "$P1_COUNT" -gt "$PREV_P1" ] && [ "$PREV_P1" -lt 999 ]; then
+        log "REGRESSION DETECTED: P1 count increased ($PREV_P1 -> $P1_COUNT). Stopping to prevent further damage."
         return 0
     fi
 
     # Stall if weighted score didn't improve
     if [ "$curr_weighted" -ge "$prev_weighted" ]; then
         log "STALL DETECTED: Weighted issue score did not decrease ($prev_weighted -> $curr_weighted)."
-        log "  Breakdown: P0=$PREV_P0->$P0_COUNT  P1=$PREV_P1->$P1_COUNT  P2=$PREV_P2->$P2_COUNT"
+        log "  Breakdown: P1=$PREV_P1->$P1_COUNT  P2=$PREV_P2->$P2_COUNT  P3=$PREV_P3->$P3_COUNT"
         log "Fix agents may not have resolved any issues. Stopping to avoid infinite loop."
         return 0
     fi
 
-    log "Progress: weighted score $prev_weighted -> $curr_weighted (P0=$PREV_P0->$P0_COUNT  P1=$PREV_P1->$P1_COUNT  P2=$PREV_P2->$P2_COUNT)"
+    log "Progress: weighted score $prev_weighted -> $curr_weighted (P1=$PREV_P1->$P1_COUNT  P2=$PREV_P2->$P2_COUNT  P3=$PREV_P3->$P3_COUNT)"
     return 1  # Not stalled
 }
 
@@ -1245,20 +1549,20 @@ check_stall() {
 should_continue() {
     local iteration=$1
 
-    # Check P0 + P1 = 0
-    if [ "${P0_COUNT:-0}" -eq 0 ] && [ "${P1_COUNT:-0}" -eq 0 ]; then
-        if [ "$EXIT_ON_P2" = true ] && [ "${P2_COUNT:-0}" -gt 0 ]; then
-            log "P0/P1 resolved but P2 issues remain ($P2_COUNT). Continuing (--exit-on-p2 set)."
-            return 0  # Continue to fix P2
+    # Check P1 + P2 = 0 (critical issues resolved)
+    if [ "${P1_COUNT:-0}" -eq 0 ] && [ "${P2_COUNT:-0}" -eq 0 ]; then
+        if [ "$EXIT_ON_P2" = true ] && [ "${P3_COUNT:-0}" -gt 0 ]; then
+            log "P1/P2 resolved but P3 issues remain ($P3_COUNT). Continuing (--exit-on-p2 set)."
+            return 0  # Continue to fix P3
         fi
-        log "All P0 and P1 issues resolved! ($P2_COUNT P2, $P3_COUNT P3 remaining)"
+        log "All P1 and P2 issues resolved! ($P3_COUNT P3, $P4_COUNT P4, $P5_COUNT P5 remaining)"
         return 1  # Stop
     fi
 
     # Max iterations
     if [ "$iteration" -ge "$MAX_ITERATIONS" ]; then
         log "Max iterations ($MAX_ITERATIONS) reached. Stopping."
-        log "Remaining: P0=$P0_COUNT  P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT"
+        log "Remaining: P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  P4=$P4_COUNT  P5=$P5_COUNT"
         return 1  # Stop
     fi
 
@@ -1308,8 +1612,8 @@ for iteration in $(seq 1 "$MAX_ITERATIONS"); do
         break
     fi
 
-    if [ "${P0_COUNT:-0}" -eq 0 ] && [ "${P1_COUNT:-0}" -eq 0 ]; then
-        log "No P0/P1 issues found. Done!"
+    if [ "${P1_COUNT:-0}" -eq 0 ] && [ "${P2_COUNT:-0}" -eq 0 ]; then
+        log "No P1/P2 issues found. Done!"
         break
     fi
 
@@ -1351,14 +1655,14 @@ LOOP_SECONDS=$((LOOP_DURATION % 60))
 log_section "Design Review Loop — Complete"
 log "Iterations run: $LAST_ITERATION"
 log "Total duration: ${LOOP_MINUTES}m ${LOOP_SECONDS}s"
-log "Final issue counts: P0=${P0_COUNT:-?}  P1=${P1_COUNT:-?}  P2=${P2_COUNT:-?}  P3=${P3_COUNT:-?}"
+log "Final issue counts: P1=${P1_COUNT:-?}  P2=${P2_COUNT:-?}  P3=${P3_COUNT:-?}  P4=${P4_COUNT:-?}  P5=${P5_COUNT:-?}"
 log "Report: $REPORT_FILE"
 log "Learnings: $LEARNINGS_FILE"
 log "Loop artifacts: $LOOP_DIR"
 log "Loop log: $LOOP_LOG"
 
-if [ "${P0_COUNT:-0}" -eq 0 ] && [ "${P1_COUNT:-0}" -eq 0 ]; then
-    log "STATUS: ALL P0/P1 ISSUES RESOLVED"
+if [ "${P1_COUNT:-0}" -eq 0 ] && [ "${P2_COUNT:-0}" -eq 0 ]; then
+    log "STATUS: ALL P1/P2 ISSUES RESOLVED"
     exit 0
 else
     log "STATUS: ISSUES REMAIN — manual review needed"
