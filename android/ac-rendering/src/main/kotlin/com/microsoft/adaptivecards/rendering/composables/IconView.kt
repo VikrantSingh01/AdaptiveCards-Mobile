@@ -30,13 +30,13 @@ fun IconView(
     val hostConfig = LocalHostConfig.current
     val sizeDp = when (element.size?.lowercase()) {
         "xxsmall" -> 12.dp
-        "xsmall" -> 16.dp
-        "small" -> 20.dp
-        "medium", "default", null -> 24.dp
-        "large" -> 32.dp
-        "xlarge" -> 40.dp
+        "xsmall" -> 14.dp
+        "small" -> 16.dp
+        "standard", "medium", "default", null -> 20.dp
+        "large" -> 28.dp
+        "xlarge" -> 36.dp
         "xxlarge" -> 48.dp
-        else -> 24.dp
+        else -> 20.dp
     }
 
     val tintColor = getTextColor(
@@ -108,8 +108,8 @@ internal fun resolveIconName(name: String, style: String? = null): ImageVector {
         "link" -> Icons.Filled.Link
         "copy" -> Icons.Outlined.ContentCopy
         // Calendar & time
-        "calendar" -> Icons.Outlined.DateRange
-        "clock" -> Icons.Outlined.Schedule
+        "calendar" -> if (isFilled) Icons.Filled.DateRange else Icons.Outlined.DateRange
+        "clock" -> if (isFilled) Icons.Filled.Schedule else Icons.Outlined.Schedule
         // Location & maps
         "location" -> Icons.Outlined.LocationOn
         "map" -> Icons.Outlined.Map
