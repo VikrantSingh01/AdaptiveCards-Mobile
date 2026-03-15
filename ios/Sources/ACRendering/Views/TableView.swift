@@ -47,6 +47,9 @@ struct TableView: View {
                 .if(isHeaderRow) { view in
                     view.background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                 }
+                .if(!isHeaderRow) { view in
+                    view.containerStyle(row.style, hostConfig: hostConfig)
+                }
 
                 if showGrid && rowIndex < table.rows.count - 1 {
                     Rectangle()
