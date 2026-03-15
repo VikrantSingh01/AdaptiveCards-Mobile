@@ -114,11 +114,15 @@ struct ColumnSetView: View {
         }
     }
 
-    /// Use small spacing between columns (not default element spacing which is too wide
-    /// and can clip columns in ColumnSets with 5+ columns like WeatherLarge).
-    /// Matches Android ColumnSetView spacing for cross-platform parity.
+    /// Use small spacing between columns. For ColumnSets with 5+ columns
+    /// (like WeatherLarge forecast days), use tighter spacing to prevent
+    /// mid-word text breaks on narrow columns.
     private var columnSpacing: CGFloat {
-        CGFloat(hostConfig.spacing.small)
+        let count = visibleColumns.count
+        if count >= 5 {
+            return max(CGFloat(hostConfig.spacing.small) / 2, 4)
+        }
+        return CGFloat(hostConfig.spacing.small)
     }
 
     var body: some View {
