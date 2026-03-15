@@ -53,7 +53,7 @@ struct TabSetView: View {
                 }
             }
             .frame(height: adaptiveTabBarHeight)
-            .background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
+            .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Tab bar with \(tabSet.tabs.count) tabs")
 
@@ -102,9 +102,6 @@ struct TabButton: View {
             .padding(.horizontal, adaptiveHorizontalPadding)
             .padding(.vertical, adaptiveVerticalPadding)
             .frame(minWidth: 44, minHeight: 44)
-            .background(
-                isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default).opacity(0.1) : Color.clear
-            )
             .overlay(
                 Rectangle()
                     .frame(height: 2)
