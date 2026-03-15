@@ -14,9 +14,10 @@ public struct DateInputView: View {
     @State private var date: Date = Date()
     @State private var hasSelection: Bool = false
 
-    private let dateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate]
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
         return formatter
     }()
 
@@ -32,7 +33,7 @@ public struct DateInputView: View {
         self.validationState = validationState
 
         if let value = value.wrappedValue,
-           let date = dateFormatter.date(from: value) {
+           let date = dateFormatter.date(from: value) ?? ISO8601DateFormatter().date(from: value) {
             _date = State(initialValue: date)
             _hasSelection = State(initialValue: true)
         }

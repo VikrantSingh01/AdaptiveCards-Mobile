@@ -96,8 +96,18 @@ private fun FlowRow(
         var currentRow = rows.first()
 
         measurables.forEach { measurable ->
+            // Use intrinsic width to determine child's natural size so children
+            // that use fillMaxWidth() don't consume the entire row width.
+            // This allows proper wrapping in flow layouts (fixes Table.Flow
+            // single-column regression and ProgressRing vertical stacking).
+            val intrinsicWidth = measurable.maxIntrinsicWidth(constraints.maxHeight)
+            val childMaxWidth = if (intrinsicWidth in 1 until constraints.maxWidth) {
+                intrinsicWidth
+            } else {
+                constraints.maxWidth
+            }
             val placeable = measurable.measure(
-                constraints.copy(minWidth = 0, minHeight = 0)
+                constraints.copy(minWidth = 0, maxWidth = childMaxWidth, minHeight = 0)
             )
 
             val neededWidth = if (currentRow.placeables.isEmpty()) {

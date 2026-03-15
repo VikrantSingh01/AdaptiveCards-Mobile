@@ -70,10 +70,20 @@ public class MarkdownParser {
             }
 
             // Check for bullet list — parse inline markdown within content
-            if line.hasPrefix("- ") {
+            // Support standard markdown prefixes: "- ", "* ", "+ "
+            let bulletPrefix: String? = if line.hasPrefix("- ") {
+                "- "
+            } else if line.hasPrefix("* ") {
+                "* "
+            } else if line.hasPrefix("+ ") {
+                "+ "
+            } else {
+                nil
+            }
+            if let prefix = bulletPrefix {
                 orderedListStart = nil
                 orderedListIndex = 0
-                let content = String(line.dropFirst(2))
+                let content = String(line.dropFirst(prefix.count))
                 tokens.append(.text("• "))
                 tokens.append(contentsOf: parseInlineMarkdown(content))
                 tokens.append(.lineBreak)

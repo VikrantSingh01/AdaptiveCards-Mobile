@@ -75,10 +75,17 @@ class MarkdownParser private constructor() {
             }
 
             // Check for bullet list — parse inline markdown within content
-            if (line.startsWith("- ")) {
+            // Support standard markdown prefixes: "- ", "* ", "+ "
+            val bulletPrefix = when {
+                line.startsWith("- ") -> "- "
+                line.startsWith("* ") -> "* "
+                line.startsWith("+ ") -> "+ "
+                else -> null
+            }
+            if (bulletPrefix != null) {
                 orderedListStart = null
                 orderedListIndex = 0
-                val content = line.substring(2)
+                val content = line.substring(bulletPrefix.length)
                 tokens.add(MarkdownToken.Text("\u2022 "))
                 tokens.addAll(parseInlineMarkdown(content))
                 tokens.add(MarkdownToken.LineBreak)
