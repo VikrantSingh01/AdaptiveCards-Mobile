@@ -43,7 +43,8 @@ private val filterSlugMap = mapOf(
     "teams" to CardCategory.TEAMS, "templating" to CardCategory.TEMPLATING,
     "official" to CardCategory.OFFICIAL, "elements" to CardCategory.ELEMENT,
     "teams-templated" to CardCategory.TEAMS_TEMPLATED,
-    "teams-official" to CardCategory.TEAMS_OFFICIAL
+    "teams-official" to CardCategory.TEAMS_OFFICIAL,
+    "edge-cases" to CardCategory.EDGE_CASES
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -374,6 +375,7 @@ fun categoryColor(category: CardCategory): Color {
         CardCategory.ELEMENT -> Color(0xFF00ACC1)
         CardCategory.TEAMS_TEMPLATED -> Color(0xFFEC407A)
         CardCategory.TEAMS_OFFICIAL -> Color(0xFF5C6BC0)
+        CardCategory.EDGE_CASES -> Color(0xFFFF9800)
         CardCategory.VERSIONED -> Color(0xFF757575)
     }
 }
@@ -391,6 +393,7 @@ enum class CardCategory(val displayName: String) {
     ELEMENT("Element Samples"),
     TEAMS_TEMPLATED("Teams Templated"),
     TEAMS_OFFICIAL("Teams Official"),
+    EDGE_CASES("Edge Cases"),
     VERSIONED("Versioned")
 }
 
@@ -442,15 +445,15 @@ object TestCardLoader {
         Triple("themed-images.json", "Themed Images", CardCategory.BASIC),
         Triple("teams-task-module.json", "Teams Task Module", CardCategory.TEAMS),
         Triple("sample-catalog.json", "Sample Catalog", CardCategory.BASIC),
-        Triple("edge-all-unknown-types.json", "Edge: Unknown Types", CardCategory.ADVANCED),
-        Triple("edge-deeply-nested.json", "Edge: Deeply Nested", CardCategory.ADVANCED),
-        Triple("edge-empty-card.json", "Edge: Empty Card", CardCategory.ADVANCED),
-        Triple("edge-empty-containers.json", "Edge: Empty Containers", CardCategory.ADVANCED),
-        Triple("edge-long-text.json", "Edge: Long Text", CardCategory.ADVANCED),
-        Triple("edge-max-actions.json", "Edge: Max Actions", CardCategory.ADVANCED),
-        Triple("edge-action-crashes.json", "Edge: Action Crashes", CardCategory.ADVANCED),
-        Triple("edge-mixed-inputs.json", "Edge: Mixed Inputs", CardCategory.ADVANCED),
-        Triple("edge-rtl-content.json", "Edge: RTL Content", CardCategory.ADVANCED),
+        Triple("edge-all-unknown-types.json", "Edge: Unknown Types", CardCategory.EDGE_CASES),
+        Triple("edge-deeply-nested.json", "Edge: Deeply Nested", CardCategory.EDGE_CASES),
+        Triple("edge-empty-card.json", "Edge: Empty Card", CardCategory.EDGE_CASES),
+        Triple("edge-empty-containers.json", "Edge: Empty Containers", CardCategory.EDGE_CASES),
+        Triple("edge-long-text.json", "Edge: Long Text", CardCategory.EDGE_CASES),
+        Triple("edge-max-actions.json", "Edge: Max Actions", CardCategory.EDGE_CASES),
+        Triple("edge-action-crashes.json", "Edge: Action Crashes", CardCategory.EDGE_CASES),
+        Triple("edge-mixed-inputs.json", "Edge: Mixed Inputs", CardCategory.EDGE_CASES),
+        Triple("edge-rtl-content.json", "Edge: RTL Content", CardCategory.EDGE_CASES),
         Triple("official-samples/activity-update.json", "Activity Update", CardCategory.OFFICIAL),
         Triple("official-samples/agenda.json", "Agenda", CardCategory.OFFICIAL),
         Triple("official-samples/application-login.json", "Application Login", CardCategory.OFFICIAL),
@@ -678,6 +681,7 @@ object TestCardLoader {
             CardCategory.ELEMENT -> "Element test: $title"
             CardCategory.TEAMS_TEMPLATED -> "Teams templated: $title"
             CardCategory.TEAMS_OFFICIAL -> "Teams official sample: $title"
+            CardCategory.EDGE_CASES -> "Edge case: $title"
             CardCategory.VERSIONED -> "Versioned card: $title"
             CardCategory.ALL -> "Test card: $title"
         }

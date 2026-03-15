@@ -63,7 +63,7 @@ struct ProgressBarView: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
+                        .fill(progressColor.opacity(0.2))
                         .frame(height: barHeight)
 
                     Rectangle()
@@ -223,12 +223,24 @@ struct SpinnerView: View {
         isTablet ? .body : .subheadline
     }
 
+    private var strokeWidth: CGFloat {
+        switch spinner.size {
+        case .small:
+            return isTablet ? 3 : 2
+        case .large:
+            return isTablet ? 5 : 4
+        default:
+            return isTablet ? 4 : 3
+        }
+    }
+
+    private var spinnerColor: Color {
+        Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
+    }
+
     var body: some View {
         VStack(spacing: CGFloat(hostConfig.spacing.default)) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .scaleEffect(spinnerSize / 20)
-                .frame(width: spinnerSize, height: spinnerSize)
+            IndeterminateRing(color: spinnerColor, size: spinnerSize, lineWidth: strokeWidth)
 
             if let label = spinner.label {
                 Text(label)

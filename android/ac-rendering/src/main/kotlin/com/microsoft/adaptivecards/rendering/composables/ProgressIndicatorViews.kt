@@ -125,9 +125,11 @@ fun SpinnerView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val fgColors = hostConfig.containerStyles.default.foregroundColors
+        val spinnerColor = resolveNamedColor(null, fgColors)
         CircularProgressIndicator(
             modifier = Modifier.size(size),
-            color = resolveNamedColor(null, fgColors),
+            color = spinnerColor,
+            trackColor = Color.Transparent,
             strokeWidth = strokeWidth
         )
 
