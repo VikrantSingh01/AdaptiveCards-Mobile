@@ -152,7 +152,8 @@ data class ColumnSet(
     val bleed: Boolean? = null,
     val minHeight: String? = null,
     val horizontalAlignment: HorizontalAlignment? = null,
-    val targetWidth: String? = null
+    val targetWidth: String? = null,
+    val overflow: String? = null
 ) : CardElement
 
 @Serializable
