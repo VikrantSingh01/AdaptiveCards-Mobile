@@ -211,25 +211,23 @@ public struct AdaptiveCardView: View {
     private func cardContent(card: AdaptiveCard) -> some View {
         let showDiagnostics = configuration?.diagnosticsEnabled == true
 
-        return ScrollView {
-            VStack(spacing: 0) {
-                if let body = card.body, !body.isEmpty {
-                    ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
-                        if viewModel.isElementVisible(elementId: element.elementId) {
-                            ElementView(element: element, hostConfig: hostConfig)
-                                .padding(.top, index > 0 ? Self.spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
-                        }
+        return VStack(spacing: 0) {
+            if let body = card.body, !body.isEmpty {
+                ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
+                    if viewModel.isElementVisible(elementId: element.elementId) {
+                        ElementView(element: element, hostConfig: hostConfig)
+                            .padding(.top, index > 0 ? Self.spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
                     }
                 }
-
-                if let actions = card.actions, !actions.isEmpty {
-                    ActionSetView(actions: actions, hostConfig: hostConfig)
-                        .padding(.top, CGFloat(hostConfig.spacing.default))
-                }
             }
-            .padding(CGFloat(hostConfig.spacing.padding))
-            .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
+
+            if let actions = card.actions, !actions.isEmpty {
+                ActionSetView(actions: actions, hostConfig: hostConfig)
+                    .padding(.top, CGFloat(hostConfig.spacing.default))
+            }
         }
+        .padding(CGFloat(hostConfig.spacing.padding))
+        .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
         .background(
             GeometryReader { geometry in
                 Color.clear.preference(key: CardWidthPreferenceKey.self, value: geometry.size.width)
