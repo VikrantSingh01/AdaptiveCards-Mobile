@@ -226,7 +226,7 @@ final class CardParserTests: XCTestCase {
         }
 
         // Verify second element is unknown
-        if case .unknown(let type) = card.body?[1] {
+        if case .unknown(let type, _) = card.body?[1] {
             XCTAssertEqual(type, "FutureElement")
         } else {
             XCTFail("Expected unknown element as second element")
@@ -242,7 +242,8 @@ final class CardParserTests: XCTestCase {
         // Verify unknown element properties
         let unknownElement = card.body?[1]
         XCTAssertNil(unknownElement?.elementId)
-        XCTAssertFalse(unknownElement?.isVisible ?? true)
+        // Unknown elements are visible so fallback rendering can occur
+        XCTAssertTrue(unknownElement?.isVisible ?? false)
     }
 
     func testCardElementIdIsStable() {

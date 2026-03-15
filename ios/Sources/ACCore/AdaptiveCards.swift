@@ -102,7 +102,7 @@ public enum AdaptiveCards {
             guard let elements = elements else { return }
             for element in elements {
                 switch element {
-                case .unknown(let type):
+                case .unknown(let type, _):
                     warnings.append(ParseWarning(
                         code: .unknownElementType,
                         message: "Unknown element type: \(type)"

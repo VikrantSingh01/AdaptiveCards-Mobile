@@ -151,6 +151,7 @@ struct ContainerView: View {
 }
 
 /// Renders a background image for a container using AsyncImage.
+/// Supports cover (default), repeat, repeatHorizontally, and repeatVertically fill modes.
 private struct BackgroundImageView: View {
     let backgroundImage: BackgroundImage
 
@@ -158,10 +159,28 @@ private struct BackgroundImageView: View {
         AsyncImage(url: URL(string: backgroundImage.url)) { phase in
             switch phase {
             case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: contentMode)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                switch backgroundImage.fillMode {
+                case .repeat:
+                    image
+                        .resizable(resizingMode: .tile)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .repeatHorizontally:
+                    image
+                        .resizable(resizingMode: .tile)
+                        .frame(maxWidth: .infinity)
+                        .clipped()
+                case .repeatVertically:
+                    image
+                        .resizable(resizingMode: .tile)
+                        .frame(maxHeight: .infinity)
+                        .clipped()
+                default:
+                    // cover (default): scale to fill, clip overflow
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             case .failure:
                 Color.gray.opacity(0.1)
             case .empty:
@@ -169,15 +188,6 @@ private struct BackgroundImageView: View {
             @unknown default:
                 Color.clear
             }
-        }
-    }
-
-    private var contentMode: ContentMode {
-        switch backgroundImage.fillMode {
-        case .repeatHorizontally, .repeatVertically, .repeat:
-            return .fill
-        default:
-            return .fill
         }
     }
 }

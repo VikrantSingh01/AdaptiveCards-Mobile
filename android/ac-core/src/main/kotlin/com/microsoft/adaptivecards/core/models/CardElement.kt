@@ -246,13 +246,21 @@ data class Media(
     override val fallback: JsonElement? = null,
     val sources: List<MediaSource>,
     val poster: String? = null,
-    val altText: String? = null
+    val altText: String? = null,
+    val captionSources: List<CaptionSource>? = null
 ) : CardElement
 
 @Serializable
 data class MediaSource(
     val mimeType: String,
     val url: String
+)
+
+@Serializable
+data class CaptionSource(
+    val mimeType: String,
+    val url: String,
+    val label: String? = null
 )
 
 @Serializable

@@ -39,15 +39,23 @@ fun TextBlockView(
 ) {
     val hostConfig = LocalHostConfig.current
 
+    // Style-based overrides per AC v1.5 spec: heading/columnHeader get distinct typography
+    val isHeadingStyle = element.style.equals("heading", ignoreCase = true) ||
+        element.style.equals("columnHeader", ignoreCase = true)
+
     val sizeEnum = element.size ?: FontSize.Default
 
-    // Determine text size
-    val textSize = when (sizeEnum) {
-        FontSize.Small -> scaledTextSize(hostConfig.fontSizes.small)
-        FontSize.Default -> scaledTextSize(hostConfig.fontSizes.default)
-        FontSize.Medium -> scaledTextSize(hostConfig.fontSizes.medium)
-        FontSize.Large -> scaledTextSize(hostConfig.fontSizes.large)
-        FontSize.ExtraLarge -> scaledTextSize(hostConfig.fontSizes.extraLarge)
+    // Determine text size (heading overrides to large, columnHeader to default)
+    val textSize = if (element.style.equals("heading", ignoreCase = true)) {
+        scaledTextSize(hostConfig.fontSizes.large)
+    } else {
+        when (sizeEnum) {
+            FontSize.Small -> scaledTextSize(hostConfig.fontSizes.small)
+            FontSize.Default -> scaledTextSize(hostConfig.fontSizes.default)
+            FontSize.Medium -> scaledTextSize(hostConfig.fontSizes.medium)
+            FontSize.Large -> scaledTextSize(hostConfig.fontSizes.large)
+            FontSize.ExtraLarge -> scaledTextSize(hostConfig.fontSizes.extraLarge)
+        }
     }
 
     // Determine line height from HostConfig
@@ -59,11 +67,15 @@ fun TextBlockView(
         FontSize.ExtraLarge -> hostConfig.lineHeights.extraLarge.sp
     }
 
-    // Determine font weight via HostConfig weight mapping
-    val fontWeight = resolveFontWeight(
-        element.weight ?: com.microsoft.adaptivecards.core.models.FontWeight.Default,
-        hostConfig
-    )
+    // Determine font weight (heading/columnHeader override to bolder)
+    val fontWeight = if (isHeadingStyle) {
+        resolveFontWeight(com.microsoft.adaptivecards.core.models.FontWeight.Bolder, hostConfig)
+    } else {
+        resolveFontWeight(
+            element.weight ?: com.microsoft.adaptivecards.core.models.FontWeight.Default,
+            hostConfig
+        )
+    }
 
     // Determine font family
     val fontFamily = when (element.fontType ?: FontType.Default) {

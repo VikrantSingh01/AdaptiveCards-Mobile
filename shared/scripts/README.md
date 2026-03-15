@@ -46,8 +46,9 @@
 | Script | Purpose |
 |---|---|
 | [design-pass.sh](design-pass.sh) | End-to-end design review: captures all card + app screenshots on both platforms, generates an HTML catalog with side-by-side comparison |
-| [generate-design-catalog.sh](generate-design-catalog.sh) | Generates a self-contained `index.html` from a screenshot directory with category filters, search, and lightbox |
-| [deploy-catalog.sh](deploy-catalog.sh) | Deploys the latest (or specified) design catalog to GitHub Pages (`gh-pages` branch) |
+| [generate-design-catalog.sh](generate-design-catalog.sh) | Generates a self-contained `index.html` from a screenshot directory with category filters, search, review status/notes, and lightbox |
+| [deploy-catalog.sh](deploy-catalog.sh) | Deploys the latest (or specified) design catalog to GitHub Pages (`gh-pages` branch). Preserves `reviews/` directory across deploys |
+| [design-review-loop.sh](design-review-loop.sh) | Automated loop: capture screenshots → AI design review → spawn fix agents in worktrees → merge → repeat until P0/P1=0 |
 
 ### Quick Start
 
@@ -59,15 +60,46 @@ bash shared/scripts/design-pass.sh
 bash shared/scripts/deploy-catalog.sh
 
 # Or deploy a specific catalog
-bash shared/scripts/deploy-catalog.sh shared/test-results/design-catalog-20260313-161006
+bash shared/scripts/deploy-catalog.sh shared/test-results/design-catalog-20260314-163713
 ```
 
 ### Regenerate HTML only (no re-capture)
 
 ```bash
-bash shared/scripts/generate-design-catalog.sh shared/test-results/design-catalog-20260313-161006
+bash shared/scripts/generate-design-catalog.sh shared/test-results/design-catalog-20260314-163713
 bash shared/scripts/deploy-catalog.sh
 ```
+
+### Automated design review + fix loop
+
+```bash
+# Run 1 iteration: capture → review → fix
+bash shared/scripts/design-review-loop.sh --max-iterations 1
+
+# Skip capture (reuse latest screenshots), just review + fix
+bash shared/scripts/design-review-loop.sh --skip-capture
+
+# Review only, no auto-fixes
+bash shared/scripts/design-review-loop.sh --review-only
+```
+
+### Review Feedback Persistence
+
+Review status and notes are persisted across catalog updates via JSON files in the `gh-pages` branch (`reviews/{username}.json`). The workflow:
+
+1. **Reviewer** enters their GitHub username on the catalog page
+2. **Reviews** (status + notes) save to localStorage immediately for instant UI
+3. **Sync** — if a GitHub PAT is configured (fine-grained, `Contents: write` on this repo), reviews auto-sync to `gh-pages` via a `repository_dispatch` GitHub Actions workflow ([sync-review.yml](../../.github/workflows/sync-review.yml))
+4. **On page load** — remote reviews are fetched from `./reviews/{username}.json` and merged with local data (newer timestamp wins)
+5. **Deploy safety** — `deploy-catalog.sh` preserves the `reviews/` directory, so feedback survives screenshot re-captures
+
+Without a PAT, reviews persist in the browser's localStorage only. The Export button provides a JSON backup.
+
+## Pre-Merge Validation
+
+| Script | Purpose |
+|---|---|
+| [pre-merge-validation.sh](pre-merge-validation.sh) | Full regression suite: unit tests, visual snapshots, card parsing, schema parity, and template validation across both platforms. Must pass before merge to main |
 
 ## Utilities
 

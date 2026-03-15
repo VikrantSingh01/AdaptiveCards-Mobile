@@ -1,0 +1,69 @@
+# Sync design review data to gh-pages branch.
+# Triggered by the catalog page via repository_dispatch when a reviewer saves feedback.
+name: Sync Design Review
+
+on:
+  repository_dispatch:
+    types: [sync-review]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Validate and write review data
+        run: |
+          set -euo pipefail
+
+          REVIEWER="${{ github.event.client_payload.reviewer }}"
+          # Sanitize: alphanumeric, hyphens, underscores only
+          if ! echo "$REVIEWER" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+            echo "ERROR: Invalid reviewer name"
+            exit 1
+          fi
+
+          mkdir -p reviews
+
+          # Write reviewer data (validated JSON)
+          echo '${{ github.event.client_payload.review_data }}' | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          # Validate structure
+          assert 'reviewer' in data, 'Missing reviewer field'
+          assert 'reviews' in data, 'Missing reviews field'
+          assert isinstance(data['reviews'], dict), 'reviews must be an object'
+          # Cap size: reject if > 500 cards
+          assert len(data['reviews']) <= 500, 'Too many review entries'
+          with open('reviews/${REVIEWER}.json', 'w') as f:
+            json.dump(data, f, indent=2)
+          print(f'Wrote {len(data[\"reviews\"])} review entries for {data[\"reviewer\"]}')
+          "
+
+          # Update index
+          python3 -c "
+          import json, glob, datetime
+          files = glob.glob('reviews/*.json')
+          reviewers = sorted([f.replace('reviews/','').replace('.json','') for f in files if '_index' not in f])
+          index = {'reviewers': reviewers, 'lastUpdated': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')}
+          with open('reviews/_index.json', 'w') as f:
+            json.dump(index, f, indent=2)
+          print(f'Updated index: {len(reviewers)} reviewers')
+          "
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reviews/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "review: update ${{ github.event.client_payload.reviewer }}"
+            git push
+          fi

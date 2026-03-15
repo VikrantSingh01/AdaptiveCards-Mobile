@@ -19,6 +19,7 @@ public struct AdaptiveCardView: View {
     let onCardParsed: ((AdaptiveCard) -> Void)?
     let onCardParseError: ((Error) -> Void)?
     var pendingActionTitle: Binding<String?>?
+    let onRefreshNeeded: ((CardAction) -> Void)?
 
     @StateObject private var viewModel = CardViewModel()
     @StateObject private var validationState = ValidationState()
@@ -37,7 +38,8 @@ public struct AdaptiveCardView: View {
     /// ```
     public init(
         card: AdaptiveCard,
-        configuration: CardConfiguration = .default
+        configuration: CardConfiguration = .default,
+        onRefreshNeeded: ((CardAction) -> Void)? = nil
     ) {
         self.preParsedCard = card
         self.cardJson = nil
@@ -49,6 +51,7 @@ public struct AdaptiveCardView: View {
         self.pendingActionTitle = nil
         self.onCardParsed = nil
         self.onCardParseError = nil
+        self.onRefreshNeeded = onRefreshNeeded
     }
 
     /// Creates an Adaptive Card view from a JSON string and configuration.
@@ -59,7 +62,8 @@ public struct AdaptiveCardView: View {
     public init(
         json: String,
         data: [String: Any]? = nil,
-        configuration: CardConfiguration = .default
+        configuration: CardConfiguration = .default,
+        onRefreshNeeded: ((CardAction) -> Void)? = nil
     ) {
         self.cardJson = json
         self.preParsedCard = nil
@@ -71,6 +75,7 @@ public struct AdaptiveCardView: View {
         self.pendingActionTitle = nil
         self.onCardParsed = nil
         self.onCardParseError = nil
+        self.onRefreshNeeded = onRefreshNeeded
     }
 
     // MARK: - Legacy API (kept for backward compatibility)
@@ -105,6 +110,7 @@ public struct AdaptiveCardView: View {
         self.pendingActionTitle = pendingActionTitle
         self.onCardParsed = onCardParsed
         self.onCardParseError = onCardParseError
+        self.onRefreshNeeded = nil
     }
 
     public var body: some View {
@@ -114,6 +120,7 @@ public struct AdaptiveCardView: View {
             .environment(\.actionDelegate, actionDelegate)
             .environment(\.actionHandler, actionHandler)
             .environment(\.validationState, validationState)
+            .environment(\.featureFlags, configuration?.featureFlags ?? FeatureFlags())
             .onAppear {
                 if let preParsedCard = preParsedCard {
                     // Pre-parsed card — set directly without parsing
@@ -231,6 +238,23 @@ public struct AdaptiveCardView: View {
         }
         .environment(\.widthCategory, WidthCategory.from(width: cardWidth, hostConfig: hostConfig))
         .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
+        .task(id: card.refresh?.expires) {
+            // Auto-refresh: schedule callback when card expires
+            guard let onRefreshNeeded = onRefreshNeeded,
+                  let refresh = card.refresh,
+                  let expiresString = refresh.expires else { return }
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            guard let expiresDate = formatter.date(from: expiresString) ?? ISO8601DateFormatter().date(from: expiresString) else { return }
+            let delay = expiresDate.timeIntervalSinceNow
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                onRefreshNeeded(refresh.action)
+            } else {
+                // Already expired — notify immediately
+                onRefreshNeeded(refresh.action)
+            }
+        }
     }
 
     private static func spacingValue(for spacing: Spacing?, hostConfig: HostConfig) -> CGFloat {
@@ -295,6 +319,10 @@ private struct WidthCategoryKey: EnvironmentKey {
     static let defaultValue: WidthCategory = .narrow
 }
 
+private struct FeatureFlagsKey: EnvironmentKey {
+    static let defaultValue: FeatureFlags = FeatureFlags()
+}
+
 extension EnvironmentValues {
     /// Current card width category for targetWidth responsive filtering.
     public var widthCategory: WidthCategory {
@@ -320,5 +348,11 @@ extension EnvironmentValues {
     var validationState: ValidationState {
         get { self[ValidationStateKey.self] }
         set { self[ValidationStateKey.self] = newValue }
+    }
+
+    /// Feature flags for fallback/requires evaluation
+    public var featureFlags: FeatureFlags {
+        get { self[FeatureFlagsKey.self] }
+        set { self[FeatureFlagsKey.self] = newValue }
     }
 }
