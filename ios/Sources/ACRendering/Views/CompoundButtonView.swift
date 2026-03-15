@@ -166,21 +166,27 @@ struct CompoundButtonView: View {
             "Search": "magnifyingglass",
             "Settings": "gearshape",
             "Person": "person",
+            "PeopleTeam": "person.2",
             "People": "person.2",
             "Mail": "envelope",
+            "Email": "envelope",
             "Chat": "bubble.left",
             "Phone": "phone",
+            "Call": "phone",
             "Video": "video",
             "Camera": "camera",
             "Document": "doc",
             "Folder": "folder",
             "Star": "star",
             "Heart": "heart",
+            "Favorite": "heart.fill",
             "Home": "house",
             "Location": "location",
+            "LocationOn": "location",
             "Map": "map",
             "Clock": "clock",
             "Alert": "bell",
+            "Notification": "bell",
             "Add": "plus.circle",
             "Delete": "trash",
             "Edit": "pencil",
@@ -191,6 +197,7 @@ struct CompoundButtonView: View {
             "ArrowRight": "arrow.right",
             "ChevronRight": "chevron.right",
             "Dismiss": "xmark",
+            "Close": "xmark",
             "MoreHorizontal": "ellipsis",
             "Attach": "paperclip",
             "Send": "paperplane",
@@ -202,8 +209,12 @@ struct CompoundButtonView: View {
             "Flash": "bolt",
             "Play": "play",
             "Mic": "mic",
+            "List": "list.bullet",
+            "TextBulletList": "list.bullet",
+            "Bookmark": "bookmark",
         ]
-        return lookup[baseName] ?? name
+        // Fall back to info.circle for unknown icons (matching Android behavior)
+        return lookup[baseName] ?? "info.circle"
     }
 
     private var iconPlaceholder: some View {
