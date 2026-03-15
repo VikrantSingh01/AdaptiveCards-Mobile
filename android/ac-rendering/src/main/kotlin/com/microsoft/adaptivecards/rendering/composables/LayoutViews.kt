@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.microsoft.adaptivecards.core.hostconfig.HostConfig
@@ -140,8 +141,14 @@ private fun FlowRow(
         }
 
         val totalHeight = rows.sumOf { it.height } + (rows.size - 1) * vSpacingPx
+        // When unconstrained (e.g., inside horizontal scroll), use actual content width
+        val layoutWidth = if (available == Constraints.Infinity) {
+            (rows.maxOfOrNull { it.width } ?: 0).coerceAtMost(16777215)
+        } else {
+            available
+        }
 
-        layout(available, totalHeight) {
+        layout(layoutWidth, totalHeight) {
             var yOffset = 0
 
             rows.forEach { row ->
