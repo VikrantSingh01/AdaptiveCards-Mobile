@@ -28,11 +28,19 @@ struct ImageSetView: View {
     private var gridLayout: some View {
         LazyVGrid(columns: gridColumns, spacing: CGFloat(hostConfig.spacing.default)) {
             ForEach(imageSet.images, id: \.stableId) { image in
-                ImageView(image: image, hostConfig: hostConfig)
+                ImageView(image: imageWithSetSize(image), hostConfig: hostConfig)
                     .frame(maxHeight: CGFloat(hostConfig.imageSet.maxImageHeight))
                     .clipped()
             }
         }
+    }
+
+    private func imageWithSetSize(_ image: ACCore.Image) -> ACCore.Image {
+        var copy = image
+        if copy.size == nil {
+            copy.size = imageSet.imageSize
+        }
+        return copy
     }
 
     private var gridColumns: [GridItem] {
