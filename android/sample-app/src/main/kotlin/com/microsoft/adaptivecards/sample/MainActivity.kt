@@ -486,16 +486,20 @@ fun MoreMenuCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(iconColor.copy(alpha = 0.12f)),
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(iconColor, iconColor.copy(alpha = 0.85f))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(22.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
