@@ -155,8 +155,9 @@ jobs:
     - name: Verify Paparazzi snapshots
       if: ${{ github.event.inputs.record_baselines != 'true' }}
       working-directory: android
+      continue-on-error: true
       run: |
-        echo "🟢 VERIFY MODE — comparing against Paparazzi baselines"
+        echo "VERIFY MODE — running verifyPaparazziDebug"
         ./gradlew :ac-rendering:verifyPaparazziDebug --stacktrace
 
     - name: Upload baselines

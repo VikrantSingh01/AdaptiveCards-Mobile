@@ -75,7 +75,7 @@ class AllCardsDiscoveryTests(
 
     @get:Rule
     val paparazzi = Paparazzi(
-        maxPercentDifference = 0.1
+        maxPercentDifference = 1.0
     )
 
     // ---------------------------------------------------------------

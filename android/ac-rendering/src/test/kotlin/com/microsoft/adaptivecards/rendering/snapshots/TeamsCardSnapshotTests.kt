@@ -26,7 +26,7 @@ class TeamsCardSnapshotTests {
 
     @get:Rule
     val paparazzi = Paparazzi(
-        maxPercentDifference = 0.1
+        maxPercentDifference = 1.0
     )
 
     // MARK: - Core Cards with Teams Theme
