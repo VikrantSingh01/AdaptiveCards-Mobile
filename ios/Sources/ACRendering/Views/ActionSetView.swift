@@ -15,13 +15,14 @@ struct ActionSetView: View {
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
+    @Environment(\.layoutDirection) var layoutDirection
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
         VStack(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
             Group {
                 if orientation == .horizontal {
-                    ActionFlowLayout(spacing: CGFloat(hostConfig.actions.buttonSpacing)) {
+                    ActionFlowLayout(spacing: CGFloat(hostConfig.actions.buttonSpacing), isRTL: layoutDirection == .rightToLeft) {
                         actionContent
                     }
                 } else {
@@ -188,6 +189,7 @@ struct ActionSetView: View {
 /// Buttons flow horizontally and wrap to the next row when they exceed available width.
 private struct ActionFlowLayout: SwiftUI.Layout {
     let spacing: CGFloat
+    let isRTL: Bool
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let result = arrange(proposal: proposal, subviews: subviews)
@@ -197,8 +199,14 @@ private struct ActionFlowLayout: SwiftUI.Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let result = arrange(proposal: proposal, subviews: subviews)
         for (index, position) in result.positions.enumerated() where index < subviews.count {
+            let x: CGFloat
+            if isRTL {
+                x = bounds.maxX - position.x - result.sizes[index].width
+            } else {
+                x = bounds.minX + position.x
+            }
             subviews[index].place(
-                at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y),
+                at: CGPoint(x: x, y: bounds.minY + position.y),
                 proposal: ProposedViewSize(result.sizes[index])
             )
         }
