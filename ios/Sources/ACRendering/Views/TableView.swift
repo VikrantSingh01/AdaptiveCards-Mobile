@@ -47,6 +47,9 @@ struct TableView: View {
                 .if(isHeaderRow) { view in
                     view.background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                 }
+                .if(!isHeaderRow) { view in
+                    view.containerStyle(row.style, hostConfig: hostConfig)
+                }
 
                 if showGrid && rowIndex < table.rows.count - 1 {
                     Rectangle()
@@ -198,7 +201,7 @@ struct TableCellView: View {
         .clipped()
         .frame(maxWidth: .infinity, alignment: combinedAlignment)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
-        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
+        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing / 2))
         .containerStyle(cell.style, hostConfig: hostConfig)
     }
 
@@ -242,8 +245,9 @@ struct TableCellView: View {
                 ?? table?.verticalCellContentAlignment
             switch alignment {
             case .top: return .top
+            case .center: return .center
             case .bottom: return .bottom
-            default: return .center
+            default: return .top
             }
         }()
 
