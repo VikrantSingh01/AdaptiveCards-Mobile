@@ -56,24 +56,12 @@ fun ImageView(
     // Skip symbol: URLs (platform-specific, not renderable)
     if (element.url.startsWith("symbol:")) return
 
-    // Determine image size — detect SVG from URL, themedUrls, and content type hints
-    val isSvg = element.url.endsWith(".svg", ignoreCase = true) ||
-        element.url.startsWith("data:image/svg+xml") ||
-        element.url.contains("/svg", ignoreCase = true) ||
-        element.themedUrls?.values?.any { it.endsWith(".svg", ignoreCase = true) || it.contains("svg", ignoreCase = true) } == true
     // Calculate image sizing separately from parent modifier to avoid double-applying
     // the parent chain when wrapping in a Box for horizontal alignment.
     val sizingModifier = when (element.size ?: ImageSize.Auto) {
-        ImageSize.Small -> Modifier.size(hostConfig.imageSizes.small.dp)
-        ImageSize.Medium -> {
-            // SVGs with named sizes should preserve aspect ratio, not force square
-            if (isSvg) Modifier.width(hostConfig.imageSizes.medium.dp)
-            else Modifier.size(hostConfig.imageSizes.medium.dp)
-        }
-        ImageSize.Large -> {
-            if (isSvg) Modifier.width(hostConfig.imageSizes.large.dp)
-            else Modifier.size(hostConfig.imageSizes.large.dp)
-        }
+        ImageSize.Small -> Modifier.width(hostConfig.imageSizes.small.dp)
+        ImageSize.Medium -> Modifier.width(hostConfig.imageSizes.medium.dp)
+        ImageSize.Large -> Modifier.width(hostConfig.imageSizes.large.dp)
         ImageSize.Stretch -> modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
