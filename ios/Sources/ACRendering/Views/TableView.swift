@@ -201,7 +201,7 @@ struct TableCellView: View {
         .clipped()
         .frame(maxWidth: .infinity, alignment: combinedAlignment)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
-        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
+        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing / 2))
         .containerStyle(cell.style, hostConfig: hostConfig)
     }
 
