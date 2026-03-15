@@ -39,10 +39,10 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
     case pieChart(PieChart)
     case icon(IconElement)
     case badge(Badge)
-    case unknown(type: String)
+    case unknown(type: String, fallback: CardElement? = nil)
 
     enum CodingKeys: String, CodingKey {
-        case type
+        case type, fallback
     }
 
     public init(from decoder: Decoder) throws {
@@ -50,7 +50,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         if let singleContainer = try? decoder.singleValueContainer(),
            let stringValue = try? singleContainer.decode(String.self),
            stringValue.lowercased() == "drop" {
-            self = .unknown(type: "drop")
+            self = .unknown(type: "drop", fallback: nil)
             return
         }
 
@@ -58,7 +58,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
 
         // Handle elements without a "type" key gracefully (#9)
         guard let type = try container.decodeIfPresent(String.self, forKey: .type) else {
-            self = .unknown(type: "_missing_type")
+            self = .unknown(type: "_missing_type", fallback: nil)
             return
         }
 
@@ -132,8 +132,10 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case "Badge":
             self = .badge(try Badge(from: decoder))
         default:
-            // Gracefully fallback for unknown element types per Adaptive Cards spec
-            self = .unknown(type: type)
+            // Gracefully handle unknown element types per Adaptive Cards spec.
+            // Extract the fallback element so the rendering pipeline can use it.
+            let fallbackElement = try container.decodeIfPresent(CardElement.self, forKey: .fallback)
+            self = .unknown(type: type, fallback: fallbackElement)
         }
     }
 
@@ -207,7 +209,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
             try element.encode(to: encoder)
         case .badge(let element):
             try element.encode(to: encoder)
-        case .unknown(let type):
+        case .unknown(let type, _):
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(type, forKey: .type)
         }
@@ -250,7 +252,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .pieChart(let element): return element.id
         case .icon(let element): return element.id
         case .badge(let element): return element.id
-        case .unknown: return nil
+        case .unknown: return nil  // unknown elements have no ID
         }
     }
 
@@ -304,7 +306,89 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .pieChart(let element): return element.isVisible ?? true
         case .icon(let element): return element.isVisible ?? true
         case .badge(let element): return element.isVisible ?? true
-        case .unknown: return false
+        case .unknown: return true  // unknown elements should be visible (fallback handles them)
+        }
+    }
+
+    /// The requires property from the underlying element, if any
+    public var requires: [String: String]? {
+        switch self {
+        case .textBlock(let e): return e.requires
+        case .image(let e): return e.requires
+        case .media(let e): return e.requires
+        case .richTextBlock(let e): return e.requires
+        case .container(let e): return e.requires
+        case .columnSet(let e): return e.requires
+        case .imageSet(let e): return e.requires
+        case .factSet(let e): return e.requires
+        case .actionSet(let e): return e.requires
+        case .table(let e): return e.requires
+        case .textInput: return nil
+        case .numberInput: return nil
+        case .dateInput: return nil
+        case .timeInput: return nil
+        case .toggleInput: return nil
+        case .choiceSetInput: return nil
+        case .dataGridInput: return nil
+        case .carousel(let e): return e.requires
+        case .accordion(let e): return e.requires
+        case .codeBlock(let e): return e.requires
+        case .ratingDisplay(let e): return e.requires
+        case .ratingInput: return nil
+        case .progressBar(let e): return e.requires
+        case .progressRing(let e): return e.requires
+        case .spinner(let e): return e.requires
+        case .tabSet(let e): return e.requires
+        case .list(let e): return e.requires
+        case .compoundButton(let e): return e.requires
+        case .donutChart(let e): return e.requires
+        case .barChart(let e): return e.requires
+        case .lineChart(let e): return e.requires
+        case .pieChart(let e): return e.requires
+        case .icon: return nil
+        case .badge: return nil
+        case .unknown: return nil
+        }
+    }
+
+    /// The fallback element from the underlying element, if any
+    public var fallbackElement: CardElement? {
+        switch self {
+        case .textBlock(let e): return e.fallback
+        case .image(let e): return e.fallback
+        case .media(let e): return e.fallback
+        case .richTextBlock(let e): return e.fallback
+        case .container(let e): return e.fallback
+        case .columnSet(let e): return e.fallback
+        case .imageSet(let e): return e.fallback
+        case .factSet(let e): return e.fallback
+        case .actionSet(let e): return e.fallback
+        case .table(let e): return e.fallback
+        case .textInput(let e): return e.fallback
+        case .numberInput(let e): return e.fallback
+        case .dateInput(let e): return e.fallback
+        case .timeInput(let e): return e.fallback
+        case .toggleInput(let e): return e.fallback
+        case .choiceSetInput(let e): return e.fallback
+        case .dataGridInput: return nil  // DataGridInput doesn't have fallback
+        case .carousel: return nil
+        case .accordion: return nil
+        case .codeBlock: return nil
+        case .ratingDisplay: return nil
+        case .ratingInput: return nil
+        case .progressBar: return nil
+        case .progressRing: return nil
+        case .spinner: return nil
+        case .tabSet: return nil
+        case .list: return nil
+        case .compoundButton: return nil
+        case .donutChart: return nil
+        case .barChart: return nil
+        case .lineChart: return nil
+        case .pieChart: return nil
+        case .icon: return nil
+        case .badge: return nil
+        case .unknown(_, let fallback): return fallback
         }
     }
 
@@ -403,7 +487,7 @@ public indirect enum CardElement: Codable, Equatable, Identifiable {
         case .pieChart: return "PieChart"
         case .icon: return "Icon"
         case .badge: return "Badge"
-        case .unknown(let type): return type
+        case .unknown(let type, _): return type
         }
     }
 }

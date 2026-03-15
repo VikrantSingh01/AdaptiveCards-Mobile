@@ -41,6 +41,11 @@ public struct CardConfiguration {
     /// Cache instance. Uses `CardCache.shared` by default. Set to nil to disable caching.
     public var cache: CardCache?
 
+    /// Provider for dynamic typeahead choices (Data.Query).
+    /// When set, ChoiceSet inputs with `choices.data` will call this provider
+    /// to fetch choices dynamically as the user types.
+    public var dataQueryProvider: (any DataQueryProvider)?
+
     /// Default configuration using Teams light host config
     public static var `default`: CardConfiguration {
         CardConfiguration(hostConfig: TeamsHostConfig.create())
@@ -64,7 +69,8 @@ public struct CardConfiguration {
         rendererOverrides: RendererOverrides = RendererOverrides(),
         featureFlags: FeatureFlags = FeatureFlags(),
         guardrails: PerformanceGuardrails = .default,
-        cache: CardCache? = CardCache.shared
+        cache: CardCache? = CardCache.shared,
+        dataQueryProvider: (any DataQueryProvider)? = nil
     ) {
         self.hostConfig = hostConfig
         self.imageProvider = imageProvider
@@ -72,6 +78,7 @@ public struct CardConfiguration {
         self.featureFlags = featureFlags
         self.guardrails = guardrails
         self.cache = cache
+        self.dataQueryProvider = dataQueryProvider
     }
 }
 

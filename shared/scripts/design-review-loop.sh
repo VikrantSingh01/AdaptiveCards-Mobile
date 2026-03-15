@@ -202,20 +202,21 @@ run_capture() {
         [ -z "$CATALOG_DIR" ] && { log "ERROR: No catalog produced"; exit 1; }
     fi
 
-    # Deploy catalog to GitHub Pages — only if fewer than 10 card failures
-    local fail_count
-    fail_count=$(grep -oP '\d+ failed' "$capture_log" 2>/dev/null | grep -oP '\d+' || echo "0")
-    if [ "$fail_count" -ge 10 ]; then
-        log "SKIPPING GitHub Pages deploy: $fail_count card failures (threshold: 10)"
-    else
-        log "Deploying catalog to GitHub Pages ($fail_count failures, under threshold)..."
-        local deploy_log="$LOOP_DIR/deploy-iteration-$iteration.log"
-        if bash "$SCRIPT_DIR/deploy-catalog.sh" "$CATALOG_DIR" > "$deploy_log" 2>&1; then
-            log "Catalog deployed to GitHub Pages."
-        else
-            log "WARNING: deploy-catalog.sh failed. Check $deploy_log"
-        fi
-    fi
+    # Deploy catalog to GitHub Pages — disabled for now
+    # local fail_count
+    # fail_count=$(grep -oP '\d+ failed' "$capture_log" 2>/dev/null | grep -oP '\d+' || echo "0")
+    # if [ "$fail_count" -ge 10 ]; then
+    #     log "SKIPPING GitHub Pages deploy: $fail_count card failures (threshold: 10)"
+    # else
+    #     log "Deploying catalog to GitHub Pages ($fail_count failures, under threshold)..."
+    #     local deploy_log="$LOOP_DIR/deploy-iteration-$iteration.log"
+    #     if bash "$SCRIPT_DIR/deploy-catalog.sh" "$CATALOG_DIR" > "$deploy_log" 2>&1; then
+    #         log "Catalog deployed to GitHub Pages."
+    #     else
+    #         log "WARNING: deploy-catalog.sh failed. Check $deploy_log"
+    #     fi
+    # fi
+    log "GitHub Pages deploy skipped (disabled)."
 }
 
 # =============================================================================

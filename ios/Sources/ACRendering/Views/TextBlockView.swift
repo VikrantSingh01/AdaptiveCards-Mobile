@@ -44,6 +44,9 @@ struct TextBlockView: View {
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
                 .accessibilityElement(label: displayText)
+                .if(textBlock.style == .heading || textBlock.style == .columnHeader) { view in
+                    view.accessibilityAddTraits(.isHeader)
+                }
         } else {
             // Render plain text
             Text(displayText)
@@ -59,6 +62,9 @@ struct TextBlockView: View {
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
                 .accessibilityElement(label: displayText)
+                .if(textBlock.style == .heading || textBlock.style == .columnHeader) { view in
+                    view.accessibilityAddTraits(.isHeader)
+                }
         }
     }
 
@@ -84,6 +90,11 @@ struct TextBlockView: View {
 
     #if canImport(UIKit)
     private var uiFontWeight: UIFont.Weight {
+        // Style-based overrides per AC v1.5 spec
+        if textBlock.style == .heading || textBlock.style == .columnHeader {
+            return .bold
+        }
+
         let fontWeightEnum = textBlock.weight ?? .default
         let weightValue: Int
 
@@ -122,6 +133,15 @@ struct TextBlockView: View {
     }
 
     private var fontSize: Int {
+        // Style-based overrides per AC v1.5 spec
+        switch textBlock.style {
+        case .heading:
+            return hostConfig.fontSizes.large
+        case .columnHeader:
+            return hostConfig.fontSizes.default
+        default:
+            break
+        }
         let fontSizeEnum = textBlock.size ?? .default
         switch fontSizeEnum {
         case .small:
@@ -159,6 +179,21 @@ struct TextBlockView: View {
     }
 
     private var fontWeight: Font.Weight {
+        // Style-based overrides per AC v1.5 spec
+        if textBlock.style == .heading || textBlock.style == .columnHeader {
+            let bolderWeight = hostConfig.fontWeights.bolder
+            switch bolderWeight {
+            case 100...199: return .ultraLight
+            case 200...299: return .light
+            case 300...399: return .regular
+            case 400...499: return .regular
+            case 500...599: return .medium
+            case 600...699: return .semibold
+            case 700...799: return .bold
+            default: return .heavy
+            }
+        }
+
         let fontWeightEnum = textBlock.weight ?? .default
         let weightValue: Int
 

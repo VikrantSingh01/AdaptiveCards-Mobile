@@ -104,7 +104,8 @@ echo ""
 ios_screenshot() {
     local path="$1"
     xcrun simctl io "$SIM_UDID" screenshot "$path" 2>/dev/null
-    sips -Z 540 "$path" &>/dev/null || true
+    # Compress PNG (TinyPNG-style) — full resolution, ~75% smaller
+    compress_png "$path"
 }
 
 android_screenshot() {
@@ -112,7 +113,17 @@ android_screenshot() {
     "$ADB" shell screencap -p /sdcard/design-pass-tmp.png 2>/dev/null
     "$ADB" pull /sdcard/design-pass-tmp.png "$path" 2>/dev/null
     "$ADB" shell rm /sdcard/design-pass-tmp.png 2>/dev/null
-    sips -Z 540 "$path" &>/dev/null || true
+    # Compress PNG (TinyPNG-style) — full resolution, ~75% smaller
+    compress_png "$path"
+}
+
+# Lossy PNG compression via pngquant (same engine as TinyPNG)
+compress_png() {
+    local path="$1"
+    [ -f "$path" ] || return 0
+    if command -v pngquant &>/dev/null; then
+        pngquant --quality=65-85 --force --output "$path" "$path" 2>/dev/null || true
+    fi
 }
 
 navigate_and_capture() {

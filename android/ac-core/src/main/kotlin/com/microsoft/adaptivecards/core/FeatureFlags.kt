@@ -35,4 +35,19 @@ class FeatureFlags {
 
     /** All registered features. */
     val allFeatures: Map<String, String> get() = features.toMap()
+
+    /**
+     * Check if host capabilities meet the given requirements.
+     * Per Adaptive Cards spec: `"*"` means any version of the feature must be registered;
+     * a specific version string means exact match. ALL requirements must be met.
+     * Returns `true` if [requires] is null or empty.
+     */
+    fun meetsRequirements(requires: Map<String, String>?): Boolean {
+        if (requires.isNullOrEmpty()) return true
+        for ((name, requiredVersion) in requires) {
+            val registeredVersion = features[name] ?: return false
+            if (requiredVersion != "*" && registeredVersion != requiredVersion) return false
+        }
+        return true
+    }
 }

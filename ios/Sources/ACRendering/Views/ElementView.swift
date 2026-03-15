@@ -31,10 +31,16 @@ struct ElementView: View {
     @EnvironmentObject var viewModel: CardViewModel
 
     @Environment(\.widthCategory) var widthCategory
+    @Environment(\.featureFlags) var featureFlags
 
     var body: some View {
         if depth >= elementViewMaxNestingDepth {
             EmptyView()
+        } else if let requires = element.requires, !featureFlags.meetsRequirements(requires) {
+            // Requirements not met — render fallback or nothing
+            if let fallbackElement = element.fallbackElement, !isDrop(fallbackElement) {
+                ElementView(element: fallbackElement, hostConfig: hostConfig, depth: depth)
+            }
         } else if shouldShowForTargetWidth(element.targetWidth, currentCategory: widthCategory) {
             if let customRenderer = ElementRendererRegistry.shared.getRenderer(for: element.typeString) {
                 customRenderer(element)
@@ -42,6 +48,12 @@ struct ElementView: View {
                 builtInRenderer
             }
         }
+    }
+
+    /// Check if a fallback element is the "drop" sentinel
+    private func isDrop(_ element: CardElement) -> Bool {
+        if case .unknown(let type, _) = element, type == "drop" { return true }
+        return false
     }
 
     /// Type-erased renderer to keep per-frame stack usage constant.
@@ -163,15 +175,11 @@ struct ElementView: View {
             return AnyView(IconElementView(icon: icon, hostConfig: hostConfig))
         case .badge(let badge):
             return AnyView(BadgeView(badge: badge, hostConfig: hostConfig))
-        case .unknown(let type):
-            return AnyView(
-                Text("Unknown element type: \(type)")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .padding(4)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(4)
-            )
+        case .unknown(_, let fallback):
+            if let fallbackElement = fallback, !isDrop(fallbackElement) {
+                return AnyView(ElementView(element: fallbackElement, hostConfig: hostConfig, depth: childDepth))
+            }
+            return AnyView(EmptyView())
         }
     }
 

@@ -39,7 +39,12 @@ data class CardConfiguration(
     val guardrails: PerformanceGuardrails = PerformanceGuardrails.Default,
 
     /** Cache instance. Uses CardCache.shared by default. Set to null to disable caching. */
-    val cache: CardCache? = CardCache.shared
+    val cache: CardCache? = CardCache.shared,
+
+    /** Provider for dynamic typeahead choices (Data.Query).
+     *  When set, ChoiceSet inputs with `choices.data` will call this provider
+     *  to fetch choices dynamically as the user types. */
+    val dataQueryProvider: DataQueryProvider? = null
 ) {
     companion object {
         /** Default configuration using Teams light host config */

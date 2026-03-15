@@ -925,7 +925,7 @@ struct CardElementPreview: View {
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-        case .unknown(let type):
+        case .unknown(let type, _):
             HStack(spacing: 4) {
                 Image(systemName: "questionmark.square.dashed")
                     .foregroundColor(.gray)

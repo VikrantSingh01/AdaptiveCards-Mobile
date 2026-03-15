@@ -41,4 +41,19 @@ public struct FeatureFlags: Sendable {
     public var allFeatures: [String: String] {
         features
     }
+
+    /// Check if host capabilities meet the given requirements.
+    /// Per Adaptive Cards spec: `"*"` means any version of the feature must be registered;
+    /// a specific version string means exact match. ALL requirements must be met.
+    /// Returns `true` if `requires` is nil or empty.
+    public func meetsRequirements(_ requires: [String: String]?) -> Bool {
+        guard let requires = requires, !requires.isEmpty else { return true }
+        for (name, requiredVersion) in requires {
+            guard let registeredVersion = features[name] else { return false }
+            if requiredVersion != "*" && registeredVersion != requiredVersion {
+                return false
+            }
+        }
+        return true
+    }
 }
