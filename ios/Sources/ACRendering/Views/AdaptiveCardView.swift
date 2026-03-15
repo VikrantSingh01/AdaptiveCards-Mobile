@@ -216,7 +216,7 @@ public struct AdaptiveCardView: View {
                 ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
                     if viewModel.isElementVisible(elementId: element.elementId) {
                         ElementView(element: element, hostConfig: hostConfig)
-                            .padding(.top, index > 0 ? Self.spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+                            .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
                     }
                 }
             }

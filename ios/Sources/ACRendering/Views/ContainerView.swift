@@ -36,7 +36,7 @@ struct ContainerView: View {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                         if viewModel.isElementVisible(elementId: element.elementId) {
                             ElementView(element: element, hostConfig: hostConfig, depth: depth)
-                                .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+                                .padding(.top, index > 0 && element.spacing == nil ? spacingValue(for: nil, hostConfig: hostConfig) : 0)
                         }
                     }
                 }
