@@ -219,28 +219,26 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
     var height = 0f
 
     for ((index, item) in items.withIndex()) {
-        // Add inter-item spacing (matching default AC spacing)
         if (index > 0) height += defaultSpacing
 
         height += when (item) {
             is Container -> {
                 val nested = item.items ?: emptyList()
-                estimateElementsHeight(nested, contentWidth)
+                val containerPadding = 16f
+                estimateElementsHeight(nested, contentWidth - containerPadding) + containerPadding
             }
             is ColumnSet -> {
                 val columns = item.columns ?: emptyList()
-                // Compute tallest column recursively, then use a generous minimum
-                // of 150dp per ColumnSet (matching iOS parity) to avoid undersizing
-                // complex grids like weather forecast day columns.
+                val colCount = columns.size.coerceAtLeast(1)
+                val colSpacing = defaultSpacing * (colCount - 1).coerceAtLeast(0)
+                val colWidth = (contentWidth - colSpacing) / colCount
                 val tallestColumn = columns.maxOfOrNull { col ->
-                    estimateElementsHeight(col.items ?: emptyList(), contentWidth / columns.size.coerceAtLeast(1))
-                } ?: 150f
-                tallestColumn.coerceAtLeast(150f)
+                    estimateElementsHeight(col.items ?: emptyList(), colWidth)
+                } ?: 80f
+                tallestColumn.coerceAtLeast(80f)
             }
-            is FactSet -> lineHeight * item.facts.size.coerceAtLeast(1)
+            is FactSet -> (lineHeight + 4f) * item.facts.size.coerceAtLeast(1)
             is TextBlock -> {
-                // Estimate lines based on text length relative to available width
-                // ~5dp per character at default font size (conservative to avoid undersizing)
                 val charsPerLine = (contentWidth / 5f).coerceAtLeast(1f)
                 val textLen = item.text.length.toFloat()
                 val baseFontScale = when (item.size) {
@@ -258,20 +256,16 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
                 (lineHeight * baseFontScale * estimatedLines).coerceAtLeast(lineHeight)
             }
             is Image -> {
-                // Use named sizes instead of always assuming 1:1 aspect with content width
                 val widthPx = item.width?.removeSuffix("px")?.toIntOrNull()
                 val heightPx = item.pixelHeight?.removeSuffix("px")?.toIntOrNull()
                 when {
                     heightPx != null -> heightPx.toFloat()
-                    widthPx != null -> widthPx.toFloat() // approximate 1:1
+                    widthPx != null -> widthPx.toFloat()
                     else -> when (item.size) {
                         ImageSize.Small -> 32f
                         ImageSize.Medium -> 52f
                         ImageSize.Large -> 100f
                         ImageSize.Stretch -> contentWidth * 0.75f
-                        // Auto images fill their container width with a small minimum
-                        // height (40dp). In narrow columns, the image height will match
-                        // the column width (for square images), clamped to the minimum.
                         ImageSize.Auto, null -> maxOf(contentWidth, 40f)
                     }
                 }
@@ -284,5 +278,6 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
         }
     }
 
-    return height
+    // Add 20% buffer for padding, line-height overhead, and spacing gaps
+    return height * 1.2f
 }
