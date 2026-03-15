@@ -22,14 +22,20 @@ public struct ToggleInputView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if let label = input.label {
-                Text(label)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                if let label = input.label {
+                    let suffix = (input.isRequired == true) ? hostConfig.inputs.label.requiredInputs.suffix : ""
+                    Text(label + suffix)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Text(input.title)
+                    .font(.system(size: CGFloat(hostConfig.fontSizes.default)))
             }
-
-            Toggle(input.title, isOn: $value)
+            Spacer()
+            Toggle("", isOn: $value)
+                .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .blue))
         }
         .accessibilityInput(
