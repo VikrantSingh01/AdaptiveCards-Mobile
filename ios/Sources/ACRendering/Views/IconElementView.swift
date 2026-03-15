@@ -19,7 +19,7 @@ struct IconElementView: View {
             .font(.system(size: size))
             .foregroundColor(color)
             .frame(
-                maxWidth: icon.horizontalAlignment == nil ? nil : .infinity,
+                maxWidth: .infinity,
                 alignment: alignment(icon.horizontalAlignment)
             )
     }
