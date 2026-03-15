@@ -132,14 +132,30 @@ fun ContainerView(
                 actionHandler = actionHandler,
                 modifier = Modifier.fillMaxWidth().padding(padding)
             )
-            is AreaGridLayout -> AreaGridLayoutView(
-                items = items,
-                gridLayout = activeLayout,
-                hostConfig = hostConfig,
-                viewModel = viewModel,
-                actionHandler = actionHandler,
-                modifier = Modifier.fillMaxWidth().padding(padding)
-            )
+            is AreaGridLayout -> {
+                // Expand columns list to cover all referenced area columns (matching iOS behavior).
+                // When areas reference column N but columns has fewer entries, the missing columns
+                // get equal share of remaining space — prevents content being squeezed to near-zero width.
+                val maxAreaCol = activeLayout.areas.maxOfOrNull { it.column + (it.columnSpan ?: 1) - 1 } ?: 1
+                val effectiveLayout = if (maxAreaCol > activeLayout.columns.size) {
+                    val expandedColumns = activeLayout.columns.toMutableList()
+                    val usedPct = activeLayout.columns.sumOf { it.trim().removeSuffix("px").removeSuffix("fr").toDoubleOrNull() ?: 0.0 }
+                    val remainingPct = ((100.0 - usedPct) / (maxAreaCol - activeLayout.columns.size)).coerceAtLeast(1.0)
+                    repeat(maxAreaCol - activeLayout.columns.size) {
+                        expandedColumns.add(remainingPct.toInt().toString())
+                    }
+                    activeLayout.copy(columns = expandedColumns)
+                } else activeLayout
+
+                AreaGridLayoutView(
+                    items = items,
+                    gridLayout = effectiveLayout,
+                    hostConfig = hostConfig,
+                    viewModel = viewModel,
+                    actionHandler = actionHandler,
+                    modifier = Modifier.fillMaxWidth().padding(padding)
+                )
+            }
             else -> Column(
                 modifier = Modifier
                     .fillMaxWidth()
