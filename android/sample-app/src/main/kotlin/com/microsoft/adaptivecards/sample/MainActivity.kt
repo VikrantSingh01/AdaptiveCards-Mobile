@@ -543,7 +543,10 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 }
                 // Pop current card detail (if any) then push new one for slide transition
                 navController.popBackStack("card_detail/{cardId}", inclusive = true)
-                navController.navigate("card_detail/${Uri.encode(cardFilename)}")
+                // Encode dots as %2E to prevent Navigation Compose 2.7.x route
+                // matching issues with multi-dot filenames (e.g. Container.Nested.Flow.json)
+                val encoded = Uri.encode(cardFilename).replace(".", "%2E")
+                navController.navigate("card_detail/$encoded")
             }
         }
         "gallery" -> {
