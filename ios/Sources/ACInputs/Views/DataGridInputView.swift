@@ -118,7 +118,7 @@ public struct DataGridInputView: View {
                 let column = input.columns[colIndex]
                 cellView(row: rowIndex, col: colIndex, column: column)
                     .frame(width: columnWidth(column), height: 44)
-                    .background(Color.white)
+                    .background(rowIndex % 2 == 0 ? Color.white : Color(white: 0.96))
                     .border(Color.gray.opacity(0.3), width: 0.5)
             }
 
