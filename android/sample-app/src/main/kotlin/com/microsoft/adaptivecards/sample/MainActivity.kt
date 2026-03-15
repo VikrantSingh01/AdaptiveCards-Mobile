@@ -124,21 +124,18 @@ fun MainScreen() {
                         label = { Text(screen.label) },
                         selected = selected,
                         onClick = {
-                            // Pop any non-tab destinations (e.g. card_detail) first
-                            val currentRoute = navController.currentBackStackEntry?.destination?.route
-                            val tabRoutes = items.map { it.route }.toSet()
-                            if (currentRoute != null && currentRoute !in tabRoutes) {
-                                navController.popBackStack(
-                                    navController.graph.findStartDestination().id,
-                                    inclusive = false
-                                )
-                            }
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            val startDestId = navController.graph.findStartDestination().id
+                            if (screen.route == Screen.Gallery.route) {
+                                // Gallery is the start destination — pop everything back to it
+                                navController.popBackStack(startDestId, inclusive = false)
+                            } else {
+                                navController.navigate(screen.route) {
+                                    popUpTo(startDestId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     )
