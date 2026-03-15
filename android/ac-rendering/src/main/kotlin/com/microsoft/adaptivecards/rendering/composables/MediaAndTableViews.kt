@@ -193,11 +193,15 @@ fun TableView(
                             }
                         } else {
                             cell.items?.forEachIndexed { index, item ->
-                                // Apply bold for header cells
+                                // Apply bold + accent color for header cells (matches iOS blue headers)
                                 if (isHeader && item is TextBlock) {
+                                    val accentColor = parseColorSafe(
+                                        hostConfig.containerStyles.default.foregroundColors.accent.default
+                                    ) ?: MaterialTheme.colorScheme.primary
                                     Text(
                                         text = item.text,
                                         fontWeight = FontWeight.Bold,
+                                        color = accentColor,
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 } else {
