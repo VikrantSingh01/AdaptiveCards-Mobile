@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.microsoft.adaptivecards.core.models.AreaGridLayout
@@ -31,7 +33,10 @@ import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
 /**
  * Renders a ColumnSet element with proportional column layout.
- * Supports auto, stretch, weighted (numeric), and pixel (e.g. "100px") widths.
+ * Uses a custom Layout composable (like iOS ProportionalColumnLayout) that properly
+ * distributes widths: auto columns get intrinsic size, weighted/stretch columns share
+ * remaining space proportionally. This fixes auto-width columns inside weighted parents
+ * (e.g., Agenda card nested ColumnSets) that collapsed with the previous Row approach.
  */
 @Composable
 fun ColumnSetView(
@@ -49,35 +54,141 @@ fun ColumnSetView(
     }
     // Use small spacing between columns (not default element spacing which is too wide
     // and can clip columns in ColumnSets with 5+ columns like WeatherLarge)
-    val spacing = hostConfig.spacing.small.dp
+    val spacingDp = hostConfig.spacing.small.dp
 
     val cornerRadius = hostConfig.cornerRadius.columnSet
 
     val isScrollable = element.overflow?.equals("Scroll", ignoreCase = true) == true
     val isClipped = element.overflow?.equals("Hidden", ignoreCase = true) == true
 
-    Row(
-        modifier = modifier
-            .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
-            .containerStyle(element.style, cornerRadius)
-            .then(if (isScrollable) Modifier.horizontalScroll(rememberScrollState()) else Modifier)
-            .then(if (isClipped) Modifier.clip(RoundedCornerShape(0.dp)) else Modifier)
-            .then(if (!isScrollable) Modifier.fillMaxWidth() else Modifier),
-        horizontalArrangement = Arrangement.spacedBy(spacing)
+    val outerModifier = modifier
+        .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
+        .containerStyle(element.style, cornerRadius)
+        .then(if (isScrollable) Modifier.horizontalScroll(rememberScrollState()) else Modifier)
+        .then(if (isClipped) Modifier.clip(RoundedCornerShape(0.dp)) else Modifier)
+        .then(if (!isScrollable) Modifier.fillMaxWidth() else Modifier)
+
+    ProportionalColumnLayout(
+        columns = columns,
+        spacingDp = spacingDp,
+        modifier = outerModifier
     ) {
         columns.forEachIndexed { index, column ->
-            if (index > 0 && column.separator) {
-                VerticalSeparatorLine()
-            }
-            val columnModifier = resolveColumnWidth(column.width)
             val isAutoWidth = column.width == "auto"
             CompositionLocalProvider(LocalIsAutoWidthColumn provides isAutoWidth) {
                 ColumnView(
                     column = column,
-                    modifier = columnModifier,
+                    modifier = Modifier,
                     viewModel = viewModel,
                     actionHandler = actionHandler
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Custom layout that distributes column widths proportionally, matching iOS ProportionalColumnLayout.
+ * - Pass 1: Fixed pixel widths get their exact size (capped at 60% if other columns exist)
+ * - Pass 2: Auto columns get their intrinsic (wrap-content) width
+ * - Pass 3: Weighted and stretch columns share remaining space proportionally
+ */
+@Composable
+private fun ProportionalColumnLayout(
+    columns: List<Column>,
+    spacingDp: Dp,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Layout(
+        content = content,
+        modifier = modifier
+    ) { measurables, constraints ->
+        if (measurables.isEmpty() || columns.isEmpty()) {
+            return@Layout layout(constraints.maxWidth, 0) {}
+        }
+
+        val spacingPx = spacingDp.roundToPx()
+        val totalSpacing = if (columns.size > 1) (columns.size - 1) * spacingPx else 0
+        val totalWidth = constraints.maxWidth
+        var remainingWidth = totalWidth - totalSpacing
+
+        val columnWidths = IntArray(columns.size)
+
+        // Pass 1: Fixed pixel widths
+        val nonPixelCount = columns.count { col ->
+            val w = col.width
+            w == null || !w.endsWith("px")
+        }
+        val maxPixelShare = if (nonPixelCount > 0) (remainingWidth * 0.6f).toInt() else remainingWidth
+        columns.forEachIndexed { i, col ->
+            val w = col.width
+            if (w != null && w.endsWith("px")) {
+                val px = w.removeSuffix("px").toIntOrNull() ?: 0
+                columnWidths[i] = px.coerceAtMost(maxPixelShare)
+                remainingWidth -= columnWidths[i]
+            }
+        }
+
+        // Pass 2: Auto columns — measure at wrap-content to get intrinsic width
+        columns.forEachIndexed { i, col ->
+            if (col.width == "auto" && i < measurables.size) {
+                val childConstraints = Constraints(maxWidth = remainingWidth.coerceAtLeast(0))
+                val placeable = measurables[i].measure(childConstraints)
+                columnWidths[i] = placeable.width.coerceAtMost(remainingWidth.coerceAtLeast(0))
+                remainingWidth -= columnWidths[i]
+            }
+        }
+
+        // Pass 3: Weighted and stretch columns share remaining space
+        var totalWeight = 0f
+        columns.forEachIndexed { i, col ->
+            val w = col.width
+            if (w == null || w == "stretch") {
+                totalWeight += 1f
+            } else if (w != "auto" && !w.endsWith("px")) {
+                val weight = w.toFloatOrNull()
+                if (weight != null && weight > 0f) {
+                    totalWeight += weight
+                } else {
+                    totalWeight += 1f // Default to stretch
+                }
+            }
+        }
+
+        if (totalWeight > 0f && remainingWidth > 0) {
+            columns.forEachIndexed { i, col ->
+                val w = col.width
+                val weight = when {
+                    w == null || w == "stretch" -> 1f
+                    w == "auto" || w.endsWith("px") -> 0f
+                    else -> w.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
+                }
+                if (weight > 0f) {
+                    columnWidths[i] = ((remainingWidth * weight) / totalWeight).toInt().coerceAtLeast(0)
+                }
+            }
+        }
+
+        // Measure all children at their computed widths (re-measure auto columns
+        // are already measured but we need all placeables in order)
+        val placeables = measurables.mapIndexed { i, measurable ->
+            val w = if (i < columnWidths.size) columnWidths[i] else 0
+            measurable.measure(Constraints(
+                minWidth = w.coerceAtLeast(0),
+                maxWidth = w.coerceAtLeast(0),
+                minHeight = 0,
+                maxHeight = constraints.maxHeight
+            ))
+        }
+
+        val maxHeight = placeables.maxOfOrNull { it.height } ?: 0
+
+        layout(totalWidth, maxHeight) {
+            var x = 0
+            placeables.forEachIndexed { i, placeable ->
+                placeable.placeRelative(x, 0)
+                x += placeable.width + if (i < placeables.size - 1) spacingPx else 0
             }
         }
     }
@@ -176,25 +287,3 @@ private fun VerticalSeparatorLine() {
     }
 }
 
-/**
- * Resolve column width string to a Modifier.
- * Supports: "auto", "stretch", numeric weights (e.g. "2"), pixel widths (e.g. "100px").
- *
- * Auto columns use IntrinsicSize.Max to prevent children with fillMaxWidth() (e.g. centered
- * TextBlocks) from expanding the column beyond its natural content width.
- */
-@Composable
-private fun RowScope.resolveColumnWidth(width: String?): Modifier {
-    return when {
-        width == null || width == "stretch" -> Modifier.weight(1f)
-        width == "auto" -> Modifier.width(IntrinsicSize.Max)
-        width.endsWith("px") -> {
-            val pixels = width.removeSuffix("px").toIntOrNull()
-            if (pixels != null) Modifier.width(pixels.dp) else Modifier.weight(1f)
-        }
-        else -> {
-            val weight = width.toFloatOrNull()
-            if (weight != null && weight > 0f) Modifier.weight(weight) else Modifier.weight(1f)
-        }
-    }
-}

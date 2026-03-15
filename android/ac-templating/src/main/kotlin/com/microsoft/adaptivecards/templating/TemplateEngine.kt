@@ -345,8 +345,9 @@ class TemplateEngine {
                             val result = evaluator.evaluate(parsed)
                             // Return native type for complex values; coerce null to empty string
                             return result ?: ""
-                        } catch (_: Exception) {
-                            return value // Leave as-is on error
+                        } catch (e: Exception) {
+                            android.util.Log.w("TemplateEngine", "Expression evaluation failed for '$expression': ${e.message}")
+                            return "" // Return empty string so card can still render
                         }
                     }
                 }

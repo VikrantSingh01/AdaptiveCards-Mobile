@@ -360,6 +360,14 @@ class ExpressionParser {
                             else -> idx.toString()
                         }
                         expr = Expression.PropertyAccess("${expr.path}.$suffix")
+                    } else if (expr is Expression.PropertyAccess) {
+                        // Dynamic index expression — still append as property access
+                        // so deeply nested paths like obj[expr].field don't silently drop
+                        val evaluated = indexExpr
+                        if (evaluated is Expression.Literal) {
+                            expr = Expression.PropertyAccess("${expr.path}.${evaluated.value}")
+                        }
+                        // For non-literal dynamic indices, leave expr unchanged (best effort)
                     }
                 }
                 is Token.LeftParen -> {
