@@ -538,6 +538,24 @@ struct CardElementPreview: View {
     let element: ParsedElement
 
     var body: some View {
+        bodyContent
+    }
+
+    // Split into sections to avoid Swift type-checker timeout on large switch
+    @ViewBuilder
+    private var bodyContent: some View {
+        switch element {
+        case .textBlock, .image, .container, .columnSet, .factSet, .imageSet, .actionSet:
+            layoutElements
+        case .inputText, .inputNumber, .inputDate, .inputTime, .inputToggle, .inputChoiceSet, .inputRating:
+            inputElements
+        default:
+            advancedElements
+        }
+    }
+
+    @ViewBuilder
+    private var layoutElements: some View {
         switch element {
         case .textBlock(let text, let size, let weight, _, let color, let isSubtle):
             Text(text)
@@ -606,6 +624,15 @@ struct CardElementPreview: View {
                     .controlSize(.small)
                 }
             }
+
+        default:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var inputElements: some View {
+        switch element {
 
         case .inputText(_, let label, let placeholder, let isMultiline):
             VStack(alignment: .leading, spacing: 4) {
@@ -704,6 +731,14 @@ struct CardElementPreview: View {
                 }
             }
 
+        default:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var advancedElements: some View {
+        switch element {
         case .ratingDisplay(let value, let max, _):
             HStack(spacing: 2) {
                 ForEach(0..<max, id: \.self) { index in
@@ -925,7 +960,7 @@ struct CardElementPreview: View {
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-        case .unknown(let type, _):
+        case .unknown(let type):
             HStack(spacing: 4) {
                 Image(systemName: "questionmark.square.dashed")
                     .foregroundColor(.gray)
@@ -936,6 +971,9 @@ struct CardElementPreview: View {
             .padding(4)
             .background(Color.gray.opacity(0.08))
             .cornerRadius(4)
+
+        default:
+            EmptyView()
         }
     }
 

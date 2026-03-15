@@ -16,6 +16,8 @@ public struct Container: Codable, Equatable {
     public var bleed: Bool?
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
+    public var maxHeight: String?
+    public var overflow: Overflow?
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
@@ -43,6 +45,8 @@ public struct Container: Codable, Equatable {
         bleed: Bool? = nil,
         backgroundImage: BackgroundImage? = nil,
         minHeight: String? = nil,
+        maxHeight: String? = nil,
+        overflow: Overflow? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -62,6 +66,8 @@ public struct Container: Codable, Equatable {
         self.bleed = bleed
         self.backgroundImage = backgroundImage
         self.minHeight = minHeight
+        self.maxHeight = maxHeight
+        self.overflow = overflow
         self.spacing = spacing
         self.separator = separator
         self.height = height
@@ -139,6 +145,8 @@ public struct Column: Codable, Equatable, Identifiable {
     public var bleed: Bool?
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
+    public var maxHeight: String?
+    public var overflow: Overflow?
     public var separator: Bool?
     public var spacing: Spacing?
     public var selectAction: CardAction?
@@ -169,6 +177,8 @@ public struct Column: Codable, Equatable, Identifiable {
         bleed: Bool? = nil,
         backgroundImage: BackgroundImage? = nil,
         minHeight: String? = nil,
+        maxHeight: String? = nil,
+        overflow: Overflow? = nil,
         separator: Bool? = nil,
         spacing: Spacing? = nil,
         selectAction: CardAction? = nil,
@@ -184,6 +194,8 @@ public struct Column: Codable, Equatable, Identifiable {
         self.bleed = bleed
         self.backgroundImage = backgroundImage
         self.minHeight = minHeight
+        self.maxHeight = maxHeight
+        self.overflow = overflow
         self.separator = separator
         self.spacing = spacing
         self.selectAction = selectAction

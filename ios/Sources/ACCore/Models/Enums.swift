@@ -234,6 +234,14 @@ public enum SpinnerSize: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case large = "Large"
 }
 
+// MARK: - Overflow
+
+public enum Overflow: String, Codable, CaseIterable, CaseInsensitiveCodable {
+    case visible = "Visible"
+    case hidden = "Hidden"
+    case scroll = "Scroll"
+}
+
 // MARK: - Layout Types
 
 /// The type of layout used by a container
