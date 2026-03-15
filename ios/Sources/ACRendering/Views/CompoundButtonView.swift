@@ -218,9 +218,50 @@ struct CompoundButtonView: View {
             "TextBulletList": "list.bullet",
             "Bookmark": "bookmark",
             "Emoji": "face.smiling",
+            // Lowercase aliases for SF Symbol-style names used in card JSON
+            "delete": "trash",
+            "send": "paperplane",
+            "edit": "pencil",
+            "add": "plus.circle",
+            "search": "magnifyingglass",
+            "settings": "gearshape",
+            "share": "square.and.arrow.up",
+            "mail": "envelope",
+            "email": "envelope",
+            "alert": "bell",
+            "notification": "bell",
+            "location": "location",
+            "home": "house",
+            "person": "person",
+            "close": "xmark",
+            "dismiss": "xmark",
+            "check": "checkmark.circle",
+            "morehorizontal": "ellipsis",
+            "arrowright": "arrow.right",
         ]
-        // Fall back to info.circle for unknown icons (matching Android behavior)
-        return lookup[baseName] ?? "info.circle"
+        // Try PascalCase Fluent name first
+        if let mapped = lookup[baseName] {
+            return mapped
+        }
+        // Try lowercase — input may already be an SF Symbol name (e.g. "checkmark.circle.fill")
+        let lowered = baseName.lowercased()
+        if let mapped = lookup[lowered] {
+            return mapped
+        }
+        // If the name contains a dot, it's likely an SF Symbol — use directly
+        if lowered.contains(".") {
+            return lowered
+        }
+        // Known single-word SF Symbols that don't have dots
+        let directSymbols: Set<String> = [
+            "trash", "star", "heart", "bookmark", "calendar",
+            "globe", "lock", "link", "folder", "camera",
+            "phone", "video", "airplane", "gift", "play", "mic"
+        ]
+        if directSymbols.contains(lowered) {
+            return lowered
+        }
+        return "info.circle"
     }
 
     private var iconPlaceholder: some View {
