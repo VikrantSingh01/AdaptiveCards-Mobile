@@ -83,7 +83,8 @@ fun ProgressBarView(
                 .fillMaxWidth()
                 .height(if (isTablet) 10.dp else 8.dp),
             color = progressColor,
-            trackColor = progressColor.copy(alpha = 0.2f)
+            trackColor = progressColor.copy(alpha = 0.2f),
+            drawStopIndicator = {}
         )
     }
 }
