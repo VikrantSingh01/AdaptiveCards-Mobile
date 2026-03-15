@@ -123,11 +123,15 @@ fun TableView(
                 )
             }
 
+            // Apply emphasis background for header rows (matching iOS)
+            val emphasisBg = if (isHeader) parseColorSafe(hostConfig.containerStyles.emphasis.backgroundColor) else null
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
-                        if (rowBackground != null) Modifier.background(rowBackground) else Modifier
+                        if (emphasisBg != null) Modifier.background(emphasisBg)
+                        else if (rowBackground != null) Modifier.background(rowBackground)
+                        else Modifier
                     )
                     .padding(vertical = 4.dp)
             ) {
