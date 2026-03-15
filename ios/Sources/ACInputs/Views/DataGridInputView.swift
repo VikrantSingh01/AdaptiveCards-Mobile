@@ -28,7 +28,7 @@ public struct DataGridInputView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let label = input.label {
-                Text(label)
+                Text(label + (input.isRequired == true ? " *" : ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .accessibilityLabel("\(label)\(input.isRequired == true ? ", required" : "")")

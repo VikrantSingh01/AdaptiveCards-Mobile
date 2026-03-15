@@ -177,7 +177,7 @@ fun DataGridInputView(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
+            TextButton(
                 onClick = {
                     val maxRows = element.maxRows
                     if (maxRows == null || gridData.size < maxRows) {
