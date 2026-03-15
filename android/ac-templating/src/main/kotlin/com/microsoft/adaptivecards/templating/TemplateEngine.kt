@@ -232,6 +232,11 @@ class TemplateEngine {
                 continue // Don't include $when in output
             }
 
+            // Strip $data directive from output (handled by expandArray)
+            if (key == "\$data") {
+                continue
+            }
+
             // Expand value
             result[key] = expandValue(value, context)
         }
