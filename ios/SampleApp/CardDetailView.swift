@@ -60,7 +60,7 @@ struct CardDetailView: View {
                 actionDelegate: SampleActionDelegate(actionLog: actionLog),
                 pendingActionTitle: $deepLink.pendingActionTitle
             )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             // Bottom bar — single row: JSON | Parse | Render | Copy
             VStack(spacing: 0) {
