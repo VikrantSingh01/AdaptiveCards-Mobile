@@ -50,9 +50,12 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     val decodedCardId = remember(cardId) { java.net.URLDecoder.decode(cardId, "UTF-8") }
     val card = remember(decodedCardId) {
         val allCards = CardCache.getCards(context)
+        val baseName = decodedCardId.removeSuffix(".json")
         allCards.find { it.filename == decodedCardId }
             ?: allCards.find { it.filename == "$decodedCardId.json" }
             ?: allCards.find { it.filename.removeSuffix(".json") == decodedCardId }
+            ?: allCards.find { it.filename == "$baseName.template.json" }
+            ?: allCards.find { it.filename.removeSuffix(".template.json") == baseName }
     }
     // Load template data for .template.json cards
     val templateData: Map<String, Any?>? = remember(cardId) {

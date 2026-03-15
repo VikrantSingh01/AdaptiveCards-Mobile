@@ -62,7 +62,7 @@ fun ImageView(
         ImageSize.Small -> Modifier.width(hostConfig.imageSizes.small.dp)
         ImageSize.Medium -> Modifier.width(hostConfig.imageSizes.medium.dp)
         ImageSize.Large -> Modifier.width(hostConfig.imageSizes.large.dp)
-        ImageSize.Stretch -> modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
+        ImageSize.Stretch -> modifier.fillMaxWidth()
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
@@ -156,7 +156,7 @@ fun ImageView(
         "fill" -> ContentScale.FillBounds
         "contain" -> ContentScale.Fit
         else -> when {
-            element.size == ImageSize.Stretch -> ContentScale.Crop
+            element.size == ImageSize.Stretch -> ContentScale.FillWidth
             element.size == null || element.size == ImageSize.Auto -> {
                 val hasExplicitSize = element.width != null || element.pixelHeight != null
                 val hasAutoHeight = element.height != null && element.pixelHeight == null
