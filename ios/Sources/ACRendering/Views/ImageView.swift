@@ -106,6 +106,7 @@ struct ImageView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: fitModeContentMode ?? .fit)
                                 .frame(maxWidth: .infinity, alignment: frameAlignment)
+                                .frame(maxHeight: coverMaxHeight)
                                 .clipped()
                                 .clipShape(imageShape)
                         } else if let fitMode = fitModeContentMode, fitMode == .fill {
@@ -210,6 +211,14 @@ struct ImageView: View {
             return Color(hex: bgColor)
         }
         return .clear
+    }
+
+    /// Max height when cover/fill mode is used with stretch width and no explicit height.
+    /// Prevents unbounded height from pushing content off-screen.
+    private var coverMaxHeight: CGFloat? {
+        if let h = imageHeight { return h }
+        if fitModeContentMode == .fill { return 200 }
+        return nil
     }
 
     /// Whether the image should fill available width (matching Android FillWidth behavior)

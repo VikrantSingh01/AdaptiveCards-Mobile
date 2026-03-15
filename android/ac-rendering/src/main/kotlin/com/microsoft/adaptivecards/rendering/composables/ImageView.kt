@@ -89,9 +89,13 @@ fun ImageView(
                 widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
                 widthPx != null -> modifier.width(widthPx.dp)
                 heightPx != null -> modifier.height(heightPx.dp)
-                // When height="auto" with no width, use medium default size to avoid
-                // collapsing to tiny or expanding to full width in auto-width columns
-                hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
+                // When height="auto" with no width: if fitMode is set, fill width so the
+                // image doesn't render as a tiny thumbnail; otherwise use medium size
+                hasAutoHeight -> {
+                    val hasFitMode = element.fitMode != null
+                    if (hasFitMode) modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
+                    else modifier.size(hostConfig.imageSizes.medium.dp)
+                }
                 // Auto per AC spec: use natural image size, constrained by parent.
                 // Don't force fillMaxWidth() — it breaks intrinsic sizing in auto-width
                 // columns (icons, pin markers collapse to 0). Instead, set minimum
