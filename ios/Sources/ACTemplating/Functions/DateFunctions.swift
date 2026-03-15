@@ -241,7 +241,7 @@ public struct DateFunctions {
                 return date
             }
 
-            // Try standard formats (always use UTC to prevent off-by-one day shifts)
+            // Try standard formats (use UTC to avoid off-by-one day shifts)
             let dateFormatter = DateFormatter()
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
             dateFormatter.timeZone = TimeZone(identifier: "UTC")

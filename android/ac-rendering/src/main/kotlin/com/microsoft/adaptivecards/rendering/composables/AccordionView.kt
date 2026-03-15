@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
@@ -60,23 +61,16 @@ fun AccordionView(
                 contentDescription = "Accordion with ${element.panels.size} panels, ${element.expandMode} mode"
             }
     ) {
-        val emphasisBg = try {
-            android.graphics.Color.parseColor(hostConfig.containerStyles.emphasis.backgroundColor).let {
-                androidx.compose.ui.graphics.Color(it)
-            }
-        } catch (_: Exception) {
-            MaterialTheme.colorScheme.surfaceVariant
-        }
-
         val separatorColor = try {
-            android.graphics.Color.parseColor(hostConfig.separator.lineColor).let {
-                androidx.compose.ui.graphics.Color(it)
-            }
+            Color(android.graphics.Color.parseColor(hostConfig.separator.lineColor))
         } catch (_: Exception) {
             MaterialTheme.colorScheme.outlineVariant
         }
-
-        val separatorThickness = hostConfig.separator.lineThickness.dp
+        val emphasisBg = try {
+            Color(android.graphics.Color.parseColor(hostConfig.containerStyles.emphasis.backgroundColor))
+        } catch (_: Exception) {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
 
         element.panels.forEachIndexed { index, panel ->
             val isExpanded = expandedPanels[index] ?: false
@@ -84,7 +78,7 @@ fun AccordionView(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Panel header with emphasis background (matching iOS)
+                // Panel header
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -159,9 +153,9 @@ fun AccordionView(
                     }
                 }
 
-                // Bottom divider line (matching iOS separator overlay)
+                // Bottom divider line (matches iOS flat row style)
                 @Suppress("DEPRECATION") Divider(
-                    thickness = separatorThickness,
+                    thickness = hostConfig.separator.lineThickness.dp,
                     color = separatorColor
                 )
             }
