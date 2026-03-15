@@ -110,20 +110,26 @@ public struct ChoiceSetInputView: View {
     }
 
     private var multiSelectCompactView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8) {
             ForEach(input.choices, id: \.value) { choice in
-                Toggle(choice.title, isOn: Binding(
-                    get: { selectedValues.contains(choice.value) },
-                    set: { isSelected in
-                        if isSelected {
-                            selectedValues.insert(choice.value)
-                        } else {
-                            selectedValues.remove(choice.value)
-                        }
-                        updateMultiSelectValue()
+                Button(action: {
+                    if selectedValues.contains(choice.value) {
+                        selectedValues.remove(choice.value)
+                    } else {
+                        selectedValues.insert(choice.value)
                     }
-                ))
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    updateMultiSelectValue()
+                }) {
+                    HStack {
+                        Image(systemName: selectedValues.contains(choice.value) ? "checkmark.square.fill" : "square")
+                            .foregroundColor(selectedValues.contains(choice.value) ? .blue : .secondary)
+                        Text(choice.title)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.primary)
             }
         }
     }
@@ -132,18 +138,24 @@ public struct ChoiceSetInputView: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(input.choices, id: \.value) { choice in
                 if input.isMultiSelect == true {
-                    Toggle(choice.title, isOn: Binding(
-                        get: { selectedValues.contains(choice.value) },
-                        set: { isSelected in
-                            if isSelected {
-                                selectedValues.insert(choice.value)
-                            } else {
-                                selectedValues.remove(choice.value)
-                            }
-                            updateMultiSelectValue()
+                    Button(action: {
+                        if selectedValues.contains(choice.value) {
+                            selectedValues.remove(choice.value)
+                        } else {
+                            selectedValues.insert(choice.value)
                         }
-                    ))
-                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+                        updateMultiSelectValue()
+                    }) {
+                        HStack {
+                            Image(systemName: selectedValues.contains(choice.value) ? "checkmark.square.fill" : "square")
+                                .foregroundColor(selectedValues.contains(choice.value) ? .blue : .secondary)
+                            Text(choice.title)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.primary)
                 } else {
                     Button(action: {
                         value = choice.value

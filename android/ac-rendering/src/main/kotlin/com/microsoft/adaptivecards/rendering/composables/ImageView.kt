@@ -85,10 +85,13 @@ fun ImageView(
                 hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: fill container width to match iOS parity.
                 // Images without explicit size should expand to fill available width.
-                // Use a small minimum height to prevent zero-height collapse before
-                // image loads, but keep it modest to avoid oversizing in narrow columns
-                // (e.g., forecast icons in carousel ColumnSets with 4-5 columns).
-                else -> modifier.fillMaxWidth().heightIn(min = 40.dp)
+                // When fitMode is set (cover/fill/contain), use a taller minimum so
+                // the image doesn't collapse to a tiny strip before loading.
+                else -> {
+                    val hasFitMode = element.fitMode != null
+                    val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
+                    modifier.fillMaxWidth().heightIn(min = minH)
+                }
             }
         }
     }
