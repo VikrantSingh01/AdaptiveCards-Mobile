@@ -34,12 +34,7 @@ struct BadgeView: View {
             badgeShape
                 .stroke(strokeColor, lineWidth: isTint ? 1 : 0)
         )
-        .fixedSize(horizontal: true, vertical: true)
-        .frame(
-            maxWidth: badge.horizontalAlignment == nil ? nil : .infinity,
-            alignment: alignment
-        )
-        .fixedSize(horizontal: false, vertical: true)
+        .fixedSize()
     }
 
     private var badgeShape: AnyShape {
