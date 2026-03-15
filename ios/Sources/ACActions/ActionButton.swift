@@ -213,7 +213,10 @@ public struct ActionButton: View {
         "Bell": "bell",
         "BellOff": "bell.slash",
         "ArrowReset": "arrow.counterclockwise",
-        "ToggleLeft": "switch.2"
+        "ToggleLeft": "switch.2",
+        "ArrowExport": "arrow.up.forward.square",
+        "AccessTime": "clock",
+        "Airplane": "airplane"
     ]
 
     /// Maps Fluent UI icon names to SF Symbols.
