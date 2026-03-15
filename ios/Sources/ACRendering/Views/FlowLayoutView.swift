@@ -112,13 +112,6 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
         }
 
-        // When only maxItemWidth is specified, use it directly as item width constraint.
-        // This matches Android behavior where items are measured at their intrinsic width
-        // capped by maxItemWidth, allowing multiple columns when items fit.
-        if let maxW = maxItemWidth, maxW > 0 {
-            return maxW
-        }
-
         return nil
     }
 
@@ -156,6 +149,11 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
             if itemWidth < 1 && maxWidth < .infinity {
                 itemWidth = maxWidth
+            }
+            // Cap by maxItemWidth when no dynamic width was calculated
+            // (i.e., only maxItemWidth was specified without minItemWidth/itemWidth)
+            if dynWidth == nil, let maxW = maxItemWidth, maxW > 0, itemWidth > maxW {
+                itemWidth = maxW
             }
 
             // Re-measure at final width to get correct height.
