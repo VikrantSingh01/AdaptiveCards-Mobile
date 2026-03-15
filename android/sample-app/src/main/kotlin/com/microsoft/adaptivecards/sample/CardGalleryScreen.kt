@@ -333,6 +333,19 @@ fun CardItem(card: TestCard, bookmarkState: BookmarkState, onClick: () -> Unit) 
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
+                if (TestCardLoader.hasTemplateData(card.filename)) {
+                    Text(
+                        "Templated",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF00897B),
+                        modifier = Modifier
+                            .background(
+                                Color(0xFF00897B).copy(alpha = 0.1f),
+                                RoundedCornerShape(50)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(2.dp))
             Text(

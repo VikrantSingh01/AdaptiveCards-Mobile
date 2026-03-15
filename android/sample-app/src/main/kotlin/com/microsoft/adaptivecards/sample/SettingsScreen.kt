@@ -123,7 +123,7 @@ fun SettingsScreen(settingsState: SettingsState, navController: androidx.navigat
             ) {
                 SettingsItem(label = "SDK Version", value = "1.0.0")
                 SettingsItem(label = "Build", value = "1")
-                SettingsItem(label = "Schema", value = "v1.6")
+                SettingsItem(label = "Schema", value = "1.6")
             }
 
             // Reset

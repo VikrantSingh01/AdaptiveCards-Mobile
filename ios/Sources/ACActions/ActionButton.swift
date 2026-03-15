@@ -53,7 +53,7 @@ public struct ActionButton: View {
                         .lineLimit(1)
                 }
             }
-            .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: .medium))
+            .font(.system(size: 14, weight: .medium))
             .padding(.horizontal, CGFloat(hostConfig.spacing.small))
             .padding(.vertical, CGFloat(hostConfig.spacing.small) * 0.75)
             .foregroundColor(buttonForegroundColor)
