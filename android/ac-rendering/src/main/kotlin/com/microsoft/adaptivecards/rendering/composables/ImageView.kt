@@ -150,6 +150,7 @@ fun ImageView(
                 diskCachePolicy(CachePolicy.DISABLED)
             }
         }
+        .addHeader("User-Agent", "AdaptiveCards-Mobile/1.0 (Android)")
         .crossfade(true)
         .build()
 
