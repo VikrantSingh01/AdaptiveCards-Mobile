@@ -211,25 +211,25 @@ public struct AdaptiveCardView: View {
     private func cardContent(card: AdaptiveCard) -> some View {
         let showDiagnostics = configuration?.diagnosticsEnabled == true
 
-        return VStack(spacing: 0) {
-            if let body = card.body, !body.isEmpty {
-                ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
-                    if viewModel.isElementVisible(elementId: element.elementId) {
-                        ElementView(element: element, hostConfig: hostConfig)
-                            .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
+        return ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                if let body = card.body, !body.isEmpty {
+                    ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
+                        if viewModel.isElementVisible(elementId: element.elementId) {
+                            ElementView(element: element, hostConfig: hostConfig)
+                                .padding(.top, index > 0 && element.spacing == nil ? CGFloat(hostConfig.spacing.default) : 0)
+                        }
                     }
                 }
-            }
 
-            if let actions = card.actions, !actions.isEmpty {
-                ActionSetView(actions: actions, hostConfig: hostConfig)
-                    .padding(.top, CGFloat(hostConfig.spacing.default))
+                if let actions = card.actions, !actions.isEmpty {
+                    ActionSetView(actions: actions, hostConfig: hostConfig)
+                        .padding(.top, CGFloat(hostConfig.spacing.default))
+                }
             }
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            .padding(CGFloat(hostConfig.spacing.padding))
         }
-        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-        .clipped()
-        .padding(CGFloat(hostConfig.spacing.padding))
-        .fixedSize(horizontal: false, vertical: true)
         .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
         .background(
             GeometryReader { geometry in
