@@ -154,6 +154,15 @@ struct CompoundButtonView: View {
         }
     }
 
+    /// SF Symbol names that can appear directly in card JSON without a dot separator.
+    /// These are matched case-insensitively to handle JSON variations.
+    private static let sfSymbolDirectNames: Set<String> = [
+        "star", "heart", "trash", "calendar", "camera", "phone", "video",
+        "folder", "pencil", "link", "globe", "lock", "airplane", "gift",
+        "play", "mic", "bookmark", "person", "house", "location", "map",
+        "clock", "bell", "envelope",
+    ]
+
     /// Maps Fluent UI icon names to SF Symbol equivalents.
     private static func resolveFluentIcon(_ name: String) -> String {
         let baseName = name
@@ -161,6 +170,7 @@ struct CompoundButtonView: View {
             .replacingOccurrences(of: ",Regular", with: "")
             .trimmingCharacters(in: .whitespaces)
         let lookup: [String: String] = [
+            // Fluent icon names → SF Symbols
             "Calendar": "calendar",
             "Info": "info.circle",
             "InfoCircle": "info.circle",

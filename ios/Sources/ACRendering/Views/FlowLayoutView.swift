@@ -112,15 +112,11 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
         }
 
-        // When only maxItemWidth is specified, constrain items to maxItemWidth
+        // When only maxItemWidth is specified, use it directly as item width constraint.
+        // This matches Android behavior where items are measured at their intrinsic width
+        // capped by maxItemWidth, allowing multiple columns when items fit.
         if let maxW = maxItemWidth, maxW > 0 {
-            if available < .infinity {
-                let maxCols = max(1, Int((available + horizontalSpacing) / (maxW + horizontalSpacing)))
-                let w = (available - CGFloat(maxCols - 1) * horizontalSpacing) / CGFloat(maxCols)
-                return min(w, maxW)
-            } else {
-                return maxW
-            }
+            return maxW
         }
 
         return nil
