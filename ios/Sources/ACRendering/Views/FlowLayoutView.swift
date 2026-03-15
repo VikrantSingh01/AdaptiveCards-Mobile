@@ -103,10 +103,16 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
         var totalWidth: CGFloat = 0
 
         for subview in subviews {
-            // Measure with an unspecified width to get the item's ideal/natural size.
-            // Items with explicit FlowItemModifier frame constraints will respect those;
-            // unconstrained items size to their content width, clamped to maxWidth below.
-            let size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            // Measure with unspecified width to get ideal/natural size.
+            // Items with explicit FlowItemModifier frame constraints will respect those.
+            var size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+
+            // If item reports near-zero width (e.g., nested containers that need
+            // explicit width to lay out), re-measure with available width.
+            if size.width < 1 && maxWidth < .infinity {
+                size = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+            }
+
             let clampedWidth = min(size.width, maxWidth)
             let clampedSize = CGSize(width: clampedWidth, height: size.height)
 

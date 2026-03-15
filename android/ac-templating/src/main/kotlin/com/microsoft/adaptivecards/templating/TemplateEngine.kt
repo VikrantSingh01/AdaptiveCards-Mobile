@@ -251,16 +251,22 @@ class TemplateEngine {
                 if (dict.containsKey("\$data")) {
                     val rawData = dict["\$data"]
 
-                    // Resolve the $data value: evaluate string expressions, use other types directly
-                    val dataValue: Any? = try {
-                        if (rawData is String) {
-                            val parsedExpression = parser.parse(extractExpression(rawData))
-                            val evaluator = ExpressionEvaluator(context)
-                            evaluator.evaluate(parsedExpression)
+                    // Resolve the $data value: evaluate ${...} expressions, use other types directly.
+                    // Non-expression strings (e.g., "{hello}") are used as literal data values.
+                    val dataValue: Any? = if (rawData is String) {
+                        val trimmed = rawData.trim()
+                        if (trimmed.startsWith("\${") && trimmed.endsWith("}")) {
+                            try {
+                                val parsedExpression = parser.parse(extractExpression(rawData))
+                                val evaluator = ExpressionEvaluator(context)
+                                evaluator.evaluate(parsedExpression)
+                            } catch (_: Exception) { rawData }
                         } else {
                             rawData
                         }
-                    } catch (_: Exception) { null }
+                    } else {
+                        rawData
+                    }
 
                     if (dataValue != null) {
                         val itemTemplate = dict.toMutableMap()
