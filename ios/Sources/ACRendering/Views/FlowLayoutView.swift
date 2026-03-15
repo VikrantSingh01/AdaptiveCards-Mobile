@@ -114,6 +114,11 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
 
             let clampedWidth = min(size.width, maxWidth)
+            // Re-measure with clamped width when item was wider than available space.
+            // Nested containers/flow layouts need the correct width to compute wrapped height.
+            if clampedWidth < size.width && maxWidth < .infinity {
+                size = subview.sizeThatFits(ProposedViewSize(width: clampedWidth, height: nil))
+            }
             let clampedSize = CGSize(width: clampedWidth, height: size.height)
 
             if currentX + clampedWidth > maxWidth && currentX > 0 {
