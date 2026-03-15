@@ -143,7 +143,7 @@ private fun ListItemRow(
         ) {
             RenderElement(
                 element = item,
-                isFirst = false,
+                isFirst = true, // suppress adaptive spacing — ListView handles spacing via Arrangement.spacedBy
                 viewModel = viewModel,
                 actionHandler = actionHandler
             )
