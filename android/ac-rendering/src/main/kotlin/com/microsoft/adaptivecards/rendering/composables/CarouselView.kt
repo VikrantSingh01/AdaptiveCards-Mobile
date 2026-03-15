@@ -6,7 +6,9 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -138,6 +140,7 @@ fun CarouselView(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
                         .padding(
                             all = if (isTablet) 24.dp else 16.dp
                         )
@@ -256,7 +259,10 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
                         ImageSize.Medium -> 52f
                         ImageSize.Large -> 100f
                         ImageSize.Stretch -> contentWidth * 0.75f
-                        ImageSize.Auto, null -> contentWidth * 0.75f
+                        // Auto images fill their container width with a small minimum
+                        // height (40dp). In narrow columns, the image height will match
+                        // the column width (for square images), clamped to the minimum.
+                        ImageSize.Auto, null -> maxOf(contentWidth, 40f)
                     }
                 }
             }

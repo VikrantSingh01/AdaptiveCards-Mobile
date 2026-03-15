@@ -184,16 +184,16 @@ These elements are implemented on both platforms but are NOT in the official ada
 
 | Feature | Desktop Status | Mobile Status | Gap? |
 |---------|---------------|---------------|------|
-| **Scrollable Containers** (maxHeight + vertical scrollbar) | Shipped, desktop-only | Not implemented | **NEW GAP** |
+| **Scrollable Containers** (maxHeight + vertical scrollbar) | Shipped, desktop-only | ✅ Implemented — `maxHeight` + `overflow` (scroll/hidden/visible) on Container, Column, TableCell | **RESOLVED** |
 | **Free Label Positioning** (labels decoupled from inputs) | 1JS PR merged 2/24 | `labelPosition`/`labelWidth` parsed but not rendered | Existing gap confirmed |
-| **Streaming fade-in animation** | Shipped (bot streaming GA fast-follow) | `StreamingCardView` is stub on both platforms | **NEW GAP** |
-| **Popover drawer resizing** (resize to content, max height) | Design directed by David Claux | Fixed full-height sheets on both platforms | **NEW GAP** |
+| **Streaming fade-in animation** | Shipped (bot streaming GA fast-follow) | ✅ Implemented — fade-in via `.transition(.opacity)` (iOS) / `AnimatedVisibility(fadeIn)` (Android) with composable-lambda renderer | **RESOLVED** |
+| **Popover drawer resizing** (resize to content, max height) | Design directed by David Claux | ✅ Implemented — content-measured detents capped at 80% screen height on both platforms | **RESOLVED** |
 | **Responsive reflow across endpoints** | 100% complete | `targetWidth` (narrow/standard/wide) implemented | At parity |
 | **Fluent V9 styling alignment** | Rolling out with feature flags | `ACFluentUI` module exists | At parity |
 | **Inline video (YouTube, public media)** | Shipped | `Media` element supports video playback | At parity |
 | **Action visibility ("See more" fix)** | Shipped | Overflow menu implemented | At parity |
 | **Visual diff testing framework** | In progress | iOS snapshot tests + Paparazzi scaffolding | Partial |
-| **Improved diagnostics/logging** | In progress | `CardPerformanceMetrics` exists but no visual inspector | **NEW GAP** |
+| **Improved diagnostics/logging** | In progress | ✅ Implemented — `DiagnosticsOverlayView` floating badge + expandable panel (element count, parse time, version, errors) on both platforms via `CardConfiguration.diagnosticsEnabled` | **RESOLVED** |
 
 ### New Schema Elements (Desktop vs Mobile)
 
@@ -223,14 +223,14 @@ These elements are implemented on both platforms but are NOT in the official ada
 | **Data.Query** (dynamic typeahead) | MEDIUM — ChoiceSet with bot-driven suggestions won't work | Medium | Need model (Data.Query type), host callback interface, and ChoiceSet typeahead UI |
 | **CaptionSource** on Media | LOW — closed captions for video won't display | Small | Need model + WebVTT/SRT subtitle rendering overlay |
 
-### P0.5 — Desktop R4 Feature Gaps (NEW — from David Claux's team, March 2026)
+### P0.5 — Desktop R4 Feature Gaps (from David Claux's team, March 2026) — ALL RESOLVED ✅
 
 | Gap | Impact | Effort | Notes |
 |-----|--------|--------|-------|
-| **Scrollable Containers** (maxHeight + overflow) | MEDIUM — desktop-only layout capability, dense cards won't scroll on mobile | Medium | Need `maxHeight` + `overflow` properties on Container/Column/TableCell + rendering |
-| **Popover Drawer Resizing** | LOW — UX mismatch, popovers always full-height on mobile vs content-sized on desktop | Small | Rendering change only — content-measured sheet sizing capped at 80% |
-| **Streaming Fade-in Animation** | LOW — `StreamingCardView` is a stub, no fade-in for streamed content | Small | Replace stub with actual element rendering + opacity transition |
-| **Card Diagnostics Overlay** | LOW — no visual inspector for debugging cards on mobile | Medium | New overlay showing perf metrics, element tree, JSON, errors |
+| ~~**Scrollable Containers**~~ | ~~MEDIUM~~ | ~~Medium~~ | **RESOLVED** — `maxHeight` + `overflow` (scroll/hidden/visible) on Container, Column, TableCell. iOS: `OverflowModifier` with `ScrollView`/`.clipped()`. Android: `verticalScroll`/`clipToBounds`. Test card: `container-scrollable.json` |
+| ~~**Popover Drawer Resizing**~~ | ~~LOW~~ | ~~Small~~ | **RESOLVED** — iOS: content-measured `presentationDetents` via `GeometryReader`, capped at 80% screen. Android: `skipPartiallyExpanded = false` + `wrapContentHeight()` + `heightIn(max = 80%)` |
+| ~~**Streaming Fade-in Animation**~~ | ~~LOW~~ | ~~Small~~ | **RESOLVED** — iOS: `.transition(.opacity)` + `.animation(.easeIn)`. Android: `AnimatedVisibility(fadeIn(tween(300)))`. Both use composable-lambda `elementRenderer` for full element rendering (avoids circular module dependency) |
+| ~~**Card Diagnostics Overlay**~~ | ~~LOW~~ | ~~Medium~~ | **RESOLVED** — `DiagnosticsOverlayView` (iOS) / `DiagnosticsOverlay` (Android) — floating badge with element count + parse time, expandable panel with version, lang, RTL, refresh info. Enabled via `CardConfiguration.diagnosticsEnabled` |
 
 ### P1 — Property Gaps (properties parsed but not rendered)
 
@@ -257,7 +257,7 @@ These elements are implemented on both platforms but are NOT in the official ada
 | Feature Area | Web/Desktop | Mobile | Delta |
 |---|---|---|---|
 | Core elements (TextBlock, Image, RichTextBlock, Media) | 100% | 95% | Missing: CaptionSource, TextBlock.style on Android |
-| Containers (Container, ColumnSet, FactSet, ImageSet, Table) | 100% | 95% | Missing: scrollable containers (maxHeight + overflow) |
+| Containers (Container, ColumnSet, FactSet, ImageSet, Table) | 100% | 100% | At parity — scrollable containers (maxHeight + overflow) implemented |
 | Inputs (Text, Number, Date, Time, Toggle, ChoiceSet) | 100% | 90% | Missing: Data.Query typeahead, labelPosition/labelWidth |
 | Actions (OpenUrl, Submit, ShowCard, ToggleVisibility, Execute) | 100% | 100% | At parity |
 | Fallback mechanism | 100% | 100% | At parity — ElementView/RenderElement check requires + render fallback |
@@ -268,9 +268,9 @@ These elements are implemented on both platforms but are NOT in the official ada
 | Templating | 100% | 100% | At parity (60+ functions) |
 | Markdown | 100% | 95% | CommonMark subset; no code blocks in markdown |
 | Accessibility | 100% | 100% | WCAG 2.1 AA on both platforms |
-| Streaming (fade-in animation) | 100% | Stub | StreamingCardView placeholder — no actual rendering or animation |
-| Popover/drawer behavior | Content-sized | Full-height | Desktop resizes to content; mobile always full-height sheet |
-| Card diagnostics | Internal tool | Callbacks only | Desktop has visual inspector; mobile has CardPerformanceMetrics API only |
+| Streaming (fade-in animation) | 100% | 100% | At parity — fade-in animation with composable-lambda element renderer |
+| Popover/drawer behavior | Content-sized | 100% | At parity — content-measured detents capped at 80% screen height |
+| Card diagnostics | Internal tool | 100% | At parity — DiagnosticsOverlay with element count, parse time, expandable panel |
 | **Teams extensions** | N/A | 100% | Mobile has MORE than web (Carousel, TabSet, Charts, etc.) |
 | **ProgressBar / ProgressRing** | In development | 100% | Mobile ahead — shipped before desktop |
 
@@ -287,7 +287,7 @@ These elements are implemented on both platforms but are NOT in the official ada
    - Host callback protocol for fetching choices
    - ChoiceSet search-as-you-type UI
 
-3. **Scrollable Containers** — Desktop-only feature with `maxHeight` + overflow scroll. Mobile containers only support `minHeight`, never scroll. Needed for dense productivity layouts.
+3. ~~**Scrollable Containers**~~ — **RESOLVED**. `maxHeight` + `overflow` (scroll/hidden/visible) implemented on Container, Column, TableCell on both platforms.
 
 ### Should Fix
 
@@ -295,9 +295,9 @@ These elements are implemented on both platforms but are NOT in the official ada
 5. **BackgroundImage repeat modes** — Implement tiling for `repeat`, `repeatHorizontally`, `repeatVertically`
 6. **Refresh auto-refresh** — Timer-based card re-fetch on expiration
 7. **Input labelPosition/labelWidth** — Inline label layout for v1.6 forms
-8. **Streaming fade-in animation** — Desktop has polished fade-in for streamed content; mobile `StreamingCardView` is a stub
-9. **Popover drawer resizing** — Desktop popovers resize to content with max height; mobile always full-height
-10. **Card diagnostics overlay** — Desktop has internal diagnostic tool for card debugging; mobile has metrics but no visual inspector
+8. ~~**Streaming fade-in animation**~~ — **RESOLVED**. Fade-in animation with composable-lambda renderer on both platforms.
+9. ~~**Popover drawer resizing**~~ — **RESOLVED**. Content-measured detents capped at 80% screen height on both platforms.
+10. ~~**Card diagnostics overlay**~~ — **RESOLVED**. `DiagnosticsOverlayView`/`DiagnosticsOverlay` with floating badge + expandable panel, enabled via `CardConfiguration.diagnosticsEnabled`.
 
 ### Can Defer
 

@@ -328,7 +328,7 @@ File path: $ISSUES_FILE
     # Verify outputs exist
     if [ -f "$REPORT_FILE" ]; then
         local issue_count
-        issue_count=$(grep -c "^### " "$REPORT_FILE" 2>/dev/null || echo "0")
+        issue_count=$(grep -c "^### " "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
         log "Report generated: $REPORT_FILE ($issue_count issue sections)"
     else
         log "WARNING: Report not generated at $REPORT_FILE"
@@ -353,18 +353,18 @@ parse_issues() {
 
     # If issues.json exists (from review agent), parse it
     if [ -f "$ISSUES_FILE" ]; then
-        P0_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p0_count', 0))" 2>/dev/null || echo "0")
-        P1_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p1_count', 0))" 2>/dev/null || echo "0")
-        P2_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p2_count', 0))" 2>/dev/null || echo "0")
-        P3_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p3_count', 0))" 2>/dev/null || echo "0")
+        P0_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p0_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P1_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p1_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P2_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p2_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P3_COUNT=$(python3 -c "import json; d=json.load(open('$ISSUES_FILE')); print(d.get('p3_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
         TOTAL_ISSUES=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
         log "Issues found: P0=$P0_COUNT  P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  Total=$TOTAL_ISSUES"
     elif [ -f "$REPORT_FILE" ]; then
         # Fallback: count from markdown summary table (| # | **P0** | ... rows)
-        P0_COUNT=$(grep -c '| \*\*P0\*\* |' "$REPORT_FILE" 2>/dev/null || echo "0")
-        P1_COUNT=$(grep -c '| \*\*P1\*\* |' "$REPORT_FILE" 2>/dev/null || echo "0")
-        P2_COUNT=$(grep -c '| \*\*P2\*\* |' "$REPORT_FILE" 2>/dev/null || echo "0")
-        P3_COUNT=$(grep -c '| \*\*P3\*\* |' "$REPORT_FILE" 2>/dev/null || echo "0")
+        P0_COUNT=$(grep -c '| \*\*P0\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P1_COUNT=$(grep -c '| \*\*P1\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P2_COUNT=$(grep -c '| \*\*P2\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        P3_COUNT=$(grep -c '| \*\*P3\*\* |' "$REPORT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
         TOTAL_ISSUES=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT))
         log "Issues (from markdown table): P0=$P0_COUNT  P1=$P1_COUNT  P2=$P2_COUNT  P3=$P3_COUNT  Total=$TOTAL_ISSUES"
         log "WARNING: issues.json not found — using markdown table grep (less reliable)"
@@ -529,7 +529,7 @@ run_fixes() {
         [ -f "$worklist" ] || continue
 
         local issue_count
-        issue_count=$(python3 -c "import json; print(json.load(open('$worklist')).get('issue_count', 0))" 2>/dev/null || echo "0")
+        issue_count=$(python3 -c "import json; print(json.load(open('$worklist')).get('issue_count', 0))" 2>/dev/null | tr -d '[:space:]' || echo "0")
         [ "$issue_count" -eq 0 ] && continue
 
         local fix_log="$LOOP_DIR/fix-${priority}-iteration-${iteration}.log"
@@ -681,7 +681,7 @@ merge_fixes() {
 
         # Check if branch has commits ahead of current branch
         local ahead
-        ahead=$(git -C "$REPO_ROOT" rev-list --count "$current_branch..$branch" 2>/dev/null || echo "0")
+        ahead=$(git -C "$REPO_ROOT" rev-list --count "$current_branch..$branch" 2>/dev/null | tr -d '[:space:]' || echo "0")
         if [ "$ahead" -eq 0 ]; then
             log "Branch $branch has no new commits — cleaning up."
             cleanup_branch "$branch"

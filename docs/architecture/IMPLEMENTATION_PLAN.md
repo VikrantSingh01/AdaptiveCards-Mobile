@@ -123,20 +123,20 @@ These are features that were present in the official Adaptive Cards spec (adapti
 
 ---
 
-## Phase 7: Desktop R4 Parity — 0% ❌ (NEW)
+## Phase 7: Desktop R4 Parity — 100% ✅
 
-**Status:** Not started — identified via WorkIQ research on David Claux's desktop AC team (March 2026)
+**Status:** Complete — identified via WorkIQ research on David Claux's desktop AC team (March 2026), implemented March 14, 2026
 
-These are features shipped or in-progress on the desktop/web renderer (R4 release) that create new parity gaps with the mobile SDK. These are **beyond** the official v1.6 spec gaps (Phase 6) and represent desktop-specific capabilities.
+These are features shipped or in-progress on the desktop/web renderer (R4 release) that were parity gaps with the mobile SDK. All have been implemented.
 
 ### Desktop R4 Feature Gaps
 
 | Item | iOS | Android | Effort | Description |
 |------|-----|---------|--------|-------------|
-| **7A. Scrollable Containers** | ❌ | ❌ | Medium | Desktop-only: containers with `maxHeight` + vertical scrollbar |
-| **7B. Popover Drawer Resizing** | ❌ | ❌ | Small | Desktop popovers resize to content with max height cap |
-| **7C. Streaming Fade-in Animation** | ❌ | ❌ | Small | Desktop has polished fade-in for streamed card content |
-| **7D. Card Diagnostics Overlay** | ❌ | ❌ | Medium | Desktop has internal card diagnostic inspector |
+| **7A. Scrollable Containers** | ✅ | ✅ | Medium | `maxHeight` + `overflow` (scroll/hidden/visible) on Container, Column, TableCell. iOS: `OverflowModifier` with `ScrollView`/`.clipped()`. Android: `verticalScroll`/`clipToBounds`. |
+| **7B. Popover Drawer Resizing** | ✅ | ✅ | Small | Content-measured detents capped at 80% screen height. iOS: `GeometryReader` → `presentationDetents`. Android: `skipPartiallyExpanded=false` + `wrapContentHeight()` + `heightIn(max=80%)`. |
+| **7C. Streaming Fade-in Animation** | ✅ | ✅ | Small | Fade-in via `.transition(.opacity)` (iOS) / `AnimatedVisibility(fadeIn)` (Android). Composable-lambda `elementRenderer` for full element rendering without circular module dependency. |
+| **7D. Card Diagnostics Overlay** | ✅ | ✅ | Medium | `DiagnosticsOverlayView` (iOS) / `DiagnosticsOverlay` (Android) — floating badge + expandable panel. Enabled via `CardConfiguration.diagnosticsEnabled`. |
 
 #### 7A. Scrollable Containers — Engineering Detail
 
@@ -257,11 +257,11 @@ These elements are already implemented on mobile but still in development on des
 | Phase 4: Sample Apps | ✅ Complete | 100% |
 | Phase 5: Production Readiness | 🚧 In Progress | 45% |
 | Phase 6: Web/Desktop Spec Parity Gaps | ✅ Complete | 100% |
-| Phase 7: Desktop R4 Parity | ❌ Not Started | 0% |
+| Phase 7: Desktop R4 Parity | ✅ Complete | 100% |
 
 **Overall Feature Completeness vs Official Spec**: ~99% (property-level, verified in source code)
 **Overall Feature Completeness vs Teams Extended Spec**: ~99% (mobile has additional Teams/Copilot extensions)
-**Overall Feature Completeness vs Desktop R4**: ~92% (scrollable containers, popover resizing, streaming animation, diagnostics pending)
+**Overall Feature Completeness vs Desktop R4**: ~99% (all 4 desktop R4 gaps closed — scrollable containers, popover resizing, streaming animation, diagnostics)
 
 ---
 
@@ -270,11 +270,11 @@ These elements are already implemented on mobile but still in development on des
 | Phase | Estimated Hours |
 |-------|----------------|
 | Phase 5 remaining (publishing, docs, benchmarks, changelog) | 15-20 hours |
-| Phase 7A: Scrollable Containers | 4-6 hours |
-| Phase 7B: Popover Drawer Resizing | 2-3 hours |
-| Phase 7C: Streaming Fade-in Animation | 3-4 hours |
-| Phase 7D: Card Diagnostics Overlay | 6-8 hours |
-| **Total remaining** | **30-41 hours** |
+| ~~Phase 7A: Scrollable Containers~~ | ~~4-6 hours~~ ✅ |
+| ~~Phase 7B: Popover Drawer Resizing~~ | ~~2-3 hours~~ ✅ |
+| ~~Phase 7C: Streaming Fade-in Animation~~ | ~~3-4 hours~~ ✅ |
+| ~~Phase 7D: Card Diagnostics Overlay~~ | ~~6-8 hours~~ ✅ |
+| **Total remaining** | **15-20 hours** (Phase 5 only) |
 
 ---
 
@@ -288,8 +288,10 @@ These elements are already implemented on mobile but still in development on des
 - [x] Responsive design on phone and tablet
 - [x] fallback + requires mechanism working
 - [x] Data.Query dynamic typeahead working
-- [ ] Scrollable containers (Desktop R4 parity)
-- [ ] Streaming fade-in animation (Desktop R4 parity)
+- [x] Scrollable containers (Desktop R4 parity)
+- [x] Streaming fade-in animation (Desktop R4 parity)
+- [x] Popover drawer resizing (Desktop R4 parity)
+- [x] Card diagnostics overlay (Desktop R4 parity)
 
 ### Quality Requirements
 - [x] Graceful error handling (never crash on malformed JSON)
@@ -311,9 +313,9 @@ These elements are already implemented on mobile but still in development on des
 ### Technical Risks
 - ~~**fallback mechanism complexity**~~: RESOLVED — implemented and working on both platforms
 - ~~**Data.Query host integration**~~: RESOLVED — `DataQueryProvider` protocol/interface implemented
-- **Scrollable containers**: Nested `ScrollView` inside card's root `ScrollView` may cause gesture conflicts — test thoroughly on both platforms
-- **Popover resizing**: Content measurement via `GeometryReader` (iOS) can cause layout cycles if not handled carefully — use `onAppear` not continuous observation
-- **Streaming animation**: `StreamingCardView` currently a stub — replacing with real `ElementView` rendering requires proper `hostConfig` injection through the view hierarchy
+- ~~**Scrollable containers**~~: RESOLVED — `OverflowModifier` wraps nested `ScrollView` cleanly; tested on both platforms
+- ~~**Popover resizing**~~: RESOLVED — `GeometryReader` uses `onAppear` (not continuous); availability-checked `presentationContentInteraction` with fallback modifier
+- ~~**Streaming animation**~~: RESOLVED — used composable-lambda `elementRenderer` pattern to avoid circular module dependency (ACCopilotExtensions → ACRendering)
 - **SwiftUI/Compose compatibility**: Tested on iOS 16+ and Android API 26+
 
 ### Schedule Risks
