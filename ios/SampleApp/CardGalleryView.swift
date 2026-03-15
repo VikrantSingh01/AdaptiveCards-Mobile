@@ -675,6 +675,7 @@ class TestCardLoader {
             ("element-samples/carousel-scenario-timer.json", "Carousel Scenario Timer", .elementSamples, false),
             ("element-samples/carousel-styles.json", "Carousel Styles", .elementSamples, false),
             ("element-samples/carousel-vertical.json", "Carousel Vertical", .elementSamples, false),
+            ("element-samples/container-scrollable.json", "Container Scrollable", .elementSamples, false),
             ("element-samples/media-basic.json", "Media Basic", .elementSamples, false),
             ("element-samples/media-sources.json", "Media Sources", .elementSamples, false),
             // Teams Templated Samples
