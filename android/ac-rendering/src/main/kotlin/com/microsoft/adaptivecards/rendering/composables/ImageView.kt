@@ -83,10 +83,10 @@ fun ImageView(
             val isWidthStretch = element.width?.lowercase() == "stretch"
             // Check if height is "auto" (not a pixel value)
             val hasAutoHeight = element.height != null && element.pixelHeight == null
+            val hasFitMode = element.fitMode != null
             when {
                 // width: "stretch" always fills container width
                 isWidthStretch -> {
-                    val hasFitMode = element.fitMode != null
                     val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
                     if (heightPx != null) Modifier.fillMaxWidth().height(heightPx.dp)
                     else Modifier.fillMaxWidth().heightIn(min = minH)
@@ -94,23 +94,20 @@ fun ImageView(
                 widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
                 widthPx != null -> modifier.width(widthPx.dp)
                 heightPx != null -> modifier.height(heightPx.dp)
-                // When height="auto" with no width: if fitMode is set, fill width so the
-                // image doesn't render as a tiny thumbnail; otherwise use medium size
-                hasAutoHeight -> {
-                    val hasFitMode = element.fitMode != null
-                    if (hasFitMode) modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
-                    else modifier.size(hostConfig.imageSizes.medium.dp)
+                // fitMode (fill/cover/contain) with auto dimensions: fill container
+                // width to match iOS behavior where fitMode images expand to full width
+                hasFitMode -> {
+                    modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
                 }
+                // When height="auto" with no width, use medium default size to avoid
+                // collapsing to tiny or expanding to full width in auto-width columns
+                hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: use natural image size, constrained by parent.
                 // Don't force fillMaxWidth() — it breaks intrinsic sizing in auto-width
                 // columns (icons, pin markers collapse to 0). Instead, set minimum
-                // dimensions so the image doesn't collapse before loading. In stretch
-                // columns, the parent provides width; in auto columns, the loaded image
-                // determines its own size.
+                // dimensions so the image doesn't collapse before loading.
                 else -> {
-                    val hasFitMode = element.fitMode != null
-                    val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 20.dp
-                    Modifier.widthIn(min = 20.dp).heightIn(min = minH)
+                    modifier.widthIn(min = 20.dp).heightIn(min = 20.dp)
                 }
             }
         }
