@@ -61,18 +61,20 @@ fun ImageView(
         element.url.startsWith("data:image/svg+xml") ||
         element.url.contains("/svg", ignoreCase = true) ||
         element.themedUrls?.values?.any { it.endsWith(".svg", ignoreCase = true) || it.contains("svg", ignoreCase = true) } == true
-    val imageModifier = when (element.size ?: ImageSize.Auto) {
-        ImageSize.Small -> modifier.size(hostConfig.imageSizes.small.dp)
+    // Calculate image sizing separately from parent modifier to avoid double-applying
+    // the parent chain when wrapping in a Box for horizontal alignment.
+    val sizingModifier = when (element.size ?: ImageSize.Auto) {
+        ImageSize.Small -> Modifier.size(hostConfig.imageSizes.small.dp)
         ImageSize.Medium -> {
             // SVGs with named sizes should preserve aspect ratio, not force square
-            if (isSvg) modifier.width(hostConfig.imageSizes.medium.dp)
-            else modifier.size(hostConfig.imageSizes.medium.dp)
+            if (isSvg) Modifier.width(hostConfig.imageSizes.medium.dp)
+            else Modifier.size(hostConfig.imageSizes.medium.dp)
         }
         ImageSize.Large -> {
-            if (isSvg) modifier.width(hostConfig.imageSizes.large.dp)
-            else modifier.size(hostConfig.imageSizes.large.dp)
+            if (isSvg) Modifier.width(hostConfig.imageSizes.large.dp)
+            else Modifier.size(hostConfig.imageSizes.large.dp)
         }
-        ImageSize.Stretch -> modifier.fillMaxWidth()
+        ImageSize.Stretch -> Modifier.fillMaxWidth()
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
@@ -86,15 +88,15 @@ fun ImageView(
                 isWidthStretch -> {
                     val hasFitMode = element.fitMode != null
                     val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
-                    if (heightPx != null) modifier.fillMaxWidth().height(heightPx.dp)
-                    else modifier.fillMaxWidth().heightIn(min = minH)
+                    if (heightPx != null) Modifier.fillMaxWidth().height(heightPx.dp)
+                    else Modifier.fillMaxWidth().heightIn(min = minH)
                 }
-                widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
-                widthPx != null -> modifier.width(widthPx.dp)
-                heightPx != null -> modifier.height(heightPx.dp)
+                widthPx != null && heightPx != null -> Modifier.size(widthPx.dp, heightPx.dp)
+                widthPx != null -> Modifier.width(widthPx.dp)
+                heightPx != null -> Modifier.height(heightPx.dp)
                 // When height="auto" with no width, use medium default size to avoid
                 // collapsing to tiny or expanding to full width in auto-width columns
-                hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
+                hasAutoHeight -> Modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: use natural image size, constrained by parent.
                 // Don't force fillMaxWidth() — it breaks intrinsic sizing in auto-width
                 // columns (icons, pin markers collapse to 0). Instead, set minimum
@@ -104,17 +106,17 @@ fun ImageView(
                 else -> {
                     val hasFitMode = element.fitMode != null
                     val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 20.dp
-                    modifier.widthIn(min = 20.dp).heightIn(min = minH)
+                    Modifier.widthIn(min = 20.dp).heightIn(min = minH)
                 }
             }
         }
     }
 
     // Apply shape: Person → circle, RoundedCorners → explicit radius, otherwise HostConfig radius
-    val finalModifier = when (element.style) {
-        ImageStyle.Person -> imageModifier.clip(CircleShape)
-        ImageStyle.RoundedCorners -> imageModifier.clip(RoundedCornerShape(8.dp))
-        else -> if (cornerRadius > 0) imageModifier.clip(RoundedCornerShape(cornerRadius.dp)) else imageModifier
+    val clippedModifier = when (element.style) {
+        ImageStyle.Person -> sizingModifier.clip(CircleShape)
+        ImageStyle.RoundedCorners -> sizingModifier.clip(RoundedCornerShape(8.dp))
+        else -> if (cornerRadius > 0) sizingModifier.clip(RoundedCornerShape(cornerRadius.dp)) else sizingModifier
     }
 
     // Build image request — add SVG decoder for SVG content
@@ -167,6 +169,7 @@ fun ImageView(
     }
 
     if (alignment != null) {
+        // Parent modifier on Box only; image gets sizing/clip without parent chain
         Box(
             modifier = modifier.fillMaxWidth(),
             contentAlignment = alignment
@@ -175,17 +178,18 @@ fun ImageView(
                 model = model,
                 contentDescription = element.altText,
                 contentScale = contentScale,
-                modifier = finalModifier
+                modifier = clippedModifier
                     .imageSemantics(element.altText)
                     .selectAction(element.selectAction, actionHandler)
             )
         }
     } else {
+        // No alignment wrapper — combine parent modifier with sizing/clip
         AsyncImage(
             model = model,
             contentDescription = element.altText,
             contentScale = contentScale,
-            modifier = finalModifier
+            modifier = modifier.then(clippedModifier)
                 .imageSemantics(element.altText)
                 .selectAction(element.selectAction, actionHandler)
         )
