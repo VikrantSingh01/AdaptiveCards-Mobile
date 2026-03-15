@@ -106,19 +106,30 @@ struct ImageView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: fitModeContentMode ?? .fit)
                                 .frame(maxWidth: .infinity, alignment: frameAlignment)
+                                .frame(maxHeight: coverMaxHeight)
                                 .clipped()
                                 .clipShape(imageShape)
                         } else if let fitMode = fitModeContentMode, fitMode == .fill {
                             // Cover/fill: scale to fill the frame and clip overflow.
-                            // Use medium image size as default when no explicit dimensions.
-                            let w = imageWidth ?? CGFloat(hostConfig.imageSizes.medium)
-                            let h = imageHeight ?? CGFloat(hostConfig.imageSizes.medium)
-                            img
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: w, height: h)
-                                .clipped()
-                                .clipShape(imageShape)
+                            // Use large image size as default when no explicit dimensions
+                            // to match Android sizing (which uses fillMaxWidth for auto).
+                            let w = imageWidth ?? CGFloat(hostConfig.imageSizes.large)
+                            let h = imageHeight ?? CGFloat(hostConfig.imageSizes.large)
+                            if isCoverMode {
+                                // Cover: maintain aspect ratio, clip overflow (like Android Crop)
+                                img
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: w, height: h)
+                                    .clipped()
+                                    .clipShape(imageShape)
+                            } else {
+                                // Fill: stretch to fill bounds (like Android FillBounds)
+                                img
+                                    .resizable()
+                                    .frame(width: w, height: h)
+                                    .clipShape(imageShape)
+                            }
                         } else {
                             img
                                 .resizable()
@@ -139,7 +150,7 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .frame(maxWidth: shouldFillWidth ? .infinity : nil, alignment: frameAlignment)
+        .frame(maxWidth: (shouldFillWidth || image.horizontalAlignment != nil) ? .infinity : nil, alignment: frameAlignment)
         .spacing(image.spacing, hostConfig: hostConfig)
         .separator(image.separator, hostConfig: hostConfig)
         .accessibilityElement(label: image.altText ?? "Image")
@@ -202,15 +213,30 @@ struct ImageView: View {
         return .clear
     }
 
-    /// Whether the image should fill available width (matching Android FillWidth behavior)
+    /// Max height when cover/fill mode is used with stretch width and no explicit height.
+    /// Prevents unbounded height from pushing content off-screen.
+    private var coverMaxHeight: CGFloat? {
+        if let h = imageHeight { return h }
+        if fitModeContentMode == .fill { return 200 }
+        return nil
+    }
+
+    /// Whether the image should fill available width.
+    /// Only explicit stretch sizing fills width. Auto/nil sizes use natural image size
+    /// constrained by parent (matching Android behavior and AC spec).
     private var shouldFillWidth: Bool {
-        // Fill container width when no explicit size/width/height AND no fitMode.
-        // Images with fitMode (cover/fill) should respect their explicit or default
-        // dimensions rather than expanding to fill the entire viewport.
-        image.size == nil && image.width == nil && image.height == nil && image.fitMode == nil
+        isWidthStretch
+    }
+
+    /// Whether width is explicitly set to "stretch"
+    private var isWidthStretch: Bool {
+        image.width?.lowercased() == "stretch" || image.size == .stretch
     }
 
     /// Maps fitMode JSON string to SwiftUI ContentMode
+    /// "cover" scales to fill frame (maintaining aspect ratio, clipping overflow)
+    /// "fill" stretches to fill frame (may distort aspect ratio)
+    /// "contain" scales to fit within frame (maintaining aspect ratio)
     private var fitModeContentMode: ContentMode? {
         guard let fitMode = image.fitMode?.lowercased() else { return nil }
         switch fitMode {
@@ -221,6 +247,11 @@ struct ImageView: View {
         default:
             return nil
         }
+    }
+
+    /// Whether this image has a cover fitMode (needs clipping, not stretching)
+    private var isCoverMode: Bool {
+        image.fitMode?.lowercased() == "cover"
     }
 
     private var imageWidth: CGFloat? {

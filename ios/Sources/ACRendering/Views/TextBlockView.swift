@@ -16,6 +16,7 @@ struct TextBlockView: View {
 
     @Environment(\.layoutDirection) var layoutDirection
     @Environment(\.tableCellHorizontalAlignment) var tableCellAlignment
+    @Environment(\.isInsideTableCell) var isInsideTableCell
 
     private var displayText: String {
         let raw = textBlock.text ?? ""
@@ -38,12 +39,15 @@ struct TextBlockView: View {
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
-                .if(textBlock.wrap == true) { view in
+                .if(textBlock.wrap == true || isInsideTableCell) { view in
                     view.fixedSize(horizontal: false, vertical: true)
                 }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
                 .accessibilityElement(label: displayText)
+                .if(textBlock.style == .heading || textBlock.style == .columnHeader) { view in
+                    view.accessibilityAddTraits(.isHeader)
+                }
         } else {
             // Render plain text
             Text(displayText)
@@ -53,12 +57,15 @@ struct TextBlockView: View {
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
                 .frame(maxWidth: .infinity, alignment: frameAlignment)
-                .if(textBlock.wrap == true) { view in
+                .if(textBlock.wrap == true || isInsideTableCell) { view in
                     view.fixedSize(horizontal: false, vertical: true)
                 }
                 .spacing(textBlock.spacing, hostConfig: hostConfig)
                 .separator(textBlock.separator, hostConfig: hostConfig)
                 .accessibilityElement(label: displayText)
+                .if(textBlock.style == .heading || textBlock.style == .columnHeader) { view in
+                    view.accessibilityAddTraits(.isHeader)
+                }
         }
     }
 
@@ -84,6 +91,11 @@ struct TextBlockView: View {
 
     #if canImport(UIKit)
     private var uiFontWeight: UIFont.Weight {
+        // Style-based overrides per AC v1.5 spec
+        if textBlock.style == .heading || textBlock.style == .columnHeader {
+            return .bold
+        }
+
         let fontWeightEnum = textBlock.weight ?? .default
         let weightValue: Int
 
@@ -122,6 +134,15 @@ struct TextBlockView: View {
     }
 
     private var fontSize: Int {
+        // Style-based overrides per AC v1.5 spec
+        switch textBlock.style {
+        case .heading:
+            return hostConfig.fontSizes.large
+        case .columnHeader:
+            return hostConfig.fontSizes.default
+        default:
+            break
+        }
         let fontSizeEnum = textBlock.size ?? .default
         switch fontSizeEnum {
         case .small:
@@ -159,6 +180,21 @@ struct TextBlockView: View {
     }
 
     private var fontWeight: Font.Weight {
+        // Style-based overrides per AC v1.5 spec
+        if textBlock.style == .heading || textBlock.style == .columnHeader {
+            let bolderWeight = hostConfig.fontWeights.bolder
+            switch bolderWeight {
+            case 100...199: return .ultraLight
+            case 200...299: return .light
+            case 300...399: return .regular
+            case 400...499: return .regular
+            case 500...599: return .medium
+            case 600...699: return .semibold
+            case 700...799: return .bold
+            default: return .heavy
+            }
+        }
+
         let fontWeightEnum = textBlock.weight ?? .default
         let weightValue: Int
 
@@ -242,10 +278,15 @@ struct TextBlockView: View {
 
     /// Computes the effective line limit based on wrap and maxLines properties.
     /// When wrap is false/nil and no maxLines set, limit to 1 line (legacy behavior).
+    /// Inside table cells, default to wrapping to match Android behavior.
+    /// Heading-style text defaults to wrapping (no line limit) per AC spec.
     private var effectiveLineLimit: Int? {
         if let maxLines = textBlock.maxLines {
             return maxLines
         }
-        return textBlock.wrap == true ? nil : 1
+        if textBlock.wrap == true || isInsideTableCell || textBlock.style == .heading {
+            return nil
+        }
+        return 1
     }
 }

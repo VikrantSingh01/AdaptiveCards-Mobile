@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -136,7 +135,20 @@ private fun resolveIconNameForBadge(name: String): ImageVector {
         "star" -> Icons.Filled.Star
         "heart" -> Icons.Filled.Favorite
         "flag" -> Icons.Filled.Flag
-        "clock" -> Icons.Outlined.Schedule
-        else -> Icons.Outlined.Label
+        "clock" -> Icons.Filled.Schedule
+        "calendar", "calendarltr" -> Icons.Filled.DateRange
+        "imagecircle" -> Icons.Filled.Image
+        "important" -> Icons.Filled.PriorityHigh
+        "tag" -> Icons.Filled.Sell
+        "tooltipquote" -> Icons.Filled.ChatBubble
+        "arrowsync" -> Icons.Filled.Sync
+        "checkmark" -> Icons.Filled.Check
+        "people", "peopleteam" -> Icons.Filled.People
+        "megaphone" -> Icons.Filled.Campaign
+        "receipt" -> Icons.Filled.Receipt
+        "cart" -> Icons.Filled.ShoppingCart
+        "design" -> Icons.Filled.DesignServices
+        "error" -> Icons.Filled.Error
+        else -> Icons.Filled.Label
     }
 }

@@ -16,6 +16,8 @@ public struct Container: Codable, Equatable {
     public var bleed: Bool?
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
+    public var maxHeight: String?
+    public var overflow: Overflow?
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
@@ -43,6 +45,8 @@ public struct Container: Codable, Equatable {
         bleed: Bool? = nil,
         backgroundImage: BackgroundImage? = nil,
         minHeight: String? = nil,
+        maxHeight: String? = nil,
+        overflow: Overflow? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -62,6 +66,8 @@ public struct Container: Codable, Equatable {
         self.bleed = bleed
         self.backgroundImage = backgroundImage
         self.minHeight = minHeight
+        self.maxHeight = maxHeight
+        self.overflow = overflow
         self.spacing = spacing
         self.separator = separator
         self.height = height
@@ -92,6 +98,7 @@ public struct ColumnSet: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
     public var targetWidth: String?
+    public var overflow: Overflow?
     public var fallback: CardElement?
 
     public init(
@@ -102,6 +109,7 @@ public struct ColumnSet: Codable, Equatable {
         bleed: Bool? = nil,
         minHeight: String? = nil,
         horizontalAlignment: HorizontalAlignment? = nil,
+        overflow: Overflow? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -117,6 +125,7 @@ public struct ColumnSet: Codable, Equatable {
         self.bleed = bleed
         self.minHeight = minHeight
         self.horizontalAlignment = horizontalAlignment
+        self.overflow = overflow
         self.spacing = spacing
         self.separator = separator
         self.height = height
@@ -139,12 +148,18 @@ public struct Column: Codable, Equatable, Identifiable {
     public var bleed: Bool?
     public var backgroundImage: BackgroundImage?
     public var minHeight: String?
+    public var maxHeight: String?
+    public var overflow: Overflow?
     public var separator: Bool?
     public var spacing: Spacing?
     public var selectAction: CardAction?
     public var isVisible: Bool?
     public var requires: [String: String]?
     public var targetWidth: String?
+    public var layouts: [Layout]?
+
+    /// Convenience: the active layout (first in the `layouts` array)
+    public var layout: Layout? { layouts?.first }
 
     // Stable identifier using id property or combined items IDs as fallback.
     // Must be unique across siblings — UUID suffix prevents duplicate-ID crashes in SwiftUI ForEach.
@@ -169,12 +184,15 @@ public struct Column: Codable, Equatable, Identifiable {
         bleed: Bool? = nil,
         backgroundImage: BackgroundImage? = nil,
         minHeight: String? = nil,
+        maxHeight: String? = nil,
+        overflow: Overflow? = nil,
         separator: Bool? = nil,
         spacing: Spacing? = nil,
         selectAction: CardAction? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
-        targetWidth: String? = nil
+        targetWidth: String? = nil,
+        layouts: [Layout]? = nil
     ) {
         self.id = id
         self.items = items
@@ -184,12 +202,15 @@ public struct Column: Codable, Equatable, Identifiable {
         self.bleed = bleed
         self.backgroundImage = backgroundImage
         self.minHeight = minHeight
+        self.maxHeight = maxHeight
+        self.overflow = overflow
         self.separator = separator
         self.spacing = spacing
         self.selectAction = selectAction
         self.isVisible = isVisible
         self.requires = requires
         self.targetWidth = targetWidth
+        self.layouts = layouts
     }
 }
 
@@ -324,7 +345,7 @@ public struct FactSet: Codable, Equatable {
         public var title: String
         public var value: String
 
-        public var id: String { title }
+        public var id: String { "\(title)_\(value)" }
 
         public init(title: String, value: String) {
             self.title = title

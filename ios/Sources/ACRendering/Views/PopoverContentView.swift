@@ -15,6 +15,7 @@ struct PopoverContentView: View {
 
     @EnvironmentObject var viewModel: CardViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var contentHeight: CGFloat = 0
 
     var body: some View {
         NavigationView {
@@ -24,6 +25,13 @@ struct PopoverContentView: View {
                         ElementView(element: content, hostConfig: hostConfig, depth: depth)
                             .environmentObject(viewModel)
                             .padding(CGFloat(hostConfig.spacing.padding))
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear.onAppear {
+                                        contentHeight = geo.size.height
+                                    }
+                                }
+                            )
                     }
                 } else {
                     Text("No content")
@@ -48,8 +56,35 @@ struct PopoverContentView: View {
             }
         }
         #if canImport(UIKit)
-        .presentationDetents([.large])
+        .presentationDetents(contentBasedDetents)
         .presentationDragIndicator(.visible)
+        .modifier(PresentationContentInteractionModifier())
         #endif
+    }
+
+    /// Compute detents based on measured content height.
+    /// Caps at 80% of screen height, with .large as a fallback for tall content.
+    private var contentBasedDetents: Set<PresentationDetent> {
+        #if canImport(UIKit)
+        let screenHeight = UIScreen.main.bounds.height
+        let navBarEstimate: CGFloat = 80
+        let measuredHeight = contentHeight + navBarEstimate
+        let cappedHeight = min(measuredHeight, screenHeight * 0.8)
+        if contentHeight > 0 {
+            return [.height(cappedHeight), .large]
+        }
+        #endif
+        return [.medium, .large]
+    }
+}
+
+/// Availability-safe wrapper for presentationContentInteraction(.scrolls).
+private struct PresentationContentInteractionModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 16.4, macOS 13.3, *) {
+            content.presentationContentInteraction(.scrolls)
+        } else {
+            content
+        }
     }
 }

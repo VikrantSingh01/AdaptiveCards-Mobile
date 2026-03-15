@@ -21,7 +21,8 @@ struct CompoundButtonView: View {
         static let titleSubtitleSpacing: CGFloat = 4
         static let horizontalPadding: CGFloat = 16
         static let verticalPadding: CGFloat = 12
-        static let minHeight: CGFloat = 44
+        static let minHeight: CGFloat = 48
+        static let chevronSize: CGFloat = 20
         static let badgeFontSize: CGFloat = 10
     }
 
@@ -66,6 +67,7 @@ struct CompoundButtonView: View {
                         .foregroundColor(primaryTextColor)
                         .lineLimit(2)
                         .truncationMode(.tail)
+                        .layoutPriority(-1)
 
                     if let badge = button.badge {
                         Text(badge)
@@ -76,6 +78,7 @@ struct CompoundButtonView: View {
                             .background(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.`default`))
                             .cornerRadius(4)
                             .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                 }
 
@@ -93,10 +96,12 @@ struct CompoundButtonView: View {
                 iconView
             }
 
-            // Chevron indicator
+            // Chevron indicator (fixed size matching Android 20dp)
             Image(systemName: "chevron.right")
-                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: titleFontWeight))
-                .foregroundColor(secondaryTextColor)
+                .resizable()
+                .scaledToFit()
+                .frame(width: Layout.chevronSize, height: Layout.chevronSize)
+                .foregroundColor(primaryTextColor.opacity(0.6))
         }
         .padding(.horizontal, Layout.horizontalPadding)
         .padding(.vertical, Layout.verticalPadding)
@@ -138,14 +143,84 @@ struct CompoundButtonView: View {
                     }
                 }
             } else {
-                // SF Symbol
-                Image(systemName: iconName)
+                // Map Fluent icon names to SF Symbols, then fall back to raw name
+                let sfSymbol = Self.resolveFluentIcon(iconName)
+                Image(systemName: sfSymbol)
                     .resizable()
                     .scaledToFit()
                     .frame(width: Layout.iconSize, height: Layout.iconSize)
                     .foregroundColor(primaryTextColor)
             }
         }
+    }
+
+    /// Maps Fluent UI icon names to SF Symbol equivalents.
+    private static func resolveFluentIcon(_ name: String) -> String {
+        let baseName = name
+            .replacingOccurrences(of: ",Filled", with: "")
+            .replacingOccurrences(of: ",Regular", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        let lookup: [String: String] = [
+            "Calendar": "calendar",
+            "Info": "info.circle",
+            "InfoCircle": "info.circle",
+            "Warning": "exclamationmark.triangle",
+            "Error": "xmark.circle",
+            "Checkmark": "checkmark.circle",
+            "CheckmarkCircle": "checkmark.circle",
+            "Search": "magnifyingglass",
+            "Settings": "gearshape",
+            "Person": "person",
+            "PeopleTeam": "person.2",
+            "People": "person.2",
+            "Mail": "envelope",
+            "Email": "envelope",
+            "Chat": "bubble.left",
+            "Phone": "phone",
+            "Call": "phone",
+            "Video": "video",
+            "Camera": "camera",
+            "Document": "doc",
+            "Folder": "folder",
+            "Star": "star",
+            "Heart": "heart",
+            "Favorite": "heart.fill",
+            "Home": "house",
+            "Location": "location",
+            "LocationOn": "location",
+            "Map": "map",
+            "Clock": "clock",
+            "Alert": "bell",
+            "Notification": "bell",
+            "Add": "plus.circle",
+            "Delete": "trash",
+            "Edit": "pencil",
+            "Share": "square.and.arrow.up",
+            "Link": "link",
+            "Globe": "globe",
+            "Lock": "lock",
+            "ArrowRight": "arrow.right",
+            "ChevronRight": "chevron.right",
+            "Dismiss": "xmark",
+            "Close": "xmark",
+            "MoreHorizontal": "ellipsis",
+            "Attach": "paperclip",
+            "Send": "paperplane",
+            "Airplane": "airplane",
+            "Food": "fork.knife",
+            "Gift": "gift",
+            "Money": "dollarsign.circle",
+            "Weather": "cloud.sun",
+            "Flash": "bolt",
+            "Play": "play",
+            "Mic": "mic",
+            "List": "list.bullet",
+            "TextBulletList": "list.bullet",
+            "Bookmark": "bookmark",
+            "Emoji": "face.smiling",
+        ]
+        // Fall back to info.circle for unknown icons (matching Android behavior)
+        return lookup[baseName] ?? "info.circle"
     }
 
     private var iconPlaceholder: some View {
@@ -185,6 +260,8 @@ struct CompoundButtonView: View {
             return "Runs commands"
         case .openUrlDialog:
             return "Opens URL dialog"
+        case .resetInputs:
+            return "Resets inputs"
         case .unknown:
             return ""
         }

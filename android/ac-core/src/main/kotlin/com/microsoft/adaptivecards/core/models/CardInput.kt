@@ -28,6 +28,8 @@ data class InputText(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     override val label: String? = null,
+    val labelPosition: String? = null,
+    val labelWidth: String? = null,
     override val isRequired: Boolean = false,
     override val errorMessage: String? = null,
     val placeholder: String? = null,
@@ -51,6 +53,8 @@ data class InputNumber(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     override val label: String? = null,
+    val labelPosition: String? = null,
+    val labelWidth: String? = null,
     override val isRequired: Boolean = false,
     override val errorMessage: String? = null,
     val placeholder: String? = null,
@@ -71,6 +75,8 @@ data class InputDate(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     override val label: String? = null,
+    val labelPosition: String? = null,
+    val labelWidth: String? = null,
     override val isRequired: Boolean = false,
     override val errorMessage: String? = null,
     val placeholder: String? = null,
@@ -91,6 +97,8 @@ data class InputTime(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     override val label: String? = null,
+    val labelPosition: String? = null,
+    val labelWidth: String? = null,
     override val isRequired: Boolean = false,
     override val errorMessage: String? = null,
     val placeholder: String? = null,
@@ -111,6 +119,8 @@ data class InputToggle(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     override val label: String? = null,
+    val labelPosition: String? = null,
+    val labelWidth: String? = null,
     override val isRequired: Boolean = false,
     override val errorMessage: String? = null,
     val title: String,
@@ -132,6 +142,8 @@ data class InputChoiceSet(
     override val requires: Map<String, String>? = null,
     override val fallback: JsonElement? = null,
     override val label: String? = null,
+    val labelPosition: String? = null,
+    val labelWidth: String? = null,
     override val isRequired: Boolean = false,
     override val errorMessage: String? = null,
     val choices: List<Choice>,
@@ -139,8 +151,21 @@ data class InputChoiceSet(
     val value: String? = null,
     val isMultiSelect: Boolean? = null,
     val placeholder: String? = null,
-    val wrap: Boolean? = null
+    val wrap: Boolean? = null,
+    @SerialName("choices.data") val choicesData: DataQuery? = null
 ) : CardInput
+
+/**
+ * Model for dynamic typeahead in ChoiceSet (v1.6 spec).
+ * When present on a ChoiceSet, choices are fetched dynamically from the host
+ * via a [DataQueryProvider] instead of using the static [choices] array.
+ */
+@Serializable
+data class DataQuery(
+    val dataset: String,
+    val count: Int? = null,
+    val value: String? = null
+)
 
 @Serializable
 data class Choice(

@@ -293,6 +293,7 @@ public struct Media: Codable, Equatable {
     public var sources: [MediaSource]
     public var poster: String?
     public var altText: String?
+    public var captionSources: [CaptionSource]?
     public var spacing: Spacing?
     public var separator: Bool?
     public var height: BlockElementHeight?
@@ -305,6 +306,7 @@ public struct Media: Codable, Equatable {
         sources: [MediaSource],
         poster: String? = nil,
         altText: String? = nil,
+        captionSources: [CaptionSource]? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -316,6 +318,7 @@ public struct Media: Codable, Equatable {
         self.sources = sources
         self.poster = poster
         self.altText = altText
+        self.captionSources = captionSources
         self.spacing = spacing
         self.separator = separator
         self.height = height
@@ -331,6 +334,18 @@ public struct Media: Codable, Equatable {
         public init(mimeType: String, url: String) {
             self.mimeType = mimeType
             self.url = url
+        }
+    }
+
+    public struct CaptionSource: Codable, Equatable {
+        public var mimeType: String
+        public var url: String
+        public var label: String?
+
+        public init(mimeType: String, url: String, label: String? = nil) {
+            self.mimeType = mimeType
+            self.url = url
+            self.label = label
         }
     }
 }

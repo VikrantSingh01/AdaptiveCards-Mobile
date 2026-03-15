@@ -639,6 +639,63 @@ class TemplateEngineTest {
     }
 
     @Test
+    fun `testDataBindingCard`() {
+        // Reproduces Template.DataBinding.json with Template.data.json
+        val templateJson = """
+        {
+            "type": "AdaptiveCard",
+            "version": "1.2",
+            "body": [
+                {"type": "TextBlock", "text": "${"$"}{employee.name}"},
+                {"${"$"}data": "{hello}", "type": "TextBlock", "text": "${"$"}{${"$"}data} world!"},
+                {"${"$"}data": 251020, "type": "TextBlock", "text": "my id = ${"$"}{${"$"}data}"}
+            ]
+        }
+        """.trimIndent()
+        val data = mapOf<String, Any?>(
+            "employee" to mapOf("name" to "Matt")
+        )
+        val result = engine.expand(templateJson, data)
+        println("DataBinding result: $result")
+        assertTrue(result.contains("Matt"), "Expected Matt in: $result")
+        assertTrue(result.contains("{hello} world!"), "Expected {hello} world! in: $result")
+        assertTrue(result.contains("my id = 251020"), "Expected my id = 251020 in: $result")
+    }
+
+    @Test
+    fun `testRootKeywordInNestedContext`() {
+        // Reproduces Template.Keywords.json scenario
+        val template = mapOf(
+            "type" to "AdaptiveCard",
+            "body" to listOf(
+                mapOf(
+                    "type" to "Container",
+                    "\$data" to "\${employee.manager}",
+                    "items" to listOf(
+                        mapOf("type" to "TextBlock", "text" to "name: \${name}"),
+                        mapOf("type" to "TextBlock", "text" to "root name: \${\$root.employee.name}")
+                    )
+                )
+            )
+        )
+        val data = mapOf<String, Any?>(
+            "employee" to mapOf(
+                "name" to "Matt",
+                "manager" to mapOf("name" to "Thomas")
+            )
+        )
+        val result = engine.expand(template, data)
+        @Suppress("UNCHECKED_CAST")
+        val body = result["body"] as? List<Any?>
+        assertNotNull(body)
+        // Container $data iteration produces the items directly
+        println("Keywords result body: $body")
+        val bodyStr = body.toString()
+        assertTrue(bodyStr.contains("name: Thomas"), "Expected 'name: Thomas' in: $bodyStr")
+        assertTrue(bodyStr.contains("root name: Matt"), "Expected 'root name: Matt' in: $bodyStr")
+    }
+
+    @Test
     fun `testStockUpdateColumnSet`() {
         val template = """{
             "type": "ColumnSet",

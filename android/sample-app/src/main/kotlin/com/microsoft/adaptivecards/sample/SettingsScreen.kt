@@ -90,6 +90,30 @@ fun SettingsScreen(settingsState: SettingsState, navController: androidx.navigat
                     onCheckedChange = { settingsState.enablePerformanceMetrics = it },
                     description = "Show parse and render time metrics on card detail"
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { navController.navigate("performance") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Speed, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Performance Dashboard")
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                OutlinedButton(
+                    onClick = { navController.navigate("action_log") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.ListAlt, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Action Log")
+                }
             }
 
             // About
@@ -99,7 +123,7 @@ fun SettingsScreen(settingsState: SettingsState, navController: androidx.navigat
             ) {
                 SettingsItem(label = "SDK Version", value = "1.0.0")
                 SettingsItem(label = "Build", value = "1")
-                SettingsItem(label = "Schema", value = "v1.6")
+                SettingsItem(label = "Schema", value = "1.6")
             }
 
             // Reset

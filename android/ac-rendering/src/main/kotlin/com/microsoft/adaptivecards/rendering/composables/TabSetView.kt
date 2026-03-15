@@ -56,9 +56,15 @@ fun TabSetView(
                 MaterialTheme.colorScheme.primary
             }
 
+            val emphasisBg = try {
+                Color(android.graphics.Color.parseColor(hostConfig.containerStyles.emphasis.backgroundColor))
+            } catch (_: Exception) {
+                MaterialTheme.colorScheme.surface
+            }
+
             ScrollableTabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = emphasisBg,
                 contentColor = accentColor,
                 edgePadding = if (isTablet) 8.dp else 0.dp,
                 modifier = Modifier.semantics {

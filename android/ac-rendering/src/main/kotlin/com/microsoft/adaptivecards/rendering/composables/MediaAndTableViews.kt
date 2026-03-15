@@ -123,11 +123,15 @@ fun TableView(
                 )
             }
 
+            // Apply emphasis background for header rows (matching iOS)
+            val emphasisBg = if (isHeader) parseColorSafe(hostConfig.containerStyles.emphasis.backgroundColor) else null
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
-                        if (rowBackground != null) Modifier.background(rowBackground) else Modifier
+                        if (emphasisBg != null) Modifier.background(emphasisBg)
+                        else if (rowBackground != null) Modifier.background(rowBackground)
+                        else Modifier
                     )
                     .padding(vertical = 4.dp)
             ) {
@@ -181,23 +185,29 @@ fun TableView(
                                     flowLayout = cellLayout,
                                     hostConfig = hostConfig,
                                     viewModel = viewModel,
-                                    actionHandler = actionHandler
+                                    actionHandler = actionHandler,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                                 is AreaGridLayout -> AreaGridLayoutView(
                                     items = cellItems,
                                     gridLayout = cellLayout,
                                     hostConfig = hostConfig,
                                     viewModel = viewModel,
-                                    actionHandler = actionHandler
+                                    actionHandler = actionHandler,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         } else {
                             cell.items?.forEachIndexed { index, item ->
-                                // Apply bold for header cells
+                                // Apply bold + accent color for header cells (matches iOS blue headers)
                                 if (isHeader && item is TextBlock) {
+                                    val accentColor = parseColorSafe(
+                                        hostConfig.containerStyles.default.foregroundColors.accent.default
+                                    ) ?: MaterialTheme.colorScheme.primary
                                     Text(
                                         text = item.text,
                                         fontWeight = FontWeight.Bold,
+                                        color = accentColor,
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 } else {

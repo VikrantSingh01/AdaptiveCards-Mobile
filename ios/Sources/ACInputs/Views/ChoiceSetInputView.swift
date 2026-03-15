@@ -110,40 +110,73 @@ public struct ChoiceSetInputView: View {
     }
 
     private var multiSelectCompactView: some View {
-        VStack(alignment: .leading) {
+        Menu {
             ForEach(input.choices, id: \.value) { choice in
-                Toggle(choice.title, isOn: Binding(
-                    get: { selectedValues.contains(choice.value) },
-                    set: { isSelected in
-                        if isSelected {
-                            selectedValues.insert(choice.value)
-                        } else {
-                            selectedValues.remove(choice.value)
-                        }
-                        updateMultiSelectValue()
+                Button(action: {
+                    if selectedValues.contains(choice.value) {
+                        selectedValues.remove(choice.value)
+                    } else {
+                        selectedValues.insert(choice.value)
                     }
-                ))
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    updateMultiSelectValue()
+                }) {
+                    if selectedValues.contains(choice.value) {
+                        Label(choice.title, systemImage: "checkmark")
+                    } else {
+                        Text(choice.title)
+                    }
+                }
             }
+        } label: {
+            HStack {
+                Text(multiSelectSummary)
+                    .foregroundColor(selectedValues.isEmpty ? .secondary : .primary)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.secondary.opacity(0.4), lineWidth: 1)
+            )
         }
+    }
+
+    private var multiSelectSummary: String {
+        if selectedValues.isEmpty {
+            return input.placeholder ?? "Select..."
+        }
+        let titles = input.choices
+            .filter { selectedValues.contains($0.value) }
+            .map(\.title)
+        return titles.joined(separator: ", ")
     }
 
     private var expandedView: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(input.choices, id: \.value) { choice in
                 if input.isMultiSelect == true {
-                    Toggle(choice.title, isOn: Binding(
-                        get: { selectedValues.contains(choice.value) },
-                        set: { isSelected in
-                            if isSelected {
-                                selectedValues.insert(choice.value)
-                            } else {
-                                selectedValues.remove(choice.value)
-                            }
-                            updateMultiSelectValue()
+                    Button(action: {
+                        if selectedValues.contains(choice.value) {
+                            selectedValues.remove(choice.value)
+                        } else {
+                            selectedValues.insert(choice.value)
                         }
-                    ))
-                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+                        updateMultiSelectValue()
+                    }) {
+                        HStack {
+                            Image(systemName: selectedValues.contains(choice.value) ? "checkmark.square.fill" : "square")
+                                .foregroundColor(selectedValues.contains(choice.value) ? .blue : .secondary)
+                            Text(choice.title)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.primary)
                 } else {
                     Button(action: {
                         value = choice.value

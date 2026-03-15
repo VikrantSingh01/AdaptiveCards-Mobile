@@ -53,7 +53,7 @@ public struct ActionButton: View {
                         .lineLimit(1)
                 }
             }
-            .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: .medium))
+            .font(.system(size: 14, weight: .medium))
             .padding(.horizontal, CGFloat(hostConfig.spacing.small))
             .padding(.vertical, CGFloat(hostConfig.spacing.small) * 0.75)
             .foregroundColor(buttonForegroundColor)
@@ -79,6 +79,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.title
         case .runCommands(let a): return a.title
         case .openUrlDialog(let a): return a.title
+        case .resetInputs(let a): return a.title
         case .unknown: return nil
         }
     }
@@ -93,6 +94,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.iconUrl
         case .runCommands(let a): return a.iconUrl
         case .openUrlDialog(let a): return a.iconUrl
+        case .resetInputs(let a): return a.iconUrl
         case .unknown: return nil
         }
     }
@@ -107,6 +109,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.style
         case .runCommands(let a): return a.style
         case .openUrlDialog(let a): return a.style
+        case .resetInputs(let a): return a.style
         case .unknown: return nil
         }
     }
@@ -121,6 +124,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.tooltip
         case .runCommands(let a): return a.tooltip
         case .openUrlDialog(let a): return a.tooltip
+        case .resetInputs(let a): return a.tooltip
         case .unknown: return nil
         }
     }
@@ -135,6 +139,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.isEnabled
         case .runCommands(let a): return a.isEnabled
         case .openUrlDialog(let a): return a.isEnabled
+        case .resetInputs(let a): return a.isEnabled
         case .unknown: return nil
         }
     }
@@ -213,7 +218,10 @@ public struct ActionButton: View {
         "Bell": "bell",
         "BellOff": "bell.slash",
         "ArrowReset": "arrow.counterclockwise",
-        "ToggleLeft": "switch.2"
+        "ToggleLeft": "switch.2",
+        "ArrowExport": "arrow.up.forward.square",
+        "AccessTime": "clock",
+        "Airplane": "airplane"
     ]
 
     /// Maps Fluent UI icon names to SF Symbols.

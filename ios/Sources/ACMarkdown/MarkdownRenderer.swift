@@ -92,29 +92,29 @@ public class MarkdownRenderer {
             }
             return attributed
 
-        case .header(let level, let text):
+        case .header(_, let text):
             var attributed = AttributedString(text)
-            let fontSize: Font = switch level {
-            case 1: .title
-            case 2: .title2
-            case 3: .title3
-            default: .body
-            }
-            attributed.font = fontSize.bold()
+            attributed.font = font.bold()
             attributed.foregroundColor = color
             return attributed
 
         case .bulletItem(let text):
-            var attributed = AttributedString("• \(text)")
-            attributed.font = font
-            attributed.foregroundColor = color
-            return attributed
+            var result = AttributedString("• ")
+            result.font = font
+            result.foregroundColor = color
+            for token in MarkdownParser.parse(text) {
+                result.append(renderToken(token, font: font, color: color))
+            }
+            return result
 
         case .numberedItem(let number, let text):
-            var attributed = AttributedString("\(number). \(text)")
-            attributed.font = font
-            attributed.foregroundColor = color
-            return attributed
+            var result = AttributedString("\(number). ")
+            result.font = font
+            result.foregroundColor = color
+            for token in MarkdownParser.parse(text) {
+                result.append(renderToken(token, font: font, color: color))
+            }
+            return result
 
         case .lineBreak:
             return AttributedString("\n")

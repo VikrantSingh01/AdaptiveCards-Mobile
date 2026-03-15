@@ -69,7 +69,7 @@ class TemplateEngine {
      * @param data Data object for binding
      * @return Expanded string
      */
-    fun expand(template: String, data: Map<String, Any?>): String {
+    fun expand(template: String, data: Map<String, Any?> = emptyMap()): String {
         // Try structured JSON expansion first (produces valid JSON output)
         try {
             val jsonObject = org.json.JSONObject(template)
@@ -232,6 +232,11 @@ class TemplateEngine {
                 continue // Don't include $when in output
             }
 
+            // Strip $data directive from output (handled by expandArray)
+            if (key == "\$data") {
+                continue
+            }
+
             // Expand value
             result[key] = expandValue(value, context)
         }
@@ -249,43 +254,46 @@ class TemplateEngine {
 
                 // Check for $data iteration
                 if (dict.containsKey("\$data")) {
-                    val dataBinding = dict["\$data"] as? String
-                    if (dataBinding != null) {
-                        try {
-                            val parsedExpression = parser.parse(extractExpression(dataBinding))
-                            val evaluator = ExpressionEvaluator(context)
-                            val dataValue = evaluator.evaluate(parsedExpression)
+                    val rawData = dict["\$data"]
 
-                            if (dataValue is List<*>) {
-                                // Iterate over data array
-                                dataValue.forEachIndexed { index, dataItem ->
-                                    val childContext = context.createChild(dataItem, index)
+                    // Resolve the $data value: evaluate ${...} expressions, use other types directly.
+                    // Non-expression strings (e.g., "{hello}") are used as literal data values.
+                    val dataValue: Any? = if (rawData is String) {
+                        val trimmed = rawData.trim()
+                        if (trimmed.startsWith("\${") && trimmed.endsWith("}")) {
+                            try {
+                                val parsedExpression = parser.parse(extractExpression(rawData))
+                                val evaluator = ExpressionEvaluator(context)
+                                evaluator.evaluate(parsedExpression)
+                            } catch (_: Exception) { rawData }
+                        } else {
+                            rawData
+                        }
+                    } else {
+                        rawData
+                    }
 
-                                    // Expand the template for this item (excluding $data key)
-                                    val itemTemplate = dict.toMutableMap()
-                                    itemTemplate.remove("\$data")
+                    if (dataValue != null) {
+                        val itemTemplate = dict.toMutableMap()
+                        itemTemplate.remove("\$data")
 
-                                    val expandedItem = expandDictionary(itemTemplate, childContext)
-
-                                    // Only add if not empty (could be filtered by $when)
-                                    if (expandedItem.isNotEmpty()) {
-                                        result.add(expandedItem)
-                                    }
-                                }
-                                continue
-                            } else if (dataValue != null) {
-                                // Single object: set as data context for this element
-                                val childContext = DataContext(data = dataValue, root = context.root, index = null, parent = context)
-                                val itemTemplate = dict.toMutableMap()
-                                itemTemplate.remove("\$data")
+                        if (dataValue is List<*>) {
+                            // Iterate over data array
+                            dataValue.forEachIndexed { index, dataItem ->
+                                val childContext = context.createChild(dataItem, index)
                                 val expandedItem = expandDictionary(itemTemplate, childContext)
                                 if (expandedItem.isNotEmpty()) {
                                     result.add(expandedItem)
                                 }
-                                continue
                             }
-                        } catch (e: Exception) {
-                            // If evaluation fails, skip this item
+                            continue
+                        } else {
+                            // Single value/object: set as data context for this element
+                            val childContext = DataContext(data = dataValue, root = context.root, index = null, parent = context)
+                            val expandedItem = expandDictionary(itemTemplate, childContext)
+                            if (expandedItem.isNotEmpty()) {
+                                result.add(expandedItem)
+                            }
                             continue
                         }
                     }

@@ -112,6 +112,8 @@ data class Container(
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,
+    val maxHeight: String? = null,
+    val overflow: String? = null,
     val targetWidth: String? = null,
     val rtl: Boolean? = null,
     /** When true, render a border stroke around the container using the style's borderColor. */
@@ -150,7 +152,8 @@ data class ColumnSet(
     val bleed: Boolean? = null,
     val minHeight: String? = null,
     val horizontalAlignment: HorizontalAlignment? = null,
-    val targetWidth: String? = null
+    val targetWidth: String? = null,
+    val overflow: String? = null
 ) : CardElement
 
 @Serializable
@@ -168,10 +171,13 @@ data class Column(
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,
+    val maxHeight: String? = null,
+    val overflow: String? = null,
     val rtl: Boolean? = null,
     val requires: Map<String, String>? = null,
     val fallback: JsonElement? = null,
-    val targetWidth: String? = null
+    val targetWidth: String? = null,
+    val layouts: List<Layout>? = null
 )
 
 @Serializable
@@ -246,13 +252,21 @@ data class Media(
     override val fallback: JsonElement? = null,
     val sources: List<MediaSource>,
     val poster: String? = null,
-    val altText: String? = null
+    val altText: String? = null,
+    val captionSources: List<CaptionSource>? = null
 ) : CardElement
 
 @Serializable
 data class MediaSource(
     val mimeType: String,
     val url: String
+)
+
+@Serializable
+data class CaptionSource(
+    val mimeType: String,
+    val url: String,
+    val label: String? = null
 )
 
 @Serializable
@@ -391,6 +405,8 @@ data class TableCell(
     val bleed: Boolean? = null,
     val backgroundImage: BackgroundImage? = null,
     val minHeight: String? = null,
+    val maxHeight: String? = null,
+    val overflow: String? = null,
     val rtl: Boolean? = null,
     val layouts: List<Layout>? = null
 ) {

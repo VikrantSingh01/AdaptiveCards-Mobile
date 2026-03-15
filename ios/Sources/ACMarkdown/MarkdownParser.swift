@@ -45,10 +45,19 @@ public class MarkdownParser {
 
     private func parseText(_ text: String) -> [MarkdownToken] {
         var tokens: [MarkdownToken] = []
-        let lines = text.components(separatedBy: .newlines)
+        // Normalize line endings: \r\n → \n, then \r → \n
+        let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let lines = normalized.components(separatedBy: "\n")
+
+        // Track ordered list continuation for auto-incrementing
+        var orderedListStart: Int?
+        var orderedListIndex = 0
 
         for line in lines {
             if line.isEmpty {
+                orderedListStart = nil
+                orderedListIndex = 0
                 tokens.append(.lineBreak)
                 continue
             }
@@ -56,23 +65,56 @@ public class MarkdownParser {
             // Check for headers
             if line.hasPrefix("#") {
                 if let headerToken = parseHeader(line) {
+                    orderedListStart = nil
+                    orderedListIndex = 0
                     tokens.append(headerToken)
                     continue
                 }
             }
 
-            // Check for bullet list
-            if line.hasPrefix("- ") {
-                let content = String(line.dropFirst(2))
-                tokens.append(.bulletItem(content))
+            // Check for bullet list — parse inline markdown within content
+            // Support standard markdown prefixes: "- ", "* ", "+ "
+            let bulletPrefix: String? = if line.hasPrefix("- ") {
+                "- "
+            } else if line.hasPrefix("* ") {
+                "* "
+            } else if line.hasPrefix("+ ") {
+                "+ "
+            } else {
+                nil
+            }
+            if let prefix = bulletPrefix {
+                orderedListStart = nil
+                orderedListIndex = 0
+                let content = String(line.dropFirst(prefix.count))
+                tokens.append(.text("• "))
+                tokens.append(contentsOf: parseInlineMarkdown(content))
+                tokens.append(.lineBreak)
                 continue
             }
 
-            // Check for numbered list
-            if let numberedToken = parseNumberedList(line) {
-                tokens.append(numberedToken)
+            // Check for numbered list — parse inline markdown within content
+            if let numberedMatch = parseNumberedList(line) {
+                if case .numberedItem(let sourceNumber, let content) = numberedMatch {
+                    let displayNumber: Int
+                    if orderedListStart == nil {
+                        orderedListStart = sourceNumber
+                        orderedListIndex = 0
+                        displayNumber = sourceNumber
+                    } else {
+                        orderedListIndex += 1
+                        displayNumber = orderedListStart! + orderedListIndex
+                    }
+                    tokens.append(.text("\(displayNumber). "))
+                    tokens.append(contentsOf: parseInlineMarkdown(content))
+                    tokens.append(.lineBreak)
+                }
                 continue
             }
+
+            // Non-list line resets ordered list tracking
+            orderedListStart = nil
+            orderedListIndex = 0
 
             // Parse inline markdown
             tokens.append(contentsOf: parseInlineMarkdown(line))

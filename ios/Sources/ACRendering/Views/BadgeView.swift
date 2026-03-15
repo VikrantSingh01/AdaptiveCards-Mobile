@@ -11,7 +11,7 @@ struct BadgeView: View {
     let hostConfig: HostConfig
 
     var body: some View {
-        HStack(spacing: 4) {
+        let pill = HStack(spacing: 4) {
             if badge.iconPosition?.lowercased() != "after", let iconName = badge.icon {
                 Image(systemName: sfSymbolName(for: iconName))
                     .font(.system(size: fontSize))
@@ -19,6 +19,7 @@ struct BadgeView: View {
             if let text = badge.text, !text.isEmpty {
                 Text(text)
                     .font(.system(size: fontSize, weight: .medium))
+                    .lineLimit(1)
             }
             if badge.iconPosition?.lowercased() == "after", let iconName = badge.icon {
                 Image(systemName: sfSymbolName(for: iconName))
@@ -34,10 +35,13 @@ struct BadgeView: View {
             badgeShape
                 .stroke(strokeColor, lineWidth: isTint ? 1 : 0)
         )
-        .frame(
-            maxWidth: badge.horizontalAlignment == nil ? nil : .infinity,
-            alignment: alignment
-        )
+
+        if badge.horizontalAlignment != nil {
+            pill
+                .frame(maxWidth: .infinity, alignment: alignment)
+        } else {
+            pill
+        }
     }
 
     private var badgeShape: AnyShape {
@@ -60,6 +64,7 @@ struct BadgeView: View {
         case "small": return 10
         case "medium": return 12
         case "large": return 13
+        case "extralarge": return 15
         default: return 12
         }
     }
@@ -67,7 +72,7 @@ struct BadgeView: View {
     private var horizontalPadding: CGFloat {
         switch badge.size?.lowercased() {
         case "small": return 6
-        case "large": return 10
+        case "large", "extralarge": return 10
         default: return 8
         }
     }
@@ -75,7 +80,7 @@ struct BadgeView: View {
     private var verticalPadding: CGFloat {
         switch badge.size?.lowercased() {
         case "small": return 2
-        case "large": return 5
+        case "large", "extralarge": return 5
         default: return 3
         }
     }

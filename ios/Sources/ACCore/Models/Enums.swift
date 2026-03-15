@@ -180,6 +180,7 @@ public enum ActionSetMode: String, Codable, CaseIterable, CaseInsensitiveCodable
 public enum TextBlockStyle: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case `default` = "Default"
     case heading = "Heading"
+    case columnHeader = "ColumnHeader"
 }
 
 // MARK: - Height
@@ -231,6 +232,14 @@ public enum SpinnerSize: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case small = "Small"
     case medium = "Medium"
     case large = "Large"
+}
+
+// MARK: - Overflow
+
+public enum Overflow: String, Codable, CaseIterable, CaseInsensitiveCodable {
+    case visible = "Visible"
+    case hidden = "Hidden"
+    case scroll = "Scroll"
 }
 
 // MARK: - Layout Types

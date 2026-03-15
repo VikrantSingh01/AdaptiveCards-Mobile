@@ -28,7 +28,7 @@ public struct DataGridInputView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let label = input.label {
-                Text(label)
+                Text(label + (input.isRequired == true ? " *" : ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .accessibilityLabel("\(label)\(input.isRequired == true ? ", required" : "")")
@@ -38,14 +38,9 @@ public struct DataGridInputView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     headerRow
 
-                    ScrollView(.vertical, showsIndicators: true) {
-                        VStack(spacing: 0) {
-                            ForEach(0..<gridData.count, id: \.self) { rowIndex in
-                                dataRow(rowIndex: rowIndex)
-                            }
-                        }
+                    ForEach(0..<gridData.count, id: \.self) { rowIndex in
+                        dataRow(rowIndex: rowIndex)
                     }
-                    .frame(maxHeight: 400)
                 }
             }
 
@@ -118,7 +113,7 @@ public struct DataGridInputView: View {
                 let column = input.columns[colIndex]
                 cellView(row: rowIndex, col: colIndex, column: column)
                     .frame(width: columnWidth(column), height: 44)
-                    .background(Color.white)
+                    .background(rowIndex % 2 == 0 ? Color.white : Color(white: 0.96))
                     .border(Color.gray.opacity(0.3), width: 0.5)
             }
 

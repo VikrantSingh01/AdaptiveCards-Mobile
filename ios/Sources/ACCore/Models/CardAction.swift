@@ -13,6 +13,7 @@ public indirect enum CardAction: Codable, Equatable {
     case popover(PopoverAction)
     case runCommands(RunCommandsAction)
     case openUrlDialog(OpenUrlDialogAction)
+    case resetInputs(ResetInputsAction)
     case unknown(type: String)
 
     enum CodingKeys: String, CodingKey {
@@ -40,6 +41,8 @@ public indirect enum CardAction: Codable, Equatable {
             self = .runCommands(try RunCommandsAction(from: decoder))
         case "Action.OpenUrlDialog":
             self = .openUrlDialog(try OpenUrlDialogAction(from: decoder))
+        case "Action.ResetInputs":
+            self = .resetInputs(try ResetInputsAction(from: decoder))
         default:
             // Gracefully handle unknown action types per Adaptive Cards spec
             self = .unknown(type: type)
@@ -63,6 +66,8 @@ public indirect enum CardAction: Codable, Equatable {
         case .runCommands(let action):
             try action.encode(to: encoder)
         case .openUrlDialog(let action):
+            try action.encode(to: encoder)
+        case .resetInputs(let action):
             try action.encode(to: encoder)
         case .unknown(let type):
             var container = encoder.container(keyedBy: CodingKeys.self)
@@ -414,6 +419,40 @@ public struct OpenUrlDialogAction: BaseAction {
     }
 }
 
+// MARK: - Action.ResetInputs
+
+public struct ResetInputsAction: BaseAction {
+    public let type: String = "Action.ResetInputs"
+    public var id: String?
+    public var title: String?
+    public var iconUrl: String?
+    public var style: ActionStyle?
+    public var tooltip: String?
+    public var isEnabled: Bool?
+    public var mode: ActionMode?
+    public var targetInputIds: [String]?
+
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        iconUrl: String? = nil,
+        style: ActionStyle? = nil,
+        tooltip: String? = nil,
+        isEnabled: Bool? = nil,
+        mode: ActionMode? = nil,
+        targetInputIds: [String]? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.iconUrl = iconUrl
+        self.style = style
+        self.tooltip = tooltip
+        self.isEnabled = isEnabled
+        self.mode = mode
+        self.targetInputIds = targetInputIds
+    }
+}
+
 // MARK: - AnyCodable for dynamic data
 
 public struct AnyCodable: Codable, Equatable {
@@ -489,6 +528,7 @@ extension CardAction {
         case .popover(let a): return a.title
         case .runCommands(let a): return a.title
         case .openUrlDialog(let a): return a.title
+        case .resetInputs(let a): return a.title
         case .unknown: return nil
         }
     }
@@ -504,6 +544,7 @@ extension CardAction {
         case .popover(let a): return a.iconUrl
         case .runCommands(let a): return a.iconUrl
         case .openUrlDialog(let a): return a.iconUrl
+        case .resetInputs(let a): return a.iconUrl
         case .unknown: return nil
         }
     }
@@ -519,6 +560,7 @@ extension CardAction {
         case .popover(let a): return a.mode
         case .runCommands(let a): return a.mode
         case .openUrlDialog(let a): return a.mode
+        case .resetInputs(let a): return a.mode
         case .unknown: return nil
         }
     }
@@ -558,6 +600,9 @@ extension CardAction: Identifiable {
         case .openUrlDialog(let action):
             actionId = action.id
             actionTitle = action.title
+        case .resetInputs(let action):
+            actionId = action.id
+            actionTitle = action.title
         case .unknown(let type):
             actionId = nil
             actionTitle = type
@@ -582,6 +627,7 @@ extension CardAction: Identifiable {
         case .popover: return "popover"
         case .runCommands: return "runCommands"
         case .openUrlDialog: return "openUrlDialog"
+        case .resetInputs: return "resetInputs"
         case .unknown(let type): return type
         }
     }

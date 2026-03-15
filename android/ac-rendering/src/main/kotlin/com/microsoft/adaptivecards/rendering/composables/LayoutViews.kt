@@ -39,6 +39,9 @@ fun FlowLayoutView(
     FlowRow(
         horizontalSpacing = colSpacing,
         verticalSpacing = rowSpacing,
+        itemWidth = parseSizeDp(flowLayout.itemWidth),
+        minItemWidth = parseSizeDp(flowLayout.minItemWidth),
+        maxItemWidth = parseSizeDp(flowLayout.maxItemWidth),
         horizontalAlignment = when (flowLayout.horizontalAlignment) {
             HorizontalAlignment.Center -> Alignment.CenterHorizontally
             HorizontalAlignment.Right -> Alignment.End
@@ -47,16 +50,7 @@ fun FlowLayoutView(
         modifier = modifier
     ) {
         items.forEach { item ->
-            val itemWidthDp = parseSizeDp(flowLayout.itemWidth)
-            val minWidthDp = parseSizeDp(flowLayout.minItemWidth)
-            val maxWidthDp = parseSizeDp(flowLayout.maxItemWidth)
-
-            val itemModifier = Modifier
-                .then(if (itemWidthDp != null) Modifier.width(itemWidthDp) else Modifier)
-                .then(if (minWidthDp != null) Modifier.widthIn(min = minWidthDp) else Modifier)
-                .then(if (maxWidthDp != null) Modifier.widthIn(max = maxWidthDp) else Modifier)
-
-            Box(modifier = itemModifier) {
+            Box {
                 RenderElement(
                     element = item,
                     viewModel = viewModel,
@@ -75,6 +69,9 @@ fun FlowLayoutView(
 private fun FlowRow(
     horizontalSpacing: Dp,
     verticalSpacing: Dp,
+    itemWidth: Dp? = null,
+    minItemWidth: Dp? = null,
+    maxItemWidth: Dp? = null,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
@@ -85,6 +82,20 @@ private fun FlowRow(
     ) { measurables, constraints ->
         val hSpacingPx = horizontalSpacing.roundToPx()
         val vSpacingPx = verticalSpacing.roundToPx()
+        val available = constraints.maxWidth
+
+        // Calculate dynamic item width when itemWidth/minItemWidth are specified.
+        // Use minItemWidth to determine max columns, then distribute width evenly.
+        val calculatedItemWidthPx: Int? = run {
+            val preferredPx = itemWidth?.roundToPx()
+            val minPx = minItemWidth?.roundToPx() ?: preferredPx
+            if (minPx != null && minPx > 0) {
+                val maxCols = ((available + hSpacingPx) / (minPx + hSpacingPx)).coerceAtLeast(1)
+                val w = (available - (maxCols - 1) * hSpacingPx) / maxCols
+                val maxPx = maxItemWidth?.roundToPx()
+                if (maxPx != null) w.coerceAtMost(maxPx) else w
+            } else null
+        }
 
         data class RowInfo(
             val placeables: MutableList<Placeable> = mutableListOf(),
@@ -96,8 +107,16 @@ private fun FlowRow(
         var currentRow = rows.first()
 
         measurables.forEach { measurable ->
+            val childMaxWidth = if (calculatedItemWidthPx != null) {
+                calculatedItemWidthPx
+            } else {
+                // Fallback: use intrinsic width so fillMaxWidth() children don't
+                // consume the entire row width.
+                val intrinsicWidth = measurable.maxIntrinsicWidth(constraints.maxHeight)
+                if (intrinsicWidth in 1 until available) intrinsicWidth else available
+            }
             val placeable = measurable.measure(
-                constraints.copy(minWidth = 0, minHeight = 0)
+                constraints.copy(minWidth = 0, maxWidth = childMaxWidth, minHeight = 0)
             )
 
             val neededWidth = if (currentRow.placeables.isEmpty()) {
@@ -106,7 +125,7 @@ private fun FlowRow(
                 currentRow.width + hSpacingPx + placeable.width
             }
 
-            if (neededWidth > constraints.maxWidth && currentRow.placeables.isNotEmpty()) {
+            if (neededWidth > available && currentRow.placeables.isNotEmpty()) {
                 currentRow = RowInfo()
                 rows.add(currentRow)
             }
@@ -121,15 +140,14 @@ private fun FlowRow(
         }
 
         val totalHeight = rows.sumOf { it.height } + (rows.size - 1) * vSpacingPx
-        val maxWidth = constraints.maxWidth
 
-        layout(maxWidth, totalHeight) {
+        layout(available, totalHeight) {
             var yOffset = 0
 
             rows.forEach { row ->
                 var xOffset = when (horizontalAlignment) {
-                    Alignment.CenterHorizontally -> (maxWidth - row.width) / 2
-                    Alignment.End -> maxWidth - row.width
+                    Alignment.CenterHorizontally -> (available - row.width) / 2
+                    Alignment.End -> available - row.width
                     else -> 0
                 }
 
@@ -216,27 +234,57 @@ fun AreaGridLayoutView(
 
 /**
  * Calculate the weight for a grid area based on column definitions and span.
+ * Plain numbers are treated as percentage widths (matching iOS behavior).
+ * "auto" columns get the remaining percentage after fixed columns.
  */
 private fun columnWeight(area: GridArea, columns: List<String>, columnCount: Int): Float {
     val span = area.columnSpan ?: 1
     var totalWeight = 0f
 
+    // Pre-compute auto column weight: remaining percentage after plain-number columns
+    val resolvedWeights = resolveColumnWeights(columns, columnCount)
+
     for (col in area.column until (area.column + span).coerceAtMost(columnCount + 1)) {
-        val colDef = columns.getOrNull(col - 1) ?: "1fr"
-        totalWeight += parseFractionWeight(colDef)
+        totalWeight += resolvedWeights.getOrElse(col - 1) { 1f }
     }
 
     return totalWeight.coerceAtLeast(1f)
 }
 
 /**
- * Parse a column definition like "1fr", "2fr", "auto" into a weight value.
+ * Resolve column definitions into proportional weights.
+ * Plain numbers → percentage weights (e.g., 35 → weight 35).
+ * "auto" → remaining percentage split equally among auto columns.
+ * "Nfr" → fractional weight N.
  */
-private fun parseFractionWeight(colDef: String): Float {
-    if (colDef.endsWith("fr")) {
-        return colDef.removeSuffix("fr").toFloatOrNull() ?: 1f
+private fun resolveColumnWeights(columns: List<String>, columnCount: Int): List<Float> {
+    var usedPercentage = 0f
+    var autoCount = 0
+
+    for (i in 0 until columnCount) {
+        val colDef = columns.getOrNull(i) ?: "1fr"
+        val trimmed = colDef.trim()
+        when {
+            trimmed.endsWith("fr") -> { /* fr columns don't consume percentage */ }
+            trimmed == "auto" || trimmed == "*" -> autoCount++
+            else -> {
+                val pct = trimmed.removeSuffix("px").toFloatOrNull()
+                if (pct != null) usedPercentage += pct
+            }
+        }
     }
-    return 1f
+
+    val remainingPercentage = (100f - usedPercentage).coerceAtLeast(0f)
+    val autoWeight = if (autoCount > 0) remainingPercentage / autoCount else 1f
+
+    return (0 until columnCount).map { i ->
+        val colDef = (columns.getOrNull(i) ?: "1fr").trim()
+        when {
+            colDef.endsWith("fr") -> colDef.removeSuffix("fr").toFloatOrNull() ?: 1f
+            colDef == "auto" || colDef == "*" -> autoWeight.coerceAtLeast(1f)
+            else -> (colDef.removeSuffix("px").toFloatOrNull() ?: 1f).coerceAtLeast(1f)
+        }
+    }
 }
 
 /**

@@ -5,13 +5,13 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,11 +53,22 @@ import com.microsoft.adaptivecards.core.models.targetWidth
 val LocalWidthCategory = compositionLocalOf { WidthCategory.Narrow }
 
 /**
+ * CompositionLocal providing the feature flags for fallback/requires evaluation.
+ */
+val LocalFeatureFlags = compositionLocalOf { com.microsoft.adaptivecards.core.FeatureFlags() }
+
+/**
  * CompositionLocal providing the CardViewModel to input renderers registered via the
  * GlobalElementRendererRegistry. This avoids a circular dependency between ac-rendering
  * and ac-inputs while allowing host apps to wire up actual input composables.
  */
 val LocalCardViewModel = compositionLocalOf<CardViewModel?> { null }
+
+/**
+ * CompositionLocal indicating whether the current context is an auto-width column.
+ * When true, images should not use fillMaxWidth() to avoid expanding the column.
+ */
+val LocalIsAutoWidthColumn = compositionLocalOf { false }
 
 /**
  * Main entry point for rendering an Adaptive Card
@@ -143,7 +154,6 @@ fun AdaptiveCardView(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .verticalScroll(rememberScrollState())
                         ) {
                             // Render body elements
                             adaptiveCard.body?.forEachIndexed { index, element ->
@@ -195,12 +205,31 @@ fun AdaptiveCardView(
     actionHandler: ActionHandler = DefaultActionHandler(),
     modifier: Modifier = Modifier,
     viewModel: CardViewModel = viewModel(),
-    onCardParsed: ((AdaptiveCard) -> Unit)? = null
+    onCardParsed: ((AdaptiveCard) -> Unit)? = null,
+    onRefreshNeeded: ((CardAction) -> Unit)? = null
 ) {
     // Set the pre-parsed card directly
     LaunchedEffect(card) {
         viewModel.setCard(card)
         onCardParsed?.invoke(card)
+    }
+
+    // Auto-refresh: schedule callback when card expires
+    if (onRefreshNeeded != null && card.refresh?.expires != null) {
+        LaunchedEffect(card.refresh?.expires) {
+            val expiresStr = card.refresh?.expires ?: return@LaunchedEffect
+            val refreshAction = card.refresh?.action ?: return@LaunchedEffect
+            try {
+                val expiresInstant = java.time.Instant.parse(expiresStr)
+                val delayMs = java.time.Duration.between(java.time.Instant.now(), expiresInstant).toMillis()
+                if (delayMs > 0) {
+                    kotlinx.coroutines.delay(delayMs)
+                }
+                onRefreshNeeded(refreshAction)
+            } catch (_: Exception) {
+                // Invalid date format — ignore
+            }
+        }
     }
 
     val currentCard by viewModel.card.collectAsState()
@@ -221,31 +250,45 @@ fun AdaptiveCardView(
 
                     CompositionLocalProvider(
                         LocalWidthCategory provides widthCategory,
-                        LocalCardViewModel provides viewModel
+                        LocalCardViewModel provides viewModel,
+                        LocalFeatureFlags provides configuration.featureFlags
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            adaptiveCard.body?.forEachIndexed { index, element ->
-                                RenderElement(
-                                    element = element,
-                                    isFirst = index == 0,
-                                    viewModel = viewModel,
-                                    actionHandler = actionHandler
-                                )
-                            }
-
-                            adaptiveCard.actions?.let { actions ->
-                                if (actions.isNotEmpty()) {
-                                    ActionSetView(
-                                        actions = actions,
-                                        actionHandler = actionHandler,
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                adaptiveCard.body?.forEachIndexed { index, element ->
+                                    RenderElement(
+                                        element = element,
+                                        isFirst = index == 0,
                                         viewModel = viewModel,
-                                        modifier = Modifier.fillMaxWidth()
+                                        actionHandler = actionHandler
                                     )
                                 }
+
+                                adaptiveCard.actions?.let { actions ->
+                                    if (actions.isNotEmpty()) {
+                                        ActionSetView(
+                                            actions = actions,
+                                            actionHandler = actionHandler,
+                                            viewModel = viewModel,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Diagnostics overlay
+                            if (configuration.diagnosticsEnabled) {
+                                val parseTime = viewModel.lastParseTimeMs.collectAsState().value
+                                DiagnosticsOverlay(
+                                    card = adaptiveCard,
+                                    parseTimeMs = parseTime,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                )
                             }
                         }
                     }
@@ -274,12 +317,27 @@ fun RenderElement(
         return
     }
 
+    // Check requires against host feature flags
+    val featureFlags = LocalFeatureFlags.current
+    if (!featureFlags.meetsRequirements(element.requires)) {
+        // Requirements not met — render fallback or nothing
+        val fallbackElement = resolveFallback(element.fallback)
+        if (fallbackElement != null && fallbackElement !is UnknownElement) {
+            RenderElement(fallbackElement, isFirst, viewModel, actionHandler, modifier)
+        } else if (fallbackElement is UnknownElement && fallbackElement.unknownType == "drop") {
+            // "drop" — render nothing
+        } else if (fallbackElement != null) {
+            RenderElement(fallbackElement, isFirst, viewModel, actionHandler, modifier)
+        }
+        return
+    }
+
     // Check targetWidth constraint
     val widthCategory = LocalWidthCategory.current
     if (!shouldShowForTargetWidth(element.targetWidth, widthCategory)) {
         return
     }
-    
+
     Column(modifier = modifier) {
         // Render separator
         if (element.separator && !isFirst) {
@@ -339,27 +397,40 @@ fun RenderElement(
                 val customRenderer = GlobalElementRendererRegistry.getRenderer(element.type)
                 if (customRenderer != null) {
                     customRenderer(element, elementModifier)
-                } else {
-                    // Show fallback with original type name (not generic "Unknown")
-                    val displayType = if (element is UnknownElement) {
-                        element.unknownType ?: element.type
-                    } else {
-                        element.type
+                } else if (element is UnknownElement) {
+                    // Unknown element type — try to render fallback
+                    val fallbackElement = resolveFallback(element.fallback)
+                    if (fallbackElement != null && !(fallbackElement is UnknownElement && fallbackElement.unknownType == "drop")) {
+                        RenderElement(fallbackElement, isFirst, viewModel, actionHandler, elementModifier)
                     }
-                    Text(
-                        text = "Unknown element type: $displayType",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = elementModifier
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                            .padding(4.dp)
-                    )
+                    // else: no fallback or "drop" — render nothing
                 }
             }
         }
+    }
+}
+
+/**
+ * Resolves a fallback JsonElement into a CardElement for rendering.
+ * Handles both the "drop" string shorthand and full element objects.
+ * Returns null if the fallback is null or cannot be parsed.
+ */
+private fun resolveFallback(fallback: kotlinx.serialization.json.JsonElement?): CardElement? {
+    if (fallback == null) return null
+    return try {
+        // Handle "drop" string shorthand
+        if (fallback is kotlinx.serialization.json.JsonPrimitive && fallback.isString) {
+            val value = fallback.content
+            if (value.equals("drop", ignoreCase = true)) {
+                return UnknownElement(unknownType = "drop")
+            }
+            return null
+        }
+        // Parse full element object
+        kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+            .decodeFromJsonElement(com.microsoft.adaptivecards.core.parsing.CardElementSerializer, fallback)
+    } catch (_: Exception) {
+        null
     }
 }
 

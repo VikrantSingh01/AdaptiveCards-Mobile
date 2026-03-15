@@ -4,6 +4,7 @@
 
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +27,7 @@ import coil.request.CachePolicy
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import java.nio.ByteBuffer
+import com.microsoft.adaptivecards.core.models.HorizontalAlignment
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.ImageStyle
@@ -53,50 +56,71 @@ fun ImageView(
     // Skip symbol: URLs (platform-specific, not renderable)
     if (element.url.startsWith("symbol:")) return
 
-    // Determine image size — detect SVG from URL, themedUrls, and content type hints
-    val isSvg = element.url.endsWith(".svg", ignoreCase = true) ||
-        element.url.startsWith("data:image/svg+xml") ||
-        element.url.contains("/svg", ignoreCase = true) ||
-        element.themedUrls?.values?.any { it.endsWith(".svg", ignoreCase = true) || it.contains("svg", ignoreCase = true) } == true
-    val imageModifier = when (element.size ?: ImageSize.Auto) {
-        ImageSize.Small -> modifier.size(hostConfig.imageSizes.small.dp)
-        ImageSize.Medium -> {
-            // SVGs with named sizes should preserve aspect ratio, not force square
-            if (isSvg) modifier.width(hostConfig.imageSizes.medium.dp)
-            else modifier.size(hostConfig.imageSizes.medium.dp)
-        }
-        ImageSize.Large -> {
-            if (isSvg) modifier.width(hostConfig.imageSizes.large.dp)
-            else modifier.size(hostConfig.imageSizes.large.dp)
-        }
+    // Calculate image sizing separately from parent modifier to avoid double-applying
+    // the parent chain when wrapping in a Box for horizontal alignment.
+    val sizingModifier = when (element.size ?: ImageSize.Auto) {
+        ImageSize.Small -> Modifier.width(hostConfig.imageSizes.small.dp)
+        ImageSize.Medium -> Modifier.width(hostConfig.imageSizes.medium.dp)
+        ImageSize.Large -> Modifier.width(hostConfig.imageSizes.large.dp)
         ImageSize.Stretch -> modifier.fillMaxWidth()
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
             val heightPx = element.pixelHeight?.removeSuffix("px")?.toIntOrNull()
+            // Check if width is explicitly "stretch" (fill container width)
+            val isWidthStretch = element.width?.lowercase() == "stretch"
             // Check if height is "auto" (not a pixel value)
             val hasAutoHeight = element.height != null && element.pixelHeight == null
+            val hasFitMode = element.fitMode != null
             when {
+                // width: "stretch" always fills container width
+                isWidthStretch -> {
+                    val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
+                    if (heightPx != null) Modifier.fillMaxWidth().height(heightPx.dp)
+                    else Modifier.fillMaxWidth().heightIn(min = minH)
+                }
                 widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
                 widthPx != null -> modifier.width(widthPx.dp)
                 heightPx != null -> modifier.height(heightPx.dp)
-                // When height="auto" with no width, use medium default size to avoid
-                // collapsing to tiny or expanding to full width in auto-width columns
-                hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
-                // Auto per AC spec: fill container width to match iOS parity.
-                // Images without explicit size should expand to fill available width.
-                // Add minimum height to prevent zero-height collapse before image loads,
-                // ensuring the layout reserves space matching iOS sizing behavior.
-                else -> modifier.fillMaxWidth().heightIn(min = 100.dp)
+                // fitMode (fill/cover/contain) with auto dimensions: fill container
+                // width to match iOS behavior where fitMode images expand to full width
+                hasFitMode -> {
+                    modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
+                }
+                // When height="auto" with no width: in auto-width columns, use medium
+                // default to avoid expanding the column. In other contexts, fill width
+                // and let height be determined by aspect ratio (matching iOS).
+                hasAutoHeight -> {
+                    val isAutoColumn = LocalIsAutoWidthColumn.current
+                    if (isAutoColumn) {
+                        modifier.size(hostConfig.imageSizes.medium.dp)
+                    } else {
+                        modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.medium.dp)
+                    }
+                }
+                // Auto per AC spec: use natural image size, constrained by parent.
+                // In auto-width columns, don't force fillMaxWidth() — it breaks intrinsic
+                // sizing (icons, pin markers collapse to 0). In weighted/stretch columns,
+                // use fillMaxWidth() so images expand to fill the allocated column width.
+                else -> {
+                    val isAutoColumn = LocalIsAutoWidthColumn.current
+                    val hasFitMode = element.fitMode != null
+                    val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 20.dp
+                    if (isAutoColumn) {
+                        modifier.widthIn(min = 20.dp).heightIn(min = minH)
+                    } else {
+                        modifier.fillMaxWidth().heightIn(min = minH)
+                    }
+                }
             }
         }
     }
 
     // Apply shape: Person → circle, RoundedCorners → explicit radius, otherwise HostConfig radius
-    val finalModifier = when (element.style) {
-        ImageStyle.Person -> imageModifier.clip(CircleShape)
-        ImageStyle.RoundedCorners -> imageModifier.clip(RoundedCornerShape(8.dp))
-        else -> if (cornerRadius > 0) imageModifier.clip(RoundedCornerShape(cornerRadius.dp)) else imageModifier
+    val clippedModifier = when (element.style) {
+        ImageStyle.Person -> sizingModifier.clip(CircleShape)
+        ImageStyle.RoundedCorners -> sizingModifier.clip(RoundedCornerShape(8.dp))
+        else -> if (cornerRadius > 0) sizingModifier.clip(RoundedCornerShape(cornerRadius.dp)) else sizingModifier
     }
 
     // Build image request — add SVG decoder for SVG content
@@ -122,6 +146,7 @@ fun ImageView(
                 diskCachePolicy(CachePolicy.DISABLED)
             }
         }
+        .addHeader("User-Agent", "AdaptiveCards-Mobile/1.0 (Android)")
         .crossfade(true)
         .build()
 
@@ -131,7 +156,7 @@ fun ImageView(
         "fill" -> ContentScale.FillBounds
         "contain" -> ContentScale.Fit
         else -> when {
-            element.size == ImageSize.Stretch -> ContentScale.Crop
+            element.size == ImageSize.Stretch -> ContentScale.FillWidth
             element.size == null || element.size == ImageSize.Auto -> {
                 val hasExplicitSize = element.width != null || element.pixelHeight != null
                 val hasAutoHeight = element.height != null && element.pixelHeight == null
@@ -141,12 +166,37 @@ fun ImageView(
         }
     }
 
-    AsyncImage(
-        model = model,
-        contentDescription = element.altText,
-        contentScale = contentScale,
-        modifier = finalModifier
-            .imageSemantics(element.altText)
-            .selectAction(element.selectAction, actionHandler)
-    )
+    // Wrap in alignment container when horizontalAlignment is specified
+    val alignment = when (element.horizontalAlignment) {
+        HorizontalAlignment.Center -> Alignment.TopCenter
+        HorizontalAlignment.Right -> Alignment.TopEnd
+        else -> null
+    }
+
+    if (alignment != null) {
+        // Parent modifier on Box only; image gets sizing/clip without parent chain
+        Box(
+            modifier = modifier.fillMaxWidth(),
+            contentAlignment = alignment
+        ) {
+            AsyncImage(
+                model = model,
+                contentDescription = element.altText,
+                contentScale = contentScale,
+                modifier = clippedModifier
+                    .imageSemantics(element.altText)
+                    .selectAction(element.selectAction, actionHandler)
+            )
+        }
+    } else {
+        // No alignment wrapper — combine parent modifier with sizing/clip
+        AsyncImage(
+            model = model,
+            contentDescription = element.altText,
+            contentScale = contentScale,
+            modifier = modifier.then(clippedModifier)
+                .imageSemantics(element.altText)
+                .selectAction(element.selectAction, actionHandler)
+        )
+    }
 }

@@ -83,7 +83,8 @@ fun ProgressBarView(
                 .fillMaxWidth()
                 .height(if (isTablet) 10.dp else 8.dp),
             color = progressColor,
-            trackColor = progressColor.copy(alpha = 0.2f)
+            trackColor = progressColor.copy(alpha = 0.2f),
+            drawStopIndicator = {}
         )
     }
 }
@@ -125,9 +126,11 @@ fun SpinnerView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val fgColors = hostConfig.containerStyles.default.foregroundColors
+        val spinnerColor = resolveNamedColor(null, fgColors)
         CircularProgressIndicator(
             modifier = Modifier.size(size),
-            color = resolveNamedColor(null, fgColors),
+            color = spinnerColor,
+            trackColor = Color.Transparent,
             strokeWidth = strokeWidth
         )
 

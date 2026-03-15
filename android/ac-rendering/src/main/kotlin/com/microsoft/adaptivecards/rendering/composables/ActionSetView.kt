@@ -35,7 +35,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.isSystemInDarkTheme
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.microsoft.adaptivecards.core.models.*
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
@@ -291,11 +293,13 @@ private fun ActionButtonContent(
     action: CardAction,
     hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
 ) {
+    val isDark = isSystemInDarkTheme()
+    val context = androidx.compose.ui.platform.LocalContext.current
     Row(
         horizontalArrangement = Arrangement.spacedBy(hostConfig.spacing.small.dp),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
     ) {
-        action.iconUrl?.let { iconUrl ->
+        action.resolvedIconUrl(isDark)?.let { iconUrl ->
             val iconSize = hostConfig.actions.iconSize.dp
             if (iconUrl.startsWith("icon:")) {
                 val iconVector = resolveFluentIcon(iconUrl.removePrefix("icon:"))
@@ -307,8 +311,13 @@ private fun ActionButtonContent(
                     )
                 }
             } else {
+                val iconModel = ImageRequest.Builder(context)
+                    .data(iconUrl)
+                    .addHeader("User-Agent", "AdaptiveCards-Mobile/1.0 (Android)")
+                    .crossfade(true)
+                    .build()
                 AsyncImage(
-                    model = iconUrl,
+                    model = iconModel,
                     contentDescription = null,
                     modifier = Modifier.size(iconSize)
                 )
@@ -391,8 +400,9 @@ private fun PopoverBottomSheet(
     actionHandler: ActionHandler,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val hostConfig = LocalHostConfig.current
+    val screenHeightDp = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -401,6 +411,8 @@ private fun PopoverBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
+                .heightIn(max = (screenHeightDp * 0.8f).dp)
                 .padding(horizontal = hostConfig.spacing.padding.dp)
                 .padding(bottom = hostConfig.spacing.padding.dp)
         ) {

@@ -4,9 +4,7 @@
 
 import SwiftUI
 #if canImport(UIKit)
-#if canImport(UIKit)
 import UIKit
-#endif
 #endif
 import ACCore
 import ACAccessibility
@@ -96,15 +94,11 @@ struct TabButton: View {
                 Text(tab.title)
                     .font(adaptiveTextSize)
                     .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
             }
             .foregroundColor(isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default) : Color(hex: hostConfig.containerStyles.default.foregroundColors.default.default))
             .padding(.horizontal, adaptiveHorizontalPadding)
             .padding(.vertical, adaptiveVerticalPadding)
             .frame(minWidth: 44, minHeight: 44)
-            .background(
-                isSelected ? Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default).opacity(0.1) : Color.clear
-            )
             .overlay(
                 Rectangle()
                     .frame(height: 2)

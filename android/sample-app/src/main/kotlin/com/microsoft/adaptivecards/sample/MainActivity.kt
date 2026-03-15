@@ -124,21 +124,18 @@ fun MainScreen() {
                         label = { Text(screen.label) },
                         selected = selected,
                         onClick = {
-                            // Pop any non-tab destinations (e.g. card_detail) first
-                            val currentRoute = navController.currentBackStackEntry?.destination?.route
-                            val tabRoutes = items.map { it.route }.toSet()
-                            if (currentRoute != null && currentRoute !in tabRoutes) {
-                                navController.popBackStack(
-                                    navController.graph.findStartDestination().id,
-                                    inclusive = false
-                                )
-                            }
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            val startDestId = navController.graph.findStartDestination().id
+                            if (screen.route == Screen.Gallery.route) {
+                                // Gallery is the start destination — pop everything back to it
+                                navController.popBackStack(startDestId, inclusive = false)
+                            } else {
+                                navController.navigate(screen.route) {
+                                    popUpTo(startDestId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     )
@@ -434,7 +431,7 @@ fun MoreScreen(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        "v1.0.0 (Build 1) \u00B7 Schema v1.6",
+                        "v1.0.0 (Build 1) \u00B7 Schema 1.6",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -489,16 +486,20 @@ fun MoreMenuCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(iconColor.copy(alpha = 0.12f)),
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(iconColor, iconColor.copy(alpha = 0.85f))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(22.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -542,7 +543,10 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 }
                 // Pop current card detail (if any) then push new one for slide transition
                 navController.popBackStack("card_detail/{cardId}", inclusive = true)
-                navController.navigate("card_detail/${Uri.encode(cardFilename)}")
+                // Encode dots as %2E to prevent Navigation Compose 2.7.x route
+                // matching issues with multi-dot filenames (e.g. Container.Nested.Flow.json)
+                val encoded = Uri.encode(cardFilename).replace(".", "%2E")
+                navController.navigate("card_detail/$encoded")
             }
         }
         "gallery" -> {

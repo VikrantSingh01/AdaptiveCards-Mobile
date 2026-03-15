@@ -47,10 +47,15 @@ struct ProportionalColumnLayout: SwiftUI.Layout {
         // Subtract inter-column spacing from available width
         var remainingWidth = totalWidth - totalSpacing
 
-        // Pass 1: Fixed pixel widths
+        // Pass 1: Fixed pixel widths — cap if they'd leave too little for other columns
+        let nonPixelCount = columns.filter { col in
+            if case .pixels = col.width { return false }
+            return true
+        }.count
+        let maxPixelShare = nonPixelCount > 0 ? remainingWidth * 0.6 : remainingWidth
         for (i, col) in columns.enumerated() {
             if case .pixels(let v) = col.width {
-                let px = CGFloat(Int(v.replacingOccurrences(of: "px", with: "")) ?? 0)
+                let px = min(CGFloat(Int(v.replacingOccurrences(of: "px", with: "")) ?? 0), maxPixelShare)
                 widths[i] = px
                 remainingWidth -= px
             }
@@ -114,22 +119,36 @@ struct ColumnSetView: View {
         }
     }
 
-    /// Adaptive column spacing: reduce when many columns to prevent text wrapping
+    /// Use small spacing between columns. For ColumnSets with 5+ columns
+    /// (like WeatherLarge forecast days), use tighter spacing to prevent
+    /// mid-word text breaks on narrow columns.
     private var columnSpacing: CGFloat {
-        let defaultSpacing = CGFloat(hostConfig.spacing.default)
-        if visibleColumns.count > 4 {
-            return min(defaultSpacing, CGFloat(hostConfig.spacing.small))
+        let count = visibleColumns.count
+        if count >= 5 {
+            return max(CGFloat(hostConfig.spacing.small) / 2, 4)
         }
-        return defaultSpacing
+        return CGFloat(hostConfig.spacing.small)
     }
 
     var body: some View {
-        ProportionalColumnLayout(columns: visibleColumns, columnSpacing: columnSpacing) {
+        let content = ProportionalColumnLayout(columns: visibleColumns, columnSpacing: columnSpacing) {
             ForEach(visibleColumns, id: \.stableId) { column in
                 ColumnView(column: column, hostConfig: hostConfig, depth: depth)
             }
         }
         .frame(minHeight: minHeight)
+
+        Group {
+            if columnSet.overflow == Overflow.scroll {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    content
+                }
+            } else if columnSet.overflow == Overflow.hidden {
+                content.clipped()
+            } else {
+                content
+            }
+        }
         .containerStyle(columnSet.style, hostConfig: hostConfig)
         .spacing(columnSet.spacing, hostConfig: hostConfig)
         .separator(columnSet.separator, hostConfig: hostConfig)
