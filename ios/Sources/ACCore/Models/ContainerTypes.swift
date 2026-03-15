@@ -98,6 +98,7 @@ public struct ColumnSet: Codable, Equatable {
     public var isVisible: Bool?
     public var requires: [String: String]?
     public var targetWidth: String?
+    public var overflow: Overflow?
     public var fallback: CardElement?
 
     public init(
@@ -108,6 +109,7 @@ public struct ColumnSet: Codable, Equatable {
         bleed: Bool? = nil,
         minHeight: String? = nil,
         horizontalAlignment: HorizontalAlignment? = nil,
+        overflow: Overflow? = nil,
         spacing: Spacing? = nil,
         separator: Bool? = nil,
         height: BlockElementHeight? = nil,
@@ -123,6 +125,7 @@ public struct ColumnSet: Codable, Equatable {
         self.bleed = bleed
         self.minHeight = minHeight
         self.horizontalAlignment = horizontalAlignment
+        self.overflow = overflow
         self.spacing = spacing
         self.separator = separator
         self.height = height
