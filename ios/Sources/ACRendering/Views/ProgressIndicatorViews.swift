@@ -63,7 +63,7 @@ struct ProgressBarView: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
+                        .fill(progressColor.opacity(0.2))
                         .frame(height: barHeight)
 
                     Rectangle()
