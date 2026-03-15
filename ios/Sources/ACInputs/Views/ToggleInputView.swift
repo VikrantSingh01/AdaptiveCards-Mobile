@@ -34,8 +34,8 @@ public struct ToggleInputView: View {
             }
             Spacer()
             Toggle("", isOn: $value)
-                .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .blue))
+                .labelsHidden()
         }
         .accessibilityInput(
             label: input.label ?? input.title,

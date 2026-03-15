@@ -4,6 +4,7 @@
 
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +27,7 @@ import coil.request.CachePolicy
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import java.nio.ByteBuffer
+import com.microsoft.adaptivecards.core.models.HorizontalAlignment
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.ImageStyle
@@ -58,18 +61,20 @@ fun ImageView(
         element.url.startsWith("data:image/svg+xml") ||
         element.url.contains("/svg", ignoreCase = true) ||
         element.themedUrls?.values?.any { it.endsWith(".svg", ignoreCase = true) || it.contains("svg", ignoreCase = true) } == true
-    val imageModifier = when (element.size ?: ImageSize.Auto) {
-        ImageSize.Small -> modifier.size(hostConfig.imageSizes.small.dp)
+    // Calculate image sizing separately from parent modifier to avoid double-applying
+    // the parent chain when wrapping in a Box for horizontal alignment.
+    val sizingModifier = when (element.size ?: ImageSize.Auto) {
+        ImageSize.Small -> Modifier.size(hostConfig.imageSizes.small.dp)
         ImageSize.Medium -> {
             // SVGs with named sizes should preserve aspect ratio, not force square
-            if (isSvg) modifier.width(hostConfig.imageSizes.medium.dp)
-            else modifier.size(hostConfig.imageSizes.medium.dp)
+            if (isSvg) Modifier.width(hostConfig.imageSizes.medium.dp)
+            else Modifier.size(hostConfig.imageSizes.medium.dp)
         }
         ImageSize.Large -> {
-            if (isSvg) modifier.width(hostConfig.imageSizes.large.dp)
-            else modifier.size(hostConfig.imageSizes.large.dp)
+            if (isSvg) Modifier.width(hostConfig.imageSizes.large.dp)
+            else Modifier.size(hostConfig.imageSizes.large.dp)
         }
-        ImageSize.Stretch -> modifier.fillMaxWidth()
+        ImageSize.Stretch -> Modifier.fillMaxWidth()
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
@@ -83,8 +88,8 @@ fun ImageView(
                 isWidthStretch -> {
                     val hasFitMode = element.fitMode != null
                     val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
-                    if (heightPx != null) modifier.fillMaxWidth().height(heightPx.dp)
-                    else modifier.fillMaxWidth().heightIn(min = minH)
+                    if (heightPx != null) Modifier.fillMaxWidth().height(heightPx.dp)
+                    else Modifier.fillMaxWidth().heightIn(min = minH)
                 }
                 widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
                 widthPx != null -> modifier.width(widthPx.dp)
@@ -105,17 +110,17 @@ fun ImageView(
                 else -> {
                     val hasFitMode = element.fitMode != null
                     val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 20.dp
-                    modifier.widthIn(min = 20.dp).heightIn(min = minH)
+                    Modifier.widthIn(min = 20.dp).heightIn(min = minH)
                 }
             }
         }
     }
 
     // Apply shape: Person → circle, RoundedCorners → explicit radius, otherwise HostConfig radius
-    val finalModifier = when (element.style) {
-        ImageStyle.Person -> imageModifier.clip(CircleShape)
-        ImageStyle.RoundedCorners -> imageModifier.clip(RoundedCornerShape(8.dp))
-        else -> if (cornerRadius > 0) imageModifier.clip(RoundedCornerShape(cornerRadius.dp)) else imageModifier
+    val clippedModifier = when (element.style) {
+        ImageStyle.Person -> sizingModifier.clip(CircleShape)
+        ImageStyle.RoundedCorners -> sizingModifier.clip(RoundedCornerShape(8.dp))
+        else -> if (cornerRadius > 0) sizingModifier.clip(RoundedCornerShape(cornerRadius.dp)) else sizingModifier
     }
 
     // Build image request — add SVG decoder for SVG content
@@ -160,12 +165,37 @@ fun ImageView(
         }
     }
 
-    AsyncImage(
-        model = model,
-        contentDescription = element.altText,
-        contentScale = contentScale,
-        modifier = finalModifier
-            .imageSemantics(element.altText)
-            .selectAction(element.selectAction, actionHandler)
-    )
+    // Wrap in alignment container when horizontalAlignment is specified
+    val alignment = when (element.horizontalAlignment) {
+        HorizontalAlignment.Center -> Alignment.TopCenter
+        HorizontalAlignment.Right -> Alignment.TopEnd
+        else -> null
+    }
+
+    if (alignment != null) {
+        // Parent modifier on Box only; image gets sizing/clip without parent chain
+        Box(
+            modifier = modifier.fillMaxWidth(),
+            contentAlignment = alignment
+        ) {
+            AsyncImage(
+                model = model,
+                contentDescription = element.altText,
+                contentScale = contentScale,
+                modifier = clippedModifier
+                    .imageSemantics(element.altText)
+                    .selectAction(element.selectAction, actionHandler)
+            )
+        }
+    } else {
+        // No alignment wrapper — combine parent modifier with sizing/clip
+        AsyncImage(
+            model = model,
+            contentDescription = element.altText,
+            contentScale = contentScale,
+            modifier = modifier.then(clippedModifier)
+                .imageSemantics(element.altText)
+                .selectAction(element.selectAction, actionHandler)
+        )
+    }
 }

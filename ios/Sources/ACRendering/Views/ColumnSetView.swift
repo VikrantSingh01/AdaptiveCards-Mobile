@@ -47,10 +47,15 @@ struct ProportionalColumnLayout: SwiftUI.Layout {
         // Subtract inter-column spacing from available width
         var remainingWidth = totalWidth - totalSpacing
 
-        // Pass 1: Fixed pixel widths
+        // Pass 1: Fixed pixel widths — cap if they'd leave too little for other columns
+        let nonPixelCount = columns.filter { col in
+            if case .pixels = col.width { return false }
+            return true
+        }.count
+        let maxPixelShare = nonPixelCount > 0 ? remainingWidth * 0.6 : remainingWidth
         for (i, col) in columns.enumerated() {
             if case .pixels(let v) = col.width {
-                let px = CGFloat(Int(v.replacingOccurrences(of: "px", with: "")) ?? 0)
+                let px = min(CGFloat(Int(v.replacingOccurrences(of: "px", with: "")) ?? 0), maxPixelShare)
                 widths[i] = px
                 remainingWidth -= px
             }
@@ -114,11 +119,15 @@ struct ColumnSetView: View {
         }
     }
 
-    /// Use small spacing between columns (not default element spacing which is too wide
-    /// and can clip columns in ColumnSets with 5+ columns like WeatherLarge).
-    /// Matches Android ColumnSetView spacing for cross-platform parity.
+    /// Use small spacing between columns. For ColumnSets with 5+ columns
+    /// (like WeatherLarge forecast days), use tighter spacing to prevent
+    /// mid-word text breaks on narrow columns.
     private var columnSpacing: CGFloat {
-        CGFloat(hostConfig.spacing.small)
+        let count = visibleColumns.count
+        if count >= 5 {
+            return max(CGFloat(hostConfig.spacing.small) / 2, 4)
+        }
+        return CGFloat(hostConfig.spacing.small)
     }
 
     var body: some View {

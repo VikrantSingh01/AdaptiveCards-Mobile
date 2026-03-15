@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,7 +88,8 @@ fun CarouselView(
         val screenHeightDp = configuration.screenHeightDp.toFloat()
         val hPad = if (isTablet) 80f else 48f
         val contentWidth = screenWidthDp - hPad
-        val pagePadding = if (isTablet) 48f else 32f
+        // Account for Card vertical padding (8dp*2=16dp) + Column internal padding (16dp*2=32dp)
+        val pagePadding = if (isTablet) 64f else 48f
 
         // If heightInPixels is set, use it directly (matching iOS)
         val explicitHeight = element.heightInPixels
@@ -119,9 +122,11 @@ fun CarouselView(
             contentDescription = "Carousel with ${visiblePages.size} pages, currently on page ${pagerState.currentPage + 1}"
         }
     ) {
-        // Horizontal pager for carousel pages
+        // Horizontal pager for carousel pages — contentPadding provides peek of adjacent pages
         HorizontalPager(
             state = pagerState,
+            contentPadding = PaddingValues(horizontal = if (isTablet) 24.dp else 16.dp),
+            pageSpacing = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(pagerHeight.dp)
@@ -131,6 +136,11 @@ fun CarouselView(
         ) { page ->
             val carouselPage = visiblePages.getOrNull(page) ?: return@HorizontalPager
 
+            val emphasisBg = try {
+                Color(android.graphics.Color.parseColor(hostConfig.containerStyles.emphasis.backgroundColor))
+            } catch (_: Exception) {
+                Color(0xFFF5F5F5)
+            }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -138,7 +148,10 @@ fun CarouselView(
                     .padding(
                         horizontal = if (isTablet) 16.dp else 8.dp,
                         vertical = 8.dp
-                    )
+                    ),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = emphasisBg),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -146,7 +159,8 @@ fun CarouselView(
                         .verticalScroll(rememberScrollState())
                         .padding(
                             all = if (isTablet) 24.dp else 16.dp
-                        )
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Per AC spec, carousel pages must not contain input elements or media.
                     // Filter forbidden element types to match iOS behavior.
@@ -266,7 +280,9 @@ private fun estimateElementsHeight(items: List<CardElement>, contentWidth: Float
                         ImageSize.Medium -> 52f
                         ImageSize.Large -> 100f
                         ImageSize.Stretch -> contentWidth * 0.75f
-                        ImageSize.Auto, null -> maxOf(contentWidth, 40f)
+                        // Auto images fill container width; assume landscape 4:3 aspect
+                        // ratio (matching iOS) to avoid undersizing carousel pages.
+                        ImageSize.Auto, null -> maxOf(contentWidth * 0.75f, 40f)
                     }
                 }
             }

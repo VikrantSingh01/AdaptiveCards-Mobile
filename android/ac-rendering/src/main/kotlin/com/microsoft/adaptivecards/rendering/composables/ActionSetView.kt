@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.isSystemInDarkTheme
 import coil.compose.AsyncImage
 import com.microsoft.adaptivecards.core.models.*
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
@@ -291,11 +292,12 @@ private fun ActionButtonContent(
     action: CardAction,
     hostConfig: com.microsoft.adaptivecards.core.hostconfig.HostConfig
 ) {
+    val isDark = isSystemInDarkTheme()
     Row(
         horizontalArrangement = Arrangement.spacedBy(hostConfig.spacing.small.dp),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
     ) {
-        action.iconUrl?.let { iconUrl ->
+        action.resolvedIconUrl(isDark)?.let { iconUrl ->
             val iconSize = hostConfig.actions.iconSize.dp
             if (iconUrl.startsWith("icon:")) {
                 val iconVector = resolveFluentIcon(iconUrl.removePrefix("icon:"))

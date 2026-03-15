@@ -150,7 +150,7 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .frame(maxWidth: shouldFillWidth ? .infinity : nil, alignment: frameAlignment)
+        .frame(maxWidth: (shouldFillWidth || image.horizontalAlignment != nil) ? .infinity : nil, alignment: frameAlignment)
         .spacing(image.spacing, hostConfig: hostConfig)
         .separator(image.separator, hostConfig: hostConfig)
         .accessibilityElement(label: image.altText ?? "Image")

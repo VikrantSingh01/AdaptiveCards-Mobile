@@ -126,17 +126,27 @@ private struct WeightedRow: SwiftUI.Layout {
     }
 }
 
-// MARK: - Table Cell Alignment Environment
+// MARK: - Table Cell Environment
 
 /// Environment key to pass table cell horizontal alignment down to child TextBlocks
 struct TableCellAlignmentKey: EnvironmentKey {
     static let defaultValue: ACCore.HorizontalAlignment? = nil
 }
 
+/// Environment key to indicate we're inside a table cell (enables text wrapping)
+struct IsInsideTableCellKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
 extension EnvironmentValues {
     var tableCellHorizontalAlignment: ACCore.HorizontalAlignment? {
         get { self[TableCellAlignmentKey.self] }
         set { self[TableCellAlignmentKey.self] = newValue }
+    }
+
+    var isInsideTableCell: Bool {
+        get { self[IsInsideTableCellKey.self] }
+        set { self[IsInsideTableCellKey.self] = newValue }
     }
 }
 
@@ -175,6 +185,7 @@ struct TableCellView: View {
                         }
                     }
                     .environment(\.tableCellHorizontalAlignment, resolvedACHorizontalAlignment)
+                    .environment(\.isInsideTableCell, true)
                 }
             } else {
                 Text("")
