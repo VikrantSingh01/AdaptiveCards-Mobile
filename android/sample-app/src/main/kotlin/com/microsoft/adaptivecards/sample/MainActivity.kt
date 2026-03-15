@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -169,7 +170,7 @@ fun MainScreen() {
                 popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
                 popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
             ) { backStackEntry ->
-                val cardId = Uri.decode(backStackEntry.arguments?.getString("cardId") ?: "")
+                val cardId = decodeCardId(backStackEntry.arguments?.getString("cardId") ?: "")
                 CardDetailScreen(cardId, actionLogState, bookmarkState, navController, editorState, perfStore, pendingActionTitle)
             }
             composable("bookmarks") {
@@ -520,6 +521,22 @@ fun MoreMenuCard(
     }
 }
 
+/**
+ * Decode a cardId route argument. Handles two encoding formats:
+ * - Base64 URL-safe (from deep links): no dots/slashes in the encoded string
+ * - URL-encoded (from gallery/bookmarks): decoded by Nav Compose, contains / and .json
+ */
+private fun decodeCardId(rawCardId: String): String {
+    if (rawCardId.contains('/') || rawCardId.contains('.')) {
+        return Uri.decode(rawCardId)
+    }
+    return try {
+        String(Base64.decode(rawCardId, Base64.URL_SAFE or Base64.NO_PADDING))
+    } catch (e: Exception) {
+        Uri.decode(rawCardId)
+    }
+}
+
 private fun handleDeepLink(uri: Uri, navController: NavController) {
     when (uri.host) {
         "card" -> {
@@ -543,9 +560,12 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 }
                 // Pop current card detail (if any) then push new one for slide transition
                 navController.popBackStack("card_detail/{cardId}", inclusive = true)
-                // Encode dots as %2E to prevent Navigation Compose 2.7.x route
-                // matching issues with multi-dot filenames (e.g. Container.Nested.Flow.json)
-                val encoded = Uri.encode(cardFilename).replace(".", "%2E")
+                // Base64 URL-safe encode to avoid Navigation Compose route matching
+                // issues with dots and slashes in card paths (e.g. Container.Nested.Flow.json)
+                val encoded = Base64.encodeToString(
+                    cardFilename.toByteArray(),
+                    Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
+                )
                 navController.navigate("card_detail/$encoded")
             }
         }
