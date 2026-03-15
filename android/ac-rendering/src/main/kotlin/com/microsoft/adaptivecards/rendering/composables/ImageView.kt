@@ -99,9 +99,17 @@ fun ImageView(
                 hasFitMode -> {
                     modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
                 }
-                // When height="auto" with no width, use medium default size to avoid
-                // collapsing to tiny or expanding to full width in auto-width columns
-                hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
+                // When height="auto" with no width: in auto-width columns, use medium
+                // default to avoid expanding the column. In other contexts, fill width
+                // and let height be determined by aspect ratio (matching iOS).
+                hasAutoHeight -> {
+                    val isAutoColumn = LocalIsAutoWidthColumn.current
+                    if (isAutoColumn) {
+                        modifier.size(hostConfig.imageSizes.medium.dp)
+                    } else {
+                        modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.medium.dp)
+                    }
+                }
                 // Auto per AC spec: use natural image size, constrained by parent.
                 // In auto-width columns, don't force fillMaxWidth() — it breaks intrinsic
                 // sizing (icons, pin markers collapse to 0). In weighted/stretch columns,
@@ -150,6 +158,7 @@ fun ImageView(
                 diskCachePolicy(CachePolicy.DISABLED)
             }
         }
+        .addHeader("User-Agent", "AdaptiveCards-Mobile/1.0 (Android)")
         .crossfade(true)
         .build()
 
