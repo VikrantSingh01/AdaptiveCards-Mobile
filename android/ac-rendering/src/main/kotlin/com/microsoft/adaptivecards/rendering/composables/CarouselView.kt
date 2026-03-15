@@ -122,9 +122,11 @@ fun CarouselView(
             contentDescription = "Carousel with ${visiblePages.size} pages, currently on page ${pagerState.currentPage + 1}"
         }
     ) {
-        // Horizontal pager for carousel pages
+        // Horizontal pager for carousel pages — contentPadding provides peek of adjacent pages
         HorizontalPager(
             state = pagerState,
+            contentPadding = PaddingValues(horizontal = if (isTablet) 24.dp else 16.dp),
+            pageSpacing = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(pagerHeight.dp)
