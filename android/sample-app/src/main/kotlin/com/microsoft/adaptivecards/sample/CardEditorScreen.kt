@@ -253,7 +253,7 @@ private const val defaultCardJson = """{
     },
     {
       "type": "TextBlock",
-      "text": "Edit this JSON to see changes in the preview.",
+      "text": "Edit this JSON to see changes in the preview pane.",
       "wrap": true
     }
   ],
