@@ -32,6 +32,9 @@ struct ColumnView: View {
                         if viewModel.isElementVisible(elementId: element.elementId) {
                             ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                 .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+                                .if(isStretchHeight(element)) { view in
+                                    view.frame(maxHeight: .infinity)
+                                }
                         }
                     }
                 }
@@ -79,6 +82,14 @@ struct ColumnView: View {
             }
         }
         return nil
+    }
+
+    private func isStretchHeight(_ element: CardElement) -> Bool {
+        switch element {
+        case .container(let c): return c.height == .stretch
+        case .columnSet(let cs): return cs.height == .stretch
+        default: return false
+        }
     }
 
     private func spacingValue(for spacing: Spacing?, hostConfig: HostConfig) -> CGFloat {
