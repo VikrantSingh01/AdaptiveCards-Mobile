@@ -22,15 +22,22 @@ public struct ToggleInputView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if let label = input.label {
-                Text(label)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                if let label = input.label {
+                    Text(label)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Text(input.title)
+                    .font(.body)
             }
 
-            Toggle(input.title, isOn: $value)
+            Spacer()
+
+            Toggle("", isOn: $value)
                 .toggleStyle(SwitchToggleStyle(tint: .blue))
+                .labelsHidden()
         }
         .accessibilityInput(
             label: input.label ?? input.title,
