@@ -39,7 +39,8 @@ struct RatingDisplayView: View {
                     .accessibilityHidden(true)
             }
         }
-        .fixedSize()
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        .clipped()
         .spacing(rating.spacing, hostConfig: hostConfig)
         .separator(rating.separator, hostConfig: hostConfig)
         .accessibilityElement(children: .ignore)

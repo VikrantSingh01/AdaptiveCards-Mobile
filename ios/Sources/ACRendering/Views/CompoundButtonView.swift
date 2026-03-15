@@ -66,6 +66,7 @@ struct CompoundButtonView: View {
                         .foregroundColor(primaryTextColor)
                         .lineLimit(2)
                         .truncationMode(.tail)
+                        .layoutPriority(-1)
 
                     if let badge = button.badge {
                         Text(badge)
@@ -76,6 +77,7 @@ struct CompoundButtonView: View {
                             .background(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.`default`))
                             .cornerRadius(4)
                             .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                 }
 
@@ -212,6 +214,7 @@ struct CompoundButtonView: View {
             "List": "list.bullet",
             "TextBulletList": "list.bullet",
             "Bookmark": "bookmark",
+            "Emoji": "face.smiling",
         ]
         // Fall back to info.circle for unknown icons (matching Android behavior)
         return lookup[baseName] ?? "info.circle"
