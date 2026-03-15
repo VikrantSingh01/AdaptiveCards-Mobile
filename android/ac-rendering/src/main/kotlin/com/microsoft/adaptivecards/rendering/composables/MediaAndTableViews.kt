@@ -185,14 +185,16 @@ fun TableView(
                                     flowLayout = cellLayout,
                                     hostConfig = hostConfig,
                                     viewModel = viewModel,
-                                    actionHandler = actionHandler
+                                    actionHandler = actionHandler,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                                 is AreaGridLayout -> AreaGridLayoutView(
                                     items = cellItems,
                                     gridLayout = cellLayout,
                                     hostConfig = hostConfig,
                                     viewModel = viewModel,
-                                    actionHandler = actionHandler
+                                    actionHandler = actionHandler,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         } else {
