@@ -15,7 +15,10 @@
 # Usage:
 #   bash shared/scripts/design-pass.sh                    # default: all cards
 #   bash shared/scripts/design-pass.sh --category all     # explicit all
-#   bash shared/scripts/design-pass.sh --wait 5           # custom render wait
+#   bash shared/scripts/design-pass.sh --wait 3           # custom render wait
+#   bash shared/scripts/design-pass.sh --no-compress      # skip PNG compression
+#   bash shared/scripts/design-pass.sh --cards-file list  # only capture cards in file
+#   bash shared/scripts/design-pass.sh --fast             # shorthand: --wait 2 --no-compress
 #
 # Output:
 #   shared/test-results/design-catalog-<TIMESTAMP>/
@@ -40,12 +43,17 @@ mkdir -p "$OUTPUT_DIR/screenshots/ios" "$OUTPUT_DIR/screenshots/android"
 # Defaults
 CATEGORY="all"
 RENDER_WAIT=4
+COMPRESS=true
+CARDS_FILE=""
 
 # Parse args
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --category) CATEGORY="$2"; shift 2 ;;
         --wait) RENDER_WAIT="$2"; shift 2 ;;
+        --no-compress) COMPRESS=false; shift ;;
+        --cards-file) CARDS_FILE="$2"; shift 2 ;;
+        --fast) RENDER_WAIT=2; COMPRESS=false; shift ;;
         *) echo "Unknown arg: $1"; exit 1 ;;
     esac
 done
@@ -92,29 +100,34 @@ if ! $IOS_READY && ! $ANDROID_READY; then
     exit 1
 fi
 
-echo "  iOS:     $($IOS_READY && echo 'Ready' || echo 'Not available')"
-echo "  Android: $($ANDROID_READY && echo 'Ready' || echo 'Not available')"
+echo "  iOS:      $($IOS_READY && echo 'Ready' || echo 'Not available')"
+echo "  Android:  $($ANDROID_READY && echo 'Ready' || echo 'Not available')"
 echo "  Category: $CATEGORY"
-echo "  Output:  $OUTPUT_DIR"
+echo "  Wait:     ${RENDER_WAIT}s"
+echo "  Compress: $COMPRESS"
+[ -n "$CARDS_FILE" ] && echo "  Cards file: $CARDS_FILE"
+echo "  Output:   $OUTPUT_DIR"
 echo ""
 
 # =============================================================================
-# Screenshot helpers
+# Screenshot helpers — capture only, no compression (deferred to end)
 # =============================================================================
+
+# Collect all screenshot paths for batch compression at the end
+COMPRESS_QUEUE="/tmp/design-pass-compress-$$"
+: > "$COMPRESS_QUEUE"
+
 ios_screenshot() {
     local path="$1"
     xcrun simctl io "$SIM_UDID" screenshot "$path" 2>/dev/null
-    # Compress PNG (TinyPNG-style) — full resolution, ~75% smaller
-    compress_png "$path"
+    echo "$path" >> "$COMPRESS_QUEUE"
 }
 
 android_screenshot() {
     local path="$1"
-    "$ADB" shell screencap -p /sdcard/design-pass-tmp.png 2>/dev/null
-    "$ADB" pull /sdcard/design-pass-tmp.png "$path" 2>/dev/null
-    "$ADB" shell rm /sdcard/design-pass-tmp.png 2>/dev/null
-    # Compress PNG (TinyPNG-style) — full resolution, ~75% smaller
-    compress_png "$path"
+    # Use exec-out with pipe — faster than screencap+pull+rm (avoids device I/O + adb pull)
+    "$ADB" exec-out screencap -p > "$path" 2>/dev/null
+    echo "$path" >> "$COMPRESS_QUEUE"
 }
 
 # Lossy PNG compression via pngquant (same engine as TinyPNG)
@@ -122,7 +135,7 @@ compress_png() {
     local path="$1"
     [ -f "$path" ] || return 0
     if command -v pngquant &>/dev/null; then
-        pngquant --quality=65-85 --force --output "$path" "$path" 2>/dev/null || true
+        pngquant --quality=65-85 --speed 4 --force --output "$path" "$path" 2>/dev/null || true
     fi
 }
 
@@ -143,7 +156,7 @@ navigate_and_capture() {
 
     sleep "$RENDER_WAIT"
 
-    # Capture
+    # Capture both platforms in parallel
     if $IOS_READY; then
         ios_screenshot "$OUTPUT_DIR/screenshots/ios/${screenshot_name}.png" &
     fi
@@ -213,65 +226,75 @@ get_cards_from_dir() {
     echo "${cards[@]}"
 }
 
-cards_to_test=()
-case "$CATEGORY" in
-    teams-official) cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}") ;;
-    element) IFS=' ' read -ra cards_to_test <<< "$(get_cards_from_dir element-samples element-samples)" ;;
-    official) IFS=' ' read -ra cards_to_test <<< "$(get_cards_from_dir official-samples official-samples)" ;;
-    all)
-        cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}")
-        IFS=' ' read -ra extra <<< "$(get_cards_from_dir element-samples element-samples)"
-        cards_to_test+=("${extra[@]}")
-        IFS=' ' read -ra extra <<< "$(get_cards_from_dir official-samples official-samples)"
-        cards_to_test+=("${extra[@]}")
-        for ver in v1.5 v1.6; do
-            IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
+# If --cards-file is provided, use that instead of category enumeration
+if [ -n "$CARDS_FILE" ] && [ -f "$CARDS_FILE" ]; then
+    # Cards file: one card path per line (e.g., "teams-official-samples/cafe-menu")
+    cards_to_test=()
+    while IFS= read -r line; do
+        [ -n "$line" ] && [[ "$line" != \#* ]] && cards_to_test+=("$line")
+    done < "$CARDS_FILE"
+    echo "  Using cards from file: $CARDS_FILE (${#cards_to_test[@]} cards)"
+else
+    cards_to_test=()
+    case "$CATEGORY" in
+        teams-official) cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}") ;;
+        element) IFS=' ' read -ra cards_to_test <<< "$(get_cards_from_dir element-samples element-samples)" ;;
+        official) IFS=' ' read -ra cards_to_test <<< "$(get_cards_from_dir official-samples official-samples)" ;;
+        all)
+            cards_to_test=("${TEAMS_OFFICIAL_CARDS[@]}")
+            IFS=' ' read -ra extra <<< "$(get_cards_from_dir element-samples element-samples)"
             cards_to_test+=("${extra[@]}")
-        done
-        for f in "$TEST_CARDS_DIR"/*.json; do
-            [ -f "$f" ] || continue
-            local_name=$(basename "$f")
-            [[ "$local_name" == *.data.json ]] && continue
-            [[ "$local_name" == "sample-catalog.json" ]] && continue
-            cards_to_test+=("$(basename "$f" .json)")
-        done
-        for f in "$TEST_CARDS_DIR/templates"/*.template.json; do
-            [ -f "$f" ] || continue
-            cards_to_test+=("templates/$(basename "$f" .json)")
-        done
-        for f in "$TEST_CARDS_DIR/templates"/Template.*.json; do
-            [ -f "$f" ] || continue
-            [[ "$(basename "$f")" == *.data.json ]] && continue
-            cards_to_test+=("templates/$(basename "$f" .json)")
-        done
-        ;;
-    versioned)
-        for ver in v1.5 v1.6; do
-            IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
+            IFS=' ' read -ra extra <<< "$(get_cards_from_dir official-samples official-samples)"
             cards_to_test+=("${extra[@]}")
-        done
-        ;;
-    root)
-        for f in "$TEST_CARDS_DIR"/*.json; do
-            [ -f "$f" ] || continue
-            [[ "$(basename "$f")" == *.data.json ]] && continue
-            [[ "$(basename "$f")" == "sample-catalog.json" ]] && continue
-            cards_to_test+=("$(basename "$f" .json)")
-        done
-        ;;
-    templates)
-        for f in "$TEST_CARDS_DIR/templates"/*.template.json; do
-            [ -f "$f" ] || continue
-            cards_to_test+=("templates/$(basename "$f" .json)")
-        done
-        for f in "$TEST_CARDS_DIR/templates"/Template.*.json; do
-            [ -f "$f" ] || continue
-            [[ "$(basename "$f")" == *.data.json ]] && continue
-            cards_to_test+=("templates/$(basename "$f" .json)")
-        done
-        ;;
-    *) echo "Unknown category: $CATEGORY"; exit 1 ;;
-esac
+            for ver in v1.5 v1.6; do
+                IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
+                cards_to_test+=("${extra[@]}")
+            done
+            for f in "$TEST_CARDS_DIR"/*.json; do
+                [ -f "$f" ] || continue
+                local_name=$(basename "$f")
+                [[ "$local_name" == *.data.json ]] && continue
+                [[ "$local_name" == "sample-catalog.json" ]] && continue
+                cards_to_test+=("$(basename "$f" .json)")
+            done
+            for f in "$TEST_CARDS_DIR/templates"/*.template.json; do
+                [ -f "$f" ] || continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
+            for f in "$TEST_CARDS_DIR/templates"/Template.*.json; do
+                [ -f "$f" ] || continue
+                [[ "$(basename "$f")" == *.data.json ]] && continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
+            ;;
+        versioned)
+            for ver in v1.5 v1.6; do
+                IFS=' ' read -ra extra <<< "$(get_cards_from_dir "versioned/$ver" "versioned/$ver")"
+                cards_to_test+=("${extra[@]}")
+            done
+            ;;
+        root)
+            for f in "$TEST_CARDS_DIR"/*.json; do
+                [ -f "$f" ] || continue
+                [[ "$(basename "$f")" == *.data.json ]] && continue
+                [[ "$(basename "$f")" == "sample-catalog.json" ]] && continue
+                cards_to_test+=("$(basename "$f" .json)")
+            done
+            ;;
+        templates)
+            for f in "$TEST_CARDS_DIR/templates"/*.template.json; do
+                [ -f "$f" ] || continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
+            for f in "$TEST_CARDS_DIR/templates"/Template.*.json; do
+                [ -f "$f" ] || continue
+                [[ "$(basename "$f")" == *.data.json ]] && continue
+                cards_to_test+=("templates/$(basename "$f" .json)")
+            done
+            ;;
+        *) echo "Unknown category: $CATEGORY"; exit 1 ;;
+    esac
+fi
 
 TOTAL=${#cards_to_test[@]}
 echo "  Cards to capture: $TOTAL"
@@ -279,6 +302,18 @@ echo ""
 
 PASS=0
 FAIL=0
+CAPTURE_START=$(date +%s)
+
+# Navigate to gallery once at start (not between every card)
+if $IOS_READY; then
+    xcrun simctl openurl "$SIM_UDID" "adaptivecards://gallery" 2>/dev/null || true
+fi
+if $ANDROID_READY; then
+    "$ADB" shell am start -a android.intent.action.VIEW \
+        -d "adaptivecards://gallery" \
+        "$ANDROID_APP_ID" 2>/dev/null || true
+fi
+sleep 1
 
 for i in "${!cards_to_test[@]}"; do
     card_path="${cards_to_test[$i]}"
@@ -289,18 +324,7 @@ for i in "${!cards_to_test[@]}"; do
 
     printf "  [%d/%d] %s" "$idx" "$TOTAL" "$card_name"
 
-    # Navigate to gallery first (clean slate)
-    if $IOS_READY; then
-        xcrun simctl openurl "$SIM_UDID" "adaptivecards://gallery" 2>/dev/null || true
-    fi
-    if $ANDROID_READY; then
-        "$ADB" shell am start -a android.intent.action.VIEW \
-            -d "adaptivecards://gallery" \
-            "$ANDROID_APP_ID" 2>/dev/null || true
-    fi
-    sleep 1
-
-    # Navigate to card and capture
+    # Navigate to card and capture (no gallery nav between cards — deep link handles it)
     navigate_and_capture "adaptivecards://card/$card_path" "$card_name"
 
     # Check if at least one screenshot was captured
@@ -318,8 +342,11 @@ for i in "${!cards_to_test[@]}"; do
     fi
 done
 
+CAPTURE_END=$(date +%s)
+CAPTURE_SECS=$((CAPTURE_END - CAPTURE_START))
 echo ""
 echo "  Results: $PASS passed, $FAIL failed out of $TOTAL cards"
+echo "  Capture time: ${CAPTURE_SECS}s ($((CAPTURE_SECS / 60))m $((CAPTURE_SECS % 60))s)"
 
 # Return to gallery
 if $IOS_READY; then
@@ -330,6 +357,30 @@ if $ANDROID_READY; then
         -d "adaptivecards://gallery" \
         "$ANDROID_APP_ID" 2>/dev/null || true
 fi
+
+# =============================================================================
+# Phase 2.5: Batch PNG compression (parallel, deferred from capture loop)
+# =============================================================================
+if [ "$COMPRESS" = true ] && command -v pngquant &>/dev/null && [ -s "$COMPRESS_QUEUE" ]; then
+    COMPRESS_START=$(date +%s)
+    COMPRESS_TOTAL=$(wc -l < "$COMPRESS_QUEUE" | tr -d '[:space:]')
+    echo ""
+    echo "=== Phase 2.5: Compressing $COMPRESS_TOTAL screenshots (parallel) ==="
+
+    # Compress up to 8 at a time using xargs parallel
+    cat "$COMPRESS_QUEUE" | xargs -P 8 -I{} sh -c '
+        pngquant --quality=65-85 --speed 4 --force --output "{}" "{}" 2>/dev/null || true
+    '
+
+    COMPRESS_END=$(date +%s)
+    echo "  Compression: $((COMPRESS_END - COMPRESS_START))s for $COMPRESS_TOTAL files"
+elif [ "$COMPRESS" = false ]; then
+    echo ""
+    echo "=== Phase 2.5: Compression skipped (--no-compress) ==="
+fi
+
+# Clean up temp file
+rm -f "$COMPRESS_QUEUE"
 
 # =============================================================================
 # Phase 3: Generate HTML catalog
@@ -348,6 +399,8 @@ ln -sfn "$OUTPUT_DIR/screenshots" "$REPO_ROOT/shared/test-results/screenshots"
 # =============================================================================
 # Done
 # =============================================================================
+TOTAL_END=$(date +%s)
+TOTAL_SECS=$((TOTAL_END - CAPTURE_START))
 echo ""
 echo "=============================================="
 echo " Design Pass Complete"
@@ -356,6 +409,7 @@ echo ""
 echo "  Catalog: $OUTPUT_DIR/index.html"
 echo "  Stable:  shared/test-results/index.html"
 echo "  Cards: $PASS/$TOTAL  |  App screens: ${#APP_SCREENS[@]}"
+echo "  Total time: ${TOTAL_SECS}s ($((TOTAL_SECS / 60))m $((TOTAL_SECS % 60))s)"
 echo "  To share: zip -r design-catalog.zip \"$OUTPUT_DIR\""
 echo ""
 
