@@ -105,16 +105,22 @@ public class MarkdownRenderer {
             return attributed
 
         case .bulletItem(let text):
-            var attributed = AttributedString("• \(text)")
-            attributed.font = font
-            attributed.foregroundColor = color
-            return attributed
+            var result = AttributedString("• ")
+            result.font = font
+            result.foregroundColor = color
+            for token in MarkdownParser.parse(text) {
+                result.append(renderToken(token, font: font, color: color))
+            }
+            return result
 
         case .numberedItem(let number, let text):
-            var attributed = AttributedString("\(number). \(text)")
-            attributed.font = font
-            attributed.foregroundColor = color
-            return attributed
+            var result = AttributedString("\(number). ")
+            result.font = font
+            result.foregroundColor = color
+            for token in MarkdownParser.parse(text) {
+                result.append(renderToken(token, font: font, color: color))
+            }
+            return result
 
         case .lineBreak:
             return AttributedString("\n")
