@@ -226,6 +226,8 @@ public struct AdaptiveCardView: View {
                     .padding(.top, CGFloat(hostConfig.spacing.default))
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        .clipped()
         .padding(CGFloat(hostConfig.spacing.padding))
         .fixedSize(horizontal: false, vertical: true)
         .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
