@@ -92,6 +92,7 @@ fun ProgressRingView(
     Column(
         horizontalAlignment = alignment,
         modifier = modifier
+            .fillMaxWidth()
             .semantics {
                 contentDescription = element.label ?: "Loading"
             }
