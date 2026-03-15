@@ -130,6 +130,11 @@ struct ImageView: View {
                                     .frame(width: w, height: h)
                                     .clipShape(imageShape)
                             }
+                        } else if isExplicitAutoSize {
+                            // Auto mode: render at natural/intrinsic size without
+                            // scaling up to fill container (matches Android behavior)
+                            img
+                                .clipShape(imageShape)
                         } else {
                             img
                                 .resizable()
@@ -150,7 +155,7 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .frame(maxWidth: (shouldFillWidth || image.horizontalAlignment != nil) ? .infinity : nil, alignment: frameAlignment)
+        .frame(maxWidth: .infinity, alignment: frameAlignment)
         .spacing(image.spacing, hostConfig: hostConfig)
         .separator(image.separator, hostConfig: hostConfig)
         .accessibilityElement(label: image.altText ?? "Image")
@@ -226,6 +231,15 @@ struct ImageView: View {
     /// constrained by parent (matching Android behavior and AC spec).
     private var shouldFillWidth: Bool {
         isWidthStretch
+    }
+
+    /// Whether width and/or height are explicitly set to "auto" (natural size mode).
+    /// When true, the image should render at its intrinsic dimensions rather than
+    /// stretching to fill the container (matching Android ContentScale.Fit behavior).
+    private var isExplicitAutoSize: Bool {
+        let isAutoWidth = image.width?.lowercased() == "auto"
+        let isAutoHeight = image.height?.lowercased() == "auto"
+        return (isAutoWidth || isAutoHeight) && image.fitMode == nil
     }
 
     /// Whether width is explicitly set to "stretch"

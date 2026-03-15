@@ -211,7 +211,7 @@ public struct AdaptiveCardView: View {
     private func cardContent(card: AdaptiveCard) -> some View {
         let showDiagnostics = configuration?.diagnosticsEnabled == true
 
-        return ScrollView(.vertical, showsIndicators: false) {
+        return ScrollView(.vertical, showsIndicators: true) {
             VStack(spacing: 0) {
                 if let body = card.body, !body.isEmpty {
                     ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
@@ -227,7 +227,7 @@ public struct AdaptiveCardView: View {
                         .padding(.top, CGFloat(hostConfig.spacing.default))
                 }
             }
-            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CGFloat(hostConfig.spacing.padding))
         }
         .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
