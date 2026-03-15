@@ -47,10 +47,15 @@ struct ProportionalColumnLayout: SwiftUI.Layout {
         // Subtract inter-column spacing from available width
         var remainingWidth = totalWidth - totalSpacing
 
-        // Pass 1: Fixed pixel widths
+        // Pass 1: Fixed pixel widths — cap if they'd leave too little for other columns
+        let nonPixelCount = columns.filter { col in
+            if case .pixels = col.width { return false }
+            return true
+        }.count
+        let maxPixelShare = nonPixelCount > 0 ? remainingWidth * 0.6 : remainingWidth
         for (i, col) in columns.enumerated() {
             if case .pixels(let v) = col.width {
-                let px = CGFloat(Int(v.replacingOccurrences(of: "px", with: "")) ?? 0)
+                let px = min(CGFloat(Int(v.replacingOccurrences(of: "px", with: "")) ?? 0), maxPixelShare)
                 widths[i] = px
                 remainingWidth -= px
             }
