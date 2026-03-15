@@ -18,15 +18,14 @@ struct TableView: View {
     var body: some View {
         let rowSpacing: CGFloat = table.showGridLines == true ? 0 : CGFloat(hostConfig.table.cellSpacing / 2)
         let weights = resolveColumnWeights()
+        let showGrid = table.showGridLines == true
 
         VStack(spacing: rowSpacing) {
             ForEach(Array(table.rows.enumerated()), id: \.offset) { rowIndex, row in
                 let isHeaderRow = table.firstRowAsHeaders == true && rowIndex == 0
 
-                HStack(spacing: 0) {
+                WeightedRow(weights: weights, spacing: showGrid ? 1 : 0) {
                     ForEach(Array(row.cells.enumerated()), id: \.offset) { cellIndex, cell in
-                        let weight = cellIndex < weights.count ? weights[cellIndex] : 1.0
-                        let totalWeight = weights.reduce(0, +)
                         TableCellView(
                             cell: cell,
                             isHeader: isHeaderRow,
@@ -34,13 +33,14 @@ struct TableView: View {
                             depth: depth,
                             table: table,
                             row: row,
-                            columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil,
-                            proportionalWidth: totalWeight > 0 ? weight / totalWeight : nil,
-                            totalColumns: weights.count
+                            columnDef: table.columns?.indices.contains(cellIndex) == true ? table.columns?[cellIndex] : nil
                         )
-
-                        if table.showGridLines == true && cellIndex < row.cells.count - 1 {
-                            Divider()
+                        .overlay(alignment: .trailing) {
+                            if showGrid && cellIndex < row.cells.count - 1 {
+                                Rectangle()
+                                    .fill(Color(hex: hostConfig.separator.lineColor))
+                                    .frame(width: 1)
+                            }
                         }
                     }
                 }
@@ -48,7 +48,7 @@ struct TableView: View {
                     view.background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                 }
 
-                if table.showGridLines == true && rowIndex < table.rows.count - 1 {
+                if showGrid && rowIndex < table.rows.count - 1 {
                     Rectangle()
                         .fill(Color(hex: hostConfig.separator.lineColor))
                         .frame(height: isHeaderRow ? 2 : CGFloat(hostConfig.separator.lineThickness))
@@ -74,11 +74,54 @@ struct TableView: View {
             switch width {
             case .weighted(let w): return w
             case .pixels(let px):
-                // Normalize pixel values to proportional weights
                 return max(Double(Int(px.replacingOccurrences(of: "px", with: "")) ?? 1) / 100.0, 0.1)
             case .auto: return 0.5
             case .stretch: return 1.0
             }
+        }
+    }
+}
+
+// MARK: - WeightedRow Layout
+
+/// Custom Layout that distributes available width proportionally based on column weights.
+/// This replaces the old screen-width-based calculation and correctly handles tables
+/// nested inside flow layouts, containers, or other constrained parents.
+private struct WeightedRow: SwiftUI.Layout {
+    let weights: [Double]
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let availableWidth = proposal.width ?? 300
+        let totalSpacing = spacing * CGFloat(max(subviews.count - 1, 0))
+        let contentWidth = max(availableWidth - totalSpacing, 0)
+        let totalWeight = weights.reduce(0, +)
+
+        var maxHeight: CGFloat = 0
+        for (index, subview) in subviews.enumerated() {
+            let weight = index < weights.count ? weights[index] : 1.0
+            let cellWidth = totalWeight > 0 ? contentWidth * (weight / totalWeight) : contentWidth / CGFloat(max(subviews.count, 1))
+            let size = subview.sizeThatFits(ProposedViewSize(width: cellWidth, height: nil))
+            maxHeight = max(maxHeight, size.height)
+        }
+
+        return CGSize(width: availableWidth, height: maxHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let totalSpacing = spacing * CGFloat(max(subviews.count - 1, 0))
+        let contentWidth = max(bounds.width - totalSpacing, 0)
+        let totalWeight = weights.reduce(0, +)
+
+        var x = bounds.minX
+        for (index, subview) in subviews.enumerated() {
+            let weight = index < weights.count ? weights[index] : 1.0
+            let cellWidth = totalWeight > 0 ? contentWidth * (weight / totalWeight) : contentWidth / CGFloat(max(subviews.count, 1))
+            subview.place(
+                at: CGPoint(x: x, y: bounds.minY),
+                proposal: ProposedViewSize(width: cellWidth, height: bounds.height)
+            )
+            x += cellWidth + spacing
         }
     }
 }
@@ -105,8 +148,6 @@ struct TableCellView: View {
     var table: ACCore.Table? = nil
     var row: ACCore.TableRow? = nil
     var columnDef: TableColumnDefinition? = nil
-    var proportionalWidth: Double? = nil
-    var totalColumns: Int = 1
 
     @EnvironmentObject var viewModel: CardViewModel
 
@@ -142,7 +183,6 @@ struct TableCellView: View {
         }
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: combinedAlignment)
-        .frame(width: proportionalCellWidth, alignment: combinedAlignment)
         .frame(minHeight: minHeight)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
         .padding(.vertical, CGFloat(hostConfig.table.cellSpacing))
@@ -195,21 +235,6 @@ struct TableCellView: View {
         }()
 
         return Alignment(horizontal: h, vertical: v)
-    }
-
-    /// Calculate proportional cell width from the weight ratio and available screen width
-    private var proportionalCellWidth: CGFloat? {
-        guard let ratio = proportionalWidth, ratio > 0 else { return nil }
-        #if canImport(UIKit)
-        let screenWidth = UIScreen.main.bounds.width
-        #else
-        let screenWidth: CGFloat = 375
-        #endif
-        // Account for card padding and per-cell padding (horizontal padding on each cell)
-        let cardPadding = CGFloat(hostConfig.spacing.padding) * 2
-        let cellPaddingTotal = CGFloat(hostConfig.table.cellSpacing) * 2 * CGFloat(totalColumns)
-        let available = screenWidth - cardPadding - cellPaddingTotal
-        return max(available * CGFloat(ratio), 30)
     }
 
     private var minHeight: CGFloat? {

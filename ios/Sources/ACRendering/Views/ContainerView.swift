@@ -25,10 +25,12 @@ struct ContainerView: View {
             switch activeLayout {
             case .flow(let flowLayout):
                 FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig, depth: depth)
-                    .padding(contentPadding)
+                    .padding(.horizontal, contentPadding)
+                    .padding(.vertical, contentPadding > 0 ? contentPadding / 2 : 0)
             case .areaGrid(let gridLayout):
                 AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig, depth: depth)
-                    .padding(contentPadding)
+                    .padding(.horizontal, contentPadding)
+                    .padding(.vertical, contentPadding > 0 ? contentPadding / 2 : 0)
             case .none:
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
@@ -38,7 +40,8 @@ struct ContainerView: View {
                         }
                     }
                 }
-                .padding(contentPadding)
+                .padding(.horizontal, contentPadding)
+                .padding(.vertical, contentPadding > 0 ? contentPadding / 2 : 0)
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
