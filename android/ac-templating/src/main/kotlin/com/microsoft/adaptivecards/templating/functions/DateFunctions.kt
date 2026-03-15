@@ -285,7 +285,7 @@ object DateFunctions {
                 return tzFormatter.parse(value) ?: Date()
             } catch (_: Exception) { }
 
-            // Try standard formats (always use UTC to prevent off-by-one day shifts)
+            // Try standard formats (use UTC to avoid off-by-one day shifts)
             val formats = listOf("yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy")
             for (format in formats) {
                 try {

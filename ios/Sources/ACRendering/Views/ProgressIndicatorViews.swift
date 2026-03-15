@@ -223,24 +223,21 @@ struct SpinnerView: View {
         isTablet ? .body : .subheadline
     }
 
-    private var strokeWidth: CGFloat {
-        switch spinner.size {
-        case .small:
-            return isTablet ? 3 : 2
-        case .large:
-            return isTablet ? 5 : 4
-        default:
-            return isTablet ? 4 : 3
-        }
-    }
-
     private var spinnerColor: Color {
         Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default)
     }
 
+    private var lineWidth: CGFloat {
+        switch spinner.size {
+        case .small: return 2
+        case .large: return 4
+        default: return 3
+        }
+    }
+
     var body: some View {
         VStack(spacing: CGFloat(hostConfig.spacing.default)) {
-            IndeterminateRing(color: spinnerColor, size: spinnerSize, lineWidth: strokeWidth)
+            IndeterminateRing(color: spinnerColor, size: spinnerSize, lineWidth: lineWidth)
 
             if let label = spinner.label {
                 Text(label)
