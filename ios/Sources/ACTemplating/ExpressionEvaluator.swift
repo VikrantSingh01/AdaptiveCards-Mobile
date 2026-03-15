@@ -278,11 +278,8 @@ public final class ExpressionEvaluator {
             return false
         }
 
-        // Try numeric comparison
-        if let l = left as? Double, let r = right as? Double {
-            return l == r
-        }
-        if let l = left as? Int, let r = right as? Int {
+        // Try numeric comparison (handle Int/Double cross-type)
+        if let l = toDouble(left), let r = toDouble(right) {
             return l == r
         }
 
@@ -298,6 +295,14 @@ public final class ExpressionEvaluator {
 
         // Fallback to string representation
         return String(describing: left ?? "nil") == String(describing: right ?? "nil")
+    }
+
+    /// Coerce a value to Double if it's any numeric type
+    private func toDouble(_ value: Any?) -> Double? {
+        if let d = value as? Double { return d }
+        if let i = value as? Int { return Double(i) }
+        if let f = value as? Float { return Double(f) }
+        return nil
     }
 }
 
