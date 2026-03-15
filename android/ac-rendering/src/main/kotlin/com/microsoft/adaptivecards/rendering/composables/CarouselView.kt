@@ -10,8 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -141,17 +139,16 @@ fun CarouselView(
             } catch (_: Exception) {
                 Color(0xFFF5F5F5)
             }
-            Card(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .padding(
                         horizontal = if (isTablet) 16.dp else 8.dp,
                         vertical = 8.dp
-                    ),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = emphasisBg),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(emphasisBg)
             ) {
                 Column(
                     modifier = Modifier
