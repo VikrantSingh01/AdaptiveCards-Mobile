@@ -175,7 +175,8 @@ data class Column(
     val rtl: Boolean? = null,
     val requires: Map<String, String>? = null,
     val fallback: JsonElement? = null,
-    val targetWidth: String? = null
+    val targetWidth: String? = null,
+    val layouts: List<Layout>? = null
 )
 
 @Serializable

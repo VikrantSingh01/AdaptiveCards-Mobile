@@ -69,7 +69,7 @@ class TemplateEngine {
      * @param data Data object for binding
      * @return Expanded string
      */
-    fun expand(template: String, data: Map<String, Any?>): String {
+    fun expand(template: String, data: Map<String, Any?> = emptyMap()): String {
         // Try structured JSON expansion first (produces valid JSON output)
         try {
             val jsonObject = org.json.JSONObject(template)
