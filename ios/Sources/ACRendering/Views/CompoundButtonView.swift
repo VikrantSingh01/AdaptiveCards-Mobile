@@ -21,7 +21,8 @@ struct CompoundButtonView: View {
         static let titleSubtitleSpacing: CGFloat = 4
         static let horizontalPadding: CGFloat = 16
         static let verticalPadding: CGFloat = 12
-        static let minHeight: CGFloat = 44
+        static let minHeight: CGFloat = 48
+        static let chevronSize: CGFloat = 20
         static let badgeFontSize: CGFloat = 10
     }
 
@@ -95,10 +96,12 @@ struct CompoundButtonView: View {
                 iconView
             }
 
-            // Chevron indicator
+            // Chevron indicator (fixed size matching Android 20dp)
             Image(systemName: "chevron.right")
-                .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: titleFontWeight))
-                .foregroundColor(secondaryTextColor)
+                .resizable()
+                .scaledToFit()
+                .frame(width: Layout.chevronSize, height: Layout.chevronSize)
+                .foregroundColor(primaryTextColor.opacity(0.6))
         }
         .padding(.horizontal, Layout.horizontalPadding)
         .padding(.vertical, Layout.verticalPadding)
