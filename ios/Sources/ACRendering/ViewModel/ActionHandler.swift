@@ -69,6 +69,12 @@ public class DefaultActionHandler: ActionHandler {
         case .openUrlDialog(let openUrlDialogAction):
             OpenUrlDialogActionHandler.handle(action: openUrlDialogAction, delegate: delegate)
 
+        case .resetInputs(let resetAction):
+            let targetIds = resetAction.targetInputIds ?? []
+            for inputId in targetIds {
+                viewModel.setInputValue(id: inputId, value: "")
+            }
+
         case .unknown:
             // Silently ignore unknown action types
             break

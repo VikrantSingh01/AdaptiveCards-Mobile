@@ -79,6 +79,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.title
         case .runCommands(let a): return a.title
         case .openUrlDialog(let a): return a.title
+        case .resetInputs(let a): return a.title
         case .unknown: return nil
         }
     }
@@ -93,6 +94,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.iconUrl
         case .runCommands(let a): return a.iconUrl
         case .openUrlDialog(let a): return a.iconUrl
+        case .resetInputs(let a): return a.iconUrl
         case .unknown: return nil
         }
     }
@@ -107,6 +109,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.style
         case .runCommands(let a): return a.style
         case .openUrlDialog(let a): return a.style
+        case .resetInputs(let a): return a.style
         case .unknown: return nil
         }
     }
@@ -121,6 +124,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.tooltip
         case .runCommands(let a): return a.tooltip
         case .openUrlDialog(let a): return a.tooltip
+        case .resetInputs(let a): return a.tooltip
         case .unknown: return nil
         }
     }
@@ -135,6 +139,7 @@ public struct ActionButton: View {
         case .popover(let a): return a.isEnabled
         case .runCommands(let a): return a.isEnabled
         case .openUrlDialog(let a): return a.isEnabled
+        case .resetInputs(let a): return a.isEnabled
         case .unknown: return nil
         }
     }
