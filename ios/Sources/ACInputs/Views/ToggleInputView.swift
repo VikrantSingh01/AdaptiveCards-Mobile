@@ -25,8 +25,7 @@ public struct ToggleInputView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 if let label = input.label {
-                    let suffix = (input.isRequired == true) ? hostConfig.inputs.label.requiredInputs.suffix : ""
-                    Text(label + suffix)
+                    Text(label)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
