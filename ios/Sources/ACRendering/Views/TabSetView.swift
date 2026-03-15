@@ -53,7 +53,7 @@ struct TabSetView: View {
                 }
             }
             .frame(height: adaptiveTabBarHeight)
-            .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
+            .background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Tab bar with \(tabSet.tabs.count) tabs")
 
