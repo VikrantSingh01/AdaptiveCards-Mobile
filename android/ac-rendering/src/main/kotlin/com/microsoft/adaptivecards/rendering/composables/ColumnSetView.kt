@@ -14,7 +14,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
@@ -34,7 +33,10 @@ import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 
 /**
  * Renders a ColumnSet element with proportional column layout.
- * Supports auto, stretch, weighted (numeric), and pixel (e.g. "100px") widths.
+ * Uses a custom Layout composable (like iOS ProportionalColumnLayout) that properly
+ * distributes widths: auto columns get intrinsic size, weighted/stretch columns share
+ * remaining space proportionally. This fixes auto-width columns inside weighted parents
+ * (e.g., Agenda card nested ColumnSets) that collapsed with the previous Row approach.
  */
 @Composable
 fun ColumnSetView(
@@ -52,40 +54,141 @@ fun ColumnSetView(
     }
     // Use small spacing between columns (not default element spacing which is too wide
     // and can clip columns in ColumnSets with 5+ columns like WeatherLarge)
-    val spacing = hostConfig.spacing.small.dp
+    val spacingDp = hostConfig.spacing.small.dp
 
     val cornerRadius = hostConfig.cornerRadius.columnSet
 
     val isScrollable = element.overflow?.equals("Scroll", ignoreCase = true) == true
     val isClipped = element.overflow?.equals("Hidden", ignoreCase = true) == true
 
-    val separatorThickness = hostConfig.separator.lineThickness.dp
+    val outerModifier = modifier
+        .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
+        .containerStyle(element.style, cornerRadius)
+        .then(if (isScrollable) Modifier.horizontalScroll(rememberScrollState()) else Modifier)
+        .then(if (isClipped) Modifier.clip(RoundedCornerShape(0.dp)) else Modifier)
+        .then(if (!isScrollable) Modifier.fillMaxWidth() else Modifier)
 
     ProportionalColumnLayout(
         columns = columns,
-        columnSpacing = spacing,
-        separatorThickness = separatorThickness,
-        modifier = modifier
-            .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
-            .containerStyle(element.style, cornerRadius)
-            .then(if (isScrollable) Modifier.horizontalScroll(rememberScrollState()) else Modifier)
-            .then(if (isClipped) Modifier.clip(RoundedCornerShape(0.dp)) else Modifier)
-            .then(if (!isScrollable) Modifier.fillMaxWidth() else Modifier)
+        spacingDp = spacingDp,
+        modifier = outerModifier
     ) {
         columns.forEachIndexed { index, column ->
-            if (index > 0 && column.separator) {
-                Box(modifier = Modifier.layoutId("sep_$index")) {
-                    VerticalSeparatorLine()
-                }
-            }
             val isAutoWidth = column.width == "auto"
             CompositionLocalProvider(LocalIsAutoWidthColumn provides isAutoWidth) {
                 ColumnView(
                     column = column,
-                    modifier = Modifier.layoutId("col_$index"),
+                    modifier = Modifier,
                     viewModel = viewModel,
                     actionHandler = actionHandler
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Custom layout that distributes column widths proportionally, matching iOS ProportionalColumnLayout.
+ * - Pass 1: Fixed pixel widths get their exact size (capped at 60% if other columns exist)
+ * - Pass 2: Auto columns get their intrinsic (wrap-content) width
+ * - Pass 3: Weighted and stretch columns share remaining space proportionally
+ */
+@Composable
+private fun ProportionalColumnLayout(
+    columns: List<Column>,
+    spacingDp: Dp,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Layout(
+        content = content,
+        modifier = modifier
+    ) { measurables, constraints ->
+        if (measurables.isEmpty() || columns.isEmpty()) {
+            return@Layout layout(constraints.maxWidth, 0) {}
+        }
+
+        val spacingPx = spacingDp.roundToPx()
+        val totalSpacing = if (columns.size > 1) (columns.size - 1) * spacingPx else 0
+        val totalWidth = constraints.maxWidth
+        var remainingWidth = totalWidth - totalSpacing
+
+        val columnWidths = IntArray(columns.size)
+
+        // Pass 1: Fixed pixel widths
+        val nonPixelCount = columns.count { col ->
+            val w = col.width
+            w == null || !w.endsWith("px")
+        }
+        val maxPixelShare = if (nonPixelCount > 0) (remainingWidth * 0.6f).toInt() else remainingWidth
+        columns.forEachIndexed { i, col ->
+            val w = col.width
+            if (w != null && w.endsWith("px")) {
+                val px = w.removeSuffix("px").toIntOrNull() ?: 0
+                columnWidths[i] = px.coerceAtMost(maxPixelShare)
+                remainingWidth -= columnWidths[i]
+            }
+        }
+
+        // Pass 2: Auto columns — measure at wrap-content to get intrinsic width
+        columns.forEachIndexed { i, col ->
+            if (col.width == "auto" && i < measurables.size) {
+                val childConstraints = Constraints(maxWidth = remainingWidth.coerceAtLeast(0))
+                val placeable = measurables[i].measure(childConstraints)
+                columnWidths[i] = placeable.width.coerceAtMost(remainingWidth.coerceAtLeast(0))
+                remainingWidth -= columnWidths[i]
+            }
+        }
+
+        // Pass 3: Weighted and stretch columns share remaining space
+        var totalWeight = 0f
+        columns.forEachIndexed { i, col ->
+            val w = col.width
+            if (w == null || w == "stretch") {
+                totalWeight += 1f
+            } else if (w != "auto" && !w.endsWith("px")) {
+                val weight = w.toFloatOrNull()
+                if (weight != null && weight > 0f) {
+                    totalWeight += weight
+                } else {
+                    totalWeight += 1f // Default to stretch
+                }
+            }
+        }
+
+        if (totalWeight > 0f && remainingWidth > 0) {
+            columns.forEachIndexed { i, col ->
+                val w = col.width
+                val weight = when {
+                    w == null || w == "stretch" -> 1f
+                    w == "auto" || w.endsWith("px") -> 0f
+                    else -> w.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
+                }
+                if (weight > 0f) {
+                    columnWidths[i] = ((remainingWidth * weight) / totalWeight).toInt().coerceAtLeast(0)
+                }
+            }
+        }
+
+        // Measure all children at their computed widths (re-measure auto columns
+        // are already measured but we need all placeables in order)
+        val placeables = measurables.mapIndexed { i, measurable ->
+            val w = if (i < columnWidths.size) columnWidths[i] else 0
+            measurable.measure(Constraints(
+                minWidth = w.coerceAtLeast(0),
+                maxWidth = w.coerceAtLeast(0),
+                minHeight = 0,
+                maxHeight = constraints.maxHeight
+            ))
+        }
+
+        val maxHeight = placeables.maxOfOrNull { it.height } ?: 0
+
+        layout(totalWidth, maxHeight) {
+            var x = 0
+            placeables.forEachIndexed { i, placeable ->
+                placeable.placeRelative(x, 0)
+                x += placeable.width + if (i < placeables.size - 1) spacingPx else 0
             }
         }
     }
@@ -184,145 +287,3 @@ private fun VerticalSeparatorLine() {
     }
 }
 
-/**
- * Custom layout that distributes column widths proportionally, matching iOS ProportionalColumnLayout.
- * Explicitly computes pixel, auto, and weighted column widths before measurement,
- * avoiding Compose IntrinsicSize.Max/weight() interaction issues that caused nested
- * ColumnSets (e.g. Agenda card) to collapse.
- */
-@Composable
-private fun ProportionalColumnLayout(
-    columns: List<Column>,
-    columnSpacing: Dp,
-    separatorThickness: Dp,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Layout(
-        content = content,
-        modifier = modifier
-    ) { measurables, constraints ->
-        if (columns.isEmpty()) {
-            return@Layout layout(0, 0) {}
-        }
-
-        val spacingPx = columnSpacing.roundToPx()
-        val sepThickPx = separatorThickness.roundToPx()
-
-        // Count separators to subtract their width from available space
-        val numSeparators = columns.drop(1).count { it.separator }
-        val totalSpacing = if (columns.size > 1) (columns.size - 1) * spacingPx else 0
-        val totalSepWidth = numSeparators * sepThickPx
-        var remainingWidth = (constraints.maxWidth - totalSpacing - totalSepWidth).coerceAtLeast(0)
-
-        // Map column indices to their measurables via layoutId
-        val columnMeasurables = (0 until columns.size).map { i ->
-            measurables.first { (it.layoutId as? String) == "col_$i" }
-        }
-
-        val widths = IntArray(columns.size)
-
-        // Handle unbounded width (scrollable mode): all columns use intrinsic width
-        if (constraints.maxWidth == Constraints.Infinity) {
-            columns.forEachIndexed { i, col ->
-                val w = col.width
-                widths[i] = when {
-                    w != null && w.endsWith("px") -> {
-                        val dp = w.removeSuffix("px").toIntOrNull() ?: 0
-                        dp.dp.roundToPx()
-                    }
-                    else -> columnMeasurables[i].maxIntrinsicWidth(constraints.maxHeight)
-                }
-            }
-        } else {
-            // Pass 1: Fixed pixel widths
-            columns.forEachIndexed { i, col ->
-                val w = col.width
-                if (w != null && w.endsWith("px")) {
-                    val dp = w.removeSuffix("px").toIntOrNull() ?: 0
-                    widths[i] = dp.dp.roundToPx().coerceAtMost(remainingWidth)
-                    remainingWidth -= widths[i]
-                }
-            }
-
-            // Pass 2: Auto columns — use maxIntrinsicWidth (natural content size)
-            columns.forEachIndexed { i, col ->
-                if (col.width == "auto") {
-                    val intrinsic = columnMeasurables[i].maxIntrinsicWidth(constraints.maxHeight)
-                    widths[i] = intrinsic.coerceAtMost(remainingWidth.coerceAtLeast(0))
-                    remainingWidth -= widths[i]
-                }
-            }
-
-            // Pass 3: Weighted and stretch columns share remaining space
-            var totalWeight = 0f
-            columns.forEach { col ->
-                val w = col.width
-                when {
-                    w == null || w == "stretch" -> totalWeight += 1f
-                    w != "auto" && !w.endsWith("px") -> {
-                        totalWeight += w.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
-                    }
-                }
-            }
-
-            if (totalWeight > 0f && remainingWidth > 0) {
-                columns.forEachIndexed { i, col ->
-                    val w = col.width
-                    val weight = when {
-                        w == null || w == "stretch" -> 1f
-                        w != "auto" && !w.endsWith("px") -> w.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
-                        else -> null
-                    }
-                    if (weight != null) {
-                        widths[i] = (remainingWidth * weight / totalWeight).toInt()
-                    }
-                }
-            }
-        }
-
-        // Measure columns with explicit widths
-        val columnPlaceables = columnMeasurables.mapIndexed { i, measurable ->
-            val w = widths[i]
-            measurable.measure(constraints.copy(minWidth = w, maxWidth = w))
-        }
-
-        val maxHeight = columnPlaceables.maxOfOrNull { it.height } ?: 0
-
-        // Measure separators at full column height
-        val separatorPlaceables = mutableMapOf<Int, androidx.compose.ui.layout.Placeable>()
-        columns.forEachIndexed { i, col ->
-            if (i > 0 && col.separator) {
-                val sepMeasurable = measurables.firstOrNull { (it.layoutId as? String) == "sep_$i" }
-                if (sepMeasurable != null) {
-                    separatorPlaceables[i] = sepMeasurable.measure(
-                        Constraints(minHeight = maxHeight, maxHeight = maxHeight)
-                    )
-                }
-            }
-        }
-
-        val totalWidth = if (constraints.maxWidth == Constraints.Infinity) {
-            widths.sum() + totalSpacing + totalSepWidth
-        } else {
-            constraints.maxWidth
-        }
-
-        layout(totalWidth, maxHeight) {
-            var x = 0
-            columns.forEachIndexed { i, _ ->
-                // Place separator before this column if present
-                separatorPlaceables[i]?.let { sep ->
-                    sep.place(x, 0)
-                    x += sep.width
-                }
-                // Add spacing between columns
-                if (i > 0) {
-                    x += spacingPx
-                }
-                columnPlaceables[i].place(x, 0)
-                x += columnPlaceables[i].width
-            }
-        }
-    }
-}

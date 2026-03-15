@@ -88,7 +88,11 @@ fun BookmarksScreen(bookmarkState: BookmarkState, navController: NavController) 
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                navController.navigate("card_detail/${Uri.encode(card.filename)}")
+                                val encoded = android.util.Base64.encodeToString(
+                                    card.filename.toByteArray(Charsets.UTF_8),
+                                    android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP
+                                )
+                                navController.navigate("card_detail/$encoded")
                             },
                         shape = RoundedCornerShape(14.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)

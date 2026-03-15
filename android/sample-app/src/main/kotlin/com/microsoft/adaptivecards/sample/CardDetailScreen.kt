@@ -46,8 +46,16 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     var parseError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
-    // URI-decode the cardId since navigation encodes slashes in paths like "versioned/v1.6/file.json"
-    val decodedCardId = remember(cardId) { java.net.URLDecoder.decode(cardId, "UTF-8") }
+    // Decode cardId: try Base64 URL-safe first (new encoding), fallback to URL-decode (legacy)
+    val decodedCardId = remember(cardId) {
+        try {
+            val bytes = android.util.Base64.decode(cardId, android.util.Base64.URL_SAFE)
+            String(bytes, Charsets.UTF_8)
+        } catch (_: Exception) {
+            // Fallback for non-Base64 encoded IDs (e.g., direct gallery navigation)
+            java.net.URLDecoder.decode(cardId, "UTF-8")
+        }
+    }
     val card = remember(decodedCardId) {
         val allCards = CardCache.getCards(context)
         val baseName = decodedCardId.removeSuffix(".json")
