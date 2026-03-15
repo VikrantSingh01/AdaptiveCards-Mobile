@@ -431,7 +431,7 @@ fun MoreScreen(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        "v1.0.0 (Build 1) \u00B7 Schema v1.6",
+                        "v1.0.0 (Build 1) \u00B7 Schema 1.6",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
