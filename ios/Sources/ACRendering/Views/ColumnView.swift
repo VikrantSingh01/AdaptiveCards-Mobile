@@ -13,15 +13,26 @@ struct ColumnView: View {
 
     @Environment(\.actionHandler) var actionHandler
     @Environment(\.actionDelegate) var actionDelegate
+    @Environment(\.widthCategory) var widthCategory
     @EnvironmentObject var viewModel: CardViewModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let items = column.items {
-                ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
-                    if viewModel.isElementVisible(elementId: element.elementId) {
-                        ElementView(element: element, hostConfig: hostConfig, depth: depth)
-                            .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+        let items = column.items ?? []
+        let activeLayout = resolveLayout()
+
+        Group {
+            switch activeLayout {
+            case .flow(let flowLayout):
+                FlowLayoutView(items: items, flowLayout: flowLayout, hostConfig: hostConfig, depth: depth)
+            case .areaGrid(let gridLayout):
+                AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig, depth: depth)
+            case .none:
+                VStack(spacing: 0) {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
+                        if viewModel.isElementVisible(elementId: element.elementId) {
+                            ElementView(element: element, hostConfig: hostConfig, depth: depth)
+                                .padding(.top, index > 0 ? spacingValue(for: element.spacing, hostConfig: hostConfig) : 0)
+                        }
                     }
                 }
             }
@@ -53,6 +64,21 @@ struct ColumnView: View {
     private var minHeight: CGFloat? {
         guard let minHeightStr = column.minHeight else { return nil }
         return CGFloat(Int(minHeightStr.replacingOccurrences(of: "px", with: "")) ?? 0)
+    }
+
+    private func resolveLayout() -> ACCore.Layout? {
+        guard let layouts = column.layouts else { return nil }
+        for layout in layouts {
+            let targetWidth: String?
+            switch layout {
+            case .flow(let flow): targetWidth = flow.targetWidth
+            case .areaGrid(let grid): targetWidth = grid.targetWidth
+            }
+            if shouldShowForTargetWidth(targetWidth, currentCategory: widthCategory) {
+                return layout
+            }
+        }
+        return nil
     }
 
     private func spacingValue(for spacing: Spacing?, hostConfig: HostConfig) -> CGFloat {
