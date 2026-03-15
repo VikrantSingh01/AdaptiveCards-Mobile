@@ -97,23 +97,29 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
     /// Calculate dynamic item width based on flow layout constraints.
     /// Matches Android FlowRow calculatedItemWidthPx logic.
     private func calculatedItemWidth(available: CGFloat) -> CGFloat? {
-        guard available < .infinity else { return nil }
-
         // When itemWidth or minItemWidth is specified, calculate columns and distribute
         let minW = minItemWidth ?? itemWidth
         if let minW = minW, minW > 0 {
-            let maxCols = max(1, Int((available + horizontalSpacing) / (minW + horizontalSpacing)))
-            var w = (available - CGFloat(maxCols - 1) * horizontalSpacing) / CGFloat(maxCols)
-            if let maxW = maxItemWidth { w = min(w, maxW) }
-            return w
+            if available < .infinity {
+                let maxCols = max(1, Int((available + horizontalSpacing) / (minW + horizontalSpacing)))
+                var w = (available - CGFloat(maxCols - 1) * horizontalSpacing) / CGFloat(maxCols)
+                if let maxW = maxItemWidth { w = min(w, maxW) }
+                return w
+            } else {
+                // Unconstrained: use minItemWidth capped by maxItemWidth
+                if let maxW = maxItemWidth { return min(minW, maxW) }
+                return minW
+            }
         }
 
-        // When only maxItemWidth is specified, calculate how many columns fit
+        // When only maxItemWidth is specified, constrain items to maxItemWidth
         if let maxW = maxItemWidth, maxW > 0 {
-            let maxCols = max(1, Int((available + horizontalSpacing) / (maxW + horizontalSpacing)))
-            if maxCols > 1 {
+            if available < .infinity {
+                let maxCols = max(1, Int((available + horizontalSpacing) / (maxW + horizontalSpacing)))
                 let w = (available - CGFloat(maxCols - 1) * horizontalSpacing) / CGFloat(maxCols)
                 return min(w, maxW)
+            } else {
+                return maxW
             }
         }
 
