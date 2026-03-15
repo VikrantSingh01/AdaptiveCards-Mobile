@@ -58,12 +58,21 @@ else
     cd "$REPO_ROOT"
 fi
 
-# Copy catalog content
+# Copy catalog content (preserving reviews/ directory across deploys)
 cd "$WORKTREE_DIR"
 rm -rf screenshots index.html
 cp "$CATALOG_DIR/index.html" .
 cp -r "$CATALOG_DIR/screenshots" .
 touch .nojekyll
+
+# Ensure reviews directory exists with index
+if [ ! -d reviews ]; then
+    mkdir -p reviews
+    echo '{"reviewers":[],"lastUpdated":""}' > reviews/_index.json
+    echo "  Created reviews/ directory"
+else
+    echo "  Preserved reviews/ directory ($(ls reviews/*.json 2>/dev/null | wc -l | tr -d ' ') reviewer files)"
+fi
 
 # Commit and push
 git add -A

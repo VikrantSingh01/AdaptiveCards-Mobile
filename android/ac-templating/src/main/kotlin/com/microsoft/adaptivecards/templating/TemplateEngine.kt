@@ -249,43 +249,40 @@ class TemplateEngine {
 
                 // Check for $data iteration
                 if (dict.containsKey("\$data")) {
-                    val dataBinding = dict["\$data"] as? String
-                    if (dataBinding != null) {
-                        try {
-                            val parsedExpression = parser.parse(extractExpression(dataBinding))
+                    val rawData = dict["\$data"]
+
+                    // Resolve the $data value: evaluate string expressions, use other types directly
+                    val dataValue: Any? = try {
+                        if (rawData is String) {
+                            val parsedExpression = parser.parse(extractExpression(rawData))
                             val evaluator = ExpressionEvaluator(context)
-                            val dataValue = evaluator.evaluate(parsedExpression)
+                            evaluator.evaluate(parsedExpression)
+                        } else {
+                            rawData
+                        }
+                    } catch (_: Exception) { null }
 
-                            if (dataValue is List<*>) {
-                                // Iterate over data array
-                                dataValue.forEachIndexed { index, dataItem ->
-                                    val childContext = context.createChild(dataItem, index)
+                    if (dataValue != null) {
+                        val itemTemplate = dict.toMutableMap()
+                        itemTemplate.remove("\$data")
 
-                                    // Expand the template for this item (excluding $data key)
-                                    val itemTemplate = dict.toMutableMap()
-                                    itemTemplate.remove("\$data")
-
-                                    val expandedItem = expandDictionary(itemTemplate, childContext)
-
-                                    // Only add if not empty (could be filtered by $when)
-                                    if (expandedItem.isNotEmpty()) {
-                                        result.add(expandedItem)
-                                    }
-                                }
-                                continue
-                            } else if (dataValue != null) {
-                                // Single object: set as data context for this element
-                                val childContext = DataContext(data = dataValue, root = context.root, index = null, parent = context)
-                                val itemTemplate = dict.toMutableMap()
-                                itemTemplate.remove("\$data")
+                        if (dataValue is List<*>) {
+                            // Iterate over data array
+                            dataValue.forEachIndexed { index, dataItem ->
+                                val childContext = context.createChild(dataItem, index)
                                 val expandedItem = expandDictionary(itemTemplate, childContext)
                                 if (expandedItem.isNotEmpty()) {
                                     result.add(expandedItem)
                                 }
-                                continue
                             }
-                        } catch (e: Exception) {
-                            // If evaluation fails, skip this item
+                            continue
+                        } else {
+                            // Single value/object: set as data context for this element
+                            val childContext = DataContext(data = dataValue, root = context.root, index = null, parent = context)
+                            val expandedItem = expandDictionary(itemTemplate, childContext)
+                            if (expandedItem.isNotEmpty()) {
+                                result.add(expandedItem)
+                            }
                             continue
                         }
                     }

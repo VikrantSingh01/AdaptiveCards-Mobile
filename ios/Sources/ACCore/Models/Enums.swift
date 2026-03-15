@@ -180,6 +180,7 @@ public enum ActionSetMode: String, Codable, CaseIterable, CaseInsensitiveCodable
 public enum TextBlockStyle: String, Codable, CaseIterable, CaseInsensitiveCodable {
     case `default` = "Default"
     case heading = "Heading"
+    case columnHeader = "ColumnHeader"
 }
 
 // MARK: - Height

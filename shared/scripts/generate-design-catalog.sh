@@ -160,12 +160,12 @@ cat > "$OUTPUT_HTML" << 'HTML_HEADER'
   .stat { background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 13px; }
   .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
   .controls select, .controls input { padding: 8px 12px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 14px; background: #2a2a4a; color: #e0e0e0; }
-  .controls input { flex: 1; min-width: 200px; }
-  .controls input::placeholder { color: #888; }
+  .controls input[type="text"] { flex: 1; min-width: 200px; }
+  .controls input[type="text"]::placeholder { color: #888; }
   .controls select { min-width: 180px; }
   .section-title { font-size: 18px; font-weight: 600; color: #7ec8e3; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #7ec8e3; }
   .grid { display: grid; gap: 16px; }
-  .card-row { display: grid; grid-template-columns: 180px 80px 1fr 1fr; gap: 16px; background: #16213e; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); align-items: start; transition: box-shadow 0.2s; border: 1px solid #2a2a4a; }
+  .card-row { display: grid; grid-template-columns: 40px 120px 160px 80px 1fr 1fr; gap: 16px; background: #16213e; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); align-items: start; transition: box-shadow 0.2s; border: 1px solid #2a2a4a; }
   .card-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.4); border-color: #3a3a5a; }
   .card-row.missing { background: #2a1a1a; border-left: 3px solid #e74c3c; }
   .card-info { display: flex; flex-direction: column; gap: 6px; }
@@ -175,21 +175,58 @@ cat > "$OUTPUT_HTML" << 'HTML_HEADER'
   .card-link a { color: #7ec8e3; text-decoration: none; font-size: 13px; font-weight: 500; padding: 4px 10px; border: 1px solid #7ec8e3; border-radius: 6px; transition: all 0.2s; }
   .card-link a:hover { background: #7ec8e3; color: #1a1a2e; }
   .screenshot-col { text-align: center; }
-  .screenshot-col img { max-width: 100%; width: 270px; border: 1px solid #3a3a5a; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
+  .screenshot-col img { max-width: 100%; width: 390px; border: 1px solid #3a3a5a; border-radius: 6px; cursor: pointer; transition: transform 0.2s; image-rendering: -webkit-optimize-contrast; }
   .screenshot-col img:hover { transform: scale(1.02); border-color: #7ec8e3; }
   .screenshot-col .platform-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
   .no-screenshot { color: #e74c3c; font-size: 13px; font-style: italic; padding: 40px 0; }
+  /* Review checkbox */
+  .review-col { display: flex; align-items: flex-start; justify-content: center; padding-top: 4px; }
+  .review-check { width: 22px; height: 22px; cursor: pointer; accent-color: #2ecc71; }
+  .review-check:checked + .review-label { color: #2ecc71; }
+  .card-row.reviewed { border-left: 3px solid #2ecc71; }
+  .review-filter { display: flex; gap: 8px; align-items: center; font-size: 14px; color: #ccc; }
+  .review-filter input { accent-color: #2ecc71; }
+  .review-counter { background: #2ecc71; color: #1a1a2e; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  /* Review status + notes */
+  .status-col { display: flex; flex-direction: column; gap: 6px; min-width: 120px; }
+  .status-select { padding: 4px 8px; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 12px; background: #2a2a4a; color: #e0e0e0; cursor: pointer; width: 100%; }
+  .status-select.approved { border-color: #2ecc71; color: #2ecc71; }
+  .status-select.needs-changes { border-color: #e67e22; color: #e67e22; }
+  .note-input { padding: 4px 8px; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 11px; background: #2a2a4a; color: #e0e0e0; resize: vertical; min-height: 28px; width: 100%; font-family: inherit; }
+  .note-input::placeholder { color: #666; }
+  .note-input:focus { border-color: #7ec8e3; outline: none; }
+  .card-row.status-approved { border-left: 3px solid #2ecc71; }
+  .card-row.status-needs-changes { border-left: 3px solid #e67e22; }
+  /* Reviewer bar */
+  .reviewer-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; padding: 12px 16px; background: #16213e; border-radius: 10px; border: 1px solid #2a2a4a; }
+  .reviewer-bar label { font-size: 14px; color: #ccc; white-space: nowrap; }
+  .reviewer-bar input { padding: 6px 12px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 14px; background: #2a2a4a; color: #e0e0e0; width: 200px; }
+  .reviewer-bar input::placeholder { color: #666; }
+  .reviewer-bar .reviewer-name { color: #7ec8e3; font-weight: 600; }
+  .reviewer-bar button { padding: 6px 14px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 13px; background: #2a2a4a; color: #e0e0e0; cursor: pointer; }
+  .reviewer-bar button:hover { background: #3a3a5a; }
+  .status-filter select { padding: 6px 10px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 13px; background: #2a2a4a; color: #e0e0e0; }
+  /* Setup guide */
+  .setup-guide { margin-bottom: 20px; background: #16213e; border: 1px solid #2a2a4a; border-radius: 10px; overflow: hidden; }
+  .setup-guide summary { padding: 12px 16px; cursor: pointer; font-size: 14px; color: #7ec8e3; font-weight: 600; user-select: none; }
+  .setup-guide summary:hover { background: rgba(126,200,227,0.05); }
+  .setup-guide .guide-content { padding: 0 16px 16px; font-size: 13px; line-height: 1.7; color: #ccc; }
+  .setup-guide .guide-content ol { padding-left: 20px; }
+  .setup-guide .guide-content li { margin-bottom: 8px; }
+  .setup-guide .guide-content code { background: #2a2a4a; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #7ec8e3; }
+  .setup-guide .guide-content a { color: #7ec8e3; }
+  .setup-guide .guide-content .step-note { color: #888; font-size: 12px; }
   /* Lightbox */
   .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; cursor: pointer; }
   .lightbox.active { display: flex; }
-  .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
+  .lightbox img { max-width: 95vw; max-height: 95vh; border-radius: 8px; image-rendering: -webkit-optimize-contrast; }
   .lightbox .close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer; }
   .footer { text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 13px; }
   .footer a { color: #7ec8e3; }
-  @media (max-width: 900px) {
-    .card-row { grid-template-columns: 1fr; }
+  @media (max-width: 1200px) {
+    .card-row { grid-template-columns: 40px 120px 1fr; }
     .card-link { justify-content: flex-start; }
-    .screenshot-col img { width: 100%; max-width: 300px; }
+    .screenshot-col img { width: 100%; max-width: 390px; }
   }
 </style>
 </head>
@@ -206,7 +243,63 @@ cat > "$OUTPUT_HTML" << 'HTML_HEADER'
     <option value="all">All Categories</option>
   </select>
   <input type="text" id="searchBox" placeholder="Search card names..." oninput="filterCards()">
+  <div class="review-filter">
+    <label><input type="checkbox" id="hideReviewed" onchange="filterCards()"> Hide reviewed</label>
+    <label><input type="checkbox" id="showOnlyUnreviewed" onchange="filterCards()"> Unreviewed only</label>
+    <div class="status-filter">
+      <select id="statusFilter" onchange="filterCards()">
+        <option value="all">All statuses</option>
+        <option value="not-reviewed">Not reviewed</option>
+        <option value="approved">Approved</option>
+        <option value="needs-changes">Needs changes</option>
+      </select>
+    </div>
+    <span id="reviewCounter" class="review-counter">0 / 0 reviewed</span>
+  </div>
 </div>
+
+<div class="reviewer-bar" id="reviewerBar">
+  <label>👤 Reviewer:</label>
+  <span id="reviewerDisplay" style="display:none"><span class="reviewer-name" id="reviewerName"></span></span>
+  <input type="text" id="reviewerInput" placeholder="Enter your GitHub username..." onkeydown="if(event.key==='Enter')setReviewer()">
+  <button onclick="setReviewer()" id="reviewerSetBtn">Set</button>
+  <button onclick="changeReviewer()" id="reviewerChangeBtn" style="display:none">Change</button>
+  <span style="color:#555">|</span>
+  <span id="tokenStatus" style="font-size:13px"></span>
+  <input type="password" id="tokenInput" placeholder="GitHub PAT (repo scope)..." style="width:220px;font-size:12px" onkeydown="if(event.key==='Enter')setToken()">
+  <button onclick="setToken()" id="tokenSetBtn" title="Fine-grained PAT with Contents:write on this repo">Save Token</button>
+  <button onclick="removeToken()" id="tokenRemoveBtn" style="display:none">Remove Token</button>
+  <span style="color:#555">|</span>
+  <button onclick="forceSyncNow()" title="Force sync to GitHub now">Sync</button>
+  <button onclick="exportReviewData()" title="Export review data as JSON">Export</button>
+  <span id="syncStatus" style="font-size:12px;color:#888"></span>
+</div>
+
+<details class="setup-guide">
+  <summary>Reviewer Setup Guide (one-time)</summary>
+  <div class="guide-content">
+    <p>Your review status and notes persist across page updates and work on any browser/device once synced.</p>
+    <ol>
+      <li><strong>Enter your GitHub username</strong> in the Reviewer field above and click <strong>Set</strong>.</li>
+      <li>
+        <strong>Create a fine-grained GitHub PAT</strong> for syncing reviews to the repo:
+        <ol type="a">
+          <li>Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Settings &rarr; Fine-grained tokens</a></li>
+          <li>Click <strong>Generate new token</strong></li>
+          <li>Name: <code>AC Design Review</code>, Expiration: 90 days</li>
+          <li>Repository access: <strong>Only select repositories</strong> &rarr; search for <code>AdaptiveCards-Mobile</code> &rarr; select <code>VikrantSingh01/AdaptiveCards-Mobile</code></li>
+          <li>Permissions &rarr; Repository permissions &rarr; <strong>Contents: Read and write</strong> (everything else: No access)</li>
+          <li>Click <strong>Generate token</strong> and copy it</li>
+        </ol>
+      </li>
+      <li><strong>Paste the token</strong> into the PAT field above and click <strong>Save Token</strong>.
+        <span class="step-note">The token is stored in your browser only, never sent to any server other than github.com.</span>
+      </li>
+    </ol>
+    <p><strong>How it works:</strong> Reviews save to your browser instantly. With a token configured, they also auto-sync (after 5s) to <code>reviews/{username}.json</code> on the <code>gh-pages</code> branch via a GitHub Actions workflow. On page load, remote reviews are fetched and merged with local data so your feedback survives catalog updates, browser changes, and device switches.</p>
+    <p><strong>Without a token:</strong> Reviews still work but are stored in your browser's localStorage only. Use the <strong>Export</strong> button to save a JSON backup.</p>
+  </div>
+</details>
 
 <div id="lightbox" class="lightbox" onclick="closeLightbox()">
   <span class="close-btn">&times;</span>
@@ -296,6 +389,10 @@ function filterCards() {
 function renderCatalog() {
   const categoryFilter = document.getElementById('categoryFilter').value;
   const search = document.getElementById('searchBox').value.toLowerCase();
+  const hideReviewed = document.getElementById('hideReviewed').checked;
+  const showOnlyUnreviewed = document.getElementById('showOnlyUnreviewed').checked;
+  const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+  const reviewed = getReviewedSet();
 
   let filtered = CATALOG_DATA;
   if (categoryFilter !== 'all') {
@@ -303,6 +400,12 @@ function renderCatalog() {
   }
   if (search) {
     filtered = filtered.filter(c => c.name.toLowerCase().includes(search));
+  }
+  if (hideReviewed || showOnlyUnreviewed) {
+    filtered = filtered.filter(c => !reviewed.has(c.screenshot));
+  }
+  if (statusFilter !== 'all') {
+    filtered = filtered.filter(c => getCardStatus(c.screenshot) === statusFilter);
   }
 
   // Group by category
@@ -365,7 +468,23 @@ function renderSection(title, cards) {
       ? `<a href="${card.jsonUrl}" target="_blank">JSON</a>`
       : '';
 
-    html += `<div class="card-row${missing}" data-category="${card.category}">
+    const status = getCardStatus(card.screenshot);
+    const note = getCardNote(card.screenshot);
+    const statusClass = status !== 'not-reviewed' ? ` status-${status}` : '';
+    const checkedAttr = status !== 'not-reviewed' ? ' checked' : '';
+
+    html += `<div class="card-row${missing}${statusClass}" data-category="${card.category}" data-screenshot="${card.screenshot}">
+      <div class="review-col">
+        <input type="checkbox" class="review-check" title="Mark as reviewed" ${checkedAttr} onchange="quickToggleReview('${card.screenshot}', this)">
+      </div>
+      <div class="status-col">
+        <select class="status-select ${status}" onchange="setCardStatus('${card.screenshot}', this.value, this)" title="Review status">
+          <option value="not-reviewed"${status==='not-reviewed'?' selected':''}>Not reviewed</option>
+          <option value="approved"${status==='approved'?' selected':''}>✓ Approved</option>
+          <option value="needs-changes"${status==='needs-changes'?' selected':''}>✗ Needs changes</option>
+        </select>
+        <textarea class="note-input" placeholder="Add note..." rows="1" onchange="setCardNote('${card.screenshot}', this.value)" onfocus="this.rows=3" onblur="if(!this.value)this.rows=1">${note}</textarea>
+      </div>
       <div class="card-info">
         <div class="card-name">${card.name}</div>
         <span class="card-category">${card.category}</span>
@@ -400,7 +519,259 @@ function closeLightbox() {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
+// === Config ===
+const REVIEWER_KEY = 'ac-design-reviewer';
+const REVIEW_DATA_KEY = 'ac-design-review-data';
+const TOKEN_KEY = 'ac-design-github-token';
+const REPO = 'VikrantSingh01/AdaptiveCards-Mobile';
+let syncTimer = null;
+let syncStatus = 'idle'; // idle, syncing, synced, error
+
+// === Reviewer identity ===
+function getCurrentReviewer() { return localStorage.getItem(REVIEWER_KEY) || ''; }
+
+function setReviewer() {
+  const input = document.getElementById('reviewerInput');
+  const name = input.value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!name) return;
+  localStorage.setItem(REVIEWER_KEY, name);
+  updateReviewerUI();
+  fetchRemoteReviews().then(() => { renderCatalog(); updateReviewCounter(); });
+}
+
+function changeReviewer() {
+  localStorage.removeItem(REVIEWER_KEY);
+  updateReviewerUI();
+  renderCatalog();
+}
+
+function updateReviewerUI() {
+  const reviewer = getCurrentReviewer();
+  const display = document.getElementById('reviewerDisplay');
+  const input = document.getElementById('reviewerInput');
+  const setBtn = document.getElementById('reviewerSetBtn');
+  const changeBtn = document.getElementById('reviewerChangeBtn');
+  const nameEl = document.getElementById('reviewerName');
+  if (reviewer) {
+    display.style.display = '';
+    nameEl.textContent = '@' + reviewer;
+    input.style.display = 'none';
+    setBtn.style.display = 'none';
+    changeBtn.style.display = '';
+  } else {
+    display.style.display = 'none';
+    input.style.display = '';
+    input.value = '';
+    setBtn.style.display = '';
+    changeBtn.style.display = 'none';
+  }
+}
+
+// === GitHub token ===
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+
+function setToken() {
+  const input = document.getElementById('tokenInput');
+  const val = input.value.trim();
+  if (val) localStorage.setItem(TOKEN_KEY, val);
+  input.value = '';
+  updateTokenUI();
+}
+
+function updateTokenUI() {
+  const hasToken = !!getToken();
+  const indicator = document.getElementById('tokenStatus');
+  const input = document.getElementById('tokenInput');
+  const setBtn = document.getElementById('tokenSetBtn');
+  const removeBtn = document.getElementById('tokenRemoveBtn');
+  if (hasToken) {
+    indicator.textContent = '🔑 Token set';
+    indicator.style.color = '#2ecc71';
+    input.style.display = 'none';
+    setBtn.style.display = 'none';
+    removeBtn.style.display = '';
+  } else {
+    indicator.textContent = '⚠ No token (reviews saved locally only)';
+    indicator.style.color = '#e67e22';
+    input.style.display = '';
+    setBtn.style.display = '';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function removeToken() {
+  localStorage.removeItem(TOKEN_KEY);
+  updateTokenUI();
+}
+
+// === Local review data (write-through cache) ===
+function getAllReviewData() {
+  try { return JSON.parse(localStorage.getItem(REVIEW_DATA_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveAllReviewData(data) {
+  localStorage.setItem(REVIEW_DATA_KEY, JSON.stringify(data));
+}
+
+function getReviewerData() {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) return {};
+  return getAllReviewData()[reviewer] || {};
+}
+
+function getCardStatus(screenshot) {
+  return getReviewerData()[screenshot]?.status || 'not-reviewed';
+}
+
+function getCardNote(screenshot) {
+  return getReviewerData()[screenshot]?.note || '';
+}
+
+function setCardStatus(screenshot, status, selectEl) {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) { alert('Please set your GitHub username first.'); if (selectEl) selectEl.value = 'not-reviewed'; return; }
+  const allData = getAllReviewData();
+  if (!allData[reviewer]) allData[reviewer] = {};
+  if (!allData[reviewer][screenshot]) allData[reviewer][screenshot] = {};
+  allData[reviewer][screenshot].status = status;
+  allData[reviewer][screenshot].updatedAt = new Date().toISOString();
+  saveAllReviewData(allData);
+  const row = selectEl?.closest('.card-row');
+  if (row) {
+    row.classList.remove('status-approved', 'status-needs-changes');
+    if (status !== 'not-reviewed') row.classList.add('status-' + status);
+  }
+  if (selectEl) selectEl.className = 'status-select ' + status;
+  const checkbox = row?.querySelector('.review-check');
+  if (checkbox) checkbox.checked = status !== 'not-reviewed';
+  updateReviewCounter();
+  scheduleSyncToGitHub();
+}
+
+function setCardNote(screenshot, note) {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) return;
+  const allData = getAllReviewData();
+  if (!allData[reviewer]) allData[reviewer] = {};
+  if (!allData[reviewer][screenshot]) allData[reviewer][screenshot] = {};
+  allData[reviewer][screenshot].note = note;
+  allData[reviewer][screenshot].updatedAt = new Date().toISOString();
+  saveAllReviewData(allData);
+  scheduleSyncToGitHub();
+}
+
+function quickToggleReview(screenshot, checkbox) {
+  setCardStatus(screenshot, checkbox.checked ? 'approved' : 'not-reviewed', null);
+  renderCatalog();
+}
+
+function getReviewedSet() {
+  const data = getReviewerData();
+  return new Set(Object.keys(data).filter(k => data[k].status && data[k].status !== 'not-reviewed'));
+}
+
+function isReviewed(name) { return getReviewedSet().has(name); }
+
+function updateReviewCounter() {
+  const reviewed = getReviewedSet();
+  const total = CATALOG_DATA.length;
+  const count = CATALOG_DATA.filter(c => reviewed.has(c.screenshot)).length;
+  const el = document.getElementById('reviewCounter');
+  if (el) el.textContent = count + ' / ' + total + ' reviewed';
+}
+
+// === Remote fetch (read from gh-pages, no auth needed) ===
+async function fetchRemoteReviews() {
+  try {
+    const resp = await fetch('./reviews/_index.json', { cache: 'no-store' });
+    if (!resp.ok) return;
+    const index = await resp.json();
+    const allData = getAllReviewData();
+    for (const reviewer of (index.reviewers || [])) {
+      try {
+        const r = await fetch(`./reviews/${reviewer}.json`, { cache: 'no-store' });
+        if (!r.ok) continue;
+        const remote = await r.json();
+        if (!remote.reviews) continue;
+        // Merge: remote wins unless local entry is newer
+        const local = allData[reviewer] || {};
+        for (const [key, remoteEntry] of Object.entries(remote.reviews)) {
+          const localEntry = local[key];
+          if (!localEntry || (remoteEntry.updatedAt && (!localEntry.updatedAt || remoteEntry.updatedAt > localEntry.updatedAt))) {
+            local[key] = remoteEntry;
+          }
+        }
+        allData[reviewer] = local;
+      } catch {}
+    }
+    saveAllReviewData(allData);
+  } catch {}
+}
+
+// === Sync to GitHub (write via repository_dispatch) ===
+function scheduleSyncToGitHub() {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncToGitHub, 5000);
+  setSyncStatus('pending');
+}
+
+async function syncToGitHub() {
+  const token = getToken();
+  const reviewer = getCurrentReviewer();
+  if (!token || !reviewer) return;
+  setSyncStatus('syncing');
+  try {
+    const data = getReviewerData();
+    const payload = { reviewer, reviews: data, syncedAt: new Date().toISOString() };
+    const resp = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify({ event_type: 'sync-review', client_payload: { reviewer, review_data: JSON.stringify(payload) } })
+    });
+    if (resp.status === 204) {
+      setSyncStatus('synced');
+    } else {
+      console.error('Sync failed:', resp.status);
+      setSyncStatus('error');
+    }
+  } catch (e) {
+    console.error('Sync error:', e);
+    setSyncStatus('error');
+  }
+}
+
+function setSyncStatus(status) {
+  syncStatus = status;
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const labels = { idle: '', pending: '⏳ Saving...', syncing: '🔄 Syncing to GitHub...', synced: '✅ Synced', error: '❌ Sync failed' };
+  el.textContent = labels[status] || '';
+  if (status === 'synced') setTimeout(() => { if (syncStatus === 'synced') setSyncStatus('idle'); }, 3000);
+}
+
+function forceSyncNow() {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncToGitHub();
+}
+
+function exportReviewData() {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) { alert('Set your GitHub username first.'); return; }
+  const data = getReviewerData();
+  const blob = new Blob([JSON.stringify({ reviewer, reviews: data, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `review-${reviewer}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// === Init ===
 init();
+updateReviewerUI();
+updateTokenUI();
+fetchRemoteReviews().then(() => { renderCatalog(); updateReviewCounter(); });
 </script>
 </body>
 </html>

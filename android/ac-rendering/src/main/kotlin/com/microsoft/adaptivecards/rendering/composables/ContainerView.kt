@@ -6,12 +6,14 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Canvas
 import coil.compose.AsyncImage
 import com.microsoft.adaptivecards.core.models.AreaGridLayout
 import com.microsoft.adaptivecards.core.models.Container
@@ -91,12 +93,19 @@ fun ContainerView(
     ) {
         // Background image (rendered behind content)
         element.backgroundImage?.let { bgImage ->
-            AsyncImage(
-                model = bgImage.url,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
+            val fillMode = bgImage.fillMode?.lowercase()
+            if (fillMode == "repeat" || fillMode == "repeathorizontally" || fillMode == "repeatvertically") {
+                // Tiling modes: use SubcomposeAsyncImage to get the bitmap for shader-based tiling
+                TiledBackgroundImage(bgImage, Modifier.matchParentSize())
+            } else {
+                // Cover (default): scale to fill, clip overflow
+                AsyncImage(
+                    model = bgImage.url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
         }
 
         // Resolve active layout: check responsive layouts array first, then singular layout
@@ -134,6 +143,44 @@ fun ContainerView(
                         viewModel = viewModel,
                         actionHandler = actionHandler
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Renders a tiled background image using Coil's AsyncImagePainter and Canvas.
+ * Supports repeat, repeatHorizontally, and repeatVertically fill modes.
+ */
+@Composable
+private fun TiledBackgroundImage(
+    bgImage: com.microsoft.adaptivecards.core.models.BackgroundImage,
+    modifier: Modifier = Modifier
+) {
+    val fillMode = bgImage.fillMode?.lowercase() ?: "cover"
+    val painter = coil.compose.rememberAsyncImagePainter(model = bgImage.url)
+    val painterState = painter.state
+
+    if (painterState is coil.compose.AsyncImagePainter.State.Success) {
+        Canvas(modifier = modifier.fillMaxSize()) {
+            val srcWidth = painter.intrinsicSize.width
+            val srcHeight = painter.intrinsicSize.height
+            if (srcWidth <= 0f || srcHeight <= 0f) return@Canvas
+
+            val repeatX = fillMode == "repeat" || fillMode == "repeathorizontally"
+            val repeatY = fillMode == "repeat" || fillMode == "repeatvertically"
+
+            val cols = if (repeatX) kotlin.math.ceil(size.width / srcWidth).toInt().coerceAtLeast(1) else 1
+            val rows = if (repeatY) kotlin.math.ceil(size.height / srcHeight).toInt().coerceAtLeast(1) else 1
+
+            for (row in 0 until rows) {
+                for (col in 0 until cols) {
+                    translate(left = col * srcWidth, top = row * srcHeight) {
+                        with(painter) {
+                            draw(size = androidx.compose.ui.geometry.Size(srcWidth, srcHeight))
+                        }
+                    }
                 }
             }
         }
