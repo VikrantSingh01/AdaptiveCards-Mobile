@@ -105,13 +105,15 @@ private fun ProportionalColumnLayout(
         modifier = modifier
     ) { measurables, constraints ->
         if (measurables.isEmpty() || columns.isEmpty()) {
-            return@Layout layout(constraints.maxWidth, 0) {}
+            val emptyWidth = if (constraints.maxWidth == Constraints.Infinity) 0 else constraints.maxWidth
+            return@Layout layout(emptyWidth, 0) {}
         }
 
         val spacingPx = spacingDp.roundToPx()
         val totalSpacing = if (columns.size > 1) (columns.size - 1) * spacingPx else 0
-        val totalWidth = constraints.maxWidth
-        var remainingWidth = totalWidth - totalSpacing
+        val isUnbounded = constraints.maxWidth == Constraints.Infinity
+        val totalWidth = if (isUnbounded) constraints.minWidth.coerceAtLeast(0) else constraints.maxWidth
+        var remainingWidth = if (isUnbounded) Int.MAX_VALUE / 2 else totalWidth - totalSpacing
 
         val columnWidths = IntArray(columns.size)
 
@@ -130,12 +132,11 @@ private fun ProportionalColumnLayout(
             }
         }
 
-        // Pass 2: Auto columns — measure at wrap-content to get intrinsic width
+        // Pass 2: Auto columns — use intrinsic width to determine size without measuring
         columns.forEachIndexed { i, col ->
             if (col.width == "auto" && i < measurables.size) {
-                val childConstraints = Constraints(maxWidth = remainingWidth.coerceAtLeast(0))
-                val placeable = measurables[i].measure(childConstraints)
-                columnWidths[i] = placeable.width.coerceAtMost(remainingWidth.coerceAtLeast(0))
+                val intrinsicWidth = measurables[i].maxIntrinsicWidth(constraints.maxHeight)
+                columnWidths[i] = intrinsicWidth.coerceAtMost(remainingWidth.coerceAtLeast(0))
                 remainingWidth -= columnWidths[i]
             }
         }
@@ -170,8 +171,7 @@ private fun ProportionalColumnLayout(
             }
         }
 
-        // Measure all children at their computed widths (re-measure auto columns
-        // are already measured but we need all placeables in order)
+        // Measure all children exactly once at their computed widths
         val placeables = measurables.mapIndexed { i, measurable ->
             val w = if (i < columnWidths.size) columnWidths[i] else 0
             measurable.measure(Constraints(
@@ -184,7 +184,15 @@ private fun ProportionalColumnLayout(
 
         val maxHeight = placeables.maxOfOrNull { it.height } ?: 0
 
-        layout(totalWidth, maxHeight) {
+        // When unconstrained, use actual content width; otherwise use total allocated width
+        val layoutWidth = if (isUnbounded) {
+            val contentWidth = placeables.sumOf { it.width } + totalSpacing
+            contentWidth.coerceIn(constraints.minWidth, constraints.maxWidth.coerceAtMost(16777215))
+        } else {
+            totalWidth
+        }
+
+        layout(layoutWidth, maxHeight) {
             var x = 0
             placeables.forEachIndexed { i, placeable ->
                 placeable.placeRelative(x, 0)
