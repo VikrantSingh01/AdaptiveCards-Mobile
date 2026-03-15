@@ -35,6 +35,7 @@ public struct DateFunctions {
             let safeFormat = sanitizeFormat(formatString ?? "yyyy-MM-dd")
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "UTC")
             formatter.dateFormat = safeFormat
             return formatter.string(from: date)
         }
@@ -127,7 +128,9 @@ public struct DateFunctions {
                 throw EvaluationError.invalidArgument("days must be a number")
             }
 
-            guard let newDate = Calendar.current.date(byAdding: .day, value: Int(days), to: date) else {
+            var utcCalendar = Calendar(identifier: .gregorian)
+            utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+            guard let newDate = utcCalendar.date(byAdding: .day, value: Int(days), to: date) else {
                 return date
             }
             return ISO8601DateFormatter().string(from: newDate)
@@ -145,7 +148,9 @@ public struct DateFunctions {
                 throw EvaluationError.invalidArgument("hours must be a number")
             }
 
-            guard let newDate = Calendar.current.date(byAdding: .hour, value: Int(hours), to: date) else {
+            var utcCalendar = Calendar(identifier: .gregorian)
+            utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+            guard let newDate = utcCalendar.date(byAdding: .hour, value: Int(hours), to: date) else {
                 return date
             }
             return ISO8601DateFormatter().string(from: newDate)
@@ -159,7 +164,9 @@ public struct DateFunctions {
             }
 
             let date = try parseDate(arguments[0])
-            return Calendar.current.component(.year, from: date)
+            var utcCalendar = Calendar(identifier: .gregorian)
+            utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+            return utcCalendar.component(.year, from: date)
         }
     }
 
@@ -170,7 +177,9 @@ public struct DateFunctions {
             }
 
             let date = try parseDate(arguments[0])
-            return Calendar.current.component(.month, from: date)
+            var utcCalendar = Calendar(identifier: .gregorian)
+            utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+            return utcCalendar.component(.month, from: date)
         }
     }
 
@@ -181,7 +190,9 @@ public struct DateFunctions {
             }
 
             let date = try parseDate(arguments[0])
-            return Calendar.current.component(.day, from: date)
+            var utcCalendar = Calendar(identifier: .gregorian)
+            utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+            return utcCalendar.component(.day, from: date)
         }
     }
 
@@ -194,7 +205,9 @@ public struct DateFunctions {
             let date1 = try parseDate(arguments[0])
             let date2 = try parseDate(arguments[1])
 
-            let diff = Calendar.current.dateComponents([.day], from: date1, to: date2)
+            var utcCalendar = Calendar(identifier: .gregorian)
+            utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+            let diff = utcCalendar.dateComponents([.day], from: date1, to: date2)
             return diff.day ?? 0
         }
     }
@@ -228,9 +241,10 @@ public struct DateFunctions {
                 return date
             }
 
-            // Try standard formats
+            // Try standard formats (always use UTC to prevent off-by-one day shifts)
             let dateFormatter = DateFormatter()
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone(identifier: "UTC")
             let formats = ["yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy"]
             for format in formats {
                 dateFormatter.dateFormat = format
