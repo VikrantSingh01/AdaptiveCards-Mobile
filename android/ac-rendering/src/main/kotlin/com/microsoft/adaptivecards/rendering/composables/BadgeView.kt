@@ -137,6 +137,19 @@ private fun resolveIconNameForBadge(name: String): ImageVector {
         "heart" -> Icons.Filled.Favorite
         "flag" -> Icons.Filled.Flag
         "clock" -> Icons.Outlined.Schedule
+        "calendar", "calendarltr" -> Icons.Filled.DateRange
+        "imagecircle" -> Icons.Filled.Image
+        "important" -> Icons.Filled.PriorityHigh
+        "tag" -> Icons.Filled.Sell
+        "tooltipquote" -> Icons.Filled.ChatBubble
+        "arrowsync" -> Icons.Filled.Sync
+        "checkmark" -> Icons.Filled.Check
+        "people", "peopleteam" -> Icons.Filled.People
+        "megaphone" -> Icons.Filled.Campaign
+        "receipt" -> Icons.Filled.Receipt
+        "cart" -> Icons.Filled.ShoppingCart
+        "design" -> Icons.Filled.DesignServices
+        "error" -> Icons.Filled.Error
         else -> Icons.Outlined.Label
     }
 }
