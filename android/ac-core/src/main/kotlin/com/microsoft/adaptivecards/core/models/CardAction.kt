@@ -19,17 +19,33 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 @Serializable
+data class ThemedUrl(
+    val theme: String,
+    val url: String
+)
+
+@Serializable
 sealed interface CardAction {
     val type: String
     val id: String?
     val title: String?
     val iconUrl: String?
+    val themedIconUrls: List<ThemedUrl>?
     val style: ActionStyle?
     val tooltip: String?
     val isEnabled: Boolean
     val mode: ActionMode?
     val requires: Map<String, String>?
     val fallback: JsonElement?
+
+    /** Resolve the icon URL for the given theme, falling back to iconUrl. */
+    fun resolvedIconUrl(isDark: Boolean): String? {
+        val themeName = if (isDark) "Dark" else "Light"
+        val themed = themedIconUrls
+            ?.firstOrNull { it.theme.equals(themeName, ignoreCase = true) && it.url.isNotBlank() }
+            ?.url
+        return themed ?: iconUrl
+    }
 }
 
 @Serializable
@@ -39,6 +55,7 @@ data class ActionSubmit(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -56,6 +73,7 @@ data class ActionOpenUrl(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -72,6 +90,7 @@ data class ActionShowCard(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -88,6 +107,7 @@ data class ActionExecute(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -106,6 +126,7 @@ data class ActionToggleVisibility(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -166,6 +187,7 @@ data class ActionPopover(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -184,6 +206,7 @@ data class ActionRunCommands(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
@@ -207,6 +230,7 @@ data class ActionOpenUrlDialog(
     override val id: String? = null,
     override val title: String? = null,
     override val iconUrl: String? = null,
+    override val themedIconUrls: List<ThemedUrl>? = null,
     override val style: ActionStyle? = null,
     override val tooltip: String? = null,
     override val isEnabled: Boolean = true,
