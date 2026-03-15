@@ -40,6 +40,7 @@ object DateFunctions {
             // Auto-quote non-pattern letters (e.g. literal 'T' in ISO formats)
             val javaFormat = mapToJavaFormat(formatString ?: "yyyy-MM-dd")
             val formatter = SimpleDateFormat(javaFormat, Locale.US)
+            formatter.timeZone = TimeZone.getTimeZone("UTC")
             return formatter.format(date)
         }
 
@@ -203,7 +204,7 @@ object DateFunctions {
             }
 
             val date = parseDate(arguments[0])
-            val calendar = Calendar.getInstance()
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             calendar.time = date
             return calendar.get(Calendar.YEAR)
         }
@@ -216,7 +217,7 @@ object DateFunctions {
             }
 
             val date = parseDate(arguments[0])
-            val calendar = Calendar.getInstance()
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             calendar.time = date
             // Calendar.MONTH is 0-based (0-11), so add 1 to return 1-12 (January=1, December=12)
             return calendar.get(Calendar.MONTH) + 1
@@ -230,7 +231,7 @@ object DateFunctions {
             }
 
             val date = parseDate(arguments[0])
-            val calendar = Calendar.getInstance()
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             calendar.time = date
             return calendar.get(Calendar.DAY_OF_MONTH)
         }
@@ -280,14 +281,16 @@ object DateFunctions {
             // Try ISO 8601 with timezone offset (+0000 / +00:00)
             try {
                 val tzFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
+                tzFormatter.timeZone = TimeZone.getTimeZone("UTC")
                 return tzFormatter.parse(value) ?: Date()
             } catch (_: Exception) { }
 
-            // Try standard formats
+            // Try standard formats (always use UTC to prevent off-by-one day shifts)
             val formats = listOf("yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy")
             for (format in formats) {
                 try {
                     val formatter = SimpleDateFormat(format, Locale.US)
+                    formatter.timeZone = TimeZone.getTimeZone("UTC")
                     return formatter.parse(value) ?: continue
                 } catch (e: Exception) {
                     // Ignore and try next format
