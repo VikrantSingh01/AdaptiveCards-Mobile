@@ -55,26 +55,21 @@ fun CompoundButtonView(
 ) {
     val hostConfig = LocalHostConfig.current
 
-    // Use hostConfig containerStyles to match iOS styling (subtle fills, not solid blocks)
+    // Styled buttons use solid foreground accent/good/attention colors as background (matching iOS)
+    val fgColors = hostConfig.containerStyles.default.foregroundColors
     val containerColor = when (element.style) {
-        "emphasis" -> parseHostColor(hostConfig.containerStyles.accent.backgroundColor)
-            ?: MaterialTheme.colorScheme.primaryContainer
-        "positive" -> parseHostColor(hostConfig.containerStyles.good.backgroundColor)
-            ?: Color(0xFFD5F0DD)
-        "destructive" -> parseHostColor(hostConfig.containerStyles.attention.backgroundColor)
-            ?: Color(0xFFF7E9E9)
+        "emphasis" -> parseHostColor(fgColors.accent.default) ?: Color(0xFF6264A7)
+        "positive" -> parseHostColor(fgColors.good.default) ?: Color(0xFF4CAF50)
+        "destructive" -> parseHostColor(fgColors.attention.default) ?: Color(0xFFF44336)
         else -> parseHostColor(hostConfig.containerStyles.default.backgroundColor)
             ?: MaterialTheme.colorScheme.surface
     }
 
-    val contentColor = when (element.style) {
-        "emphasis" -> parseHostColor(hostConfig.containerStyles.accent.foregroundColors.default.default)
-            ?: MaterialTheme.colorScheme.onPrimaryContainer
-        "positive" -> parseHostColor(hostConfig.containerStyles.good.foregroundColors.default.default)
-            ?: MaterialTheme.colorScheme.onSurface
-        "destructive" -> parseHostColor(hostConfig.containerStyles.attention.foregroundColors.default.default)
-            ?: MaterialTheme.colorScheme.onSurface
-        else -> MaterialTheme.colorScheme.onSurface
+    val isStyledButton = element.style in listOf("emphasis", "positive", "destructive")
+    val contentColor = if (isStyledButton) {
+        Color.White
+    } else {
+        MaterialTheme.colorScheme.onSurface
     }
 
     val isEnabled = element.selectAction != null
@@ -224,24 +219,26 @@ private fun resolveCompoundButtonIcon(name: String): androidx.compose.ui.graphic
         "calendar" -> Icons.Filled.DateRange
         "send" -> Icons.Filled.Send
         "edit" -> Icons.Filled.Edit
-        "delete" -> Icons.Filled.Delete
+        "delete", "trash" -> Icons.Filled.Delete
         "add" -> Icons.Filled.Add
         "search" -> Icons.Filled.Search
         "share" -> Icons.Filled.Share
-        "star" -> Icons.Filled.Star
-        "heart" -> Icons.Filled.Favorite
-        "bookmark" -> Icons.Filled.Bookmark
-        "info" -> Icons.Filled.Info
+        "star", "star.fill" -> Icons.Filled.Star
+        "heart", "heart.fill" -> Icons.Filled.Favorite
+        "bookmark", "bookmark.fill" -> Icons.Filled.Bookmark
+        "info", "info.circle" -> Icons.Filled.Info
         "warning" -> Icons.Filled.Warning
         "settings" -> Icons.Filled.Settings
-        "mail", "email" -> Icons.Filled.Email
+        "mail", "email", "envelope" -> Icons.Filled.Email
         "phone", "call" -> Icons.Filled.Call
         "location" -> Icons.Filled.LocationOn
         "person", "peopleteam" -> Icons.Filled.Person
-        "home" -> Icons.Filled.Home
+        "home", "house" -> Icons.Filled.Home
         "notification", "bell", "alert" -> Icons.Filled.Notifications
-        "check", "checkmark" -> Icons.Filled.Check
-        "close", "dismiss" -> Icons.Filled.Close
+        "check", "checkmark", "checkmark.circle", "checkmark.circle.fill" -> Icons.Filled.CheckCircle
+        "close", "dismiss", "xmark", "xmark.circle" -> Icons.Filled.Close
+        "ellipsis.circle", "ellipsis", "morehorizontal" -> Icons.Filled.MoreHoriz
+        "arrow.right", "arrow.right.circle", "arrowright" -> Icons.AutoMirrored.Filled.KeyboardArrowRight
         else -> Icons.Filled.Info
     }
 }

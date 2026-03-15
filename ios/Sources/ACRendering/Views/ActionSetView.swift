@@ -227,8 +227,15 @@ private struct ActionFlowLayout: SwiftUI.Layout {
         var rowHeight: CGFloat = 0
         var totalWidth: CGFloat = 0
 
+        // Cap each item to 1/3 of available width when 3+ items, matching Android's 3-column FlowRow
+        let maxItemWidth: CGFloat? = subviews.count >= 3 && maxWidth.isFinite
+            ? (maxWidth - 2 * spacing) / 3
+            : nil
+
         for subview in subviews {
-            let size = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            let intrinsicSize = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+            let cappedWidth = maxItemWidth.map { min(intrinsicSize.width, $0) } ?? intrinsicSize.width
+            let size = CGSize(width: cappedWidth, height: subview.sizeThatFits(ProposedViewSize(width: cappedWidth, height: nil)).height)
 
             if currentX + size.width > maxWidth && currentX > 0 {
                 currentX = 0

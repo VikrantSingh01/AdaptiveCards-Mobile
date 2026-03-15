@@ -45,7 +45,10 @@ public class MarkdownParser {
 
     private func parseText(_ text: String) -> [MarkdownToken] {
         var tokens: [MarkdownToken] = []
-        let lines = text.components(separatedBy: .newlines)
+        // Normalize line endings: \r\n → \n, then \r → \n
+        let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let lines = normalized.components(separatedBy: "\n")
 
         // Track ordered list continuation for auto-incrementing
         var orderedListStart: Int?

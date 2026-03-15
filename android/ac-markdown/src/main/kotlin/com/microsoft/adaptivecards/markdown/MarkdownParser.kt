@@ -50,7 +50,9 @@ class MarkdownParser private constructor() {
     
     private fun parseText(text: String): List<MarkdownToken> {
         val tokens = mutableListOf<MarkdownToken>()
-        val lines = text.lines()
+        // Normalize line endings: \r\n → \n, then \r → \n
+        val normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+        val lines = normalized.lines()
 
         // Track ordered list continuation for auto-incrementing
         var orderedListStart: Int? = null
