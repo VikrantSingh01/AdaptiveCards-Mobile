@@ -257,6 +257,8 @@ struct CompoundButtonView: View {
             return "Runs commands"
         case .openUrlDialog:
             return "Opens URL dialog"
+        case .resetInputs:
+            return "Resets inputs"
         case .unknown:
             return ""
         }
