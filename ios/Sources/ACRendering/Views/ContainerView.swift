@@ -54,7 +54,7 @@ struct ContainerView: View {
                     .background(
                         BackgroundImageView(backgroundImage: bgImage)
                     )
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: CGFloat(hostConfig.cornerRadius["container"] ?? 0)))
             } else {
                 content
                     .containerStyle(container.style, hostConfig: hostConfig)
