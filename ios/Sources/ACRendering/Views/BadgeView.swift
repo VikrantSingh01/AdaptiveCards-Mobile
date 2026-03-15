@@ -35,7 +35,6 @@ struct BadgeView: View {
             badgeShape
                 .stroke(strokeColor, lineWidth: isTint ? 1 : 0)
         )
-        .fixedSize()
 
         if badge.horizontalAlignment != nil {
             pill
