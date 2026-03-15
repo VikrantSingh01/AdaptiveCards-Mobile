@@ -406,19 +406,45 @@ class TemplateEngine {
             is Boolean -> value.toString()
             null -> ""
             is Map<*, *> -> {
-                // Serialize maps as valid JSON
+                // Serialize maps as valid JSON without depending on org.json
+                // (org.json.JSONObject is mocked/stubbed in Android unit tests)
                 try {
-                    org.json.JSONObject(value).toString()
+                    serializeToJson(value)
                 } catch (_: Exception) { "{}" }
             }
             is List<*> -> {
                 // Serialize lists as valid JSON
                 try {
-                    org.json.JSONArray(value).toString()
+                    serializeListToJson(value)
                 } catch (_: Exception) { "[]" }
             }
             else -> value.toString()
         }
+    }
+
+    /** Serialize a Map to JSON string without org.json dependency */
+    private fun serializeToJson(map: Any?): String {
+        if (map !is Map<*, *>) return "{}"
+        val entries = map.entries.joinToString(",") { (k, v) ->
+            "\"${k}\":${serializeValue(v)}"
+        }
+        return "{$entries}"
+    }
+
+    /** Serialize a List to JSON string without org.json dependency */
+    private fun serializeListToJson(list: Any?): String {
+        if (list !is List<*>) return "[]"
+        return "[${list.joinToString(",") { serializeValue(it) }}]"
+    }
+
+    private fun serializeValue(value: Any?): String = when (value) {
+        null -> "null"
+        is String -> "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+        is Number -> stringValue(value)
+        is Boolean -> value.toString()
+        is Map<*, *> -> serializeToJson(value)
+        is List<*> -> serializeListToJson(value)
+        else -> "\"${value}\""
     }
 
     private fun toBool(value: Any?): Boolean {
