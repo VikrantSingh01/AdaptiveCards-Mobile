@@ -8,6 +8,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -62,12 +63,15 @@ fun ColumnSetView(
                 VerticalSeparatorLine()
             }
             val columnModifier = resolveColumnWidth(column.width)
-            ColumnView(
-                column = column,
-                modifier = columnModifier,
-                viewModel = viewModel,
-                actionHandler = actionHandler
-            )
+            val isAutoWidth = column.width == "auto"
+            CompositionLocalProvider(LocalIsAutoWidthColumn provides isAutoWidth) {
+                ColumnView(
+                    column = column,
+                    modifier = columnModifier,
+                    viewModel = viewModel,
+                    actionHandler = actionHandler
+                )
+            }
         }
     }
 }
