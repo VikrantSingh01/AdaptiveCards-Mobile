@@ -49,7 +49,10 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     // URI-decode the cardId since navigation encodes slashes in paths like "versioned/v1.6/file.json"
     val decodedCardId = remember(cardId) { java.net.URLDecoder.decode(cardId, "UTF-8") }
     val card = remember(decodedCardId) {
-        CardCache.getCards(context).find { it.filename == decodedCardId }
+        val allCards = CardCache.getCards(context)
+        allCards.find { it.filename == decodedCardId }
+            ?: allCards.find { it.filename == "$decodedCardId.json" }
+            ?: allCards.find { it.filename.removeSuffix(".json") == decodedCardId }
     }
     // Load template data for .template.json cards
     val templateData: Map<String, Any?>? = remember(cardId) {
