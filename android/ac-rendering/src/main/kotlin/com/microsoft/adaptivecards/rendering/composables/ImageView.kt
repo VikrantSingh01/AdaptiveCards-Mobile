@@ -74,9 +74,18 @@ fun ImageView(
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
             val heightPx = element.pixelHeight?.removeSuffix("px")?.toIntOrNull()
+            // Check if width is explicitly "stretch" (fill container width)
+            val isWidthStretch = element.width?.lowercase() == "stretch"
             // Check if height is "auto" (not a pixel value)
             val hasAutoHeight = element.height != null && element.pixelHeight == null
             when {
+                // width: "stretch" always fills container width
+                isWidthStretch -> {
+                    val hasFitMode = element.fitMode != null
+                    val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
+                    if (heightPx != null) modifier.fillMaxWidth().height(heightPx.dp)
+                    else modifier.fillMaxWidth().heightIn(min = minH)
+                }
                 widthPx != null && heightPx != null -> modifier.size(widthPx.dp, heightPx.dp)
                 widthPx != null -> modifier.width(widthPx.dp)
                 heightPx != null -> modifier.height(heightPx.dp)
