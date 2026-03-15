@@ -242,8 +242,9 @@ struct TableCellView: View {
                 ?? table?.verticalCellContentAlignment
             switch alignment {
             case .top: return .top
+            case .center: return .center
             case .bottom: return .bottom
-            default: return .center
+            default: return .top
             }
         }()
 
