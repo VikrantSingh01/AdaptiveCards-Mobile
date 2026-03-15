@@ -214,10 +214,15 @@ struct ImageView: View {
 
     /// Whether the image should fill available width (matching Android FillWidth behavior)
     private var shouldFillWidth: Bool {
-        // Fill container width when no explicit size/width/height AND no fitMode.
-        // Images with fitMode (cover/fill) should respect their explicit or default
-        // dimensions rather than expanding to fill the entire viewport.
-        image.size == nil && image.width == nil && image.height == nil && image.fitMode == nil
+        // Fill container width when: no explicit size/width/height AND no fitMode,
+        // OR width is explicitly set to "stretch".
+        if isWidthStretch { return true }
+        return image.size == nil && image.width == nil && image.height == nil && image.fitMode == nil
+    }
+
+    /// Whether width is explicitly set to "stretch"
+    private var isWidthStretch: Bool {
+        image.width?.lowercased() == "stretch" || image.size == .stretch
     }
 
     /// Maps fitMode JSON string to SwiftUI ContentMode

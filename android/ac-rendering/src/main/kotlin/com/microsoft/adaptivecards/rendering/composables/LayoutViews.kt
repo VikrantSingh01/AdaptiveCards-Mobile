@@ -39,6 +39,9 @@ fun FlowLayoutView(
     FlowRow(
         horizontalSpacing = colSpacing,
         verticalSpacing = rowSpacing,
+        itemWidth = parseSizeDp(flowLayout.itemWidth),
+        minItemWidth = parseSizeDp(flowLayout.minItemWidth),
+        maxItemWidth = parseSizeDp(flowLayout.maxItemWidth),
         horizontalAlignment = when (flowLayout.horizontalAlignment) {
             HorizontalAlignment.Center -> Alignment.CenterHorizontally
             HorizontalAlignment.Right -> Alignment.End
@@ -47,16 +50,7 @@ fun FlowLayoutView(
         modifier = modifier
     ) {
         items.forEach { item ->
-            val itemWidthDp = parseSizeDp(flowLayout.itemWidth)
-            val minWidthDp = parseSizeDp(flowLayout.minItemWidth)
-            val maxWidthDp = parseSizeDp(flowLayout.maxItemWidth)
-
-            val itemModifier = Modifier
-                .then(if (itemWidthDp != null) Modifier.width(itemWidthDp) else Modifier)
-                .then(if (minWidthDp != null) Modifier.widthIn(min = minWidthDp) else Modifier)
-                .then(if (maxWidthDp != null) Modifier.widthIn(max = maxWidthDp) else Modifier)
-
-            Box(modifier = itemModifier) {
+            Box {
                 RenderElement(
                     element = item,
                     viewModel = viewModel,
@@ -75,6 +69,9 @@ fun FlowLayoutView(
 private fun FlowRow(
     horizontalSpacing: Dp,
     verticalSpacing: Dp,
+    itemWidth: Dp? = null,
+    minItemWidth: Dp? = null,
+    maxItemWidth: Dp? = null,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
@@ -85,6 +82,20 @@ private fun FlowRow(
     ) { measurables, constraints ->
         val hSpacingPx = horizontalSpacing.roundToPx()
         val vSpacingPx = verticalSpacing.roundToPx()
+        val available = constraints.maxWidth
+
+        // Calculate dynamic item width when itemWidth/minItemWidth are specified.
+        // Use minItemWidth to determine max columns, then distribute width evenly.
+        val calculatedItemWidthPx: Int? = run {
+            val preferredPx = itemWidth?.roundToPx()
+            val minPx = minItemWidth?.roundToPx() ?: preferredPx
+            if (minPx != null && minPx > 0) {
+                val maxCols = ((available + hSpacingPx) / (minPx + hSpacingPx)).coerceAtLeast(1)
+                val w = (available - (maxCols - 1) * hSpacingPx) / maxCols
+                val maxPx = maxItemWidth?.roundToPx()
+                if (maxPx != null) w.coerceAtMost(maxPx) else w
+            } else null
+        }
 
         data class RowInfo(
             val placeables: MutableList<Placeable> = mutableListOf(),
@@ -96,15 +107,13 @@ private fun FlowRow(
         var currentRow = rows.first()
 
         measurables.forEach { measurable ->
-            // Use intrinsic width to determine child's natural size so children
-            // that use fillMaxWidth() don't consume the entire row width.
-            // This allows proper wrapping in flow layouts (fixes Table.Flow
-            // single-column regression and ProgressRing vertical stacking).
-            val intrinsicWidth = measurable.maxIntrinsicWidth(constraints.maxHeight)
-            val childMaxWidth = if (intrinsicWidth in 1 until constraints.maxWidth) {
-                intrinsicWidth
+            val childMaxWidth = if (calculatedItemWidthPx != null) {
+                calculatedItemWidthPx
             } else {
-                constraints.maxWidth
+                // Fallback: use intrinsic width so fillMaxWidth() children don't
+                // consume the entire row width.
+                val intrinsicWidth = measurable.maxIntrinsicWidth(constraints.maxHeight)
+                if (intrinsicWidth in 1 until available) intrinsicWidth else available
             }
             val placeable = measurable.measure(
                 constraints.copy(minWidth = 0, maxWidth = childMaxWidth, minHeight = 0)
@@ -116,7 +125,7 @@ private fun FlowRow(
                 currentRow.width + hSpacingPx + placeable.width
             }
 
-            if (neededWidth > constraints.maxWidth && currentRow.placeables.isNotEmpty()) {
+            if (neededWidth > available && currentRow.placeables.isNotEmpty()) {
                 currentRow = RowInfo()
                 rows.add(currentRow)
             }
@@ -131,15 +140,14 @@ private fun FlowRow(
         }
 
         val totalHeight = rows.sumOf { it.height } + (rows.size - 1) * vSpacingPx
-        val maxWidth = constraints.maxWidth
 
-        layout(maxWidth, totalHeight) {
+        layout(available, totalHeight) {
             var yOffset = 0
 
             rows.forEach { row ->
                 var xOffset = when (horizontalAlignment) {
-                    Alignment.CenterHorizontally -> (maxWidth - row.width) / 2
-                    Alignment.End -> maxWidth - row.width
+                    Alignment.CenterHorizontally -> (available - row.width) / 2
+                    Alignment.End -> available - row.width
                     else -> 0
                 }
 
