@@ -4,6 +4,7 @@
 
 package com.microsoft.adaptivecards.rendering.composables
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +27,7 @@ import coil.request.CachePolicy
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import java.nio.ByteBuffer
+import com.microsoft.adaptivecards.core.models.HorizontalAlignment
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.ImageStyle
@@ -156,12 +159,35 @@ fun ImageView(
         }
     }
 
-    AsyncImage(
-        model = model,
-        contentDescription = element.altText,
-        contentScale = contentScale,
-        modifier = finalModifier
-            .imageSemantics(element.altText)
-            .selectAction(element.selectAction, actionHandler)
-    )
+    // Wrap in alignment container when horizontalAlignment is specified
+    val alignment = when (element.horizontalAlignment) {
+        HorizontalAlignment.Center -> Alignment.TopCenter
+        HorizontalAlignment.Right -> Alignment.TopEnd
+        else -> null
+    }
+
+    if (alignment != null) {
+        Box(
+            modifier = modifier.fillMaxWidth(),
+            contentAlignment = alignment
+        ) {
+            AsyncImage(
+                model = model,
+                contentDescription = element.altText,
+                contentScale = contentScale,
+                modifier = finalModifier
+                    .imageSemantics(element.altText)
+                    .selectAction(element.selectAction, actionHandler)
+            )
+        }
+    } else {
+        AsyncImage(
+            model = model,
+            contentDescription = element.altText,
+            contentScale = contentScale,
+            modifier = finalModifier
+                .imageSemantics(element.altText)
+                .selectAction(element.selectAction, actionHandler)
+        )
+    }
 }
