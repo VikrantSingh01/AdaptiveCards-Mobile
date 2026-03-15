@@ -132,25 +132,35 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
         let dynWidth = calculatedItemWidth(available: maxWidth)
 
         for subview in subviews {
-            let itemW: CGFloat
+            // Measure with unspecified width to get ideal/natural size.
+            let idealSize = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
+
+            // Determine item width using the Android FlowRow pattern:
+            // Use ideal width when it's a reasonable intrinsic value (1..<maxWidth).
+            // Fall back to measuring at available width for flexible items
+            // (e.g., those using frame(maxWidth: .infinity)) that report
+            // a tiny or oversized ideal width.
+            var itemWidth: CGFloat
             if let dynWidth = dynWidth {
                 // Use calculated dynamic width (from itemWidth/minItemWidth/maxItemWidth)
-                itemW = dynWidth
+                itemWidth = dynWidth
+            } else if idealSize.width >= 1 && idealSize.width < maxWidth && maxWidth < .infinity {
+                itemWidth = idealSize.width
+            } else if maxWidth < .infinity {
+                let concreteSize = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+                itemWidth = min(concreteSize.width, maxWidth)
             } else {
-                // Fall back to natural size measurement
-                let idealSize = subview.sizeThatFits(ProposedViewSize(width: nil, height: nil))
-                var w = idealSize.width
-                if w < 1 && maxWidth < .infinity {
-                    w = maxWidth
-                }
-                w = min(w, maxWidth)
-                if let maxW = maxItemWidth { w = min(w, maxW) }
-                itemW = w
+                itemWidth = idealSize.width
+            }
+            if itemWidth < 1 && maxWidth < .infinity {
+                itemWidth = maxWidth
             }
 
-            // Measure at final width to get correct height
-            let measured = subview.sizeThatFits(ProposedViewSize(width: itemW, height: nil))
-            let clampedSize = CGSize(width: itemW, height: measured.height)
+            // Re-measure at final width to get correct height.
+            // Nested flow layouts and tables need this to compute wrapped height.
+            let clampedSize: CGSize
+            let measured = subview.sizeThatFits(ProposedViewSize(width: itemWidth, height: nil))
+            clampedSize = CGSize(width: itemWidth, height: measured.height)
 
             if currentX + clampedSize.width > maxWidth && currentX > 0 {
                 // Wrap to next row
