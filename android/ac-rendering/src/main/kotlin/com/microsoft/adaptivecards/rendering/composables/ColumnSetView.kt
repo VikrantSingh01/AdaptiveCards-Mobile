@@ -116,6 +116,7 @@ private fun ProportionalColumnLayout(
         var remainingWidth = if (isUnbounded) Int.MAX_VALUE / 2 else totalWidth - totalSpacing
 
         val columnWidths = IntArray(columns.size)
+        val placeables = arrayOfNulls<androidx.compose.ui.layout.Placeable>(measurables.size)
 
         // Pass 1: Fixed pixel widths
         val nonPixelCount = columns.count { col ->
@@ -132,11 +133,20 @@ private fun ProportionalColumnLayout(
             }
         }
 
-        // Pass 2: Auto columns — use intrinsic width to determine size without measuring
+        // Pass 2: Auto columns — measure with loose constraints to get actual desired width.
+        // maxIntrinsicWidth underestimates for async images and nested layouts, so we
+        // measure directly (matching iOS sizeThatFits(.unspecified) approach).
         columns.forEachIndexed { i, col ->
             if (col.width == "auto" && i < measurables.size) {
-                val intrinsicWidth = measurables[i].maxIntrinsicWidth(constraints.maxHeight)
-                columnWidths[i] = intrinsicWidth.coerceAtMost(remainingWidth.coerceAtLeast(0))
+                val maxAvail = remainingWidth.coerceAtLeast(0)
+                val placeable = measurables[i].measure(Constraints(
+                    minWidth = 0,
+                    maxWidth = if (isUnbounded) Constraints.Infinity else maxAvail,
+                    minHeight = 0,
+                    maxHeight = constraints.maxHeight
+                ))
+                placeables[i] = placeable
+                columnWidths[i] = placeable.width.coerceAtMost(maxAvail)
                 remainingWidth -= columnWidths[i]
             }
         }
@@ -171,22 +181,25 @@ private fun ProportionalColumnLayout(
             }
         }
 
-        // Measure all children exactly once at their computed widths
-        val placeables = measurables.mapIndexed { i, measurable ->
-            val w = if (i < columnWidths.size) columnWidths[i] else 0
-            measurable.measure(Constraints(
-                minWidth = w.coerceAtLeast(0),
-                maxWidth = w.coerceAtLeast(0),
-                minHeight = 0,
-                maxHeight = constraints.maxHeight
-            ))
+        // Measure non-auto children at their computed widths (auto columns already measured in Pass 2)
+        measurables.forEachIndexed { i, measurable ->
+            if (placeables[i] == null) {
+                val w = if (i < columnWidths.size) columnWidths[i] else 0
+                placeables[i] = measurable.measure(Constraints(
+                    minWidth = w.coerceAtLeast(0),
+                    maxWidth = w.coerceAtLeast(0),
+                    minHeight = 0,
+                    maxHeight = constraints.maxHeight
+                ))
+            }
         }
 
-        val maxHeight = placeables.maxOfOrNull { it.height } ?: 0
+        val resolvedPlaceables = placeables.map { it!! }
+        val maxHeight = resolvedPlaceables.maxOfOrNull { it.height } ?: 0
 
         // When unconstrained, use actual content width; otherwise use total allocated width
         val layoutWidth = if (isUnbounded) {
-            val contentWidth = placeables.sumOf { it.width } + totalSpacing
+            val contentWidth = resolvedPlaceables.sumOf { it.width } + totalSpacing
             contentWidth.coerceIn(constraints.minWidth, constraints.maxWidth.coerceAtMost(16777215))
         } else {
             totalWidth
@@ -194,9 +207,9 @@ private fun ProportionalColumnLayout(
 
         layout(layoutWidth, maxHeight) {
             var x = 0
-            placeables.forEachIndexed { i, placeable ->
+            resolvedPlaceables.forEachIndexed { i, placeable ->
                 placeable.placeRelative(x, 0)
-                x += placeable.width + if (i < placeables.size - 1) spacingPx else 0
+                x += placeable.width + if (i < resolvedPlaceables.size - 1) spacingPx else 0
             }
         }
     }
