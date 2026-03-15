@@ -74,7 +74,7 @@ fun ImageView(
             if (isSvg) Modifier.width(hostConfig.imageSizes.large.dp)
             else Modifier.size(hostConfig.imageSizes.large.dp)
         }
-        ImageSize.Stretch -> Modifier.fillMaxWidth()
+        ImageSize.Stretch -> modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
