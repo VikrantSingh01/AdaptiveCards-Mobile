@@ -237,8 +237,12 @@ class TemplateEngine {
                 continue
             }
 
-            // Expand value
-            result[key] = expandValue(value, context)
+            // Expand value — gracefully handle per-field failures to avoid blank cards
+            result[key] = try {
+                expandValue(value, context)
+            } catch (_: Exception) {
+                value
+            }
         }
 
         return result
@@ -299,13 +303,18 @@ class TemplateEngine {
                     }
                 }
 
-                // Regular dictionary expansion
-                val expandedDict = expandDictionary(dict, context)
+                // Regular dictionary expansion — graceful fallback on failure
+                val expandedDict = try {
+                    expandDictionary(dict, context)
+                } catch (_: Exception) {
+                    dict
+                }
                 if (expandedDict.isNotEmpty()) {
                     result.add(expandedDict)
                 }
             } else {
-                result.add(expandValue(item, context))
+                val expanded = try { expandValue(item, context) } catch (_: Exception) { item }
+                result.add(expanded)
             }
         }
 
