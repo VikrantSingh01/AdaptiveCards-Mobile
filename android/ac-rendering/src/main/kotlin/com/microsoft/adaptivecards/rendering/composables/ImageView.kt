@@ -87,10 +87,12 @@ fun ImageView(
                 // Images without explicit size should expand to fill available width.
                 // When fitMode is set (cover/fill/contain), use a taller minimum so
                 // the image doesn't collapse to a tiny strip before loading.
+                // Set a minimum width so images in "auto"-width columns don't collapse
+                // to 0 width before loading (fixes Agenda card missing icons, #15).
                 else -> {
                     val hasFitMode = element.fitMode != null
                     val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 40.dp
-                    modifier.fillMaxWidth().heightIn(min = minH)
+                    modifier.widthIn(min = 40.dp).fillMaxWidth().heightIn(min = minH)
                 }
             }
         }
