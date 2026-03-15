@@ -223,10 +223,54 @@ cat > "$OUTPUT_HTML" << 'HTML_HEADER'
   .lightbox .close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer; }
   .footer { text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 13px; }
   .footer a { color: #7ec8e3; }
+  /* Tablet: stack screenshots below metadata */
   @media (max-width: 1200px) {
-    .card-row { grid-template-columns: 40px 120px 1fr; }
-    .card-link { justify-content: flex-start; }
+    .card-row { grid-template-columns: 40px 120px 1fr auto; grid-template-rows: auto auto; }
+    .card-row .screenshot-col:nth-of-type(1) { grid-column: 1 / 3; grid-row: 2; }
+    .card-row .screenshot-col:nth-of-type(2) { grid-column: 3 / 5; grid-row: 2; }
     .screenshot-col img { width: 100%; max-width: 390px; }
+  }
+  /* Mobile */
+  @media (max-width: 768px) {
+    body { padding: 10px; }
+    .header { padding: 20px 12px; margin-bottom: 16px; }
+    .header h1 { font-size: 18px; }
+    .header p { font-size: 12px; }
+    .stat { font-size: 11px; padding: 4px 10px; }
+    .controls { flex-direction: column; gap: 8px; }
+    .controls select, .controls input { width: 100%; min-width: unset; }
+    .controls input[type="text"] { min-width: unset; }
+    .review-filter { flex-wrap: wrap; gap: 6px; font-size: 13px; }
+    .review-counter { width: 100%; text-align: center; }
+    .reviewer-bar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+    .reviewer-bar input { width: 100%; }
+    .reviewer-bar button { flex: 1; min-width: 60px; }
+    #tokenInput { width: 100% !important; }
+    .section-title { font-size: 16px; }
+    /* Stack card rows vertically on mobile */
+    .card-row { grid-template-columns: 1fr; grid-template-rows: auto; gap: 10px; padding: 12px; }
+    .card-row > * { grid-column: 1; }
+    .review-col { flex-direction: row; justify-content: flex-start; gap: 8px; }
+    .status-col { min-width: unset; }
+    .card-link { justify-content: flex-start; }
+    .card-link a { width: 100%; text-align: center; }
+    .screenshot-col { text-align: center; }
+    .screenshot-col img { width: 100%; max-width: 100%; }
+    .lightbox .close-btn { top: 10px; right: 16px; font-size: 24px; }
+    .setup-guide summary { font-size: 13px; }
+    .setup-guide .guide-content { font-size: 12px; }
+    .footer { padding: 12px; font-size: 12px; }
+  }
+  /* Small phones */
+  @media (max-width: 400px) {
+    body { padding: 6px; }
+    .header { padding: 16px 8px; border-radius: 8px; }
+    .header h1 { font-size: 16px; }
+    .stats { gap: 6px; }
+    .stat { font-size: 10px; padding: 3px 8px; }
+    .card-row { padding: 10px; gap: 8px; border-radius: 8px; }
+    .card-name { font-size: 13px; }
+    .reviewer-bar { padding: 8px 10px; }
   }
 </style>
 </head>
