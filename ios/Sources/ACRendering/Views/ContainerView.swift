@@ -181,12 +181,13 @@ private struct OverflowModifier: ViewModifier {
                 ScrollView(.vertical, showsIndicators: true) {
                     content
                 }
-                .frame(maxHeight: maxH)
+                .frame(height: maxH)
+                .clipped()
                 .accessibilityElement(children: .contain)
                 .accessibilityHint("Scrollable content")
             case .hidden:
                 content
-                    .frame(maxHeight: maxH)
+                    .frame(height: maxH, alignment: .top)
                     .clipped()
             default:
                 content

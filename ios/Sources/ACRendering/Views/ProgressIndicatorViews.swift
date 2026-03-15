@@ -245,7 +245,7 @@ struct SpinnerView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(spinner.label ?? "Loading")
         .accessibilityValue("In progress")

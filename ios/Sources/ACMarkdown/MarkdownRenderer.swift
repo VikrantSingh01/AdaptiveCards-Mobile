@@ -92,9 +92,15 @@ public class MarkdownRenderer {
             }
             return attributed
 
-        case .header(_, let text):
+        case .header(let level, let text):
+            let headerFont: Font = switch level {
+            case 1: .system(size: 30, weight: .bold)
+            case 2: .system(size: 22, weight: .bold)
+            case 3: .system(size: 19, weight: .bold)
+            default: font.bold()
+            }
             var attributed = AttributedString(text)
-            attributed.font = font.bold()
+            attributed.font = headerFont
             attributed.foregroundColor = color
             return attributed
 
