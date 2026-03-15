@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import com.microsoft.adaptivecards.core.models.AreaGridLayout
 import com.microsoft.adaptivecards.core.models.Column
 import com.microsoft.adaptivecards.core.models.ColumnSet
+import com.microsoft.adaptivecards.core.models.FlowLayout
 import com.microsoft.adaptivecards.core.models.VerticalContentAlignment
 import com.microsoft.adaptivecards.core.models.WidthCategory
 import com.microsoft.adaptivecards.core.models.shouldShowForTargetWidth
@@ -85,6 +87,9 @@ fun ColumnView(
     val minHeight = column.minHeight?.replace("px", "")?.toIntOrNull()?.dp
     val cornerRadius = hostConfig.cornerRadius.column
 
+    val widthCategory = LocalWidthCategory.current
+    val activeLayout = resolveColumnLayout(column, widthCategory)
+
     Column(
         modifier = modifier
             .then(if (cornerRadius > 0) Modifier.clip(RoundedCornerShape(cornerRadius.dp)) else Modifier)
@@ -96,15 +101,44 @@ fun ColumnView(
             else -> Arrangement.Top
         }
     ) {
-        items.forEachIndexed { index, item ->
-            RenderElement(
-                element = item,
-                isFirst = index == 0,
+        when (activeLayout) {
+            is FlowLayout -> FlowLayoutView(
+                items = items,
+                flowLayout = activeLayout,
+                hostConfig = hostConfig,
                 viewModel = viewModel,
-                actionHandler = actionHandler
+                actionHandler = actionHandler,
+                modifier = Modifier.fillMaxWidth()
             )
+            is AreaGridLayout -> AreaGridLayoutView(
+                items = items,
+                gridLayout = activeLayout,
+                hostConfig = hostConfig,
+                viewModel = viewModel,
+                actionHandler = actionHandler,
+                modifier = Modifier.fillMaxWidth()
+            )
+            else -> {
+                items.forEachIndexed { index, item ->
+                    RenderElement(
+                        element = item,
+                        isFirst = index == 0,
+                        viewModel = viewModel,
+                        actionHandler = actionHandler
+                    )
+                }
+            }
         }
     }
+}
+
+private fun resolveColumnLayout(column: Column, widthCategory: WidthCategory): com.microsoft.adaptivecards.core.models.Layout? {
+    column.layouts?.forEach { layout ->
+        if (layout.targetWidth == null || shouldShowForTargetWidth(layout.targetWidth, widthCategory)) {
+            return layout
+        }
+    }
+    return null
 }
 
 /**

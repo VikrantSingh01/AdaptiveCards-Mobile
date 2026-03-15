@@ -153,6 +153,10 @@ public struct Column: Codable, Equatable, Identifiable {
     public var isVisible: Bool?
     public var requires: [String: String]?
     public var targetWidth: String?
+    public var layouts: [Layout]?
+
+    /// Convenience: the active layout (first in the `layouts` array)
+    public var layout: Layout? { layouts?.first }
 
     // Stable identifier using id property or combined items IDs as fallback.
     // Must be unique across siblings — UUID suffix prevents duplicate-ID crashes in SwiftUI ForEach.
@@ -184,7 +188,8 @@ public struct Column: Codable, Equatable, Identifiable {
         selectAction: CardAction? = nil,
         isVisible: Bool? = nil,
         requires: [String: String]? = nil,
-        targetWidth: String? = nil
+        targetWidth: String? = nil,
+        layouts: [Layout]? = nil
     ) {
         self.id = id
         self.items = items
@@ -202,6 +207,7 @@ public struct Column: Codable, Equatable, Identifiable {
         self.isVisible = isVisible
         self.requires = requires
         self.targetWidth = targetWidth
+        self.layouts = layouts
     }
 }
 
