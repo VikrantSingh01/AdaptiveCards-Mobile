@@ -534,6 +534,7 @@ object TestCardLoader {
         Triple("element-samples/carousel-scenario-timer.json", "Carousel Scenario Timer", CardCategory.ELEMENT),
         Triple("element-samples/carousel-styles.json", "Carousel Styles", CardCategory.ELEMENT),
         Triple("element-samples/carousel-vertical.json", "Carousel Vertical", CardCategory.ELEMENT),
+        Triple("element-samples/container-scrollable.json", "Container Scrollable", CardCategory.ELEMENT),
         Triple("element-samples/media-basic.json", "Media Basic", CardCategory.ELEMENT),
         Triple("element-samples/media-sources.json", "Media Sources", CardCategory.ELEMENT),
         Triple("templates/ActivityUpdate.template.json", "Teams: Activity Update", CardCategory.TEAMS_TEMPLATED),
