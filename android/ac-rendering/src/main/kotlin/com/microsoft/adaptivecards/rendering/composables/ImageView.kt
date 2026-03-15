@@ -74,7 +74,7 @@ fun ImageView(
             if (isSvg) Modifier.width(hostConfig.imageSizes.large.dp)
             else Modifier.size(hostConfig.imageSizes.large.dp)
         }
-        ImageSize.Stretch -> Modifier.fillMaxWidth()
+        ImageSize.Stretch -> modifier.fillMaxWidth().heightIn(min = hostConfig.imageSizes.large.dp)
         ImageSize.Auto -> {
             // Parse explicit width/height if provided (supports "20px" or plain "20")
             val widthPx = element.width?.removeSuffix("px")?.toIntOrNull()
@@ -103,11 +103,18 @@ fun ImageView(
                 // collapsing to tiny or expanding to full width in auto-width columns
                 hasAutoHeight -> modifier.size(hostConfig.imageSizes.medium.dp)
                 // Auto per AC spec: use natural image size, constrained by parent.
-                // Don't force fillMaxWidth() — it breaks intrinsic sizing in auto-width
-                // columns (icons, pin markers collapse to 0). Instead, set minimum
-                // dimensions so the image doesn't collapse before loading.
+                // In auto-width columns, don't force fillMaxWidth() — it breaks intrinsic
+                // sizing (icons, pin markers collapse to 0). In weighted/stretch columns,
+                // use fillMaxWidth() so images expand to fill the allocated column width.
                 else -> {
-                    modifier.widthIn(min = 20.dp).heightIn(min = 20.dp)
+                    val isAutoColumn = LocalIsAutoWidthColumn.current
+                    val hasFitMode = element.fitMode != null
+                    val minH = if (hasFitMode) hostConfig.imageSizes.large.dp else 20.dp
+                    if (isAutoColumn) {
+                        modifier.widthIn(min = 20.dp).heightIn(min = minH)
+                    } else {
+                        modifier.fillMaxWidth().heightIn(min = minH)
+                    }
                 }
             }
         }

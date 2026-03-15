@@ -234,27 +234,57 @@ fun AreaGridLayoutView(
 
 /**
  * Calculate the weight for a grid area based on column definitions and span.
+ * Plain numbers are treated as percentage widths (matching iOS behavior).
+ * "auto" columns get the remaining percentage after fixed columns.
  */
 private fun columnWeight(area: GridArea, columns: List<String>, columnCount: Int): Float {
     val span = area.columnSpan ?: 1
     var totalWeight = 0f
 
+    // Pre-compute auto column weight: remaining percentage after plain-number columns
+    val resolvedWeights = resolveColumnWeights(columns, columnCount)
+
     for (col in area.column until (area.column + span).coerceAtMost(columnCount + 1)) {
-        val colDef = columns.getOrNull(col - 1) ?: "1fr"
-        totalWeight += parseFractionWeight(colDef)
+        totalWeight += resolvedWeights.getOrElse(col - 1) { 1f }
     }
 
     return totalWeight.coerceAtLeast(1f)
 }
 
 /**
- * Parse a column definition like "1fr", "2fr", "auto" into a weight value.
+ * Resolve column definitions into proportional weights.
+ * Plain numbers → percentage weights (e.g., 35 → weight 35).
+ * "auto" → remaining percentage split equally among auto columns.
+ * "Nfr" → fractional weight N.
  */
-private fun parseFractionWeight(colDef: String): Float {
-    if (colDef.endsWith("fr")) {
-        return colDef.removeSuffix("fr").toFloatOrNull() ?: 1f
+private fun resolveColumnWeights(columns: List<String>, columnCount: Int): List<Float> {
+    var usedPercentage = 0f
+    var autoCount = 0
+
+    for (i in 0 until columnCount) {
+        val colDef = columns.getOrNull(i) ?: "1fr"
+        val trimmed = colDef.trim()
+        when {
+            trimmed.endsWith("fr") -> { /* fr columns don't consume percentage */ }
+            trimmed == "auto" || trimmed == "*" -> autoCount++
+            else -> {
+                val pct = trimmed.removeSuffix("px").toFloatOrNull()
+                if (pct != null) usedPercentage += pct
+            }
+        }
     }
-    return 1f
+
+    val remainingPercentage = (100f - usedPercentage).coerceAtLeast(0f)
+    val autoWeight = if (autoCount > 0) remainingPercentage / autoCount else 1f
+
+    return (0 until columnCount).map { i ->
+        val colDef = (columns.getOrNull(i) ?: "1fr").trim()
+        when {
+            colDef.endsWith("fr") -> colDef.removeSuffix("fr").toFloatOrNull() ?: 1f
+            colDef == "auto" || colDef == "*" -> autoWeight.coerceAtLeast(1f)
+            else -> (colDef.removeSuffix("px").toFloatOrNull() ?: 1f).coerceAtLeast(1f)
+        }
+    }
 }
 
 /**

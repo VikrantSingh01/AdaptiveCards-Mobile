@@ -67,6 +67,12 @@ val LocalFeatureFlags = compositionLocalOf { com.microsoft.adaptivecards.core.Fe
 val LocalCardViewModel = compositionLocalOf<CardViewModel?> { null }
 
 /**
+ * CompositionLocal indicating whether the current context is an auto-width column.
+ * When true, images should not use fillMaxWidth() to avoid expanding the column.
+ */
+val LocalIsAutoWidthColumn = compositionLocalOf { false }
+
+/**
  * Main entry point for rendering an Adaptive Card
  *
  * @param cardJson The JSON string of the adaptive card (may contain `${expression}` template syntax)
