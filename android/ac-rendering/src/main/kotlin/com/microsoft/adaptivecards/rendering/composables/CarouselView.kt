@@ -32,6 +32,9 @@ import com.microsoft.adaptivecards.core.models.FontSize
 import com.microsoft.adaptivecards.core.models.Image
 import com.microsoft.adaptivecards.core.models.ImageSize
 import com.microsoft.adaptivecards.core.models.TextBlock
+import com.microsoft.adaptivecards.core.models.CardInput
+import com.microsoft.adaptivecards.core.models.RatingInput
+import com.microsoft.adaptivecards.core.models.Media
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
@@ -104,8 +107,11 @@ fun CarouselView(
 
             val estimated = maxPageHeight + pagePadding
             // Use generous minimum to ensure nested content (e.g., weather forecast
-            // grids with multiple ColumnSets) is fully visible
-            val minimum = if (isTablet) 240f else 220f
+            // grids with multiple ColumnSets) is fully visible.
+            // Scale minimum with number of items for pages with dense content.
+            val maxItems = visiblePages.maxOfOrNull { it.items.size } ?: 0
+            val baseMinimum = if (isTablet) 240f else 220f
+            val minimum = if (maxItems > 3) baseMinimum * 1.5f else baseMinimum
             val maxHeight = screenHeightDp * 0.65f
             maxOf(estimated, minimum).coerceAtMost(maxHeight)
         }
@@ -145,8 +151,14 @@ fun CarouselView(
                             all = if (isTablet) 24.dp else 16.dp
                         )
                 ) {
-                    // Render page items
-                    carouselPage.items.forEachIndexed { index, item ->
+                    // Per AC spec, carousel pages must not contain input elements or media.
+                    // Filter forbidden element types to match iOS behavior.
+                    val allowedItems = carouselPage.items.filter { item ->
+                        item !is CardInput &&
+                        item !is RatingInput &&
+                        item !is Media
+                    }
+                    allowedItems.forEachIndexed { index, item ->
                         RenderElement(
                             element = item,
                             isFirst = index == 0,

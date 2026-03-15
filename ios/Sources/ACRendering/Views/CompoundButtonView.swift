@@ -138,14 +138,72 @@ struct CompoundButtonView: View {
                     }
                 }
             } else {
-                // SF Symbol
-                Image(systemName: iconName)
+                // Map Fluent icon names to SF Symbols, then fall back to raw name
+                let sfSymbol = Self.resolveFluentIcon(iconName)
+                Image(systemName: sfSymbol)
                     .resizable()
                     .scaledToFit()
                     .frame(width: Layout.iconSize, height: Layout.iconSize)
                     .foregroundColor(primaryTextColor)
             }
         }
+    }
+
+    /// Maps Fluent UI icon names to SF Symbol equivalents.
+    private static func resolveFluentIcon(_ name: String) -> String {
+        let baseName = name
+            .replacingOccurrences(of: ",Filled", with: "")
+            .replacingOccurrences(of: ",Regular", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        let lookup: [String: String] = [
+            "Calendar": "calendar",
+            "Info": "info.circle",
+            "InfoCircle": "info.circle",
+            "Warning": "exclamationmark.triangle",
+            "Error": "xmark.circle",
+            "Checkmark": "checkmark.circle",
+            "CheckmarkCircle": "checkmark.circle",
+            "Search": "magnifyingglass",
+            "Settings": "gearshape",
+            "Person": "person",
+            "People": "person.2",
+            "Mail": "envelope",
+            "Chat": "bubble.left",
+            "Phone": "phone",
+            "Video": "video",
+            "Camera": "camera",
+            "Document": "doc",
+            "Folder": "folder",
+            "Star": "star",
+            "Heart": "heart",
+            "Home": "house",
+            "Location": "location",
+            "Map": "map",
+            "Clock": "clock",
+            "Alert": "bell",
+            "Add": "plus.circle",
+            "Delete": "trash",
+            "Edit": "pencil",
+            "Share": "square.and.arrow.up",
+            "Link": "link",
+            "Globe": "globe",
+            "Lock": "lock",
+            "ArrowRight": "arrow.right",
+            "ChevronRight": "chevron.right",
+            "Dismiss": "xmark",
+            "MoreHorizontal": "ellipsis",
+            "Attach": "paperclip",
+            "Send": "paperplane",
+            "Airplane": "airplane",
+            "Food": "fork.knife",
+            "Gift": "gift",
+            "Money": "dollarsign.circle",
+            "Weather": "cloud.sun",
+            "Flash": "bolt",
+            "Play": "play",
+            "Mic": "mic",
+        ]
+        return lookup[baseName] ?? name
     }
 
     private var iconPlaceholder: some View {

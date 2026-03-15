@@ -110,9 +110,10 @@ struct ImageView: View {
                                 .clipShape(imageShape)
                         } else if let fitMode = fitModeContentMode, fitMode == .fill {
                             // Cover/fill: scale to fill the frame and clip overflow.
-                            // Use medium image size as default when no explicit dimensions.
-                            let w = imageWidth ?? CGFloat(hostConfig.imageSizes.medium)
-                            let h = imageHeight ?? CGFloat(hostConfig.imageSizes.medium)
+                            // Use large image size as default when no explicit dimensions
+                            // to match Android sizing (which uses fillMaxWidth for auto).
+                            let w = imageWidth ?? CGFloat(hostConfig.imageSizes.large)
+                            let h = imageHeight ?? CGFloat(hostConfig.imageSizes.large)
                             if isCoverMode {
                                 // Cover: maintain aspect ratio, clip overflow (like Android Crop)
                                 img
