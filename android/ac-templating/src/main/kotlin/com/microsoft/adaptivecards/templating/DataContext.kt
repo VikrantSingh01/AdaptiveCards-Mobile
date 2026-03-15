@@ -58,24 +58,36 @@ class DataContext(
     }
     
     /**
-     * Resolve a property path in a given object
-     * @param path Property path (e.g., "user.name")
+     * Resolve a property path in a given object.
+     *
+     * Supports dot-separated paths with numeric array indices (e.g. "items.0.name")
+     * and also inline bracket notation (e.g. "items[0].name") as a fallback.
+     *
+     * @param path Property path (e.g., "user.name", "menu.items.0.name")
      * @param obj The object to resolve from
      * @return The resolved value or null
      */
     private fun resolvePath(path: String, obj: Any?): Any? {
         if (obj == null) return null
-        
-        val components = path.split(".")
+
+        // Normalize bracket notation to dot notation for uniform handling:
+        // "hasMenu.hasMenuSection[0].name" -> "hasMenu.hasMenuSection.0.name"
+        val normalizedPath = path.replace(Regex("\\[(\\d+)\\]"), ".$1")
+
+        val components = normalizedPath.split(".")
         var current: Any? = obj
-        
+
         for (component in components) {
             if (current == null) return null
-            
+            if (component.isEmpty()) continue
+
             current = when (current) {
                 is Map<*, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    (current as? Map<String, Any?>)?.get(component)
+                    val map = current as? Map<String, Any?>
+                    // Try key lookup first; if not found and key is numeric, this might
+                    // be a map with string-number keys (rare but possible)
+                    map?.get(component)
                 }
                 is List<*> -> {
                     val index = component.toIntOrNull()
@@ -95,7 +107,7 @@ class DataContext(
                 }
             }
         }
-        
+
         return current
     }
     
