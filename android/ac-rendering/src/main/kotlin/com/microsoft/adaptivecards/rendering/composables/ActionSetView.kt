@@ -391,8 +391,9 @@ private fun PopoverBottomSheet(
     actionHandler: ActionHandler,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val hostConfig = LocalHostConfig.current
+    val screenHeightDp = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -401,6 +402,8 @@ private fun PopoverBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
+                .heightIn(max = (screenHeightDp * 0.8f).dp)
                 .padding(horizontal = hostConfig.spacing.padding.dp)
                 .padding(bottom = hostConfig.spacing.padding.dp)
         ) {

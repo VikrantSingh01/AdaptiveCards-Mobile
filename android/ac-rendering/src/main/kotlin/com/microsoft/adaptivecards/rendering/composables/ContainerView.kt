@@ -6,11 +6,14 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Canvas
@@ -44,10 +47,15 @@ fun ContainerView(
     val hostConfig = LocalHostConfig.current
     val items = element.items ?: emptyList()
 
-    // Parse minHeight (supports "100px" or plain number)
+    // Parse minHeight / maxHeight (supports "100px" or plain number)
     val minHeight = element.minHeight
         ?.replace("px", "")
         ?.toIntOrNull()?.dp
+    val maxHeight = element.maxHeight
+        ?.replace("px", "")
+        ?.toIntOrNull()?.dp
+    val isScrollOverflow = element.overflow?.lowercase() == "scroll"
+    val isHiddenOverflow = element.overflow?.lowercase() == "hidden"
 
     val verticalArrangement = when (element.verticalContentAlignment) {
         VerticalContentAlignment.Top -> Arrangement.Top
@@ -88,6 +96,8 @@ fun ContainerView(
             .containerStyle(element.style, cornerRadius)
             .then(if (borderColor != null) Modifier.border(1.dp, borderColor, shape) else Modifier)
             .then(if (minHeight != null) Modifier.heightIn(min = minHeight) else Modifier)
+            .then(if (maxHeight != null) Modifier.heightIn(max = maxHeight) else Modifier)
+            .then(if (isHiddenOverflow && maxHeight != null) Modifier.clipToBounds() else Modifier)
             .selectAction(element.selectAction, actionHandler)
             .fillMaxWidth()
     ) {
@@ -133,6 +143,7 @@ fun ContainerView(
             else -> Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .then(if (isScrollOverflow) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .padding(padding),
                 verticalArrangement = verticalArrangement
             ) {

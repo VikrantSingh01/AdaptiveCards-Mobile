@@ -5,10 +5,12 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -248,29 +250,43 @@ fun AdaptiveCardView(
                         LocalCardViewModel provides viewModel,
                         LocalFeatureFlags provides configuration.featureFlags
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            adaptiveCard.body?.forEachIndexed { index, element ->
-                                RenderElement(
-                                    element = element,
-                                    isFirst = index == 0,
-                                    viewModel = viewModel,
-                                    actionHandler = actionHandler
-                                )
-                            }
-
-                            adaptiveCard.actions?.let { actions ->
-                                if (actions.isNotEmpty()) {
-                                    ActionSetView(
-                                        actions = actions,
-                                        actionHandler = actionHandler,
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                adaptiveCard.body?.forEachIndexed { index, element ->
+                                    RenderElement(
+                                        element = element,
+                                        isFirst = index == 0,
                                         viewModel = viewModel,
-                                        modifier = Modifier.fillMaxWidth()
+                                        actionHandler = actionHandler
                                     )
                                 }
+
+                                adaptiveCard.actions?.let { actions ->
+                                    if (actions.isNotEmpty()) {
+                                        ActionSetView(
+                                            actions = actions,
+                                            actionHandler = actionHandler,
+                                            viewModel = viewModel,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Diagnostics overlay
+                            if (configuration.diagnosticsEnabled) {
+                                val parseTime = viewModel.lastParseTimeMs.collectAsState().value
+                                DiagnosticsOverlay(
+                                    card = adaptiveCard,
+                                    parseTimeMs = parseTime,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                )
                             }
                         }
                     }

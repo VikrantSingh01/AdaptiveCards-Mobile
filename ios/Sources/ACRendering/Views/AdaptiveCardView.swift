@@ -209,7 +209,9 @@ public struct AdaptiveCardView: View {
     }
 
     private func cardContent(card: AdaptiveCard) -> some View {
-        ScrollView {
+        let showDiagnostics = configuration?.diagnosticsEnabled == true
+
+        return ScrollView {
             VStack(spacing: 0) {
                 if let body = card.body, !body.isEmpty {
                     ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
@@ -238,6 +240,15 @@ public struct AdaptiveCardView: View {
         }
         .environment(\.widthCategory, WidthCategory.from(width: cardWidth, hostConfig: hostConfig))
         .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
+        .overlay(alignment: .topTrailing) {
+            if showDiagnostics {
+                DiagnosticsOverlayView(
+                    card: card,
+                    parseTimeMs: viewModel.lastParseTimeMs
+                )
+                .padding(4)
+            }
+        }
         .task(id: card.refresh?.expires) {
             // Auto-refresh: schedule callback when card expires
             guard let onRefreshNeeded = onRefreshNeeded,
