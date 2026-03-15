@@ -4,9 +4,7 @@
 
 import SwiftUI
 #if canImport(UIKit)
-#if canImport(UIKit)
 import UIKit
-#endif
 #endif
 import ACCore
 import ACAccessibility
@@ -53,7 +51,7 @@ struct TabSetView: View {
                 }
             }
             .frame(height: adaptiveTabBarHeight)
-            .background(Color(hex: hostConfig.containerStyles.default.backgroundColor))
+            .background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Tab bar with \(tabSet.tabs.count) tabs")
 
