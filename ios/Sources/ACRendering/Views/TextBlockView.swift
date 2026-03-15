@@ -279,11 +279,12 @@ struct TextBlockView: View {
     /// Computes the effective line limit based on wrap and maxLines properties.
     /// When wrap is false/nil and no maxLines set, limit to 1 line (legacy behavior).
     /// Inside table cells, default to wrapping to match Android behavior.
+    /// Heading-style text defaults to wrapping (no line limit) per AC spec.
     private var effectiveLineLimit: Int? {
         if let maxLines = textBlock.maxLines {
             return maxLines
         }
-        if textBlock.wrap == true || isInsideTableCell {
+        if textBlock.wrap == true || isInsideTableCell || textBlock.style == .heading {
             return nil
         }
         return 1
