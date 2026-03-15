@@ -4,9 +4,7 @@
 
 import SwiftUI
 #if canImport(UIKit)
-#if canImport(UIKit)
 import UIKit
-#endif
 #endif
 import ACCore
 import ACAccessibility
@@ -43,18 +41,28 @@ public struct TextInputView: View {
             }
 
             if input.isMultiline == true && input.style != .password {
-                TextEditor(text: $value)
-                    .scrollContentBackground(.hidden)
-                    .frame(minHeight: 80)
-                    .padding(8)
-                    .background(Color(white: 1.0))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(borderColor, lineWidth: 1)
-                    )
-                    .onChange(of: value) { _ in
-                        validateIfNeeded()
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $value)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 80)
+                        .padding(8)
+
+                    if value.isEmpty, let placeholder = input.placeholder {
+                        Text(placeholder)
+                            .foregroundColor(Color.gray.opacity(0.5))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 16)
+                            .allowsHitTesting(false)
                     }
+                }
+                .background(Color(white: 1.0))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(borderColor, lineWidth: 1)
+                )
+                .onChange(of: value) { _ in
+                    validateIfNeeded()
+                }
             } else if input.style == .password {
                 HStack(spacing: 4) {
                     SecureField(input.placeholder ?? "", text: $value)
