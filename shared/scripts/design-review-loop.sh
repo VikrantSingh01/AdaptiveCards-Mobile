@@ -1100,6 +1100,24 @@ merge_fixes() {
             continue
         fi
 
+        # Rebase the fix branch onto current main before merging.
+        # Parallel agents fork from the same base commit, so later branches
+        # (P1, P2) don't have earlier branches' (P0) changes. Rebasing first
+        # avoids merge conflicts caused by overlapping fixes.
+        log "Rebasing $branch onto $current_branch before merge..."
+        if git -C "$REPO_ROOT" rebase "$current_branch" "$branch" 2>>"$LOOP_LOG"; then
+            # Switch back to main after rebase (rebase leaves us on the rebased branch)
+            git -C "$REPO_ROOT" checkout "$current_branch" 2>>"$LOOP_LOG"
+            log "  Rebase successful."
+        else
+            log "  WARNING: Rebase conflict on $PRIORITY_UPPER branch. Aborting rebase, falling back to merge."
+            git -C "$REPO_ROOT" rebase --abort 2>/dev/null || true
+            git -C "$REPO_ROOT" checkout "$current_branch" 2>/dev/null || true
+        fi
+
+        # Re-count ahead after potential rebase
+        ahead=$(git -C "$REPO_ROOT" rev-list --count "$current_branch..$branch" 2>/dev/null | tr -d '[:space:]' || echo "0")
+
         log "Merging $branch into $current_branch ($ahead commits ahead)..."
         if git -C "$REPO_ROOT" merge "$branch" --no-edit 2>>"$LOOP_LOG"; then
             log "  Merged $PRIORITY_UPPER branch successfully ($ahead commits)."
