@@ -198,11 +198,10 @@ public struct AreaGridLayoutView: View {
         return total
     }
 
-    /// Resolve column definitions into concrete widths.
-    /// - Plain numbers (e.g., "35") → percentage of available width
-    /// - "Npx" suffix (e.g., "100px") → fixed pixel value
-    /// - "auto" / "Nfr" / "*" → nil (flexible, SwiftUI Grid distributes remaining space)
-    /// - No column defs: auto-generate equal widths from available space
+    /// Resolve column definitions into concrete widths using weight-based
+    /// proportional distribution (matching Android's resolveColumnWeights).
+    /// All columns are resolved to concrete pixel widths so SwiftUI Grid
+    /// distributes space identically to Compose's weight() modifier.
     private func resolveColumnWidths(
         columnDefs: [String],
         columnCount: Int,
@@ -218,33 +217,53 @@ public struct AreaGridLayoutView: View {
             return Array(repeating: equalWidth, count: columnCount)
         }
 
-        return (0..<columnCount).map { idx in
-            guard idx < columnDefs.count else {
-                // Extra columns beyond definitions get equal share of remaining space
-                return usableWidth / CGFloat(columnCount)
-            }
-            let def = columnDefs[idx].trimmingCharacters(in: .whitespaces)
+        // Step 1: Calculate used percentage and auto column count
+        // (mirrors Android resolveColumnWeights logic)
+        var usedPercentage: CGFloat = 0
+        var autoCount = 0
 
-            // "auto", "1fr", "*" → flexible
-            if def == "auto" || def.hasSuffix("fr") || def == "*" {
-                return nil
-            }
-
-            // "100px" → fixed pixel
-            if def.hasSuffix("px") {
+        for i in 0..<columnCount {
+            let def = (i < columnDefs.count ? columnDefs[i] : "1fr")
+                .trimmingCharacters(in: .whitespaces)
+            if def.hasSuffix("fr") {
+                // fr columns don't consume percentage
+            } else if def == "auto" || def == "*" {
+                autoCount += 1
+            } else {
                 let numeric = def.replacingOccurrences(of: "px", with: "")
-                if let value = Double(numeric) {
-                    return CGFloat(value)
+                if let pct = Double(numeric) {
+                    usedPercentage += CGFloat(pct)
                 }
-                return nil
             }
+        }
 
-            // Plain number → percentage of usable width
-            if let value = Double(def) {
-                return usableWidth * CGFloat(value) / 100.0
+        let remainingPercentage = max(100 - usedPercentage, 0)
+        let autoWeight = autoCount > 0 ? remainingPercentage / CGFloat(autoCount) : 1
+
+        // Step 2: Resolve each column to a weight
+        let weights: [CGFloat] = (0..<columnCount).map { i in
+            let def = (i < columnDefs.count ? columnDefs[i] : "1fr")
+                .trimmingCharacters(in: .whitespaces)
+            if def.hasSuffix("fr") {
+                let numeric = def.replacingOccurrences(of: "fr", with: "")
+                return max(CGFloat(Double(numeric) ?? 1), 1)
+            } else if def == "auto" || def == "*" {
+                return max(autoWeight, 1)
+            } else {
+                let numeric = def.replacingOccurrences(of: "px", with: "")
+                return max(CGFloat(Double(numeric) ?? 1), 1)
             }
+        }
 
-            return nil
+        // Step 3: Convert weights to pixel widths
+        let totalWeight = weights.reduce(0, +)
+        guard totalWeight > 0 else {
+            let equalWidth = usableWidth / CGFloat(max(columnCount, 1))
+            return Array(repeating: equalWidth, count: columnCount)
+        }
+
+        return weights.map { weight in
+            usableWidth * weight / totalWeight
         }
     }
 
