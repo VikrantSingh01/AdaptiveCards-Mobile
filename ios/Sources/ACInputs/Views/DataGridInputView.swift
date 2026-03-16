@@ -88,16 +88,18 @@ public struct DataGridInputView: View {
         }) {
             HStack(spacing: 4) {
                 Text(column.title)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.primary)
                     .lineLimit(1)
 
                 if column.isSortable ?? true {
                     Image(systemName: sortIcon(for: column.id))
                         .font(.caption)
+                        .foregroundColor(.primary)
                 }
             }
             .padding(8)
-            .frame(width: columnWidth(column), height: 44)
+            .frame(width: columnWidth(column), height: 44, alignment: .leading)
         }
         .disabled(!(column.isSortable ?? true))
         .background(Color.gray.opacity(0.2))
