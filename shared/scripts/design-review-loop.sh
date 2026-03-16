@@ -71,6 +71,20 @@ MODEL="opus"
 EXIT_ON_P2=false
 MAX_AGENTS=5
 
+# Mandatory smoke test cards — these exercise the most fragile layout paths.
+# After EVERY worktree merge, deep-link to these cards on both platforms and
+# verify they render correctly. If any regresses, revert the merge immediately.
+SMOKE_TEST_CARDS=(
+    "official-samples/agenda"
+    "official-samples/flight-update"
+    "official-samples/expense-report"
+    "official-samples/flight-details"
+    "versioned/v1.5/MultiColumnFlowLayout"
+    "versioned/v1.5/Image.FitMode.Contain"
+    "versioned/v1.6/CompoundButton"
+    "compound-buttons"
+)
+
 # Parse args
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -84,7 +98,7 @@ while [[ $# -gt 0 ]]; do
         --exit-on-p2)     EXIT_ON_P2=true; shift ;;
         --max-agents)     MAX_AGENTS="$2"; shift 2 ;;
         -h|--help)
-            sed -n '/^# Usage:/,/^# ===/{/^# ===/d;s/^# //;p}' "$0"
+            sed -n '/^# Usage:/,/^# ===/p' "$0" | grep -v '^# ===' | sed 's/^# //;s/^#$//'
             exit 0 ;;
         *)                echo "Unknown arg: $1 (use --help for usage)"; exit 1 ;;
     esac
@@ -205,8 +219,9 @@ run_capture() {
         local cards_file="$LOOP_DIR/recapture-cards-$iteration.txt"
         : > "$cards_file"
 
-        # Extract card names from all worklists of the previous iteration
-        # Glob for all worklist files (p1, p2-1, p2-2, p2-3, p3, etc.)
+        # Extract card deep-link paths from all worklists of the previous iteration.
+        # Uses verify_cards (deep-link format: "official-samples/agenda") not card
+        # (display format: "official-samples-agenda, templates-Agenda.template").
         for worklist in "$LOOP_DIR"/worklist-*-iteration-${prev_iter}.json; do
             [ -f "$worklist" ] || continue
             python3 -c "
@@ -214,9 +229,38 @@ import json
 with open('$worklist') as f:
     data = json.load(f)
 for issue in data.get('issues', []):
-    card = issue.get('card', '')
-    if card:
-        print(card)
+    # Prefer verify_cards (correct deep-link format)
+    for card in issue.get('verify_cards', []):
+        if card:
+            print(card)
+    # Fallback: parse card field (comma-separated display names → deep-link paths)
+    if not issue.get('verify_cards'):
+        for name in issue.get('card', '').split(','):
+            name = name.strip()
+            if name:
+                # Convert display name to deep-link: replace first dash with /
+                # e.g. 'official-samples-agenda' → 'official-samples/agenda'
+                # e.g. 'versioned-v1.5-Agenda' → 'versioned/v1.5/Agenda'
+                parts = name.split('-')
+                # Try known prefixes
+                for prefix_len in [2, 1, 3]:
+                    prefix = '-'.join(parts[:prefix_len])
+                    rest = '-'.join(parts[prefix_len:])
+                    # Check if prefix matches a known directory
+                    known = ['official-samples', 'teams-official-samples', 'element-samples',
+                             'versioned', 'templates']
+                    if prefix in known and rest:
+                        # For versioned, need nested: versioned/v1.5/Name
+                        if prefix == 'versioned' and len(parts) > prefix_len + 1:
+                            ver = parts[prefix_len]
+                            card_name = '-'.join(parts[prefix_len+1:])
+                            print(f'versioned/{ver}/{card_name}')
+                        else:
+                            print(f'{prefix}/{rest}')
+                        break
+                else:
+                    # No known prefix matched — output as-is (root-level card)
+                    print(name)
 " >> "$cards_file" 2>/dev/null || true
         done
 
@@ -292,6 +336,18 @@ for issue in data.get('issues', []):
     #     fi
     # fi
     log "GitHub Pages deploy skipped (disabled)."
+
+    # Ensure index.html was generated (design-pass.sh may have failed during compression)
+    if [ -n "$CATALOG_DIR" ] && [ ! -f "$CATALOG_DIR/index.html" ]; then
+        log "WARNING: index.html missing from catalog. Regenerating..."
+        if bash "$SCRIPT_DIR/generate-design-catalog.sh" "$CATALOG_DIR" 2>>"$LOOP_LOG"; then
+            cp "$CATALOG_DIR/index.html" "$REPO_ROOT/shared/test-results/index.html" 2>/dev/null || true
+            ln -sfn "$CATALOG_DIR/screenshots" "$REPO_ROOT/shared/test-results/screenshots" 2>/dev/null || true
+            log "  index.html regenerated successfully."
+        else
+            log "  WARNING: Failed to generate index.html. Review agent will work without HTML catalog."
+        fi
+    fi
 }
 
 # =============================================================================
@@ -664,233 +720,193 @@ parse_issues() {
         return 1
     fi
 
-    # Partition issues into P1-P5 worklists with file-level conflict detection
+    # Partition issues into platform-based worklists (iOS/Android/shared)
+    # This eliminates merge conflicts between agents since each agent only edits
+    # files from one platform. Issues are sorted by priority within each platform.
     if [ -f "$ISSUES_FILE" ]; then
         export ISSUES_FILE LOOP_DIR MAX_AGENTS
         ITERATION="$iteration" python3 << 'PARTITION_EOF'
 import json, sys, os
+from collections import defaultdict
 
 issues_file = os.environ["ISSUES_FILE"]
 loop_dir = os.environ["LOOP_DIR"]
 iteration = os.environ.get("ITERATION", "1")
+max_agents = int(os.environ.get("MAX_AGENTS", "5"))
 
 with open(issues_file) as f:
     data = json.load(f)
 
 issues = data.get("issues", [])
 
-# Partition by priority, sort by fix_confidence (high first)
-confidence_order = {"high": 0, "medium": 1, "low": 2}
-worklists = {"P1": [], "P2": [], "P3": [], "P4": [], "P5": []}
-for issue in issues:
-    p = issue.get("priority", "P3")
-    if p in worklists:
-        worklists[p].append(issue)
-    # Issues outside P1-P5 (e.g., info-only) are not assigned to fix agents
+# Skip issues outside P0-P3 (P4/P5 are informational)
+actionable = [i for i in issues if i.get("priority", "P5") in ("P0", "P1", "P2", "P3")]
 
-# Sort each worklist: dependency order first, then high confidence
-# "blocks" field means "this issue blocks issue X" — so issues with blocks entries go first
-for p in worklists:
-    # Collect IDs that are blocked by something (appear in another issue's blocks list)
-    blocked_ids = set()
-    for item in worklists[p]:
-        for bid in item.get("blocks", []):
-            blocked_ids.add(bid)
+# Classify each issue by platform based on affected_files
+def classify_platform(issue):
+    files = issue.get("affected_files", [])
+    has_ios = any(f.startswith("ios/") for f in files)
+    has_android = any(f.startswith("android/") for f in files)
+    if has_ios and has_android:
+        return "both"
+    elif has_ios:
+        return "ios"
+    elif has_android:
+        return "android"
+    else:
+        # Fallback: check platform field from review
+        plat = issue.get("platform", "both")
+        if plat == "ios":
+            return "ios"
+        elif plat == "android":
+            return "android"
+        return "both"
 
-    def sort_key(item, _blocked=blocked_ids):
-        item_id = item.get("id", 999)
-        has_blocks = len(item.get("blocks", [])) > 0  # This issue blocks others
-        is_blocked = item_id in _blocked  # This issue is blocked by another
-        # 0 = blocks others (do first), 1 = independent, 2 = is blocked (do last)
-        if has_blocks:
-            order = 0
-        elif is_blocked:
-            order = 2
-        else:
-            order = 1
-        conf = confidence_order.get(item.get("fix_confidence", "medium"), 1)
-        return (order, conf)
+# Sort by priority (P1 first) then confidence
+priority_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+confidence_rank = {"high": 0, "medium": 1, "low": 2}
 
-    worklists[p].sort(key=sort_key)
+def sort_key(item):
+    p = priority_rank.get(item.get("priority", "P3"), 2)
+    c = confidence_rank.get(item.get("fix_confidence", "medium"), 1)
+    has_blocks = 0 if item.get("blocks") else 1
+    return (has_blocks, p, c)
 
-# Compute file ownership — higher priority (lower number) wins conflicts
-# Process P1 first, then P2, P3, P4, P5
-priority_order = ["P1", "P2", "P3", "P4", "P5"]
-file_owners = {}
-for priority in priority_order:
-    for item in worklists[priority]:
-        for f in item.get("affected_files", []):
-            if f not in file_owners:
-                file_owners[f] = priority
-            # If already owned by higher priority, leave it
+# Partition into platform buckets
+platform_buckets = {"ios": [], "android": [], "shared": []}
+for issue in actionable:
+    plat = classify_platform(issue)
+    if plat == "both":
+        # Split cross-platform issues: create a copy for each platform
+        ios_files = [f for f in issue.get("affected_files", []) if f.startswith("ios/")]
+        android_files = [f for f in issue.get("affected_files", []) if f.startswith("android/")]
+        if ios_files:
+            ios_issue = dict(issue)
+            ios_issue["affected_files"] = ios_files
+            ios_issue["_original_affected_files"] = issue.get("affected_files", [])
+            platform_buckets["ios"].append(ios_issue)
+        if android_files:
+            android_issue = dict(issue)
+            android_issue["affected_files"] = android_files
+            android_issue["_original_affected_files"] = issue.get("affected_files", [])
+            platform_buckets["android"].append(android_issue)
+        if not ios_files and not android_files:
+            # No platform-specific files — assign to shared
+            platform_buckets["shared"].append(issue)
+    else:
+        platform_buckets[plat].append(issue)
 
-# Reassign issues whose files are all owned by a higher priority
-for lower in reversed(priority_order[1:]):  # P5, P4, P3, P2
-    reassigned = []
-    for item in worklists[lower]:
-        files = item.get("affected_files", [])
-        if files and all(file_owners.get(f) != lower for f in files):
-            # All files owned by higher priority — reassign this issue up
-            higher = file_owners.get(files[0], lower) if files else lower
-            worklists[higher].append(item)
-            reassigned.append(item)
-    for item in reassigned:
-        worklists[lower].remove(item)
+# Sort each bucket by priority
+for plat in platform_buckets:
+    platform_buckets[plat].sort(key=sort_key)
 
-# Write worklists with file ownership metadata
-# Split large worklists into sub-groups for parallel agents (up to MAX_AGENTS total)
-max_agents = int(os.environ.get("MAX_AGENTS", "5"))
+# Merge shared issues into the platform with fewer issues (for load balancing)
+if platform_buckets["shared"]:
+    ios_count = len(platform_buckets["ios"])
+    android_count = len(platform_buckets["android"])
+    target = "ios" if ios_count <= android_count else "android"
+    platform_buckets[target].extend(platform_buckets["shared"])
+    platform_buckets["shared"] = []
 
-# Collect all non-empty priority groups
-all_groups = []
-for priority in priority_order:
-    items = worklists[priority]
-    if items:
-        all_groups.append((priority, items))
+# Build worklists — one per non-empty platform bucket
+# If a platform has many issues, split into sub-agents (max issues_per_agent = 8)
+MAX_ISSUES_PER_AGENT = 8
+agent_count = 0
 
-# Calculate how many agent slots each priority gets (proportional to issue count)
-total_issues = sum(len(items) for _, items in all_groups)
-if total_issues == 0:
-    pass  # nothing to do
-else:
-    # Each priority gets at least 1 slot; distribute remainder proportionally
-    slots = {}
-    remaining_slots = max_agents
-    for priority, items in all_groups:
-        slots[priority] = 1
-        remaining_slots -= 1
+for plat in ["ios", "android"]:
+    items = platform_buckets[plat]
+    if not items:
+        continue
 
-    # Distribute remaining slots proportionally
-    for priority, items in sorted(all_groups, key=lambda x: len(x[1]), reverse=True):
-        if remaining_slots <= 0:
-            break
-        extra = min(remaining_slots, max(0, round(len(items) / total_issues * max_agents) - 1))
-        slots[priority] += extra
-        remaining_slots -= extra
+    all_files = sorted(set(f for item in items for f in item.get("affected_files", [])))
+    # Excluded files = everything from the OTHER platform
+    other_plat = "android" if plat == "ios" else "ios"
+    other_files = sorted(set(
+        f for item in platform_buckets[other_plat] for f in item.get("affected_files", [])
+    ))
 
-    # Give any leftover slots to the largest group
-    if remaining_slots > 0 and all_groups:
-        largest = max(all_groups, key=lambda x: len(x[1]))[0]
-        slots[largest] += remaining_slots
+    n_sub_agents = min(
+        max(1, (len(items) + MAX_ISSUES_PER_AGENT - 1) // MAX_ISSUES_PER_AGENT),
+        max_agents - agent_count
+    )
 
-    for priority, items in all_groups:
-        n_slots = min(slots.get(priority, 1), len(items))  # no more slots than issues
-        owned_files = sorted(set(f for f, owner in file_owners.items() if owner == priority))
-        excluded_files = sorted(set(f for f, owner in file_owners.items() if owner != priority))
+    if n_sub_agents <= 1:
+        worklist = {
+            "priority": plat,
+            "issue_count": len(items),
+            "issues": items,
+            "owned_files": all_files,
+            "excluded_files": other_files
+        }
+        outfile = os.path.join(loop_dir, f"worklist-{plat}-iteration-{iteration}.json")
+        with open(outfile, "w") as out:
+            json.dump(worklist, out, indent=2)
+        print(f"{plat}: {len(items)} issues, {len(all_files)} owned files (1 agent)")
+        agent_count += 1
+    else:
+        # Split by file clustering (same union-find as before)
+        parent = {}
+        def find(x):
+            while parent.get(x, x) != x:
+                parent[x] = parent.get(parent[x], parent[x])
+                x = parent[x]
+            return x
+        def union(a, b):
+            ra, rb = find(a), find(b)
+            if ra != rb:
+                parent[ra] = rb
 
-        if n_slots <= 1:
-            # Single worklist for this priority
+        file_to_issues = {}
+        for i, item in enumerate(items):
+            for f in item.get("affected_files", []):
+                if f not in file_to_issues:
+                    file_to_issues[f] = []
+                file_to_issues[f].append(i)
+
+        for indices in file_to_issues.values():
+            for j in range(1, len(indices)):
+                union(indices[0], indices[j])
+
+        clusters = defaultdict(list)
+        for i in range(len(items)):
+            clusters[find(i)].append(i)
+        cluster_list = sorted(clusters.values(), key=lambda c: len(c), reverse=True)
+
+        while len(cluster_list) > n_sub_agents:
+            smallest = cluster_list.pop()
+            cluster_list[-1].extend(smallest)
+            cluster_list.sort(key=lambda c: len(c), reverse=True)
+
+        chunks = [[items[i] for i in cluster] for cluster in cluster_list]
+
+        for idx, chunk in enumerate(chunks):
+            chunk_owned = sorted(set(
+                f for issue in chunk for f in issue.get("affected_files", [])
+            ))
+            chunk_excluded = sorted(set(
+                f for f in other_files if f not in chunk_owned
+            ))
+            # Also exclude files owned by OTHER sub-agents of same platform
+            for other_idx, other_chunk in enumerate(chunks):
+                if other_idx != idx:
+                    for oi in other_chunk:
+                        for of in oi.get("affected_files", []):
+                            if of not in chunk_owned and of not in chunk_excluded:
+                                chunk_excluded.append(of)
+            chunk_excluded = sorted(set(chunk_excluded))
+
             worklist = {
-                "priority": priority,
-                "issue_count": len(items),
-                "issues": items,
-                "owned_files": owned_files,
-                "excluded_files": excluded_files
+                "priority": f"{plat}-{idx+1}",
+                "issue_count": len(chunk),
+                "issues": chunk,
+                "owned_files": chunk_owned,
+                "excluded_files": chunk_excluded
             }
-            outfile = os.path.join(loop_dir, f"worklist-{priority.lower()}-iteration-{iteration}.json")
+            outfile = os.path.join(loop_dir, f"worklist-{plat}-{idx+1}-iteration-{iteration}.json")
             with open(outfile, "w") as out:
                 json.dump(worklist, out, indent=2)
-            print(f"{priority}: {len(items)} issues, {len(owned_files)} owned files (1 agent)")
-        else:
-            # Split into sub-groups by clustering issues that share files.
-            # Uses union-find to guarantee NO two agents edit the same file.
-            # Issues sharing any file (even via directory overlap) are merged
-            # into the same cluster.
-
-            # Union-Find
-            parent = {}
-            def find(x):
-                while parent.get(x, x) != x:
-                    parent[x] = parent.get(parent[x], parent[x])
-                    x = parent[x]
-                return x
-            def union(a, b):
-                ra, rb = find(a), find(b)
-                if ra != rb:
-                    parent[ra] = rb
-
-            # Helper: check if two file paths overlap (one is a prefix of the other)
-            def paths_overlap(a, b):
-                # Normalize: ensure directories end with /
-                na = a.rstrip("/") + "/" if a.endswith("/") else a
-                nb = b.rstrip("/") + "/" if b.endswith("/") else b
-                # a is a directory containing b, or b is a directory containing a
-                if a.endswith("/") and nb.startswith(na):
-                    return True
-                if b.endswith("/") and na.startswith(nb):
-                    return True
-                return a == b
-
-            # Build file→issue index, respecting directory overlap
-            file_to_issues = {}
-            for i, item in enumerate(items):
-                for f in item.get("affected_files", []):
-                    # Check against existing keys for directory overlap
-                    merged_key = f
-                    for existing_key in list(file_to_issues.keys()):
-                        if paths_overlap(f, existing_key):
-                            merged_key = existing_key
-                            break
-                    if merged_key not in file_to_issues:
-                        file_to_issues[merged_key] = []
-                    file_to_issues[merged_key].append(i)
-
-            # Union issues that share any file (or overlapping directory)
-            for indices in file_to_issues.values():
-                for j in range(1, len(indices)):
-                    union(indices[0], indices[j])
-
-            # Also union issues with no affected_files into one group
-            no_files = [i for i, item in enumerate(items) if not item.get("affected_files")]
-            for j in range(1, len(no_files)):
-                union(no_files[0], no_files[j])
-
-            # Collect clusters
-            from collections import defaultdict
-            clusters = defaultdict(list)
-            for i in range(len(items)):
-                clusters[find(i)].append(i)
-            cluster_list = sorted(clusters.values(), key=lambda c: len(c), reverse=True)
-
-            # Merge smallest clusters until we have at most n_slots groups
-            while len(cluster_list) > n_slots:
-                # Merge the two smallest clusters
-                smallest = cluster_list.pop()
-                cluster_list[-1].extend(smallest)
-                cluster_list.sort(key=lambda c: len(c), reverse=True)
-
-            chunks = [[items[i] for i in cluster] for cluster in cluster_list]
-
-            for idx, chunk in enumerate(chunks):
-                chunk_owned = sorted(set(
-                    f for issue in chunk for f in issue.get("affected_files", [])
-                    if file_owners.get(f) == priority
-                ))
-                chunk_excluded = sorted(set(
-                    f for f, owner in file_owners.items() if f not in chunk_owned
-                ))
-                # Verify no file overlap with other chunks (defensive check)
-                for other_idx, other_chunk in enumerate(chunks):
-                    if other_idx == idx:
-                        continue
-                    other_files = set(
-                        f for issue in other_chunk for f in issue.get("affected_files", [])
-                    )
-                    overlap = set(chunk_owned) & other_files
-                    if overlap:
-                        print(f"  WARNING: file overlap between {priority}-{idx+1} and {priority}-{other_idx+1}: {overlap}", file=sys.stderr)
-
-                worklist = {
-                    "priority": f"{priority}-{idx+1}",
-                    "issue_count": len(chunk),
-                    "issues": chunk,
-                    "owned_files": chunk_owned,
-                    "excluded_files": chunk_excluded
-                }
-                outfile = os.path.join(loop_dir, f"worklist-{priority.lower()}-{idx+1}-iteration-{iteration}.json")
-                with open(outfile, "w") as out:
-                    json.dump(worklist, out, indent=2)
-            print(f"{priority}: {len(items)} issues, {len(owned_files)} owned files ({len(chunks)} agents)")
+        print(f"{plat}: {len(items)} issues, {len(all_files)} owned files ({len(chunks)} agents)")
+        agent_count += len(chunks)
 
 PARTITION_EOF
         log "Worklists generated."
@@ -1017,10 +1033,14 @@ b. Read every file in affected_files — understand the current broken code.
 c. Read the test card JSON from shared/test-cards/ for the affected card — understand what the card is trying to render.
 d. If the issue is iOS-specific, find the Android counterpart view in android/ac-rendering/.../composables/ and vice versa. The counterpart is your blueprint.
 
-### Step 2: Fix (minimal, targeted change)
-a. Apply the minimal change needed. Copy the pattern from the reference/counterpart implementation.
+### Step 2: Fix (minimal, targeted change — AVOID OVER-CORRECTION)
+a. Apply the MINIMUM change needed. Copy the pattern from the reference/counterpart implementation.
 b. If fixing iOS, check if Android needs the same change for parity, and vice versa.
 c. Grep for other callers of any function/property you changed to check for side effects.
+d. DO NOT change adjacent/unrelated parameters (e.g., fixing width should not also change alignment).
+e. DO NOT remove fallback logic, proportional distribution, or multi-tier measurement from layout code.
+f. DO NOT simplify complex layout algorithms — they exist for edge cases. Add to them, do not subtract.
+g. If your fix touches more than 5 lines in a layout file, pause and verify EACH changed line is necessary.
 
 ### Step 3: Build (catch errors immediately)
 a. Build iOS: cd $REPO_ROOT/ios && swift build
@@ -1036,6 +1056,17 @@ c. Include the issue ID in the commit body so regressions can be traced.
 Repeat steps 1-4 for the next issue in the worklist.
 
 IMPORTANT: Do NOT batch all fixes into one commit. One commit per issue makes it possible to identify which fix caused a regression. If you fix 5 issues, you should have 5 commits.
+
+## Regression Prevention Checklist (MANDATORY for layout/rendering fixes)
+
+Before committing ANY change to these files, verify the fix does not break unrelated cards:
+- ColumnSetView.kt / ColumnSetView.swift — test: agenda, flight-update, expense-report (nested ColumnSets with auto+weighted columns)
+- FlowLayoutView.swift — test: versioned/v1.5/MultiColumnFlowLayout (multi-column with maxItemWidth)
+- ImageView.swift — test: versioned/v1.5/Image.FitMode.Contain, versioned/v1.5/Image.FitMode.Fill (fitMode with explicit dimensions)
+- CompoundButtonView.swift / CompoundButtonView.kt — test: compound-buttons (badge + title layout)
+- ContainerView.swift / ContainerView.kt — test: versioned/v1.5/AdaptiveCardFlowLayout (emphasis backgrounds)
+
+Verify by reading the card JSON and tracing through your changed code mentally. If ANY code path for those cards would hit your changed lines, you MUST ensure the behavior is preserved.
 
 ## File Access Rules
 - You may ONLY EDIT files listed in owned_files from the worklist.
@@ -1181,6 +1212,186 @@ resolve_fix_branch() {
     return 1
 }
 
+# =============================================================================
+# Impact Map: Resolve changed files → impacted test cards
+# =============================================================================
+# Uses shared/scripts/impact-map.json to determine which cards are affected by
+# a set of changed files. Falls back to SMOKE_TEST_CARDS if no mapping found.
+# =============================================================================
+IMPACT_MAP_FILE="$SCRIPT_DIR/impact-map.json"
+
+# Output: sets global RESOLVED_CARDS array
+resolve_impacted_cards() {
+    local base_commit="$1"
+
+    # Get list of changed files since base_commit
+    local changed_files
+    changed_files=$(git -C "$REPO_ROOT" diff --name-only "$base_commit" HEAD 2>/dev/null || true)
+
+    if [ -z "$changed_files" ] || [ ! -f "$IMPACT_MAP_FILE" ]; then
+        RESOLVED_CARDS=("${SMOKE_TEST_CARDS[@]}")
+        return
+    fi
+
+    # Use Python to resolve changed files → impacted cards via the impact map
+    # Pass data via environment to avoid heredoc quoting issues with filenames
+    local impacted
+    impacted=$(IMPACT_MAP="$IMPACT_MAP_FILE" CHANGED_FILES="$changed_files" python3 << 'IMPACT_EOF'
+import json, os
+
+impact_map_path = os.environ["IMPACT_MAP"]
+changed_raw = os.environ.get("CHANGED_FILES", "")
+
+with open(impact_map_path) as f:
+    impact_map = json.load(f)
+
+patterns = impact_map.get("file_patterns", {})
+changed = [f.strip() for f in changed_raw.strip().split("\n") if f.strip()]
+cards = set()
+
+for changed_file in changed:
+    for pattern, info in patterns.items():
+        # Exact match or directory prefix match
+        if changed_file == pattern or changed_file.startswith(pattern):
+            for card in info.get("test_cards", []):
+                cards.add(card)
+
+for card in sorted(cards):
+    print(card)
+IMPACT_EOF
+    )
+
+    if [ -z "$impacted" ]; then
+        RESOLVED_CARDS=("${SMOKE_TEST_CARDS[@]}")
+    else
+        RESOLVED_CARDS=()
+        while IFS= read -r card; do
+            [ -n "$card" ] && RESOLVED_CARDS+=("$card")
+        done <<< "$impacted"
+    fi
+}
+
+# =============================================================================
+# Post-Merge Smoke Test
+# =============================================================================
+# Deep-links to impacted test cards on both platforms and checks for blank
+# screens, error messages, or wrong-card rendering. Uses impact-map.json to
+# only test cards affected by the merge (targeted, not exhaustive).
+#
+# Args: $1=label, $2=base_commit (optional, for targeted card resolution)
+# Returns: 0 if all cards pass, 1 if any card fails
+# =============================================================================
+run_smoke_test() {
+    local branch_label="$1"
+    local base_commit="${2:-}"
+    local smoke_log="$LOOP_DIR/smoke-test-${branch_label}.log"
+    local failures=0
+    local smoke_dir="$LOOP_DIR/smoke-screenshots-${branch_label}"
+    mkdir -p "$smoke_dir"
+
+    # Resolve impacted cards from changed files (sets RESOLVED_CARDS global)
+    if [ -n "$base_commit" ]; then
+        resolve_impacted_cards "$base_commit"
+    else
+        RESOLVED_CARDS=("${SMOKE_TEST_CARDS[@]}")
+    fi
+
+    local total=${#RESOLVED_CARDS[@]}
+    log "  Running targeted smoke test ($total impacted cards on both platforms)..."
+
+    # Rebuild and reinstall sample apps (skip if HEAD unchanged since last build)
+    local current_head
+    current_head=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null)
+    if [ "${_LAST_SMOKE_BUILD_HEAD:-}" != "$current_head" ]; then
+        log "  Rebuilding sample apps..."
+        (cd "$REPO_ROOT/android" && ./gradlew :sample-app:installDebug 2>&1 | tail -3) >> "$smoke_log" 2>&1 &
+        local android_build_pid=$!
+
+        # Build iOS in parallel
+        (cd "$REPO_ROOT/ios" && xcodebuild -project SampleApp.xcodeproj -scheme ACVisualizer \
+            -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            build 2>&1 | tail -5) >> "$smoke_log" 2>&1 &
+        local ios_build_pid=$!
+
+        wait "$android_build_pid" 2>/dev/null || true
+        wait "$ios_build_pid" 2>/dev/null || true
+
+        # Reinstall iOS app
+        local ios_app_path
+        ios_app_path=$(find ~/Library/Developer/Xcode/DerivedData/SampleApp-*/Build/Products/Debug-iphonesimulator/ACVisualizer.app -maxdepth 0 2>/dev/null | head -1)
+        if [ -n "$ios_app_path" ]; then
+            xcrun simctl install "iPhone 16 Pro" "$ios_app_path" 2>/dev/null || true
+        fi
+        _LAST_SMOKE_BUILD_HEAD="$current_head"
+    else
+        log "  Skipping rebuild (HEAD unchanged since last build)."
+    fi
+
+    for card in "${RESOLVED_CARDS[@]}"; do
+        local card_safe="${card//\//-}"
+
+        # iOS: deep-link and screenshot
+        xcrun simctl openurl "iPhone 16 Pro" "adaptivecards://card/$card" 2>/dev/null || true
+        sleep 2
+        local ios_shot="$smoke_dir/ios-${card_safe}.png"
+        xcrun simctl io "iPhone 16 Pro" screenshot "$ios_shot" 2>/dev/null || true
+
+        # Android: deep-link and screenshot
+        "$ADB" shell am start -a android.intent.action.VIEW \
+            -d "adaptivecards://card/$card" \
+            com.microsoft.adaptivecards.sample 2>/dev/null || true
+        sleep 2
+        local android_shot="$smoke_dir/android-${card_safe}.png"
+        "$ADB" exec-out screencap -p > "$android_shot" 2>/dev/null || true
+
+        # Check Android for error screen (very small file ~60KB)
+        if [ -f "$android_shot" ]; then
+            local android_size
+            android_size=$(stat -f%z "$android_shot" 2>/dev/null || stat -c%s "$android_shot" 2>/dev/null || echo "0")
+            if [ "$android_size" -lt 61000 ]; then
+                log "  SMOKE FAIL: $card — Android screenshot too small (${android_size}B, likely error screen)"
+                failures=$((failures + 1))
+                echo "FAIL android $card size=${android_size}" >> "$smoke_log"
+            fi
+        fi
+
+        # Check iOS for blank/too-small screenshot
+        if [ -f "$ios_shot" ]; then
+            local ios_size
+            ios_size=$(stat -f%z "$ios_shot" 2>/dev/null || stat -c%s "$ios_shot" 2>/dev/null || echo "0")
+            if [ "$ios_size" -lt 50000 ]; then
+                log "  SMOKE FAIL: $card — iOS screenshot too small (${ios_size}B, likely blank)"
+                failures=$((failures + 1))
+                echo "FAIL ios $card size=${ios_size}" >> "$smoke_log"
+            fi
+        fi
+
+        # OCR check for error messages
+        if [ -f "$SCRIPT_DIR/check-screenshot-text.sh" ]; then
+            for platform_shot in "$ios_shot" "$android_shot"; do
+                [ ! -f "$platform_shot" ] && continue
+                local ocr_result
+                ocr_result=$(bash "$SCRIPT_DIR/check-screenshot-text.sh" "$platform_shot" 2>/dev/null || true)
+                if echo "$ocr_result" | grep -qi "FAIL\|Empty JSON\|Failed to render"; then
+                    local plat_name="ios"
+                    [[ "$platform_shot" == *android* ]] && plat_name="android"
+                    log "  SMOKE FAIL: $card — $plat_name OCR detected error text"
+                    failures=$((failures + 1))
+                    echo "FAIL ocr $plat_name $card" >> "$smoke_log"
+                fi
+            done
+        fi
+    done
+
+    if [ "$failures" -gt 0 ]; then
+        log "  SMOKE TEST FAILED: $failures failures across $total impacted cards. See $smoke_log"
+        return 1
+    else
+        log "  Smoke test passed: all $total impacted cards OK on both platforms."
+        return 0
+    fi
+}
+
 merge_fixes() {
     local iteration=$1
     log_section "Iteration $iteration — Phase 5: Merge Fix Branches"
@@ -1217,6 +1428,9 @@ merge_fixes() {
     current_branch=$(git -C "$REPO_ROOT" branch --show-current)
     local merged_count=0
     local empty_count=0
+    local reverted_count=0
+    local pre_all_merges_head
+    pre_all_merges_head=$(git -C "$REPO_ROOT" rev-parse HEAD)
 
     # Discover branches from pids file (supports dynamic agent count)
     local pids_file="$LOOP_DIR/fix-pids-iteration-${iteration}.txt"
@@ -1262,28 +1476,154 @@ merge_fixes() {
         # Re-count ahead after potential rebase
         ahead=$(git -C "$REPO_ROOT" rev-list --count "$current_branch..$branch" 2>/dev/null | tr -d '[:space:]' || echo "0")
 
+        # Save pre-merge HEAD so we can revert this specific merge if needed
+        local pre_merge_head
+        pre_merge_head=$(git -C "$REPO_ROOT" rev-parse HEAD)
+
         log "Merging $branch into $current_branch ($ahead commits ahead)..."
+        local merge_ok=false
         if git -C "$REPO_ROOT" merge "$branch" --no-edit 2>>"$LOOP_LOG"; then
             log "  Merged $PRIORITY_UPPER branch successfully ($ahead commits)."
-            merged_count=$((merged_count + 1))
-            cleanup_branch "$branch"
+            merge_ok=true
         else
             log "  Merge conflict on $PRIORITY_UPPER branch. Attempting auto-resolution..."
             auto_resolve_merge "$branch" "$PRIORITY_UPPER" "$current_branch" "$iteration"
             local resolve_status=$?
             if [ $resolve_status -eq 0 ]; then
                 log "  Auto-resolved and merged $PRIORITY_UPPER branch successfully."
-                merged_count=$((merged_count + 1))
-                cleanup_branch "$branch"
+                merge_ok=true
             else
                 log "  WARNING: Auto-resolution failed for $PRIORITY_UPPER branch. Keeping for manual resolution."
             fi
         fi
+
+        if [ "$merge_ok" = true ]; then
+            # Quick build check — only build platforms with changed files
+            log "  Running post-merge build check..."
+            local build_failed=false
+            local changed_platforms
+            changed_platforms=$(git -C "$REPO_ROOT" diff --name-only "$pre_merge_head" HEAD 2>/dev/null || true)
+            local has_ios_changes=false
+            local has_android_changes=false
+            echo "$changed_platforms" | grep -q "^ios/" && has_ios_changes=true
+            echo "$changed_platforms" | grep -q "^android/" && has_android_changes=true
+
+            if [ "$has_ios_changes" = true ]; then
+                if ! (cd "$REPO_ROOT/ios" && swift build 2>>"$LOOP_LOG"); then
+                    log "  BUILD FAIL: iOS build broken after merging $PRIORITY_UPPER."
+                    build_failed=true
+                fi
+            fi
+            if [ "$has_android_changes" = true ]; then
+                if ! (cd "$REPO_ROOT/android" && ./gradlew :sample-app:compileDebugKotlin 2>>"$LOOP_LOG"); then
+                    log "  BUILD FAIL: Android build broken after merging $PRIORITY_UPPER."
+                    build_failed=true
+                fi
+            fi
+
+            if [ "$build_failed" = true ]; then
+                log "  REVERTING merge of $PRIORITY_UPPER — build broken."
+                git -C "$REPO_ROOT" reset --hard "$pre_merge_head" 2>>"$LOOP_LOG"
+                reverted_count=$((reverted_count + 1))
+                # Cherry-pick individual commits to salvage non-breaking ones
+                log "  Attempting to cherry-pick individual commits from $branch..."
+                local cherry_picked=0
+                local cherry_failed=0
+                for commit_hash in $(git -C "$REPO_ROOT" rev-list --reverse "$pre_merge_head..$branch" 2>/dev/null); do
+                    local commit_msg
+                    commit_msg=$(git -C "$REPO_ROOT" log --oneline -1 "$commit_hash" 2>/dev/null)
+                    if git -C "$REPO_ROOT" cherry-pick "$commit_hash" --no-edit 2>>"$LOOP_LOG"; then
+                        if (cd "$REPO_ROOT/ios" && swift build 2>/dev/null) && \
+                           (cd "$REPO_ROOT/android" && ./gradlew :sample-app:compileDebugKotlin 2>/dev/null); then
+                            log "    Cherry-picked: $commit_msg"
+                            cherry_picked=$((cherry_picked + 1))
+                        else
+                            log "    Cherry-pick broke build, reverting: $commit_msg"
+                            git -C "$REPO_ROOT" reset --hard HEAD~1 2>>"$LOOP_LOG"
+                            cherry_failed=$((cherry_failed + 1))
+                        fi
+                    else
+                        log "    Cherry-pick conflict, skipping: $commit_msg"
+                        git -C "$REPO_ROOT" cherry-pick --abort 2>/dev/null || true
+                        cherry_failed=$((cherry_failed + 1))
+                    fi
+                done
+                log "  Cherry-pick salvage: $cherry_picked accepted, $cherry_failed skipped."
+                cleanup_branch "$branch"
+            else
+                log "  Build check passed."
+                merged_count=$((merged_count + 1))
+                # Record merge point for potential bisect during smoke test
+                echo "$PRIORITY_UPPER $pre_merge_head $(git -C "$REPO_ROOT" rev-parse HEAD)" >> "$LOOP_DIR/merge-points-iteration-${iteration}.txt"
+                cleanup_branch "$branch"
+            fi
+        fi
     done < "$pids_file"
 
-    log "Merge summary: $merged_count merged, $empty_count agents produced no changes."
+    log "Merge summary: $merged_count merged, $empty_count empty, ${reverted_count} reverted (build failure)."
     if [ "$empty_count" -gt 0 ]; then
         log "NOTE: $empty_count fix agents produced no output. Check fix logs for errors."
+    fi
+
+    # Run smoke test ONCE after all merges (fast: no per-merge rebuild overhead)
+    if [ "$merged_count" -gt 0 ]; then
+        log "Running post-merge smoke test on all $merged_count merged branches..."
+        local all_merges_head
+        all_merges_head=$(git -C "$REPO_ROOT" rev-parse HEAD)
+
+        if run_smoke_test "all-merges-iteration-${iteration}" "$pre_all_merges_head"; then
+            log "Smoke test passed — all merges are clean."
+        else
+            log "SMOKE TEST FAILED after merging $merged_count branches. Bisecting to find culprit..."
+            # Bisect: revert all, re-merge one at a time with smoke test
+            local merge_points_file="$LOOP_DIR/merge-points-iteration-${iteration}.txt"
+            if [ -f "$merge_points_file" ]; then
+                local first_pre_merge
+                first_pre_merge=$(head -1 "$merge_points_file" | awk '{print $2}')
+                git -C "$REPO_ROOT" reset --hard "$first_pre_merge" 2>>"$LOOP_LOG"
+                log "  Reset to pre-all-merges state. Re-merging one at a time..."
+
+                local bisect_merged=0
+                while IFS=' ' read -r mp_label mp_pre mp_post; do
+                    # Cherry-pick the range of commits that this merge introduced
+                    # mp_pre = HEAD before this merge, mp_post = HEAD after this merge
+                    local bisect_pre_head
+                    bisect_pre_head=$(git -C "$REPO_ROOT" rev-parse HEAD)
+                    local cherry_ok=true
+                    for ccommit in $(git -C "$REPO_ROOT" rev-list --reverse "${mp_pre}..${mp_post}" 2>/dev/null); do
+                        # Skip merge commits (they can't be cherry-picked cleanly)
+                        local parent_count
+                        parent_count=$(git -C "$REPO_ROOT" cat-file -p "$ccommit" 2>/dev/null | grep -c '^parent ' || echo "1")
+                        [ "$parent_count" -gt 1 ] && continue
+                        if ! git -C "$REPO_ROOT" cherry-pick "$ccommit" --no-edit 2>>"$LOOP_LOG"; then
+                            git -C "$REPO_ROOT" cherry-pick --abort 2>/dev/null || true
+                            cherry_ok=false
+                            break
+                        fi
+                    done
+
+                    if [ "$cherry_ok" = true ] && [ "$(git -C "$REPO_ROOT" rev-parse HEAD)" != "$bisect_pre_head" ]; then
+                        if run_smoke_test "bisect-${mp_label}" "$bisect_pre_head"; then
+                            log "  $mp_label: PASS — keeping merge."
+                            bisect_merged=$((bisect_merged + 1))
+                        else
+                            log "  $mp_label: FAIL — this merge introduced the regression. Reverting."
+                            git -C "$REPO_ROOT" reset --hard "$bisect_pre_head" 2>>"$LOOP_LOG"
+                        fi
+                    else
+                        if [ "$cherry_ok" = false ]; then
+                            log "  $mp_label: cherry-pick conflict, skipping."
+                            git -C "$REPO_ROOT" reset --hard "$bisect_pre_head" 2>>"$LOOP_LOG"
+                        else
+                            log "  $mp_label: no new commits to apply, skipping."
+                        fi
+                    fi
+                done < "$merge_points_file"
+                log "  Bisect complete: $bisect_merged/$merged_count merges survived."
+            else
+                log "  WARNING: No merge points recorded. Cannot bisect. Keeping all merges."
+            fi
+        fi
     fi
 }
 
@@ -1323,15 +1663,21 @@ auto_resolve_merge() {
     local target_recent
     target_recent=$(git -C "$REPO_ROOT" log --oneline -10 "$target" 2>/dev/null)
 
-    # Build the conflict diff (with markers) for each file
+    # Build the conflict diff showing only conflict regions (not truncated at 500 lines)
+    # For each file, extract lines around conflict markers so the agent sees the full conflict
     local conflict_diffs=""
     local file_list=""
     while IFS= read -r cfile; do
         [ -z "$cfile" ] && continue
         file_list="$file_list $cfile"
+        local file_path="$REPO_ROOT/$cfile"
+        local total_lines
+        total_lines=$(wc -l < "$file_path" 2>/dev/null | tr -d '[:space:]' || echo "0")
+        local conflict_marker_lines
+        conflict_marker_lines=$(grep -n '^<<<<<<<\|^=======\|^>>>>>>>' "$file_path" 2>/dev/null || true)
         conflict_diffs="$conflict_diffs
-=== $cfile ===
-$(cat "$REPO_ROOT/$cfile" 2>/dev/null | head -500)
+=== $cfile ($total_lines lines, conflict markers at: $(echo "$conflict_marker_lines" | cut -d: -f1 | tr '\n' ',' | sed 's/,$//')) ===
+$(grep -n -B5 -A5 '^<<<<<<<\|^>>>>>>>' "$file_path" 2>/dev/null || cat "$file_path" 2>/dev/null | head -200)
 "
     done <<< "$conflicted_files"
 
@@ -1365,19 +1711,26 @@ $conflict_diffs
    - If one side is a bug fix and the other is a refactor, keep the bug-fix logic with the refactor structure
    - If both add new code (non-overlapping), keep both
    - When modifiers chain (\`modifier.xyz()\` vs \`Modifier.xyz()\`), prefer the chained version that preserves parent context
-5. **Remove ALL conflict markers** (\`<<<<<<<\`, \`=======\`, \`>>>>>>>\`) — the file must be valid source code after resolution.
-6. **Verify syntax**: After editing, ensure the file has balanced braces/brackets and no leftover conflict markers.
+5. **CRITICAL — Layout/rendering code (ColumnSetView, FlowLayoutView, ImageView, ContainerView):**
+   - ALWAYS prefer the approach with MORE logic (proportional distribution, fallback strategies, multi-pass measurement)
+   - NEVER choose a simplified approach that removes fallback logic, proportional distribution, or multi-tier measurement
+   - Rendering edge cases (nested containers, mixed auto/weighted columns, zero-intrinsic-width content) require nuanced handling — simplification causes regressions
+   - If one side has a hybrid approach (e.g., try intrinsic width first, fall back to direct measurement) and the other has a simple approach (e.g., always direct measurement), KEEP THE HYBRID
+   - When in doubt about layout code, keep BOTH approaches as a try/fallback pattern rather than choosing one
+6. **Remove ALL conflict markers** (\`<<<<<<<\`, \`=======\`, \`>>>>>>>\`) — the file must be valid source code after resolution.
+7. **Verify syntax**: After editing, ensure the file has balanced braces/brackets and no leftover conflict markers.
 
 ## Process
 
 For each conflicted file:
-1. Read the full file
-2. Edit to resolve each conflict region (use the Edit tool to replace the conflicted section)
+1. Read the FULL file using the Read tool (the conflict excerpts above only show context around markers — you need the complete file to understand the surrounding code)
+2. Edit to resolve each conflict region (use the Edit tool to replace the conflicted section with the correctly merged code)
 3. Verify no conflict markers remain (search for \`<<<<<<<\`)
 
 Files to resolve:$file_list
 
 IMPORTANT: Only edit the conflicted files listed above. Do not modify any other files.
+IMPORTANT: Always Read the full file first — do NOT rely only on the excerpts above, as they only show 5 lines around each conflict marker.
 RESOLVE_PROMPT_EOF
     )
 

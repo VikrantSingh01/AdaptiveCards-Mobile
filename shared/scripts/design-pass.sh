@@ -367,13 +367,19 @@ if [ "$COMPRESS" = true ] && command -v pngquant &>/dev/null && [ -s "$COMPRESS_
     echo ""
     echo "=== Phase 2.5: Compressing $COMPRESS_TOTAL screenshots (parallel) ==="
 
-    # Compress up to 8 at a time using xargs parallel
-    cat "$COMPRESS_QUEUE" | xargs -P 8 -I{} sh -c '
-        pngquant --quality=65-85 --speed 4 --force --output "{}" "{}" 2>/dev/null || true
-    '
-
-    COMPRESS_END=$(date +%s)
-    echo "  Compression: $((COMPRESS_END - COMPRESS_START))s for $COMPRESS_TOTAL files"
+    # Compress up to 8 at a time in parallel
+    # Note: xargs -I{} fails on macOS with long paths ("command line cannot be assembled, too long")
+    # Use xargs -P with -L1 to avoid ARG_MAX issues
+    # Guard with || true so compression failure never prevents HTML catalog generation
+    if cat "$COMPRESS_QUEUE" | xargs -P 8 -L1 sh -c '
+        pngquant --quality=65-85 --speed 4 --force --output "$1" "$1" 2>/dev/null || true
+    ' _; then
+        COMPRESS_END=$(date +%s)
+        echo "  Compression: $((COMPRESS_END - COMPRESS_START))s for $COMPRESS_TOTAL files"
+    else
+        COMPRESS_END=$(date +%s)
+        echo "  WARNING: Compression failed ($((COMPRESS_END - COMPRESS_START))s). Continuing with uncompressed screenshots."
+    fi
 elif [ "$COMPRESS" = false ]; then
     echo ""
     echo "=== Phase 2.5: Compression skipped (--no-compress) ==="
