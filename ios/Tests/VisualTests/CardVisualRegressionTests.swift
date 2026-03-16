@@ -130,6 +130,10 @@ final class CardVisualRegressionTests: CardSnapshotTestCase {
         assertCardSnapshot(named: "code-block", configuration: .iPhone15ProDark)
     }
 
+    func testCodeBlockLanguagesCard_allDevices() {
+        assertCardSnapshots(named: "code-block-languages", configurations: SnapshotConfiguration.allDeviceSizes)
+    }
+
     // MARK: - Advanced Elements
 
     func testCarouselCard_allDevices() {

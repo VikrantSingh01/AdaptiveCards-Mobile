@@ -188,7 +188,7 @@ final class AdvancedElementsParserTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(codeBlockCount, 3)
+        XCTAssertEqual(codeBlockCount, 5)
     }
 
     func testCodeBlockRoundTrip() throws {

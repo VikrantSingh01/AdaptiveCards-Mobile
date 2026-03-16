@@ -33,7 +33,20 @@
       "id": "jsCode",
       "language": "javascript",
       "startLineNumber": 1,
-      "code": "function greet(name) {\n    const message = `Hello, ${name}!`;\n    console.log(message);\n    return message;\n}\n\nconst result = greet('World');"
+      "code": "// Fetch data from API\nasync function fetchUsers(limit = 10) {\n    const response = await fetch(`/api/users?limit=${limit}`);\n    if (!response.ok) {\n        throw new Error('Failed to fetch');\n    }\n    const data = await response.json();\n    return data.map(user => user.name);\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Python Example",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "pythonCode",
+      "language": "python",
+      "startLineNumber": 1,
+      "code": "# Data processing pipeline\nfrom typing import List, Dict\n\ndef process_records(records: List[Dict]) -> List[str]:\n    \"\"\"Filter and transform records.\"\"\"\n    results = []\n    for record in records:\n        if record.get('active', False):\n            name = record['name'].strip()\n            results.append(f\"User: {name} (ID: {record['id']})\")\n    return sorted(results)"
     },
     {
       "type": "TextBlock",
@@ -46,6 +59,19 @@
       "id": "jsonCode",
       "language": "json",
       "code": "{\n  \"type\": \"AdaptiveCard\",\n  \"version\": \"1.6\",\n  \"body\": [\n    {\n      \"type\": \"TextBlock\",\n      \"text\": \"Hello!\"\n    }\n  ]\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "SQL Example",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "sqlCode",
+      "language": "sql",
+      "startLineNumber": 1,
+      "code": "-- Get active users with order counts\nSELECT u.name, u.email, COUNT(o.id) AS order_count\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id\nWHERE u.active = true\n  AND u.created_at > '2024-01-01'\nGROUP BY u.name, u.email\nHAVING COUNT(o.id) > 5\nORDER BY order_count DESC\nLIMIT 20;"
     }
   ]
 }

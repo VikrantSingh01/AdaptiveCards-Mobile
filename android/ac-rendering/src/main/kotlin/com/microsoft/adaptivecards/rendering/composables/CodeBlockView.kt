@@ -160,10 +160,12 @@ fun CodeBlockView(
                                 )
                             }
 
-                            // Code line
+                            // Code line with syntax highlighting
                             Text(
-                                text = line.ifEmpty { " " },
-                                color = Color(0xFFD4D4D4),
+                                text = SyntaxHighlighter.highlightLine(
+                                    line.ifEmpty { " " },
+                                    element.language
+                                ),
                                 fontSize = fontSize,
                                 fontFamily = FontFamily.Monospace,
                                 softWrap = element.wrap == true

@@ -45,6 +45,7 @@ class CardElementSnapshotTests {
             "rating",
             "progress-indicators",
             "code-block",
+            "code-block-languages",
             "rich-text",
             "markdown"
         )
@@ -67,6 +68,7 @@ class CardElementSnapshotTests {
     @Test fun snapshot_rating() = snapshotCard("rating")
     @Test fun snapshot_progressIndicators() = snapshotCard("progress-indicators")
     @Test fun snapshot_codeBlock() = snapshotCard("code-block")
+    @Test fun snapshot_codeBlockLanguages() = snapshotCard("code-block-languages")
     @Test fun snapshot_richText() = snapshotCard("rich-text")
     @Test fun snapshot_markdown() = snapshotCard("markdown")
 
