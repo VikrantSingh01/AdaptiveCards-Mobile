@@ -8,7 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -168,9 +170,10 @@ fun AdaptiveCardView(
                                 )
                             }
 
-                            // Render actions
+                            // Render card-level actions with spacing (matching iOS)
                             adaptiveCard.actions?.let { actions ->
                                 if (actions.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(hc.spacing.default.dp))
                                     ActionSetView(
                                         actions = actions,
                                         actionHandler = actionHandler,
@@ -271,8 +274,10 @@ fun AdaptiveCardView(
                                     )
                                 }
 
+                                // Render card-level actions with spacing (matching iOS)
                                 adaptiveCard.actions?.let { actions ->
                                     if (actions.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.height(hc.spacing.default.dp))
                                         ActionSetView(
                                             actions = actions,
                                             actionHandler = actionHandler,
