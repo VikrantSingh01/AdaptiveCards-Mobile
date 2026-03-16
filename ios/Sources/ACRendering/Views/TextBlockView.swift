@@ -38,7 +38,9 @@ struct TextBlockView: View {
             Text(attributedString)
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
-                .frame(maxWidth: .infinity, alignment: frameAlignment)
+                .if(needsFullWidthFrame) { view in
+                    view.frame(maxWidth: .infinity, alignment: frameAlignment)
+                }
                 .if(textBlock.wrap == true || isInsideTableCell) { view in
                     view.fixedSize(horizontal: false, vertical: true)
                 }
@@ -56,7 +58,9 @@ struct TextBlockView: View {
                 .lineSpacing(lineSpacing)
                 .multilineTextAlignment(textAlignment)
                 .lineLimit(effectiveLineLimit)
-                .frame(maxWidth: .infinity, alignment: frameAlignment)
+                .if(needsFullWidthFrame) { view in
+                    view.frame(maxWidth: .infinity, alignment: frameAlignment)
+                }
                 .if(textBlock.wrap == true || isInsideTableCell) { view in
                     view.fixedSize(horizontal: false, vertical: true)
                 }
@@ -274,6 +278,15 @@ struct TextBlockView: View {
             return .from(horizontal: cellAlign, vertical: nil, layoutDirection: layoutDirection)
         }
         return .from(horizontal: textBlock.horizontalAlignment, vertical: nil, layoutDirection: layoutDirection)
+    }
+
+    /// Whether the text needs a full-width frame for alignment positioning.
+    /// Matches Android which only applies fillMaxWidth() when horizontalAlignment
+    /// is center or right. Left-aligned text (default) uses the parent's width
+    /// directly, avoiding interference with column width negotiation.
+    private var needsFullWidthFrame: Bool {
+        guard let alignment = textBlock.horizontalAlignment else { return false }
+        return alignment == .center || alignment == .right
     }
 
     /// Computes the effective line limit based on wrap and maxLines properties.
