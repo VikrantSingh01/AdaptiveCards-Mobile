@@ -206,8 +206,8 @@ run_capture() {
         : > "$cards_file"
 
         # Extract card names from all worklists of the previous iteration
-        for priority in p0 p1 p2; do
-            local worklist="$LOOP_DIR/worklist-${priority}-iteration-${prev_iter}.json"
+        # Glob for all worklist files (p1, p2-1, p2-2, p2-3, p3, etc.)
+        for worklist in "$LOOP_DIR"/worklist-*-iteration-${prev_iter}.json; do
             [ -f "$worklist" ] || continue
             python3 -c "
 import json
