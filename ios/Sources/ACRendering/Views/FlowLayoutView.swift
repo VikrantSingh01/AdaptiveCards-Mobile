@@ -155,11 +155,6 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             if itemWidth < 1 && maxWidth < .infinity {
                 itemWidth = maxWidth
             }
-            // Cap by maxItemWidth when no dynamic width was calculated
-            // (i.e., only maxItemWidth was specified without minItemWidth/itemWidth)
-            if dynWidth == nil, let maxW = maxItemWidth, maxW > 0, itemWidth > maxW {
-                itemWidth = maxW
-            }
 
             // Re-measure at final width to get correct height.
             // Nested flow layouts and tables need this to compute wrapped height.
