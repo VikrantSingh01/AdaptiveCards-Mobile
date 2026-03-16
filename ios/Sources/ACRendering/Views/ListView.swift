@@ -26,38 +26,51 @@ struct ListView: View {
         let maxHeightValue = parseMaxHeight(list.maxHeight)
         let listStyle = list.style ?? "default"
 
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(list.items.enumerated()), id: \.element.id) { index, item in
-                    HStack(alignment: .top, spacing: Layout.itemSpacing) {
-                        // Render list item prefix based on style
-                        if listStyle == "bulleted" {
-                            Text("•")
-                                .font(.system(size: 18))
-                                .foregroundColor(.primary)
-                                .frame(width: Layout.bulletWidth, alignment: .leading)
-                                .accessibilityHidden(true)
-                        } else if listStyle == "numbered" {
-                            Text("\(index + 1).")
-                                .font(.system(size: 14))
-                                .foregroundColor(.primary)
-                                .frame(width: Layout.numberWidth, alignment: .leading)
-                                .accessibilityHidden(true)
-                        }
-
-                        // Render item content
-                        ElementView(element: item, hostConfig: hostConfig, depth: depth)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(minHeight: Layout.minTouchTarget) // Minimum touch target
-                    .padding(.vertical, Layout.itemVerticalPadding)
-                }
+        if let maxHeight = maxHeightValue {
+            // Bounded list: use ScrollView for scrolling within maxHeight
+            ScrollView {
+                listContent(listStyle: listStyle)
             }
-            .padding(.horizontal, listStyle != "default" ? 0 : Layout.itemSpacing)
+            .frame(maxHeight: maxHeight)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("List with \(list.items.count) items")
+        } else {
+            // Unbounded list: use VStack to participate in parent scroll container
+            listContent(listStyle: listStyle)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("List with \(list.items.count) items")
         }
-        .frame(maxHeight: maxHeightValue)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("List with \(list.items.count) items")
+    }
+
+    @ViewBuilder
+    private func listContent(listStyle: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(list.items.enumerated()), id: \.element.id) { index, item in
+                HStack(alignment: .top, spacing: Layout.itemSpacing) {
+                    // Render list item prefix based on style
+                    if listStyle == "bulleted" {
+                        Text("•")
+                            .font(.system(size: 18))
+                            .foregroundColor(.primary)
+                            .frame(width: Layout.bulletWidth, alignment: .leading)
+                            .accessibilityHidden(true)
+                    } else if listStyle == "numbered" {
+                        Text("\(index + 1).")
+                            .font(.system(size: 14))
+                            .foregroundColor(.primary)
+                            .frame(width: Layout.numberWidth, alignment: .leading)
+                            .accessibilityHidden(true)
+                    }
+
+                    // Render item content
+                    ElementView(element: item, hostConfig: hostConfig, depth: depth)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(minHeight: Layout.minTouchTarget) // Minimum touch target
+                .padding(.vertical, Layout.itemVerticalPadding)
+            }
+        }
+        .padding(.horizontal, listStyle != "default" ? 0 : Layout.itemSpacing)
     }
 
     /// Parse maxHeight string (e.g., "200px") to CGFloat
