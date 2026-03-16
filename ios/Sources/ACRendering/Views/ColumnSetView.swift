@@ -61,14 +61,18 @@ struct ProportionalColumnLayout: SwiftUI.Layout {
             }
         }
 
-        // Pass 2: Auto columns get their ideal width
+        // Pass 2: Auto columns get their ideal width, capped to remaining space
+        // (matches Android ProportionalColumnLayout which measures auto columns
+        // with maxWidth = remainingWidth, preventing images from expanding beyond
+        // available space in auto+stretch column pairs)
         for (i, col) in columns.enumerated() {
             if case .auto = col.width {
+                let maxAutoWidth = max(remainingWidth, 0)
                 let ideal = i < subviews.count
-                    ? subviews[i].sizeThatFits(.unspecified).width
+                    ? subviews[i].sizeThatFits(ProposedViewSize(width: maxAutoWidth, height: nil)).width
                     : 0
-                widths[i] = ideal
-                remainingWidth -= ideal
+                widths[i] = min(ideal, maxAutoWidth)
+                remainingWidth -= widths[i]
             }
         }
 
