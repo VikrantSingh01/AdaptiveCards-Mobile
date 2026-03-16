@@ -69,7 +69,7 @@ struct ProportionalColumnLayout: SwiftUI.Layout {
             if case .auto = col.width {
                 let maxAutoWidth = max(remainingWidth, 0)
                 let ideal = i < subviews.count
-                    ? subviews[i].sizeThatFits(ProposedViewSize(width: maxAutoWidth, height: nil)).width
+                    ? subviews[i].sizeThatFits(ProposedViewSize(width: nil, height: nil)).width
                     : 0
                 widths[i] = min(ideal, maxAutoWidth)
                 remainingWidth -= widths[i]

@@ -62,14 +62,14 @@ fun CompoundButtonView(
         "positive" -> parseHostColor(fgColors.good.default) ?: Color(0xFF4CAF50)
         "destructive" -> parseHostColor(fgColors.attention.default) ?: Color(0xFFF44336)
         else -> parseHostColor(hostConfig.containerStyles.default.backgroundColor)
-            ?: MaterialTheme.colorScheme.surface
+            ?: Color.White
     }
 
     val isStyledButton = element.style in listOf("emphasis", "positive", "destructive")
     val contentColor = if (isStyledButton) {
         Color.White
     } else {
-        MaterialTheme.colorScheme.onSurface
+        parseHostColor(fgColors.default.default) ?: Color(0xFF1D1D1D)
     }
 
     val isEnabled = element.selectAction != null
@@ -96,7 +96,9 @@ fun CompoundButtonView(
             .semantics { contentDescription = contentDesc },
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
-            contentColor = contentColor
+            contentColor = contentColor,
+            disabledContainerColor = containerColor.copy(alpha = 0.5f),
+            disabledContentColor = contentColor.copy(alpha = 0.5f)
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (element.style == "default") CompoundButtonLayout.Elevation else 0.dp

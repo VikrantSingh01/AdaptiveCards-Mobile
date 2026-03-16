@@ -113,6 +113,7 @@ struct ActionSetView: View {
             ActionButton(action: action, hostConfig: hostConfig) {
                 actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
             }
+            .buttonStyle(.plain)
             .sheet(isPresented: viewModel.popoverBinding(actionId: actionId)) {
                 PopoverContentView(
                     content: popoverAction.content,
@@ -128,6 +129,7 @@ struct ActionSetView: View {
             ActionButton(action: action, hostConfig: hostConfig) {
                 actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
             }
+            .buttonStyle(.plain)
         }
     }
 
