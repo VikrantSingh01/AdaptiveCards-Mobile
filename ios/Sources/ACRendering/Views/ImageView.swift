@@ -155,7 +155,7 @@ struct ImageView: View {
         .selectAction(image.selectAction) { action in
             actionHandler.handle(action, delegate: actionDelegate, viewModel: viewModel)
         }
-        .frame(maxWidth: .infinity, alignment: frameAlignment)
+        .frame(maxWidth: needsFullWidthFrame ? .infinity : nil, alignment: frameAlignment)
         .spacing(image.spacing, hostConfig: hostConfig)
         .separator(image.separator, hostConfig: hostConfig)
         .accessibilityElement(label: image.altText ?? "Image")
@@ -327,6 +327,19 @@ struct ImageView: View {
             let radius = CGFloat(hostConfig.cornerRadius["image"] ?? 0)
             return AnyShape(RoundedRectangle(cornerRadius: radius))
         }
+    }
+
+    /// Whether the image needs a full-width frame for alignment positioning.
+    /// FitMode images (contain/cover/fill) manage their own sizing and should
+    /// not expand to full width unless alignment requires it (matching Android
+    /// which only wraps in fillMaxWidth Box for aligned images).
+    private var needsFullWidthFrame: Bool {
+        if shouldFillWidth { return true }
+        if image.fitMode != nil {
+            guard let alignment = image.horizontalAlignment else { return false }
+            return alignment == .center || alignment == .right
+        }
+        return true
     }
 
     private var frameAlignment: Alignment {
