@@ -149,29 +149,41 @@ private fun ProportionalColumnLayout(
             if (col.width == "auto" && i < measurables.size) {
                 autoIndices.add(i)
                 val idealWidth = measurables[i].maxIntrinsicWidth(Constraints.Infinity)
-                autoIdealWidths[i] = idealWidth
+                if (idealWidth > 0) {
+                    autoIdealWidths[i] = idealWidth
+                } else {
+                    // maxIntrinsicWidth returns 0 for async images and nested custom
+                    // layouts (e.g., nested ProportionalColumnLayout). Measure directly
+                    // with loose constraints to get actual desired width.
+                    val maxAvail = remainingWidth.coerceAtLeast(0)
+                    val placeable = measurables[i].measure(Constraints(
+                        minWidth = 0,
+                        maxWidth = if (isUnbounded) Constraints.Infinity else maxAvail,
+                        minHeight = 0,
+                        maxHeight = constraints.maxHeight
+                    ))
+                    placeables[i] = placeable
+                    columnWidths[i] = placeable.width.coerceAtMost(maxAvail)
+                    remainingWidth -= columnWidths[i]
+                }
             }
         }
 
+        // Distribute remaining auto columns that reported non-zero intrinsic width
         val totalAutoIdeal = autoIdealWidths.values.sum()
         val maxAvailForAuto = remainingWidth.coerceAtLeast(0)
 
-        autoIndices.forEach { i ->
+        autoIdealWidths.keys.forEach { i ->
             val idealWidth = autoIdealWidths[i] ?: 0
             val cappedWidth = if (isUnbounded) {
-                // Unbounded: use ideal width as-is
                 idealWidth
             } else if (totalAutoIdeal <= maxAvailForAuto) {
-                // All auto columns fit within available space — use ideal width
                 idealWidth
             } else if (totalAutoIdeal > 0) {
-                // Auto columns exceed available space — distribute proportionally
                 ((idealWidth.toLong() * maxAvailForAuto) / totalAutoIdeal).toInt()
             } else {
-                // No intrinsic info — give fair share of remaining space
-                maxAvailForAuto / autoIndices.size.coerceAtLeast(1)
+                maxAvailForAuto / autoIdealWidths.size.coerceAtLeast(1)
             }
-            // Measure at the computed width
             val placeable = measurables[i].measure(Constraints(
                 minWidth = 0,
                 maxWidth = cappedWidth.coerceAtLeast(0),
