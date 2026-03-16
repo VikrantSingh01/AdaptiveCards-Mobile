@@ -59,13 +59,24 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     val card = remember(decodedCardId) {
         val allCards = CardCache.getCards(context)
         val baseName = decodedCardId.removeSuffix(".json")
+        // Normalize for slug comparison: convert path separators and strip extensions
+        // so deep-link IDs like "element-samples/carousel-styles" match filenames like
+        // "element-samples/carousel-styles.json"
+        val slug = baseName.removeSuffix(".template")
         allCards.find { it.filename == decodedCardId }
             ?: allCards.find { it.filename == "$decodedCardId.json" }
             ?: allCards.find { it.filename.removeSuffix(".json") == decodedCardId }
             ?: allCards.find { it.filename == "$baseName.template.json" }
             ?: allCards.find { it.filename.removeSuffix(".template.json") == baseName }
+            // Slug-based match: compare normalized forms (strip .json/.template.json,
+            // lowercase) so deep links with minor variations still resolve
+            ?: allCards.find {
+                val cardSlug = it.filename.removeSuffix(".json").removeSuffix(".template")
+                cardSlug.equals(slug, ignoreCase = true)
+            }
             ?: run {
-                // Fallback: load card JSON directly from assets when gallery cache misses
+                // Fallback: load card JSON directly from assets when gallery cache misses.
+                // Try multiple path variations to handle different deep link formats.
                 val candidates = listOf(
                     decodedCardId,
                     "$decodedCardId.json",
@@ -81,6 +92,28 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                         break
                     } catch (_: Exception) { }
                 }
+
+                // If direct asset load failed, scan asset directories for a matching file
+                if (jsonString == null) {
+                    val assetDirs = listOf("", "element-samples", "teams-official-samples",
+                        "official-samples", "templates", "versioned/v1.5", "versioned/v1.6")
+                    val leafName = baseName.substringAfterLast("/")
+                    for (dir in assetDirs) {
+                        val assetCandidates = listOf(
+                            if (dir.isEmpty()) "$leafName.json" else "$dir/$leafName.json",
+                            if (dir.isEmpty()) "$leafName.template.json" else "$dir/$leafName.template.json"
+                        )
+                        for (candidate in assetCandidates) {
+                            try {
+                                jsonString = context.assets.open(candidate).bufferedReader().use { it.readText() }
+                                resolvedFilename = candidate
+                                break
+                            } catch (_: Exception) { }
+                        }
+                        if (jsonString != null) break
+                    }
+                }
+
                 if (jsonString != null) {
                     val name = resolvedFilename.substringAfterLast("/").removeSuffix(".json").removeSuffix(".template")
                     TestCard(

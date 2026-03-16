@@ -39,7 +39,6 @@ import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 import com.microsoft.adaptivecards.rendering.viewmodel.CardViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
  * Renders a Carousel element with horizontal paging and page indicators
@@ -65,17 +64,17 @@ fun CarouselView(
         initialPage = (element.initialPage ?: 0).coerceAtMost((visiblePages.size - 1).coerceAtLeast(0)),
         pageCount = { visiblePages.size }
     )
-    val scope = rememberCoroutineScope()
 
-    // Auto-advance timer
+    // Auto-advance timer — delay inside the LaunchedEffect scope so it is
+    // automatically cancelled and restarted when the current page changes.
+    // Using the LaunchedEffect coroutine scope (not a separate scope.launch)
+    // prevents leaked timer coroutines when the page changes rapidly.
     LaunchedEffect(pagerState.currentPage, element.timer) {
         element.timer?.let { timerMs ->
             if (timerMs > 0 && visiblePages.isNotEmpty()) {
-                scope.launch {
-                    delay(timerMs.toLong())
-                    val nextPage = (pagerState.currentPage + 1) % visiblePages.size
-                    pagerState.animateScrollToPage(nextPage)
-                }
+                delay(timerMs.toLong())
+                val nextPage = (pagerState.currentPage + 1) % visiblePages.size
+                pagerState.animateScrollToPage(nextPage)
             }
         }
     }

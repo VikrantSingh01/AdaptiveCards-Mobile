@@ -90,18 +90,21 @@ struct CarouselView: View {
                 break
             }
         }
-        .onAppear {
-            let clampedInitial = min(carousel.initialPage ?? 0, max(visiblePages.count - 1, 0))
-            if clampedInitial > 0 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    currentPage = clampedInitial
-                }
-            }
+        .onAppear(perform: handleAppear)
+        .onChange(of: currentPage) { _ in
             setupAutoAdvance()
         }
-        .onDisappear {
-            timer?.invalidate()
+        .onDisappear { timer?.invalidate() }
+    }
+
+    private func handleAppear() {
+        let clampedInitial = min(carousel.initialPage ?? 0, max(visiblePages.count - 1, 0))
+        if clampedInitial > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                currentPage = clampedInitial
+            }
         }
+        setupAutoAdvance()
     }
 
     private var accentColor: Color {

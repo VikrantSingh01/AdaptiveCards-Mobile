@@ -166,7 +166,7 @@ public struct SeparatorConfig: Codable {
     public var lineThickness: Int
     public var lineColor: String
 
-    public init(lineThickness: Int = 1, lineColor: String = "#B2000000") {
+    public init(lineThickness: Int = 1, lineColor: String = "#EEEEEE") {
         self.lineThickness = lineThickness
         self.lineColor = lineColor
     }
@@ -254,7 +254,7 @@ public struct ContainerStylesConfig: Codable {
 
     public init(
         default: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#FFFFFFFF",
+            backgroundColor: "#FFFFFF",
             foregroundColors: ForegroundColorsConfig()
         ),
         emphasis: ContainerStyleConfig = ContainerStyleConfig(
@@ -320,13 +320,13 @@ public struct ForegroundColorsConfig: Codable {
     public var attention: ColorConfig
 
     public init(
-        default: ColorConfig = ColorConfig(default: "#FF000000", subtle: "#B2000000"),
-        dark: ColorConfig = ColorConfig(default: "#FF101010", subtle: "#B2101010"),
-        light: ColorConfig = ColorConfig(default: "#FFFFFFFF", subtle: "#B2FFFFFF"),
-        accent: ColorConfig = ColorConfig(default: "#FF0000FF", subtle: "#B20000FF"),
-        good: ColorConfig = ColorConfig(default: "#FF008000", subtle: "#B2008000"),
-        warning: ColorConfig = ColorConfig(default: "#FFFFD700", subtle: "#B2FFD700"),
-        attention: ColorConfig = ColorConfig(default: "#FF8B0000", subtle: "#B28B0000")
+        default: ColorConfig = ColorConfig(default: "#212121", subtle: "#6E6E6E"),
+        dark: ColorConfig = ColorConfig(default: "#000000", subtle: "#212121"),
+        light: ColorConfig = ColorConfig(default: "#FFFFFF", subtle: "#F1F1F1"),
+        accent: ColorConfig = ColorConfig(default: "#6264A7", subtle: "#8B8CC7"),
+        good: ColorConfig = ColorConfig(default: "#237B4B", subtle: "#217346"),
+        warning: ColorConfig = ColorConfig(default: "#C50F1F", subtle: "#CC4A31"),
+        attention: ColorConfig = ColorConfig(default: "#C4314B", subtle: "#B24782")
     ) {
         self.default = `default`
         self.dark = dark
