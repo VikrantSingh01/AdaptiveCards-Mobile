@@ -136,29 +136,7 @@ private fun ProportionalColumnLayout(
             }
         }
 
-        // Pass 2: Auto columns — measure directly at available width to get actual content size.
-        // maxIntrinsicWidth doesn't propagate correctly through nested custom layouts
-        // (e.g., nested ProportionalColumnLayout in Agenda card), returning near-zero widths
-        // that cause character-by-character text wrapping. Direct measurement matches the
-        // iOS approach (sizeThatFits(.unspecified)) and gives accurate wrap-content width
-        // for text, images, and nested structures.
-        columns.forEachIndexed { i, col ->
-            if (col.width == "auto" && i < measurables.size) {
-                val maxAutoWidth = remainingWidth.coerceAtLeast(0)
-                val placeable = measurables[i].measure(Constraints(
-                    minWidth = 0,
-                    maxWidth = if (isUnbounded) Constraints.Infinity else maxAutoWidth,
-                    minHeight = 0,
-                    maxHeight = constraints.maxHeight
-                ))
-                placeables[i] = placeable
-                columnWidths[i] = placeable.width
-                remainingWidth -= placeable.width
-            }
-        }
-
-
-        // Pass 3: Weighted and stretch columns share remaining space
+        // Compute total weight before Pass 2 so we know if weighted columns need space
         var totalWeight = 0f
         columns.forEachIndexed { i, col ->
             val w = col.width
@@ -169,12 +147,48 @@ private fun ProportionalColumnLayout(
                 if (weight != null && weight > 0f) {
                     totalWeight += weight
                 } else {
-                    totalWeight += 1f // Default to stretch
+                    totalWeight += 1f
                 }
             }
         }
 
-        if (totalWeight > 0f && remainingWidth > 0) {
+        // Pass 2: Auto columns — use maxIntrinsicWidth to get natural content width,
+        // matching iOS sizeThatFits(.unspecified). This prevents auto columns from
+        // expanding to fill all remaining space and starving weighted/stretch columns.
+        // Falls back to capped direct measurement when intrinsic width reports zero
+        // (e.g., images not yet loaded, lazy content).
+        columns.forEachIndexed { i, col ->
+            if (col.width == "auto" && i < measurables.size) {
+                val intrinsicWidth = measurables[i].maxIntrinsicWidth(constraints.maxHeight)
+                if (intrinsicWidth > 0) {
+                    val autoWidth = intrinsicWidth.coerceAtMost(remainingWidth.coerceAtLeast(0))
+                    columnWidths[i] = autoWidth
+                    remainingWidth -= autoWidth
+                } else {
+                    // Fallback: measure directly but cap width to avoid consuming all space
+                    val maxAutoWidth = if (totalWeight > 0f) {
+                        (remainingWidth * 0.5f).toInt().coerceAtLeast(0)
+                    } else {
+                        remainingWidth.coerceAtLeast(0)
+                    }
+                    val placeable = measurables[i].measure(Constraints(
+                        minWidth = 0,
+                        maxWidth = if (isUnbounded) Constraints.Infinity else maxAutoWidth,
+                        minHeight = 0,
+                        maxHeight = constraints.maxHeight
+                    ))
+                    placeables[i] = placeable
+                    columnWidths[i] = placeable.width
+                    remainingWidth -= placeable.width
+                }
+            }
+        }
+
+        // Pass 3: Weighted and stretch columns share remaining space proportionally.
+        // No remainingWidth > 0 guard — matches iOS which always distributes via
+        // max(0, remainingWidth * weight / totalWeight).
+        if (totalWeight > 0f) {
+            val distributable = remainingWidth.coerceAtLeast(0)
             columns.forEachIndexed { i, col ->
                 val w = col.width
                 val weight = when {
@@ -183,7 +197,7 @@ private fun ProportionalColumnLayout(
                     else -> w.toFloatOrNull()?.takeIf { it > 0f } ?: 1f
                 }
                 if (weight > 0f) {
-                    columnWidths[i] = ((remainingWidth * weight) / totalWeight).toInt().coerceAtLeast(0)
+                    columnWidths[i] = ((distributable * weight) / totalWeight).toInt().coerceAtLeast(0)
                 }
             }
         }
