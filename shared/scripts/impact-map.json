@@ -1,0 +1,339 @@
+{
+  "_description": "Maps source files to test cards that exercise their code paths. Used by smoke tests to only test cards impacted by a merge. Maintained manually — update when adding new views or test cards.",
+  "_usage": "Given a list of changed files, union all their test_cards arrays to get the minimal smoke test set.",
+
+  "file_patterns": {
+    "ios/Sources/ACRendering/Views/ColumnSetView.swift": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "official-samples/expense-report",
+        "official-samples/flight-details",
+        "official-samples/flight-itinerary",
+        "templates/Agenda.template",
+        "templates/FlightUpdate.template",
+        "templates/ExpenseReport.template"
+      ],
+      "build_cmd_ios": "cd ios && swift build",
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/ColumnSetView.kt": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "official-samples/expense-report",
+        "official-samples/flight-details",
+        "official-samples/flight-itinerary",
+        "templates/Agenda.template",
+        "templates/FlightUpdate.template",
+        "templates/ExpenseReport.template"
+      ],
+      "build_cmd_android": "cd android && ./gradlew :ac-rendering:compileDebugKotlin",
+      "risk": "high"
+    },
+    "ios/Sources/ACRendering/Views/ImageView.swift": {
+      "test_cards": [
+        "versioned/v1.5/Image.FitMode.Contain",
+        "versioned/v1.5/Image.FitMode.Fill",
+        "official-samples/food-order",
+        "official-samples/image-gallery",
+        "themed-images"
+      ],
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/ImageView.kt": {
+      "test_cards": [
+        "versioned/v1.5/Image.FitMode.Contain",
+        "versioned/v1.5/Image.FitMode.Fill",
+        "official-samples/food-order",
+        "official-samples/image-gallery",
+        "themed-images"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACRendering/Views/FlowLayoutView.swift": {
+      "test_cards": [
+        "versioned/v1.5/MultiColumnFlowLayout",
+        "versioned/v1.5/SingleColumnFlowLayout",
+        "versioned/v1.5/AdaptiveCardFlowLayout",
+        "versioned/v1.5/ContainerFlowLayout",
+        "Container.Flow",
+        "Container.Nested.Flow",
+        "NestedFlowLayout"
+      ],
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/FlowLayoutView.kt": {
+      "test_cards": [
+        "versioned/v1.5/MultiColumnFlowLayout",
+        "versioned/v1.5/SingleColumnFlowLayout",
+        "versioned/v1.5/AdaptiveCardFlowLayout",
+        "versioned/v1.5/ContainerFlowLayout",
+        "Container.Flow",
+        "Container.Nested.Flow",
+        "NestedFlowLayout"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACRendering/Views/CompoundButtonView.swift": {
+      "test_cards": [
+        "versioned/v1.6/CompoundButton",
+        "compound-buttons",
+        "versioned/v1.5/CompoundButtonSample"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/CompoundButtonView.kt": {
+      "test_cards": [
+        "versioned/v1.6/CompoundButton",
+        "compound-buttons",
+        "versioned/v1.5/CompoundButtonSample"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACRendering/Views/ContainerView.swift": {
+      "test_cards": [
+        "versioned/v1.5/AdaptiveCardFlowLayout",
+        "versioned/v1.5/CompoundButtonSample",
+        "element-samples/carousel-styles",
+        "container-area-grid-1",
+        "container-area-grid-2"
+      ],
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/ContainerView.kt": {
+      "test_cards": [
+        "versioned/v1.5/AdaptiveCardFlowLayout",
+        "versioned/v1.5/CompoundButtonSample",
+        "element-samples/carousel-styles",
+        "container-area-grid-1",
+        "container-area-grid-2"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACRendering/Views/TableView.swift": {
+      "test_cards": [
+        "table-basic",
+        "table-grid-style",
+        "table-horizontal-alignment",
+        "table-vertical-alignment",
+        "table-show-grid-lines",
+        "table-first-row-as-headers"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/TableView.kt": {
+      "test_cards": [
+        "table-basic",
+        "table-grid-style",
+        "table-horizontal-alignment",
+        "table-vertical-alignment",
+        "table-show-grid-lines",
+        "table-first-row-as-headers"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACRendering/Views/CarouselView.swift": {
+      "test_cards": [
+        "carousel",
+        "element-samples/carousel-styles",
+        "versioned/v1.6/Carousel.ForbiddenElements"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/CarouselView.kt": {
+      "test_cards": [
+        "carousel",
+        "element-samples/carousel-styles",
+        "versioned/v1.6/Carousel.ForbiddenElements"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACRendering/Views/TextBlockView.swift": {
+      "test_cards": [
+        "rich-text",
+        "official-samples/agenda",
+        "official-samples/flight-details"
+      ],
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/TextBlockView.kt": {
+      "test_cards": [
+        "rich-text",
+        "official-samples/agenda",
+        "official-samples/flight-details"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACRendering/Views/BadgeView.swift": {
+      "test_cards": [
+        "versioned/v1.5/badge",
+        "versioned/v1.6/CompoundButton",
+        "compound-buttons"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/BadgeView.kt": {
+      "test_cards": [
+        "versioned/v1.5/badge",
+        "versioned/v1.6/CompoundButton",
+        "compound-buttons"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACCore/HostConfig/ContainerStyleConfig.swift": {
+      "test_cards": [
+        "versioned/v1.5/AdaptiveCardFlowLayout",
+        "versioned/v1.5/CompoundButtonSample",
+        "element-samples/carousel-styles"
+      ],
+      "risk": "high"
+    },
+    "android/ac-core/src/main/kotlin/com/microsoft/adaptivecards/core/hostconfig/ContainerStyleConfig.kt": {
+      "test_cards": [
+        "versioned/v1.5/AdaptiveCardFlowLayout",
+        "versioned/v1.5/CompoundButtonSample",
+        "element-samples/carousel-styles"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACTemplating/": {
+      "test_cards": [
+        "templates/Agenda.template",
+        "templates/FlightUpdate.template",
+        "templates/ExpenseReport.template",
+        "templates/FoodOrder.template",
+        "templates/WeatherLarge.template"
+      ],
+      "risk": "high"
+    },
+    "android/ac-templating/": {
+      "test_cards": [
+        "templates/Agenda.template",
+        "templates/FlightUpdate.template",
+        "templates/ExpenseReport.template",
+        "templates/FoodOrder.template",
+        "templates/WeatherLarge.template"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACMarkdown/": {
+      "test_cards": [
+        "rich-text",
+        "official-samples/flight-details",
+        "official-samples/agenda"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-markdown/": {
+      "test_cards": [
+        "rich-text",
+        "official-samples/flight-details",
+        "official-samples/agenda"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACInputs/": {
+      "test_cards": [
+        "element-samples/input-style",
+        "Input.Text",
+        "Input.Toggle",
+        "restaurant-order"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-inputs/": {
+      "test_cards": [
+        "element-samples/input-style",
+        "Input.Text",
+        "Input.Toggle",
+        "restaurant-order"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACRendering/Views/AdaptiveCardView.swift": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "official-samples/expense-report",
+        "rich-text",
+        "table-basic"
+      ],
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/AdaptiveCardView.kt": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "official-samples/expense-report",
+        "rich-text",
+        "table-basic"
+      ],
+      "risk": "high"
+    },
+    "android/sample-app/": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "compound-buttons",
+        "versioned/v1.6/CompoundButton"
+      ],
+      "risk": "medium"
+    },
+    "ios/SampleApp/": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "compound-buttons",
+        "versioned/v1.6/CompoundButton"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACCharts/": {
+      "test_cards": [
+        "donut-chart",
+        "bar-chart",
+        "horizontal-bar-chart",
+        "line-chart"
+      ],
+      "risk": "medium"
+    },
+    "android/ac-charts/": {
+      "test_cards": [
+        "donut-chart",
+        "bar-chart",
+        "horizontal-bar-chart",
+        "line-chart"
+      ],
+      "risk": "medium"
+    },
+    "ios/Sources/ACRendering/Views/ColumnView.swift": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "official-samples/expense-report"
+      ],
+      "risk": "high"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/ColumnView.kt": {
+      "test_cards": [
+        "official-samples/agenda",
+        "official-samples/flight-update",
+        "official-samples/expense-report"
+      ],
+      "risk": "high"
+    },
+    "ios/Sources/ACRendering/Views/DataGridView.swift": {
+      "test_cards": [
+        "DataGrid"
+      ],
+      "risk": "low"
+    },
+    "android/ac-rendering/src/main/kotlin/com/microsoft/adaptivecards/rendering/composables/DataGridView.kt": {
+      "test_cards": [
+        "DataGrid"
+      ],
+      "risk": "low"
+    }
+  }
+}
