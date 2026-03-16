@@ -17,6 +17,10 @@ public enum WidthCategory: Int, Comparable {
 
     /// Determine the width category from a point value using hostConfig breakpoints.
     public static func from(width: CGFloat, hostConfig: HostConfig) -> WidthCategory {
+        // Width 0 means "not yet measured" — default to narrow (phone-class)
+        // to avoid incorrectly classifying as veryNarrow and hiding elements
+        guard width > 0 else { return .narrow }
+
         let veryNarrow = CGFloat(hostConfig.hostWidth.veryNarrow)
         let narrow = CGFloat(hostConfig.hostWidth.narrow)
         let standard = CGFloat(hostConfig.hostWidth.standard)
