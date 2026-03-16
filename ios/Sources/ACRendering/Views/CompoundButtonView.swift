@@ -67,7 +67,7 @@ struct CompoundButtonView: View {
                         .foregroundColor(primaryTextColor)
                         .lineLimit(2)
                         .truncationMode(.tail)
-                        .layoutPriority(-1)
+                        .layoutPriority(1)
 
                     if let badge = button.badge {
                         Text(badge)
