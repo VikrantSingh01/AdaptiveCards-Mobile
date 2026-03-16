@@ -19,7 +19,7 @@ struct BadgeView: View {
             if let text = badge.text, !text.isEmpty {
                 Text(text)
                     .font(.system(size: fontSize, weight: .medium))
-                    .lineLimit(1)
+                    .lineLimit(badge.size?.lowercased() == "extralarge" ? 2 : 1)
             }
             if badge.iconPosition?.lowercased() == "after", let iconName = badge.icon {
                 Image(systemName: sfSymbolName(for: iconName))
@@ -124,26 +124,30 @@ struct BadgeView: View {
 
     private func sfSymbolName(for fluentName: String) -> String {
         let map: [String: String] = [
-            "calendar": "calendar",
-            "checkmarkcircle": "checkmark.circle",
-            "errorcircle": "xmark.circle",
-            "imagecircle": "photo.circle",
-            "important": "exclamationmark.circle",
-            "tag": "tag",
-            "tooltipquote": "text.bubble",
-            "warning": "exclamationmark.triangle",
-            "clock": "clock",
-            "people": "person.2",
-            "arrowsync": "arrow.clockwise",
-            "info": "info.circle",
-            "flag": "flag",
-            "star": "star",
-            "heart": "heart",
-            "error": "xmark.circle",
-            "megaphone": "megaphone",
-            "receipt": "doc.plaintext",
-            "cart": "cart",
-            "design": "pencil.and.ruler",
+            "calendar": "calendar.circle.fill",
+            "calendarltr": "calendar.circle.fill",
+            "checkmarkcircle": "checkmark.circle.fill",
+            "errorcircle": "xmark.circle.fill",
+            "imagecircle": "photo.circle.fill",
+            "important": "exclamationmark.circle.fill",
+            "tag": "tag.fill",
+            "tooltipquote": "text.bubble.fill",
+            "warning": "exclamationmark.triangle.fill",
+            "clock": "clock.fill",
+            "people": "person.2.fill",
+            "peopleteam": "person.2.fill",
+            "arrowsync": "arrow.clockwise.circle.fill",
+            "info": "info.circle.fill",
+            "flag": "flag.fill",
+            "star": "star.fill",
+            "heart": "heart.fill",
+            "error": "xmark.circle.fill",
+            "megaphone": "megaphone.fill",
+            "receipt": "doc.plaintext.fill",
+            "cart": "cart.fill",
+            "design": "pencil.and.ruler.fill",
+            "checkmark": "checkmark.circle.fill",
+            "dismisscircle": "xmark.circle.fill",
         ]
         return map[fluentName.lowercased()] ?? "circle.fill"
     }
