@@ -136,64 +136,27 @@ private fun ProportionalColumnLayout(
             }
         }
 
-        // Pass 2: Auto columns — query ideal width then measure at that width.
-        // Use maxIntrinsicWidth(Constraints.Infinity) to get single-line ideal width
-        // (matching iOS sizeThatFits(.unspecified) approach). Using Infinity for the
-        // height parameter ensures text reports full single-line width rather than a
-        // narrow wrapped width that causes character-level wrapping (Agenda card fix).
-        // If intrinsic width is 0 (e.g., async images not yet loaded), cap to remaining
-        // space and let the content size itself within those bounds.
-        val autoIndices = mutableListOf<Int>()
-        val autoIdealWidths = mutableMapOf<Int, Int>()
+        // Pass 2: Auto columns — measure directly at available width to get actual content size.
+        // maxIntrinsicWidth doesn't propagate correctly through nested custom layouts
+        // (e.g., nested ProportionalColumnLayout in Agenda card), returning near-zero widths
+        // that cause character-by-character text wrapping. Direct measurement matches the
+        // iOS approach (sizeThatFits(.unspecified)) and gives accurate wrap-content width
+        // for text, images, and nested structures.
         columns.forEachIndexed { i, col ->
             if (col.width == "auto" && i < measurables.size) {
-                autoIndices.add(i)
-                val idealWidth = measurables[i].maxIntrinsicWidth(Constraints.Infinity)
-                if (idealWidth > 0) {
-                    autoIdealWidths[i] = idealWidth
-                } else {
-                    // maxIntrinsicWidth returns 0 for async images and nested custom
-                    // layouts (e.g., nested ProportionalColumnLayout). Measure directly
-                    // with loose constraints to get actual desired width.
-                    val maxAvail = remainingWidth.coerceAtLeast(0)
-                    val placeable = measurables[i].measure(Constraints(
-                        minWidth = 0,
-                        maxWidth = if (isUnbounded) Constraints.Infinity else maxAvail,
-                        minHeight = 0,
-                        maxHeight = constraints.maxHeight
-                    ))
-                    placeables[i] = placeable
-                    columnWidths[i] = placeable.width.coerceAtMost(maxAvail)
-                    remainingWidth -= columnWidths[i]
-                }
+                val maxAutoWidth = remainingWidth.coerceAtLeast(0)
+                val placeable = measurables[i].measure(Constraints(
+                    minWidth = 0,
+                    maxWidth = if (isUnbounded) Constraints.Infinity else maxAutoWidth,
+                    minHeight = 0,
+                    maxHeight = constraints.maxHeight
+                ))
+                placeables[i] = placeable
+                columnWidths[i] = placeable.width
+                remainingWidth -= placeable.width
             }
         }
 
-        // Distribute remaining auto columns that reported non-zero intrinsic width
-        val totalAutoIdeal = autoIdealWidths.values.sum()
-        val maxAvailForAuto = remainingWidth.coerceAtLeast(0)
-
-        autoIdealWidths.keys.forEach { i ->
-            val idealWidth = autoIdealWidths[i] ?: 0
-            val cappedWidth = if (isUnbounded) {
-                idealWidth
-            } else if (totalAutoIdeal <= maxAvailForAuto) {
-                idealWidth
-            } else if (totalAutoIdeal > 0) {
-                ((idealWidth.toLong() * maxAvailForAuto) / totalAutoIdeal).toInt()
-            } else {
-                maxAvailForAuto / autoIdealWidths.size.coerceAtLeast(1)
-            }
-            val placeable = measurables[i].measure(Constraints(
-                minWidth = 0,
-                maxWidth = cappedWidth.coerceAtLeast(0),
-                minHeight = 0,
-                maxHeight = constraints.maxHeight
-            ))
-            placeables[i] = placeable
-            columnWidths[i] = placeable.width
-            remainingWidth -= columnWidths[i]
-        }
 
         // Pass 3: Weighted and stretch columns share remaining space
         var totalWeight = 0f
