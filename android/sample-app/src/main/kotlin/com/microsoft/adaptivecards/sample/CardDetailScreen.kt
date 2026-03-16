@@ -65,7 +65,7 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
             ?: allCards.find { it.filename == "$baseName.template.json" }
             ?: allCards.find { it.filename.removeSuffix(".template.json") == baseName }
             ?: run {
-                // Fallback: load card JSON directly from assets when gallery cache miss
+                // Fallback: load card JSON directly from assets when gallery cache misses
                 val candidates = listOf(
                     decodedCardId,
                     "$decodedCardId.json",
