@@ -538,6 +538,30 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                     "versioned/${segments.joinToString("/")}.json"
                 } else if (segments.size >= 2 && segments.first() in knownAssetDirs) {
                     segments.joinToString("/") + ".json"
+                } else if (segments.size == 1) {
+                    // Single segment: could be root-level card or a hyphenated subdirectory path
+                    // (e.g., "element-samples-carousel-styles" instead of "element-samples/carousel-styles")
+                    // Try to resolve by checking if a known asset dir prefix matches
+                    val single = segments.first()
+                    val resolved = knownAssetDirs.sortedByDescending { it.length }.firstNotNullOfOrNull { dir ->
+                        if (single.startsWith("$dir-")) {
+                            val cardName = single.removePrefix("$dir-")
+                            "$dir/$cardName.json"
+                        } else null
+                    }
+                    // Also handle versioned paths like "versioned-v1.5-ActionModeTestCard"
+                    ?: if (single.startsWith("versioned-")) {
+                        val rest = single.removePrefix("versioned-")
+                        val versionMatch = Regex("^(v\\d+\\.\\d+)-(.+)$").find(rest)
+                        if (versionMatch != null) {
+                            "versioned/${versionMatch.groupValues[1]}/${versionMatch.groupValues[2]}.json"
+                        } else {
+                            "$single.json"
+                        }
+                    } else {
+                        "$single.json"
+                    }
+                    resolved
                 } else {
                     // Root-level card: first segment is category slug, not a directory
                     segments.last() + ".json"

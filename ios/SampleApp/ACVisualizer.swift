@@ -55,18 +55,95 @@ class DeepLinkRouter: ObservableObject {
         guard url.scheme == "adaptivecards" else { return }
         switch url.host {
         case "card":
-            let filename = url.pathComponents.dropFirst().joined(separator: "/")
+            let pathParts = url.pathComponents.dropFirst()
+            let filename = pathParts.joined(separator: "/")
             guard !filename.isEmpty else { return }
             let allCards = TestCardLoader.loadAllCards()
-            let card = allCards.first {
-                $0.filename == filename ||
-                $0.filename == "\(filename).json" ||
-                $0.filename.replacingOccurrences(of: ".json", with: "") == filename
+            let baseName = filename.hasSuffix(".json")
+                ? String(filename.dropLast(5))
+                : filename
+            // Exact and extension-based matching
+            var card = allCards.first {
+                let fn = $0.filename
+                return fn == filename ||
+                    fn == "\(filename).json" ||
+                    fn.strippingSuffix(".json") == filename ||
+                    fn.strippingSuffix(".template.json") == baseName
+            }
+            // Slug-based fallback: normalize both sides (strip extensions, lowercase)
+            // to handle minor path variations from deep links
+            if card == nil {
+                let slug = baseName.replacingOccurrences(of: ".template", with: "").lowercased()
+                card = allCards.first {
+                    let cardSlug = $0.filename
+                        .replacingOccurrences(of: ".json", with: "")
+                        .replacingOccurrences(of: ".template", with: "")
+                        .lowercased()
+                    return cardSlug == slug
+                }
+            }
+            // Hyphenated single-segment fallback: "element-samples-carousel-styles"
+            // maps to "element-samples/carousel-styles.json"
+            if card == nil && !filename.contains("/") {
+                let knownDirs = ["teams-official-samples", "element-samples", "official-samples", "templates"]
+                for dir in knownDirs.sorted(by: { $0.count > $1.count }) {
+                    if filename.hasPrefix("\(dir)-") {
+                        let cardName = String(filename.dropFirst(dir.count + 1))
+                        let resolved = "\(dir)/\(cardName)"
+                        card = allCards.first {
+                            $0.filename == "\(resolved).json" ||
+                            $0.filename.strippingSuffix(".json") == resolved
+                        }
+                        if card != nil { break }
+                    }
+                }
+                // Handle "versioned-v1.5-CardName" → "versioned/v1.5/CardName"
+                if card == nil && filename.hasPrefix("versioned-") {
+                    let rest = String(filename.dropFirst("versioned-".count))
+                    if let range = rest.range(of: #"^v\d+\.\d+-"#, options: .regularExpression) {
+                        let version = String(rest[rest.startIndex..<rest.index(before: range.upperBound)])
+                        let cardName = String(rest[range.upperBound...])
+                        let resolved = "versioned/\(version)/\(cardName)"
+                        card = allCards.first {
+                            $0.filename == "\(resolved).json" ||
+                            $0.filename.strippingSuffix(".json") == resolved
+                        }
+                    }
+                }
+            }
+            // Last resort: load from filesystem directly
+            if card == nil {
+                let candidates = [filename, "\(filename).json", "\(baseName).json", "\(baseName).template.json"]
+                for candidate in candidates {
+                    if let json = TestCardLoader.loadCardJSON(candidate) {
+                        let name = candidate.split(separator: "/").last
+                            .map(String.init)?
+                            .replacingOccurrences(of: ".json", with: "")
+                            .replacingOccurrences(of: ".template", with: "") ?? filename
+                        card = TestCard(
+                            title: name,
+                            description: "Loaded from: \(candidate)",
+                            filename: candidate,
+                            category: .advanced,
+                            isAdvanced: false,
+                            jsonString: json
+                        )
+                        break
+                    }
+                }
             }
             if card != nil {
                 pendingScreen = "gallery"
+                // Delay setting activeCard so the tab switch to Gallery completes
+                // before NavigationStack processes the card navigation push.
+                // Without this delay, the navigation can silently fail when
+                // switching from another tab (Editor, More, etc.).
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [self] in
+                    self.activeCard = card
+                }
+            } else {
+                activeCard = nil
             }
-            activeCard = card
         case "gallery":
             activeCard = nil
             pendingGalleryPopToRoot = true
@@ -261,5 +338,15 @@ class PerformanceStore: ObservableObject {
         parseTimes = dict["parseTimes"] as? [Double] ?? []
         renderTimes = dict["renderTimes"] as? [Double] ?? []
         peakMemoryMB = dict["peakMemoryMB"] as? Double ?? 0
+    }
+}
+
+// MARK: - String helpers
+
+extension String {
+    /// Returns the string with the given suffix removed, or the original string if it does not end with the suffix.
+    func strippingSuffix(_ suffix: String) -> String {
+        guard hasSuffix(suffix) else { return self }
+        return String(dropLast(suffix.count))
     }
 }
