@@ -121,7 +121,6 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             let w = (available - CGFloat(cols - 1) * horizontalSpacing) / CGFloat(cols)
             return min(w, maxW)
         }
-
         return nil
     }
 
