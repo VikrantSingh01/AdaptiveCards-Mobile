@@ -258,23 +258,23 @@ public struct ContainerStylesConfig: Codable {
             foregroundColors: ForegroundColorsConfig()
         ),
         emphasis: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#08000000",
+            backgroundColor: "#F1F1F1",
             foregroundColors: ForegroundColorsConfig()
         ),
         good: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#FFD5F0DD",
+            backgroundColor: "#DFF6DD",
             foregroundColors: ForegroundColorsConfig()
         ),
         attention: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#F7E9E9",
+            backgroundColor: "#FED9CC",
             foregroundColors: ForegroundColorsConfig()
         ),
         warning: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#F7F7DF",
+            backgroundColor: "#FFF4CE",
             foregroundColors: ForegroundColorsConfig()
         ),
         accent: ContainerStyleConfig = ContainerStyleConfig(
-            backgroundColor: "#DCE5F7",
+            backgroundColor: "#E8E8F7",
             foregroundColors: ForegroundColorsConfig()
         )
     ) {
