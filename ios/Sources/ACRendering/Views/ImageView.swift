@@ -23,31 +23,33 @@ private struct SVGWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = UIColor.clear
+        webView.underPageBackgroundColor = UIColor.clear
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.backgroundColor = UIColor.clear
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        let w = width.map { "\(Int($0))px" } ?? "100%"
-        let h = height.map { "\(Int($0))px" } ?? "auto"
-        let bodyContent: String
         if svgSource.hasPrefix("data:image/svg+xml") {
             // For data URIs, decode and embed SVG inline for better rendering
+            let w = width.map { "\(Int($0))px" } ?? "100%"
+            let h = height.map { "\(Int($0))px" } ?? "auto"
+            let bodyContent: String
             if let svgMarkup = decodeSVGDataURI(svgSource) {
                 bodyContent = "<div style=\"width:\(w);height:\(h);max-width:100%\">\(svgMarkup)</div>"
             } else {
                 bodyContent = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
             }
-        } else {
-            bodyContent = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
+            let html = """
+            <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+            <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}svg{max-width:100%;height:auto}</style></head>
+            <body>\(bodyContent)</body></html>
+            """
+            webView.loadHTMLString(html, baseURL: nil)
+        } else if let url = URL(string: svgSource) {
+            // Load network SVGs directly via URL request to avoid CORS/CSP issues
+            webView.load(URLRequest(url: url))
         }
-        let html = """
-        <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-        <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}svg{max-width:100%;height:auto}</style></head>
-        <body>\(bodyContent)</body></html>
-        """
-        webView.loadHTMLString(html, baseURL: nil)
     }
 
     private func decodeSVGDataURI(_ uri: String) -> String? {
@@ -243,6 +245,11 @@ struct ImageView: View {
         // Auto fit mode with no explicit pixel dimensions should use natural size
         if isAutoFitMode && imageWidth == nil && imageHeight == nil {
             return true
+        }
+        // If explicit pixel dimensions are present, this is not auto-size
+        // (imageWidth/imageHeight return nil for "auto", non-nil for "200px" etc.)
+        if imageWidth != nil || imageHeight != nil {
+            return false
         }
         return (isAutoWidth || isAutoHeight) && (image.fitMode == nil || isAutoFitMode)
     }
