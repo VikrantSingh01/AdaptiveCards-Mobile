@@ -30,25 +30,32 @@ private struct SVGWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        // Force light mode to prevent dark mode from showing black backgrounds
+        webView.overrideUserInterfaceStyle = .light
+
+        let w = width.map { "\(Int($0))px" } ?? "100%"
+        let h = height.map { "\(Int($0))px" } ?? "auto"
+        let htmlHead = """
+        <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+        <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}svg{max-width:100%;height:auto}</style></head>
+        """
+
         if svgSource.hasPrefix("data:image/svg+xml") {
             // For data URIs, decode and embed SVG inline for better rendering
-            let w = width.map { "\(Int($0))px" } ?? "100%"
-            let h = height.map { "\(Int($0))px" } ?? "auto"
             let bodyContent: String
             if let svgMarkup = decodeSVGDataURI(svgSource) {
                 bodyContent = "<div style=\"width:\(w);height:\(h);max-width:100%\">\(svgMarkup)</div>"
             } else {
                 bodyContent = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
             }
-            let html = """
-            <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-            <style>body{margin:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center}svg{max-width:100%;height:auto}</style></head>
-            <body>\(bodyContent)</body></html>
-            """
+            let html = "\(htmlHead)<body>\(bodyContent)</body></html>"
             webView.loadHTMLString(html, baseURL: nil)
-        } else if let url = URL(string: svgSource) {
-            // Load network SVGs directly via URL request to avoid CORS/CSP issues
-            webView.load(URLRequest(url: url))
+        } else {
+            // Wrap network SVGs in HTML with transparent background to prevent
+            // WKWebView default background (black in dark mode) from showing
+            let bodyContent = "<img src=\"\(svgSource)\" style=\"width:\(w);height:\(h);max-width:100%\">"
+            let html = "\(htmlHead)<body>\(bodyContent)</body></html>"
+            webView.loadHTMLString(html, baseURL: nil)
         }
     }
 
