@@ -64,6 +64,35 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
             ?: allCards.find { it.filename.removeSuffix(".json") == decodedCardId }
             ?: allCards.find { it.filename == "$baseName.template.json" }
             ?: allCards.find { it.filename.removeSuffix(".template.json") == baseName }
+            ?: run {
+                // Fallback: load card JSON directly from assets when gallery cache miss
+                val candidates = listOf(
+                    decodedCardId,
+                    "$decodedCardId.json",
+                    "$baseName.json",
+                    "$baseName.template.json"
+                )
+                var jsonString: String? = null
+                var resolvedFilename = decodedCardId
+                for (candidate in candidates) {
+                    try {
+                        jsonString = context.assets.open(candidate).bufferedReader().use { it.readText() }
+                        resolvedFilename = candidate
+                        break
+                    } catch (_: Exception) { }
+                }
+                if (jsonString != null) {
+                    val name = resolvedFilename.substringAfterLast("/").removeSuffix(".json").removeSuffix(".template")
+                    TestCard(
+                        title = name,
+                        description = "Loaded from assets: $resolvedFilename",
+                        filename = resolvedFilename,
+                        category = CardCategory.ADVANCED,
+                        isAdvanced = false,
+                        jsonString = jsonString
+                    )
+                } else null
+            }
     }
     // Load template data for .template.json cards
     val templateData: Map<String, Any?>? = remember(cardId) {
