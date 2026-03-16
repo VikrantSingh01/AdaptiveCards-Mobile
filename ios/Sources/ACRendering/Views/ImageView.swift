@@ -111,6 +111,32 @@ struct ImageView: View {
                                 .frame(maxHeight: coverMaxHeight)
                                 .clipped()
                                 .clipShape(imageShape)
+                        } else if isContainMode {
+                            // Contain: scale to fit within specified dimensions,
+                            // handling each dimension combination explicitly
+                            if let w = imageWidth, let h = imageHeight {
+                                img
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: w, height: h)
+                                    .clipShape(imageShape)
+                            } else if let w = imageWidth {
+                                img
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: w)
+                                    .clipShape(imageShape)
+                            } else if let h = imageHeight {
+                                img
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(height: h)
+                                    .clipShape(imageShape)
+                            } else {
+                                // No explicit dimensions: render at natural size
+                                img
+                                    .clipShape(imageShape)
+                            }
                         } else if let fitMode = fitModeContentMode, fitMode == .fill {
                             // Cover/fill: scale to fill the frame and clip overflow.
                             // Use large image size as default when no explicit dimensions
@@ -273,6 +299,11 @@ struct ImageView: View {
         default:
             return nil
         }
+    }
+
+    /// Whether this image has a contain fitMode (scale to fit within dimensions)
+    private var isContainMode: Bool {
+        image.fitMode?.lowercased() == "contain"
     }
 
     /// Whether this image has a cover fitMode (needs clipping, not stretching)
