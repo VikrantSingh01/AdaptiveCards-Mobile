@@ -88,11 +88,19 @@ struct CodeBlockView: View {
                     .accessibilityHidden(true)
             }
 
-            Text(line)
+            highlightedText(line)
                 .font(.system(size: adaptiveFontSize, design: .monospaced))
-                .foregroundColor(Self.codeTextColor)
                 .lineLimit(codeBlock.wrap == true ? nil : 1)
         }
+    }
+
+    private func highlightedText(_ line: String) -> Text {
+        let tokens = SyntaxHighlighter.highlight(line: line, language: codeBlock.language)
+        var result = Text("")
+        for token in tokens {
+            result = result + Text(token.text).foregroundColor(SyntaxColors.color(for: token.type))
+        }
+        return result
     }
 
     private var codeLines: [String] {

@@ -578,6 +578,7 @@ class TestCardLoader {
             ("progress-indicators.json", "Progress Indicators", .basic, false),
             ("rating.json", "Rating", .basic, false),
             ("code-block.json", "Code Block", .advanced, false),
+            ("code-block-languages.json", "Code Block Languages", .advanced, false),
             ("fluent-theming.json", "Fluent Theming", .advanced, true),
             ("responsive-layout.json", "Responsive Layout", .advanced, false),
             ("themed-images.json", "Themed Images", .basic, false),

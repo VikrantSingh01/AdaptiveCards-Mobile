@@ -444,6 +444,7 @@ object TestCardLoader {
         Triple("progress-indicators.json", "Progress Indicators", CardCategory.BASIC),
         Triple("rating.json", "Rating", CardCategory.BASIC),
         Triple("code-block.json", "Code Block", CardCategory.ADVANCED),
+        Triple("code-block-languages.json", "Code Block Languages", CardCategory.ADVANCED),
         Triple("fluent-theming.json", "Fluent Theming", CardCategory.ADVANCED),
         Triple("responsive-layout.json", "Responsive Layout", CardCategory.ADVANCED),
         Triple("compound-buttons.json", "Compound Buttons", CardCategory.ACTIONS),

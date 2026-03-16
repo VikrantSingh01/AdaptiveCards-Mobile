@@ -117,7 +117,7 @@ final class DeviceSizeVisualTests: CardSnapshotTestCase {
         let criticalCards = [
             "simple-text", "containers", "all-inputs", "all-actions",
             "table", "accordion", "carousel", "tab-set", "list",
-            "compound-buttons", "code-block", "markdown", "rich-text",
+            "compound-buttons", "code-block", "code-block-languages", "markdown", "rich-text",
             "rating", "progress-indicators", "datagrid"
         ]
 

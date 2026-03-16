@@ -1,0 +1,114 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.6",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Syntax Highlighting - Multiple Languages",
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Kotlin",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "kotlinCode",
+      "language": "kotlin",
+      "startLineNumber": 1,
+      "code": "// Kotlin data class with coroutines\ndata class User(val name: String, val age: Int)\n\nsuspend fun fetchUsers(): List<User> {\n    val response = apiClient.get(\"/users\")\n    return response.body<List<User>>()\n}\n\nfun main() {\n    val users = runBlocking { fetchUsers() }\n    users.forEach { println(\"${it.name}: ${it.age}\") }\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "TypeScript",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "tsCode",
+      "language": "typescript",
+      "startLineNumber": 1,
+      "code": "// Generic repository pattern\ninterface Repository<T> {\n    findById(id: string): Promise<T | null>;\n    save(entity: T): Promise<void>;\n}\n\nclass UserRepository implements Repository<User> {\n    private db: Database;\n\n    async findById(id: string): Promise<User | null> {\n        const row = await this.db.query('SELECT * FROM users WHERE id = $1', [id]);\n        return row ? new User(row) : null;\n    }\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Go",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "goCode",
+      "language": "go",
+      "startLineNumber": 1,
+      "code": "package main\n\nimport (\n    \"fmt\"\n    \"net/http\"\n)\n\nfunc handler(w http.ResponseWriter, r *http.Request) {\n    name := r.URL.Query().Get(\"name\")\n    if name == \"\" {\n        name = \"World\"\n    }\n    fmt.Fprintf(w, \"Hello, %s!\", name)\n}\n\nfunc main() {\n    http.HandleFunc(\"/\", handler)\n    http.ListenAndServe(\":8080\", nil)\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Rust",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "rustCode",
+      "language": "rust",
+      "startLineNumber": 1,
+      "code": "use std::collections::HashMap;\n\nfn word_count(text: &str) -> HashMap<&str, usize> {\n    let mut counts = HashMap::new();\n    for word in text.split_whitespace() {\n        let count = counts.entry(word).or_insert(0);\n        *count += 1;\n    }\n    counts\n}\n\nfn main() {\n    let text = \"hello world hello rust\";\n    let counts = word_count(text);\n    println!(\"{:?}\", counts);\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Bash",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "bashCode",
+      "language": "bash",
+      "startLineNumber": 1,
+      "code": "#!/bin/bash\n# Deploy script with health check\n\nset -euo pipefail\n\nAPP_NAME=\"myapp\"\nDEPLOY_DIR=\"/opt/$APP_NAME\"\n\necho \"Deploying $APP_NAME...\"\n\nif [ ! -d \"$DEPLOY_DIR\" ]; then\n    echo \"Creating deploy directory\"\n    mkdir -p \"$DEPLOY_DIR\"\nfi\n\nfor file in dist/*; do\n    cp \"$file\" \"$DEPLOY_DIR/\"\ndone\n\necho \"Deploy complete!\""
+    },
+    {
+      "type": "TextBlock",
+      "text": "HTML",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "htmlCode",
+      "language": "html",
+      "code": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Hello World</title>\n</head>\n<body>\n    <h1>Welcome</h1>\n    <p class=\"intro\">This is a sample page.</p>\n    <!-- Navigation -->\n    <nav>\n        <a href=\"/home\">Home</a>\n    </nav>\n</body>\n</html>"
+    },
+    {
+      "type": "TextBlock",
+      "text": "CSS",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "cssCode",
+      "language": "css",
+      "code": "/* Card component styles */\n.card {\n    display: flex;\n    flex-direction: column;\n    border-radius: 8px;\n    padding: 16px;\n    background-color: #1e1e1e;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);\n}\n\n.card:hover {\n    transform: translateY(-2px);\n    transition: transform 0.2s ease;\n}"
+    },
+    {
+      "type": "TextBlock",
+      "text": "YAML",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "CodeBlock",
+      "id": "yamlCode",
+      "language": "yaml",
+      "code": "# Kubernetes deployment config\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-app\n  labels:\n    app: web\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  template:\n    spec:\n      containers:\n        - name: web\n          image: myapp:1.0.0\n          ports:\n            - containerPort: 8080"
+    }
+  ]
+}
