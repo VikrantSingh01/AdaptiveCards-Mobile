@@ -112,15 +112,11 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
         }
 
-        // When only maxItemWidth is specified, compute column count using
-        // maxItemWidth as the target width. Uses round() so that when the
-        // available width is more than ~1.5× maxItemWidth, items shrink to
-        // fit 2 columns (matching Android FlowRow intrinsic-width behavior).
-        if let maxW = maxItemWidth, maxW > 0, available < .infinity {
-            let cols = max(1, Int(round((available + horizontalSpacing) / (maxW + horizontalSpacing))))
-            let w = (available - CGFloat(cols - 1) * horizontalSpacing) / CGFloat(cols)
-            return min(w, maxW)
-        }
+        // When only maxItemWidth is specified (no minItemWidth/itemWidth),
+        // return nil to let items use their intrinsic widths, capped by
+        // maxItemWidth in the arrangeSubviews() loop (line 164).
+        // This matches Android FlowRow which returns null for calculatedItemWidthPx
+        // and falls back to measurable.maxIntrinsicWidth() per item.
         return nil
     }
 
