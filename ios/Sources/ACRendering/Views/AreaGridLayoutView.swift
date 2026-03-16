@@ -217,14 +217,15 @@ public struct AreaGridLayoutView: View {
             return Array(repeating: equalWidth, count: columnCount)
         }
 
-        // Step 1: Calculate used percentage and auto column count
+        // Step 1: Calculate used percentage, auto column count, and implicit column count
         // (mirrors Android resolveColumnWeights logic)
         var usedPercentage: CGFloat = 0
         var autoCount = 0
+        let implicitCount = max(columnCount - columnDefs.count, 0)
 
         for i in 0..<columnCount {
-            let def = (i < columnDefs.count ? columnDefs[i] : "1fr")
-                .trimmingCharacters(in: .whitespaces)
+            guard i < columnDefs.count else { break }
+            let def = columnDefs[i].trimmingCharacters(in: .whitespaces)
             if def.hasSuffix("fr") {
                 // fr columns don't consume percentage
             } else if def == "auto" || def == "*" {
@@ -238,17 +239,22 @@ public struct AreaGridLayoutView: View {
         }
 
         let remainingPercentage = max(100 - usedPercentage, 0)
-        let autoWeight = autoCount > 0 ? remainingPercentage / CGFloat(autoCount) : 1
+        // Implicit columns (beyond columnDefs) share remaining percentage equally
+        let implicitAndAutoCount = autoCount + implicitCount
+        let sharedWeight = implicitAndAutoCount > 0 ? remainingPercentage / CGFloat(implicitAndAutoCount) : 1
 
         // Step 2: Resolve each column to a weight
         let weights: [CGFloat] = (0..<columnCount).map { i in
-            let def = (i < columnDefs.count ? columnDefs[i] : "1fr")
-                .trimmingCharacters(in: .whitespaces)
+            if i >= columnDefs.count {
+                // Implicit column — gets equal share of remaining percentage
+                return max(sharedWeight, 1)
+            }
+            let def = columnDefs[i].trimmingCharacters(in: .whitespaces)
             if def.hasSuffix("fr") {
                 let numeric = def.replacingOccurrences(of: "fr", with: "")
                 return max(CGFloat(Double(numeric) ?? 1), 1)
             } else if def == "auto" || def == "*" {
-                return max(autoWeight, 1)
+                return max(sharedWeight, 1)
             } else {
                 let numeric = def.replacingOccurrences(of: "px", with: "")
                 return max(CGFloat(Double(numeric) ?? 1), 1)
