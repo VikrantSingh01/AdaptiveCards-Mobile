@@ -274,6 +274,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for coding standards and detailed guideli
 
 [Vikrant Singh](https://github.com/VikrantSingh01)
 
+## Related Projects
+
+- [adaptive-cards-mcp](https://github.com/VikrantSingh01/adaptive-cards-mcp) — MCP server + npm library with 7 AI tools for card generation, validation, and optimization. Uses this SDK's schema and test cards.
+- [openclaw-adaptive-cards](https://github.com/VikrantSingh01/openclaw-adaptive-cards) — OpenClaw AI agent plugin for delivering Adaptive Cards in chat. Cards rendered by this SDK on iOS and Android.
+
 ## Links
 
 - [Adaptive Cards Specification](https://adaptivecards.io/)
