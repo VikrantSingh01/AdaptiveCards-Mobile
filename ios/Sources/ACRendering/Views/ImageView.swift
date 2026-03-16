@@ -18,6 +18,8 @@ private struct SVGWebView: UIViewRepresentable {
     let width: CGFloat?
     let height: CGFloat?
 
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -26,6 +28,9 @@ private struct SVGWebView: UIViewRepresentable {
         webView.underPageBackgroundColor = UIColor.clear
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.backgroundColor = UIColor.clear
+        // Hide until content loads to prevent black rectangle flash
+        webView.alpha = 0
+        webView.navigationDelegate = context.coordinator
         return webView
     }
 
@@ -70,6 +75,14 @@ private struct SVGWebView: UIViewRepresentable {
             return encodedPart.removingPercentEncoding
         }
         return nil
+    }
+
+    class Coordinator: NSObject, WKNavigationDelegate {
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            UIView.animate(withDuration: 0.15) {
+                webView.alpha = 1
+            }
+        }
     }
 }
 #endif
