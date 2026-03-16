@@ -61,7 +61,7 @@ struct CompoundButtonView: View {
             }
 
             VStack(alignment: .leading, spacing: Layout.titleSubtitleSpacing) {
-                HStack {
+                HStack(spacing: 8) {
                     Text(button.title)
                         .font(.system(size: CGFloat(hostConfig.fontSizes.large), weight: titleFontWeight))
                         .foregroundColor(primaryTextColor)
