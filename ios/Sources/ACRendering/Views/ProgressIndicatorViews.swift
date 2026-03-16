@@ -138,7 +138,7 @@ struct ProgressRingView: View {
         Group {
             switch labelPosition {
             case "below":
-                VStack(spacing: CGFloat(hostConfig.spacing.small)) {
+                VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.small)) {
                     ringContent
                     labelText
                 }
@@ -153,7 +153,7 @@ struct ProgressRingView: View {
                     labelText
                 }
             default:
-                VStack(spacing: CGFloat(hostConfig.spacing.small)) {
+                VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.small)) {
                     labelText
                     ringContent
                 }
@@ -236,7 +236,7 @@ struct SpinnerView: View {
     }
 
     var body: some View {
-        VStack(spacing: CGFloat(hostConfig.spacing.default)) {
+        VStack(alignment: .leading, spacing: CGFloat(hostConfig.spacing.default)) {
             IndeterminateRing(color: spinnerColor, size: spinnerSize, lineWidth: lineWidth)
 
             if let label = spinner.label {

@@ -16,7 +16,7 @@ struct TableView: View {
     var depth: Int = 0
 
     var body: some View {
-        let rowSpacing: CGFloat = table.showGridLines == true ? 0 : CGFloat(hostConfig.table.cellSpacing / 2)
+        let rowSpacing: CGFloat = 0
         let weights = resolveColumnWeights()
         let showGrid = table.showGridLines == true
 
@@ -47,8 +47,8 @@ struct TableView: View {
                 .if(isHeaderRow) { view in
                     view.background(Color(hex: hostConfig.containerStyles.emphasis.backgroundColor))
                 }
-                .if(!isHeaderRow) { view in
-                    view.containerStyle(row.style, hostConfig: hostConfig)
+                .if(!isHeaderRow && row.style != nil) { view in
+                    view.background(resolveStyleBackground(row.style))
                 }
 
                 if showGrid && rowIndex < table.rows.count - 1 {
@@ -64,6 +64,21 @@ struct TableView: View {
         .spacing(table.spacing, hostConfig: hostConfig)
         .separator(table.separator, hostConfig: hostConfig)
         .accessibilityContainer(label: "Table")
+    }
+
+    /// Resolves a ContainerStyle to its background color (no corner radius for table rows).
+    private func resolveStyleBackground(_ style: ContainerStyle?) -> Color {
+        guard let style = style else { return .clear }
+        let styleConfig: ContainerStyleConfig
+        switch style {
+        case .default: styleConfig = hostConfig.containerStyles.default
+        case .emphasis: styleConfig = hostConfig.containerStyles.emphasis
+        case .good: styleConfig = hostConfig.containerStyles.good
+        case .attention: styleConfig = hostConfig.containerStyles.attention
+        case .warning: styleConfig = hostConfig.containerStyles.warning
+        case .accent: styleConfig = hostConfig.containerStyles.accent
+        }
+        return Color(hex: styleConfig.backgroundColor)
     }
 
     /// Resolve all column weights for proportional sizing.
@@ -195,14 +210,13 @@ struct TableCellView: View {
                     .frame(minHeight: 20)
             }
         }
-        .fixedSize(horizontal: false, vertical: true)
         .frame(maxHeight: .infinity, alignment: combinedAlignment)
         .frame(minHeight: minHeight)
         .clipped()
         .frame(maxWidth: .infinity, alignment: combinedAlignment)
         .padding(.horizontal, CGFloat(hostConfig.table.cellSpacing))
-        .padding(.vertical, CGFloat(hostConfig.table.cellSpacing / 2))
-        .containerStyle(cell.style, hostConfig: hostConfig)
+        .padding(.vertical, 4)
+        .background(cellStyleBackground)
     }
 
     /// Resolved horizontal alignment as ACCore enum, for environment propagation
@@ -252,6 +266,21 @@ struct TableCellView: View {
         }()
 
         return Alignment(horizontal: h, vertical: v)
+    }
+
+    /// Cell style background color without corner radius (flat for table cells)
+    private var cellStyleBackground: Color {
+        guard let style = cell.style else { return .clear }
+        let styleConfig: ContainerStyleConfig
+        switch style {
+        case .default: styleConfig = hostConfig.containerStyles.default
+        case .emphasis: styleConfig = hostConfig.containerStyles.emphasis
+        case .good: styleConfig = hostConfig.containerStyles.good
+        case .attention: styleConfig = hostConfig.containerStyles.attention
+        case .warning: styleConfig = hostConfig.containerStyles.warning
+        case .accent: styleConfig = hostConfig.containerStyles.accent
+        }
+        return Color(hex: styleConfig.backgroundColor)
     }
 
     private var minHeight: CGFloat? {

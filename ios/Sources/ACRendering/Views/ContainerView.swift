@@ -181,17 +181,19 @@ private struct OverflowModifier: ViewModifier {
                 ScrollView(.vertical, showsIndicators: true) {
                     content
                 }
-                .frame(height: maxH)
+                .frame(maxHeight: maxH)
                 .clipped()
                 .accessibilityElement(children: .contain)
                 .accessibilityHint("Scrollable content")
             case .hidden:
                 content
-                    .frame(height: maxH, alignment: .top)
+                    .frame(maxHeight: maxH, alignment: .top)
                     .clipped()
             default:
+                // Enforce maxHeight as a hard constraint (matching Android heightIn(max=))
                 content
-                    .frame(maxHeight: maxH)
+                    .frame(maxHeight: maxH, alignment: .top)
+                    .clipped()
             }
         } else {
             content

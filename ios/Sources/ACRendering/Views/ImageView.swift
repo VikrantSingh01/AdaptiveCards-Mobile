@@ -233,13 +233,18 @@ struct ImageView: View {
         isWidthStretch
     }
 
-    /// Whether width and/or height are explicitly set to "auto" (natural size mode).
-    /// When true, the image should render at its intrinsic dimensions rather than
+    /// Whether the image should render at its intrinsic dimensions rather than
     /// stretching to fill the container (matching Android ContentScale.Fit behavior).
+    /// True when width/height is "auto" or fitMode is "auto"/nil with no explicit sizing.
     private var isExplicitAutoSize: Bool {
         let isAutoWidth = image.width?.lowercased() == "auto"
         let isAutoHeight = image.height?.lowercased() == "auto"
-        return (isAutoWidth || isAutoHeight) && image.fitMode == nil
+        let isAutoFitMode = image.fitMode?.lowercased() == "auto"
+        // Auto fit mode with no explicit pixel dimensions should use natural size
+        if isAutoFitMode && imageWidth == nil && imageHeight == nil {
+            return true
+        }
+        return (isAutoWidth || isAutoHeight) && (image.fitMode == nil || isAutoFitMode)
     }
 
     /// Whether width is explicitly set to "stretch"
@@ -325,10 +330,8 @@ struct ImageView: View {
     }
 
     private var frameAlignment: Alignment {
-        .from(
-            horizontal: image.horizontalAlignment,
-            vertical: nil,
-            layoutDirection: layoutDirection
-        )
+        let h = SwiftUI.HorizontalAlignment.from(image.horizontalAlignment, layoutDirection: layoutDirection)
+        // Images default to top vertical alignment (matching Android Alignment.Top*)
+        return Alignment(horizontal: h, vertical: .top)
     }
 }

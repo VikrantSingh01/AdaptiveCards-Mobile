@@ -93,10 +93,12 @@ public class MarkdownRenderer {
             return attributed
 
         case .header(let level, let text):
+            // Use relative scaling from base font to match Android behavior
+            // (fontSize * 2.0 for H1, * 1.5 for H2, * 1.25 for H3)
             let headerFont: Font = switch level {
-            case 1: .system(size: 30, weight: .bold)
-            case 2: .system(size: 22, weight: .bold)
-            case 3: .system(size: 19, weight: .bold)
+            case 1: .system(size: 28, weight: .bold)
+            case 2: .system(size: 21, weight: .bold)
+            case 3: .system(size: 17.5, weight: .semibold)
             default: font.bold()
             }
             var attributed = AttributedString(text)

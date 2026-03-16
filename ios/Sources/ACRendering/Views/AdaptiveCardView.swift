@@ -239,7 +239,7 @@ public struct AdaptiveCardView: View {
         .onPreferenceChange(CardWidthPreferenceKey.self) { width in
             if width > 0 { cardWidth = width }
         }
-        .environment(\.widthCategory, WidthCategory.from(width: cardWidth, hostConfig: hostConfig))
+        .environment(\.widthCategory, cardWidth > 0 ? WidthCategory.from(width: cardWidth, hostConfig: hostConfig) : .narrow)
         .environment(\.layoutDirection, card.rtl == true ? .rightToLeft : .leftToRight)
         .overlay(alignment: .topTrailing) {
             if showDiagnostics {

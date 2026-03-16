@@ -113,7 +113,7 @@
   },
   "containerStyles" : {
     "accent" : {
-      "backgroundColor" : "#DCE5F7",
+      "backgroundColor" : "#E8E8F7",
       "foregroundColors" : {
         "accent" : {
           "default" : "#6264A7",
@@ -146,7 +146,7 @@
       }
     },
     "attention" : {
-      "backgroundColor" : "#F7E9E9",
+      "backgroundColor" : "#FED9CC",
       "foregroundColors" : {
         "accent" : {
           "default" : "#6264A7",
@@ -246,7 +246,7 @@
       }
     },
     "good" : {
-      "backgroundColor" : "#E7F2DA",
+      "backgroundColor" : "#DFF6DD",
       "foregroundColors" : {
         "accent" : {
           "default" : "#6264A7",
@@ -279,7 +279,7 @@
       }
     },
     "warning" : {
-      "backgroundColor" : "#FBF6D9",
+      "backgroundColor" : "#FFF4CE",
       "foregroundColors" : {
         "accent" : {
           "default" : "#6264A7",
