@@ -196,6 +196,7 @@ struct TableCellView: View {
                                 if isHeader {
                                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                         .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
+                                        .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default))
                                 } else {
                                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                 }
