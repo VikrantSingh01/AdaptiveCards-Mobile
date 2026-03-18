@@ -189,6 +189,11 @@ struct CarouselView: View {
         return height
     }
 
+    /// Minimum auto-advance interval in milliseconds.
+    /// Prevents rapid page transitions (e.g. 100ms) from cancelling image loads
+    /// in TabView, which destroys off-screen page views on each transition.
+    private static let minTimerIntervalMs: Int = 3000
+
     private func setupAutoAdvance() {
         guard let timerInterval = carousel.timer, timerInterval > 0 else {
             return
@@ -196,8 +201,9 @@ struct CarouselView: View {
 
         timer?.invalidate()
 
+        let effectiveInterval = max(timerInterval, Self.minTimerIntervalMs)
         let pageCount = visiblePages.count
-        timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(timerInterval) / 1000.0, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(effectiveInterval) / 1000.0, repeats: true) { _ in
             withAnimation {
                 currentPage = (currentPage + 1) % pageCount
             }
@@ -231,14 +237,14 @@ struct CarouselPageView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .center, spacing: 0) {
             ForEach(allowedItems) { element in
                 if viewModel.isElementVisible(elementId: element.elementId) {
                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.all, isTablet ? 24 : 16)
         .background(
             RoundedRectangle(cornerRadius: 12)

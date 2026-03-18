@@ -45,7 +45,7 @@ struct ContainerView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
-        .frame(minHeight: minHeight)
+        .frame(minHeight: minHeight ?? (container.style != nil && items.isEmpty ? 32 : nil))
         .modifier(OverflowModifier(maxHeight: maxHeight, overflow: container.overflow))
 
         Group {
@@ -188,12 +188,11 @@ private struct OverflowModifier: ViewModifier {
             case .hidden:
                 content
                     .frame(maxHeight: maxH, alignment: .top)
-                    .clipped()
+                    .clipShape(Rectangle())
             default:
-                // Enforce maxHeight as a hard constraint (matching Android heightIn(max=))
+                // visible / nil: constrain maxHeight but do not clip content
                 content
                     .frame(maxHeight: maxH, alignment: .top)
-                    .clipped()
             }
         } else {
             content
