@@ -244,7 +244,7 @@ struct CarouselPageView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.all, isTablet ? 24 : 16)
         .background(
             RoundedRectangle(cornerRadius: 12)
