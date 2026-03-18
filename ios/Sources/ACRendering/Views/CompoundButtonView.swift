@@ -78,7 +78,6 @@ struct CompoundButtonView: View {
                             .background(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.`default`))
                             .cornerRadius(4)
                             .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
                     }
                 }
 
