@@ -188,12 +188,11 @@ private struct OverflowModifier: ViewModifier {
             case .hidden:
                 content
                     .frame(maxHeight: maxH, alignment: .top)
-                    .clipped()
+                    .clipShape(Rectangle())
             default:
-                // Enforce maxHeight as a hard constraint (matching Android heightIn(max=))
+                // visible / nil: constrain maxHeight but do not clip content
                 content
                     .frame(maxHeight: maxH, alignment: .top)
-                    .clipped()
             }
         } else {
             content
