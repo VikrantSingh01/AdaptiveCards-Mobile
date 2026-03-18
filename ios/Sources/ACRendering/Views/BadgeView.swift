@@ -102,16 +102,51 @@ struct BadgeView: View {
         isTint ? badgeStyleVariants.tint : badgeStyleVariants.filled
     }
 
+    private var resolvedColors: (bg: Color, fg: Color, stroke: Color) {
+        let def = badgeStyleDef
+        let isDefault = def.backgroundColor == "#212121" && def.textColor == "#FFFFFF"
+        if !isDefault {
+            return (Color(hex: def.backgroundColor), Color(hex: def.textColor), Color(hex: def.strokeColor))
+        }
+        // HostConfig has default grey — use style-specific colors matching Android
+        return fallbackColors
+    }
+
+    private var fallbackColors: (bg: Color, fg: Color, stroke: Color) {
+        let style = badge.style?.lowercased() ?? "default"
+        if isTint {
+            switch style {
+            case "good": return (Color(hex: "#DFF6DD"), Color(hex: "#107C10"), Color(hex: "#DFF6DD"))
+            case "attention": return (Color(hex: "#FDE7E9"), Color(hex: "#C50F1F"), Color(hex: "#FDE7E9"))
+            case "warning": return (Color(hex: "#FFF4CE"), Color(hex: "#835C00"), Color(hex: "#FFF4CE"))
+            case "accent": return (Color(hex: "#EBF3FC"), Color(hex: "#0078D4"), Color(hex: "#EBF3FC"))
+            case "informative": return (Color(hex: "#EBF3FC"), Color(hex: "#0078D4"), Color(hex: "#EBF3FC"))
+            case "subtle": return (Color(hex: "#F0F0F0"), Color(hex: "#424242"), Color(hex: "#F0F0F0"))
+            default: return (Color(hex: "#F0F0F0"), Color(hex: "#424242"), Color(hex: "#F0F0F0"))
+            }
+        } else {
+            switch style {
+            case "good": return (Color(hex: "#107C10"), .white, Color(hex: "#107C10"))
+            case "attention": return (Color(hex: "#C50F1F"), .white, Color(hex: "#C50F1F"))
+            case "warning": return (Color(hex: "#835C00"), .white, Color(hex: "#835C00"))
+            case "accent": return (Color(hex: "#0078D4"), .white, Color(hex: "#0078D4"))
+            case "informative": return (Color(hex: "#0078D4"), .white, Color(hex: "#0078D4"))
+            case "subtle": return (Color(hex: "#424242"), .white, Color(hex: "#424242"))
+            default: return (Color(hex: "#424242"), .white, Color(hex: "#424242"))
+            }
+        }
+    }
+
     private var foregroundColor: Color {
-        Color(hex: badgeStyleDef.textColor)
+        resolvedColors.fg
     }
 
     private var backgroundColor: Color {
-        Color(hex: badgeStyleDef.backgroundColor)
+        resolvedColors.bg
     }
 
     private var strokeColor: Color {
-        Color(hex: badgeStyleDef.strokeColor)
+        resolvedColors.stroke
     }
 
     private var alignment: Alignment {

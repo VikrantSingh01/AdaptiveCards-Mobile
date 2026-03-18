@@ -188,7 +188,7 @@ private struct OverflowModifier: ViewModifier {
             case .hidden:
                 content
                     .frame(maxHeight: maxH, alignment: .top)
-                    .clipShape(Rectangle())
+                    .clipped()
             default:
                 // visible / nil: constrain maxHeight but do not clip content
                 content

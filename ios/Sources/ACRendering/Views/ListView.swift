@@ -44,7 +44,7 @@ struct ListView: View {
 
     @ViewBuilder
     private func listContent(listStyle: String) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Layout.itemVerticalPadding) {
             ForEach(Array(list.items.enumerated()), id: \.element.id) { index, item in
                 HStack(alignment: .top, spacing: Layout.itemSpacing) {
                     // Render list item prefix based on style
@@ -67,7 +67,6 @@ struct ListView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(minHeight: Layout.minTouchTarget) // Minimum touch target
-                .padding(.vertical, Layout.itemVerticalPadding)
             }
         }
         .padding(.horizontal, listStyle != "default" ? 0 : Layout.itemSpacing)
