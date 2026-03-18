@@ -212,7 +212,7 @@ public struct AdaptiveCardView: View {
         let showDiagnostics = configuration?.diagnosticsEnabled == true
 
         return ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 if let body = card.body, !body.isEmpty {
                     ForEach(Array(body.enumerated()), id: \.element.id) { index, element in
                         if viewModel.isElementVisible(elementId: element.elementId) {

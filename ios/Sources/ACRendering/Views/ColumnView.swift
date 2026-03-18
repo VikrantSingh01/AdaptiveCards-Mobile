@@ -27,7 +27,7 @@ struct ColumnView: View {
             case .areaGrid(let gridLayout):
                 AreaGridLayoutView(items: items, gridLayout: gridLayout, hostConfig: hostConfig, depth: depth)
             case .none:
-                VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                         if viewModel.isElementVisible(elementId: element.elementId) {
                             ElementView(element: element, hostConfig: hostConfig, depth: depth)
@@ -51,16 +51,16 @@ struct ColumnView: View {
 
     private var verticalContentAlignment: Alignment {
         guard let alignment = column.verticalContentAlignment else {
-            return .top
+            return .topLeading
         }
 
         switch alignment {
         case .top:
-            return .top
+            return .topLeading
         case .center:
-            return .center
+            return .leading
         case .bottom:
-            return .bottom
+            return .bottomLeading
         }
     }
 

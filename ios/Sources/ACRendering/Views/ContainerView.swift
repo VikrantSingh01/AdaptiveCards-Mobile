@@ -32,7 +32,7 @@ struct ContainerView: View {
                     .padding(.horizontal, contentPadding)
                     .padding(.vertical, contentPadding > 0 ? contentPadding / 2 : 0)
             case .none:
-                VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, element in
                         if viewModel.isElementVisible(elementId: element.elementId) {
                             ElementView(element: element, hostConfig: hostConfig, depth: depth)
@@ -118,16 +118,16 @@ struct ContainerView: View {
 
     private var verticalContentAlignment: Alignment {
         guard let alignment = container.verticalContentAlignment else {
-            return .top
+            return .topLeading
         }
 
         switch alignment {
         case .top:
-            return .top
+            return .topLeading
         case .center:
-            return .center
+            return .leading
         case .bottom:
-            return .bottom
+            return .bottomLeading
         }
     }
 
