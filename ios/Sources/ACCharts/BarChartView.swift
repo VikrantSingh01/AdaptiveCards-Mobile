@@ -60,34 +60,50 @@ public struct BarChartView: View {
 
     private var verticalBars: some View {
         GeometryReader { geometry in
-            HStack(alignment: .bottom, spacing: 8) {
-                ForEach(Array(chart.data.enumerated()), id: \.element.id) { index, dataPoint in
-                    VStack(spacing: 4) {
-                        if chart.showValues ?? false {
-                            Text(String(format: "%.0f", dataPoint.value))
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
+            let labelHeight: CGFloat = 16
+            let valueHeight: CGFloat = (chart.showValues ?? false) ? 16 : 0
+            // Use proportional sizing (matching Android 0.8f fraction) so labels always have room
+            let barAreaHeight = max(geometry.size.height * 0.75 - valueHeight, 0)
 
-                        let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
-                        let height = (dataPoint.value / maxValue) * (geometry.size.height - 40) * animationProgress // safe: maxValue guarded >= 1.0 in computed property
-
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(selectedIndex == index ? color.opacity(0.7) : color)
-                            .frame(height: height)
-                            .onTapGesture {
-                                selectedIndex = selectedIndex == index ? nil : index
+            VStack(spacing: 0) {
+                HStack(alignment: .bottom, spacing: 8) {
+                    ForEach(Array(chart.data.enumerated()), id: \.element.id) { index, dataPoint in
+                        VStack(spacing: 2) {
+                            if chart.showValues ?? false {
+                                Text(String(format: "%.0f", dataPoint.value))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .frame(height: valueHeight)
                             }
 
+                            let color = dataPoint.color.map { Color(hex: $0) } ?? colors[index % colors.count] // safe: data-driven color from card JSON
+                            let height = (dataPoint.value / maxValue) * barAreaHeight * animationProgress // safe: maxValue guarded >= 1.0 in computed property
+
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(selectedIndex == index ? color.opacity(0.7) : color)
+                                .frame(height: height)
+                                .onTapGesture {
+                                    selectedIndex = selectedIndex == index ? nil : index
+                                }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .frame(height: barAreaHeight + valueHeight + 4)
+
+                // X-axis labels — fixed height, never clipped
+                HStack(spacing: 8) {
+                    ForEach(chart.data, id: \.id) { dataPoint in
                         Text(dataPoint.label)
                             .font(.caption2)
                             .lineLimit(1)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
                 }
+                .padding(.horizontal, 8)
+                .frame(height: labelHeight)
             }
-            .padding(.horizontal, 8)
         }
     }
 
