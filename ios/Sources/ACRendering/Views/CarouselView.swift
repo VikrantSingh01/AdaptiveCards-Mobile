@@ -237,7 +237,7 @@ struct CarouselPageView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .center, spacing: 0) {
             ForEach(allowedItems) { element in
                 if viewModel.isElementVisible(elementId: element.elementId) {
                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
