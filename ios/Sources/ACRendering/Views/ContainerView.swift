@@ -45,7 +45,7 @@ struct ContainerView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: verticalContentAlignment)
-        .frame(minHeight: minHeight)
+        .frame(minHeight: minHeight ?? (container.style != nil && items.isEmpty ? 32 : nil))
         .modifier(OverflowModifier(maxHeight: maxHeight, overflow: container.overflow))
 
         Group {
