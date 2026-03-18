@@ -5,11 +5,13 @@
 package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +31,7 @@ import coil.request.ImageRequest
 import com.microsoft.adaptivecards.core.models.CompoundButton
 import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
+import androidx.compose.ui.draw.clip
 
 // Layout constants for consistency
 private object CompoundButtonLayout {
@@ -79,6 +82,12 @@ fun CompoundButtonView(
         element.description?.let { append(". $it") }
     }
 
+    // Shape and border from HostConfig for web parity
+    val cornerRadiusDp = (hostConfig.cornerRadius.container.takeIf { it > 0 } ?: 8).coerceAtLeast(0)
+    val shape = RoundedCornerShape(cornerRadiusDp.dp)
+    val borderColor = parseHostColor(hostConfig.compoundButton.borderColor)
+        ?: parseHostColor(hostConfig.containerStyles.default.borderColor)
+
     Card(
         onClick = {
             element.selectAction?.let { action ->
@@ -93,6 +102,8 @@ fun CompoundButtonView(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = CompoundButtonLayout.MinHeight)
+            .then(if (cornerRadiusDp > 0) Modifier.clip(shape) else Modifier)
+            .then(if (borderColor != null) Modifier.border(1.dp, borderColor, shape) else Modifier)
             .semantics { contentDescription = contentDesc },
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
@@ -103,7 +114,7 @@ fun CompoundButtonView(
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (element.style == "default") CompoundButtonLayout.Elevation else 0.dp
         ),
-        shape = MaterialTheme.shapes.medium,
+        shape = shape,
         enabled = isEnabled
     ) {
         Row(
@@ -114,7 +125,7 @@ fun CompoundButtonView(
                     vertical = CompoundButtonLayout.VerticalPadding
                 ),
             horizontalArrangement = Arrangement.spacedBy(CompoundButtonLayout.IconTextSpacing),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             // Leading icon
             if (element.iconPosition != "trailing") {
@@ -141,9 +152,9 @@ fun CompoundButtonView(
                     )
 
                     element.badge?.let { badge ->
-                        val badgeColor = parseHostColor(
-                            hostConfig.containerStyles.default.foregroundColors.accent.default
-                        ) ?: MaterialTheme.colorScheme.primary
+                        val badgeColor = parseHostColor(hostConfig.compoundButton.badge.backgroundColor)
+                            ?: parseHostColor(hostConfig.containerStyles.default.foregroundColors.accent.default)
+                            ?: MaterialTheme.colorScheme.primary
                         Text(
                             text = badge,
                             fontSize = CompoundButtonLayout.BadgeFontSize,
@@ -153,7 +164,7 @@ fun CompoundButtonView(
                             modifier = Modifier
                                 .background(
                                     badgeColor,
-                                    RoundedCornerShape(4.dp)
+                                    RoundedCornerShape(50)
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         )
@@ -175,14 +186,6 @@ fun CompoundButtonView(
             if (element.iconPosition == "trailing") {
                 IconView(element.iconName, contentColor)
             }
-
-            // Chevron indicator (matching iOS chevron.right style)
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = contentColor.copy(alpha = 0.6f)
-            )
         }
     }
 }
@@ -241,6 +244,8 @@ private fun resolveCompoundButtonIcon(name: String): androidx.compose.ui.graphic
         "close", "dismiss", "xmark", "xmark.circle" -> Icons.Filled.Close
         "ellipsis.circle", "ellipsis", "morehorizontal" -> Icons.Filled.MoreHoriz
         "arrow.right", "arrow.right.circle", "arrowright" -> Icons.AutoMirrored.Filled.KeyboardArrowRight
+        "textbulletlist" -> Icons.Filled.List
+        "lightbulb" -> Icons.Outlined.Lightbulb
         else -> Icons.Filled.Info
     }
 }
