@@ -93,14 +93,15 @@ struct CompoundButtonView: View {
 
             if button.iconPosition == "trailing" {
                 iconView
+            } else {
+                // Chevron indicator (fixed size matching Android 20dp)
+                // Suppressed when trailing icon is present — trailing icon serves as indicator
+                Image(systemName: "chevron.right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: Layout.chevronSize, height: Layout.chevronSize)
+                    .foregroundColor(primaryTextColor.opacity(0.6))
             }
-
-            // Chevron indicator (fixed size matching Android 20dp)
-            Image(systemName: "chevron.right")
-                .resizable()
-                .scaledToFit()
-                .frame(width: Layout.chevronSize, height: Layout.chevronSize)
-                .foregroundColor(primaryTextColor.opacity(0.6))
         }
         .padding(.horizontal, Layout.horizontalPadding)
         .padding(.vertical, Layout.verticalPadding)
