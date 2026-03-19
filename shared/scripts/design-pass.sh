@@ -90,7 +90,22 @@ fi
 
 ANDROID_READY=false
 ANDROID_DEVICES=$("$ADB" devices 2>/dev/null | grep -c "device$" || true)
-[ "$ANDROID_DEVICES" -gt 0 ] && ANDROID_READY=true
+if [ "$ANDROID_DEVICES" -gt 0 ]; then
+    # Wait for device boot to complete (sys.boot_completed = 1)
+    BOOT_TIMEOUT=60
+    BOOT_ELAPSED=0
+    while [ "$BOOT_ELAPSED" -lt "$BOOT_TIMEOUT" ]; do
+        BOOT_DONE=$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)
+        [ "$BOOT_DONE" = "1" ] && break
+        sleep 2
+        BOOT_ELAPSED=$((BOOT_ELAPSED + 2))
+    done
+    if [ "$BOOT_DONE" = "1" ]; then
+        ANDROID_READY=true
+    else
+        echo "  WARNING: Android device connected but boot not completed after ${BOOT_TIMEOUT}s"
+    fi
+fi
 
 if ! $IOS_READY && ! $ANDROID_READY; then
     echo "ERROR: Neither iOS Simulator nor Android emulator is running."
@@ -309,11 +324,14 @@ if $IOS_READY; then
     xcrun simctl openurl "$SIM_UDID" "adaptivecards://gallery" 2>/dev/null || true
 fi
 if $ANDROID_READY; then
+    # Ensure the sample app is running and responsive before sending deep links
+    "$ADB" shell am start -n "$ANDROID_APP_ID/.MainActivity" 2>/dev/null || true
+    sleep 2
     "$ADB" shell am start -a android.intent.action.VIEW \
         -d "adaptivecards://gallery" \
         "$ANDROID_APP_ID" 2>/dev/null || true
 fi
-sleep 1
+sleep 2
 
 for i in "${!cards_to_test[@]}"; do
     card_path="${cards_to_test[$i]}"
