@@ -49,88 +49,94 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     // Decode cardId: try Base64 URL-safe first (new encoding), fallback to URL-decode (legacy)
     val decodedCardId = remember(cardId) {
         try {
-            val bytes = android.util.Base64.decode(cardId, android.util.Base64.URL_SAFE)
+            val bytes = android.util.Base64.decode(cardId, android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING)
             String(bytes, Charsets.UTF_8)
         } catch (_: Exception) {
             // Fallback for non-Base64 encoded IDs (e.g., direct gallery navigation)
-            java.net.URLDecoder.decode(cardId, "UTF-8")
+            try {
+                java.net.URLDecoder.decode(cardId, "UTF-8")
+            } catch (_: Exception) {
+                cardId
+            }
         }
     }
-    val card = remember(decodedCardId) {
-        val allCards = CardCache.getCards(context)
-        val baseName = decodedCardId.removeSuffix(".json")
-        // Normalize for slug comparison: convert path separators and strip extensions
-        // so deep-link IDs like "element-samples/carousel-styles" match filenames like
-        // "element-samples/carousel-styles.json"
-        val slug = baseName.removeSuffix(".template")
-        allCards.find { it.filename == decodedCardId }
-            ?: allCards.find { it.filename == "$decodedCardId.json" }
-            ?: allCards.find { it.filename.removeSuffix(".json") == decodedCardId }
-            ?: allCards.find { it.filename == "$baseName.template.json" }
-            ?: allCards.find { it.filename.removeSuffix(".template.json") == baseName }
-            // Slug-based match: compare normalized forms (strip .json/.template.json,
-            // lowercase) so deep links with minor variations still resolve
-            ?: allCards.find {
-                val cardSlug = it.filename.removeSuffix(".json").removeSuffix(".template")
-                cardSlug.equals(slug, ignoreCase = true)
-            }
-            ?: run {
-                // Fallback: load card JSON directly from assets when gallery cache misses.
-                // Try multiple path variations to handle different deep link formats.
-                val candidates = listOf(
-                    decodedCardId,
-                    "$decodedCardId.json",
-                    "$baseName.json",
-                    "$baseName.template.json"
-                )
-                var jsonString: String? = null
-                var resolvedFilename = decodedCardId
-                for (candidate in candidates) {
-                    try {
-                        jsonString = context.assets.open(candidate).bufferedReader().use { it.readText() }
-                        resolvedFilename = candidate
-                        break
-                    } catch (_: Exception) { }
+    // Load card asynchronously to avoid blocking the main thread on cold start.
+    // CardCache.getCards() reads 200+ JSON files from assets — must not run during composition.
+    var card by remember { mutableStateOf<TestCard?>(null) }
+    var cardLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(decodedCardId) {
+        card = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val allCards = CardCache.getCards(context)
+            val baseName = decodedCardId.removeSuffix(".json")
+            val slug = baseName.removeSuffix(".template")
+            allCards.find { it.filename == decodedCardId }
+                ?: allCards.find { it.filename == "$decodedCardId.json" }
+                ?: allCards.find { it.filename.removeSuffix(".json") == decodedCardId }
+                ?: allCards.find { it.filename == "$baseName.template.json" }
+                ?: allCards.find { it.filename.removeSuffix(".template.json") == baseName }
+                ?: allCards.find {
+                    val cardSlug = it.filename.removeSuffix(".json").removeSuffix(".template")
+                    cardSlug.equals(slug, ignoreCase = true)
                 }
-
-                // If direct asset load failed, scan asset directories for a matching file
-                if (jsonString == null) {
-                    val assetDirs = listOf("", "element-samples", "teams-official-samples",
-                        "official-samples", "templates", "versioned/v1.5", "versioned/v1.6")
-                    val leafName = baseName.substringAfterLast("/")
-                    for (dir in assetDirs) {
-                        val assetCandidates = listOf(
-                            if (dir.isEmpty()) "$leafName.json" else "$dir/$leafName.json",
-                            if (dir.isEmpty()) "$leafName.template.json" else "$dir/$leafName.template.json"
-                        )
-                        for (candidate in assetCandidates) {
-                            try {
-                                jsonString = context.assets.open(candidate).bufferedReader().use { it.readText() }
-                                resolvedFilename = candidate
-                                break
-                            } catch (_: Exception) { }
-                        }
-                        if (jsonString != null) break
-                    }
-                }
-
-                if (jsonString != null) {
-                    val name = resolvedFilename.substringAfterLast("/").removeSuffix(".json").removeSuffix(".template")
-                    TestCard(
-                        title = name,
-                        description = "Loaded from assets: $resolvedFilename",
-                        filename = resolvedFilename,
-                        category = CardCategory.ADVANCED,
-                        isAdvanced = false,
-                        jsonString = jsonString
+                ?: run {
+                    // Fallback: load card JSON directly from assets when gallery cache misses.
+                    val candidates = listOf(
+                        decodedCardId,
+                        "$decodedCardId.json",
+                        "$baseName.json",
+                        "$baseName.template.json"
                     )
-                } else null
-            }
+                    var jsonString: String? = null
+                    var resolvedFilename = decodedCardId
+                    for (candidate in candidates) {
+                        try {
+                            jsonString = context.assets.open(candidate).bufferedReader().use { it.readText() }
+                            resolvedFilename = candidate
+                            break
+                        } catch (_: Exception) { }
+                    }
+
+                    // If direct asset load failed, scan asset directories for a matching file
+                    if (jsonString == null) {
+                        val assetDirs = listOf("", "element-samples", "teams-official-samples",
+                            "official-samples", "templates", "versioned/v1.5", "versioned/v1.6")
+                        val leafName = baseName.substringAfterLast("/")
+                        for (dir in assetDirs) {
+                            val assetCandidates = listOf(
+                                if (dir.isEmpty()) "$leafName.json" else "$dir/$leafName.json",
+                                if (dir.isEmpty()) "$leafName.template.json" else "$dir/$leafName.template.json"
+                            )
+                            for (candidate in assetCandidates) {
+                                try {
+                                    jsonString = context.assets.open(candidate).bufferedReader().use { it.readText() }
+                                    resolvedFilename = candidate
+                                    break
+                                } catch (_: Exception) { }
+                            }
+                            if (jsonString != null) break
+                        }
+                    }
+
+                    if (jsonString != null) {
+                        val name = resolvedFilename.substringAfterLast("/").removeSuffix(".json").removeSuffix(".template")
+                        TestCard(
+                            title = name,
+                            description = "Loaded from assets: $resolvedFilename",
+                            filename = resolvedFilename,
+                            category = CardCategory.ADVANCED,
+                            isAdvanced = false,
+                            jsonString = jsonString
+                        )
+                    } else null
+                }
+        }
+        cardLoading = false
     }
     // Load template data for .template.json cards
-    val templateData: Map<String, Any?>? = remember(cardId) {
-        if (card != null && TestCardLoader.hasTemplateData(card.filename)) {
-            val dataJson = TestCardLoader.loadTemplateData(context, card.filename)
+    val templateData: Map<String, Any?>? = remember(card) {
+        val c = card
+        if (c != null && TestCardLoader.hasTemplateData(c.filename)) {
+            val dataJson = TestCardLoader.loadTemplateData(context, c.filename)
             if (dataJson != null) {
                 try {
                     jsonToMap(JSONObject(dataJson))
@@ -160,23 +166,29 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
     LaunchedEffect(card, refreshKey) {
         card?.let {
             try {
-                // Expand templates before benchmarking (templates need data to produce valid JSON)
-                val templateEngine = com.microsoft.adaptivecards.templating.TemplateEngine()
-                var cardJson = templateEngine.resolveStringResources(it.jsonString)
-                if (templateData != null) {
-                    cardJson = templateEngine.expand(cardJson, templateData)
+                // Heavy work (template expansion + benchmark parse) on background thread
+                // to avoid blocking the main thread and causing ANR on complex cards.
+                val (parseMeasured, renderMeasured) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    val templateEngine = com.microsoft.adaptivecards.templating.TemplateEngine()
+                    var cardJson = templateEngine.resolveStringResources(it.jsonString)
+                    if (templateData != null) {
+                        cardJson = templateEngine.expand(cardJson, templateData)
+                    }
+
+                    // Clear cache so measurements reflect real work, not cache lookups
+                    CardViewModel.clearParseCache()
+
+                    // Parse: fresh JSON deserialization (benchmark only)
+                    val parseStart = System.nanoTime()
+                    CardParser.parse(cardJson)
+                    val pMs = (System.nanoTime() - parseStart) / 1_000_000.0
+
+                    CardViewModel.clearParseCache()
+                    Pair(pMs, 0.0)
                 }
+                parseTimeMs = parseMeasured
 
-                // Clear cache so measurements reflect real work, not cache lookups
-                CardViewModel.clearParseCache()
-
-                // Parse: fresh JSON deserialization
-                val parseStart = System.nanoTime()
-                CardParser.parse(cardJson)
-                parseTimeMs = (System.nanoTime() - parseStart) / 1_000_000.0
-
-                // Render: ViewModel parse (cache-miss) + state initialization
-                CardViewModel.clearParseCache()
+                // Render: ViewModel parse (runs on its own background dispatcher)
                 val renderStart = System.nanoTime()
                 cardViewModel.parseCard(it.jsonString, templateData)
                 renderTimeMs = (System.nanoTime() - renderStart) / 1_000_000.0
@@ -248,9 +260,22 @@ fun CardDetailScreen(cardId: String, actionLogState: ActionLogState, bookmarkSta
                 modifier = Modifier
                     .weight(1f)
             ) {
-                if (parseError != null) {
+                if (cardLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else if (parseError != null) {
                     Text(
                         text = parseError ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else if (card == null) {
+                    Text(
+                        text = "Card not found: $decodedCardId",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(16.dp)
                     )
