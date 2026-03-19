@@ -576,7 +576,9 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                     cardFilename.toByteArray(Charsets.UTF_8),
                     android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING
                 )
-                navController.navigate("card_detail/$encoded")
+                navController.navigate("card_detail/$encoded") {
+                    launchSingleTop = true
+                }
             }
         }
         "gallery" -> {
