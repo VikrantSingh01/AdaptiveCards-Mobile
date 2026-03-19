@@ -6,14 +6,19 @@ package com.microsoft.adaptivecards.rendering.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -49,17 +54,23 @@ fun MediaView(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth()
             )
-            // Play button overlay
+            // Play button overlay — matches iOS play.circle.fill style
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(60.dp)
+                    .shadow(elevation = 5.dp, shape = CircleShape)
                     .background(
-                        color = Color.Black.copy(alpha = 0.6f),
-                        shape = MaterialTheme.shapes.extraLarge
+                        color = Color.White.copy(alpha = 0.85f),
+                        shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("▶", color = Color.White, style = MaterialTheme.typography.headlineMedium)
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Play",
+                    tint = Color.Black.copy(alpha = 0.7f),
+                    modifier = Modifier.size(36.dp)
+                )
             }
         }
     } else {
