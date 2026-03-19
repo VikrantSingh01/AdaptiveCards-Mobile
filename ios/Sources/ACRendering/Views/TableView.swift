@@ -193,7 +193,15 @@ struct TableCellView: View {
                     VStack(alignment: resolvedHStackAlignment, spacing: 0) {
                         ForEach(items) { element in
                             if viewModel.isElementVisible(elementId: element.elementId) {
-                                if isHeader {
+                                if isHeader, case .textBlock(let tb) = element {
+                                    // Render header TextBlocks directly with accent color
+                                    // (matching Android MediaAndTableViews.kt:203-211)
+                                    // ElementView's TextBlockView overrides parent foregroundColor,
+                                    // so we must render Text() directly for accent to apply.
+                                    Text(tb.text ?? "")
+                                        .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
+                                        .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default))
+                                } else if isHeader {
                                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                         .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
                                         .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default))
