@@ -39,11 +39,16 @@ struct MediaView: View {
                 isPlaying = true
                 // In a real implementation, this would play the media
             }) {
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.white)
-                    .shadow(radius: 5)
+                ZStack {
+                    Circle()
+                        .fill(Color.black.opacity(0.6))
+                        .frame(width: 56, height: 56)
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.white)
+                }
             }
+            .buttonStyle(.plain)
         }
         .frame(minHeight: 150)
         .spacing(media.spacing, hostConfig: hostConfig)
