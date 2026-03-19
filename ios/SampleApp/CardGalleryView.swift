@@ -462,21 +462,42 @@ struct TestCard: Identifiable, Hashable {
     let filename: String
     let category: CardCategory
     let isAdvanced: Bool
-    let jsonString: String
-    let dataJsonString: String?
+    /// Data file path for template cards (loaded lazily alongside jsonString)
+    let dataFilename: String?
 
-    init(title: String, description: String, filename: String, category: CardCategory, isAdvanced: Bool, jsonString: String, dataJsonString: String? = nil) {
+    /// Lazily loaded JSON with in-memory cache — avoids reading all card files
+    /// at gallery init time while ensuring each file is read from disk at most once.
+    var jsonString: String {
+        TestCardLoader.cachedLoadCardJSON(filename) ?? "{}"
+    }
+
+    /// Lazily loaded template data JSON (cached)
+    var dataJsonString: String? {
+        guard let dataFile = dataFilename else { return nil }
+        return TestCardLoader.cachedLoadCardJSON(dataFile)
+    }
+
+    init(title: String, description: String, filename: String, category: CardCategory, isAdvanced: Bool, dataFilename: String? = nil) {
         self.title = title
         self.description = description
         self.filename = filename
         self.category = category
         self.isAdvanced = isAdvanced
-        self.jsonString = jsonString
-        self.dataJsonString = dataJsonString
+        self.dataFilename = dataFilename
     }
 }
 
 class TestCardLoader {
+    /// In-memory cache so each card JSON is read from disk at most once.
+    private static var jsonCache: [String: String] = [:]
+
+    static func cachedLoadCardJSON(_ filename: String) -> String? {
+        if let cached = jsonCache[filename] { return cached }
+        guard let json = loadCardJSON(filename) else { return nil }
+        jsonCache[filename] = json
+        return json
+    }
+
     private static let testCardsDirectory: String? = {
         if let bundlePath = Bundle.main.resourcePath {
             let bundledDir = (bundlePath as NSString).appendingPathComponent("test-cards")
@@ -741,15 +762,7 @@ class TestCardLoader {
             ("teams-official-samples/work-item.json", "Teams: Work Item", .teamsOfficialSamples, false),
         ]
 
-        var cards = cardDefinitions.compactMap { (filename, title, category, isAdvanced) -> TestCard? in
-            guard let jsonString = loadCardJSON(filename) else { return nil }
-
-            // Load template data for templated cards
-            var dataJsonString: String? = nil
-            if let dataFile = templateDataFiles[filename] {
-                dataJsonString = loadCardJSON(dataFile)
-            }
-
+        var cards = cardDefinitions.map { (filename, title, category, isAdvanced) -> TestCard in
             let description: String
             switch category {
             case .basic: description = "Basic card demonstrating \(title) rendering"
@@ -774,8 +787,7 @@ class TestCardLoader {
                 filename: filename,
                 category: category,
                 isAdvanced: isAdvanced,
-                jsonString: jsonString,
-                dataJsonString: dataJsonString
+                dataFilename: templateDataFiles[filename]
             )
         }
 
@@ -824,15 +836,13 @@ class TestCardLoader {
             guard let files = try? fm.contentsOfDirectory(atPath: versionPath) else { continue }
             for file in files.sorted() where file.hasSuffix(".json") {
                 let relativePath = "versioned/\(version)/\(file)"
-                guard let jsonString = loadCardJSON(relativePath) else { continue }
                 let name = (file as NSString).deletingPathExtension
                 cards.append(TestCard(
                     title: "\(version): \(name)",
                     description: "Versioned card: \(name) (\(version))",
                     filename: relativePath,
                     category: .versioned,
-                    isAdvanced: false,
-                    jsonString: jsonString
+                    isAdvanced: false
                 ))
             }
         }

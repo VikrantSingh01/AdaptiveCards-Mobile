@@ -115,7 +115,7 @@ class DeepLinkRouter: ObservableObject {
             if card == nil {
                 let candidates = [filename, "\(filename).json", "\(baseName).json", "\(baseName).template.json"]
                 for candidate in candidates {
-                    if let json = TestCardLoader.loadCardJSON(candidate) {
+                    if TestCardLoader.loadCardJSON(candidate) != nil {
                         let name = candidate.split(separator: "/").last
                             .map(String.init)?
                             .replacingOccurrences(of: ".json", with: "")
@@ -125,8 +125,7 @@ class DeepLinkRouter: ObservableObject {
                             description: "Loaded from: \(candidate)",
                             filename: candidate,
                             category: .advanced,
-                            isAdvanced: false,
-                            jsonString: json
+                            isAdvanced: false
                         )
                         break
                     }
