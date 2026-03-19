@@ -574,7 +574,7 @@ private fun handleDeepLink(uri: Uri, navController: NavController) {
                 // Use android.util.Base64 URL-safe encoding for a clean round-trip.
                 val encoded = android.util.Base64.encodeToString(
                     cardFilename.toByteArray(Charsets.UTF_8),
-                    android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP
+                    android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING
                 )
                 navController.navigate("card_detail/$encoded")
             }

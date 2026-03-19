@@ -22,6 +22,21 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
+ * Case-insensitive enum lookup using a pre-built lowercase map.
+ * Avoids [Enum.valueOf] which throws (and catches) expensive exceptions on mismatch.
+ * Returns null when no match is found, matching the old runCatching behaviour.
+ */
+private inline fun <reified E : Enum<E>> enumLookup(): Map<String, E> =
+    enumValues<E>().associateBy { it.name.lowercase() }
+
+private val colorLookup = enumLookup<Color>()
+private val fontTypeLookup = enumLookup<FontType>()
+private val fontSizeLookup = enumLookup<FontSize>()
+private val fontWeightLookup = enumLookup<FontWeight>()
+private val horizontalAlignmentLookup = enumLookup<HorizontalAlignment>()
+private val verticalAlignmentLookup = enumLookup<VerticalAlignment>()
+
+/**
  * Custom polymorphic serializer for CardElement.
  *
  * Implements [KSerializer] directly to control both serialization and deserialization.
@@ -33,6 +48,7 @@ import kotlinx.serialization.json.jsonPrimitive
  * - **HashMap lookup** for O(1) type→serializer dispatch (vs linear when-expression)
  * - **Image handling isolated** to a dedicated [ImageDeserializer] — avoids branching on
  *   every element in the hot path
+ * - **Enum lookup maps** for O(1) case-insensitive enum parsing (vs exception-based valueOf)
  */
 @OptIn(InternalSerializationApi::class)
 object CardElementSerializer : KSerializer<CardElement> {
@@ -171,13 +187,13 @@ object TextRunSerializer : KSerializer<TextRun> {
             type = obj["type"]?.jsonPrimitive?.content ?: "TextRun",
             text = obj["text"]?.jsonPrimitive?.content ?: "",
             color = obj["color"]?.jsonPrimitive?.content
-                ?.let { runCatching { Color.valueOf(it) }.getOrNull() },
+                ?.let { colorLookup[it.lowercase()] },
             fontType = obj["fontType"]?.jsonPrimitive?.content
-                ?.let { runCatching { FontType.valueOf(it) }.getOrNull() },
+                ?.let { fontTypeLookup[it.lowercase()] },
             size = obj["size"]?.jsonPrimitive?.content
-                ?.let { runCatching { FontSize.valueOf(it) }.getOrNull() },
+                ?.let { fontSizeLookup[it.lowercase()] },
             weight = obj["weight"]?.jsonPrimitive?.content
-                ?.let { runCatching { FontWeight.valueOf(it) }.getOrNull() },
+                ?.let { fontWeightLookup[it.lowercase()] },
             isSubtle = obj["isSubtle"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
             italic = obj["italic"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
             strikethrough = obj["strikethrough"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
@@ -275,9 +291,9 @@ object BackgroundImageSerializer : KSerializer<BackgroundImage> {
                     url = obj["url"]?.jsonPrimitive?.content ?: "",
                     fillMode = obj["fillMode"]?.jsonPrimitive?.content,
                     horizontalAlignment = obj["horizontalAlignment"]?.jsonPrimitive?.content
-                        ?.let { runCatching { HorizontalAlignment.valueOf(it) }.getOrNull() },
+                        ?.let { horizontalAlignmentLookup[it.lowercase()] },
                     verticalAlignment = obj["verticalAlignment"]?.jsonPrimitive?.content
-                        ?.let { runCatching { VerticalAlignment.valueOf(it) }.getOrNull() }
+                        ?.let { verticalAlignmentLookup[it.lowercase()] }
                 )
             }
         }

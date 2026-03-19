@@ -155,7 +155,7 @@ fun CardGalleryScreen(
                 CardItem(card, bookmarkState) {
                     val encoded = android.util.Base64.encodeToString(
                         card.filename.toByteArray(Charsets.UTF_8),
-                        android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP
+                        android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING
                     )
                     navController.navigate("card_detail/$encoded")
                 }
