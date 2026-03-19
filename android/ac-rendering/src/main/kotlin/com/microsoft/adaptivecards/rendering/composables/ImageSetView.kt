@@ -20,8 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.layout.heightIn
 import com.microsoft.adaptivecards.core.models.ImageSet
 import com.microsoft.adaptivecards.core.models.ImageSetStyle
+import com.microsoft.adaptivecards.rendering.theme.LocalHostConfig
 import com.microsoft.adaptivecards.rendering.viewmodel.ActionHandler
 
 /**
@@ -37,6 +39,8 @@ fun ImageSetView(
     if (element.style == ImageSetStyle.Stacked) {
         StackedImageSetView(element = element, modifier = modifier, actionHandler = actionHandler)
     } else {
+        val hostConfig = LocalHostConfig.current
+        val maxImageHeight = hostConfig.imageSet.maxImageHeight.dp
         FlowRow(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -45,6 +49,7 @@ fun ImageSetView(
             element.images.forEach { image ->
                 ImageView(
                     element = image.copy(size = element.imageSize ?: image.size),
+                    modifier = Modifier.heightIn(min = maxImageHeight),
                     actionHandler = actionHandler
                 )
             }
