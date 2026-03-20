@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adaptive Cards Mobile — Design Review Catalog</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+  .header { text-align: center; padding: 30px 20px; background: #16213e; color: white; border-radius: 12px; margin-bottom: 24px; border: 1px solid #2a2a4a; }
+  .header h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+  .header p { font-size: 14px; opacity: 0.7; }
+  .stats { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .stat { background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+  .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .controls select, .controls input { padding: 8px 12px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 14px; background: #2a2a4a; color: #e0e0e0; }
+  .controls input[type="text"] { flex: 1; min-width: 200px; }
+  .controls input[type="text"]::placeholder { color: #888; }
+  .controls select { min-width: 180px; }
+  .section-title { font-size: 18px; font-weight: 600; color: #7ec8e3; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #7ec8e3; }
+  .grid { display: grid; gap: 16px; }
+  .card-row { display: grid; grid-template-columns: 40px 120px 160px 80px 1fr 1fr; gap: 16px; background: #16213e; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); align-items: start; transition: box-shadow 0.2s; border: 1px solid #2a2a4a; }
+  .card-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.4); border-color: #3a3a5a; }
+  .card-row.missing { background: #2a1a1a; border-left: 3px solid #e74c3c; }
+  .card-info { display: flex; flex-direction: column; gap: 6px; }
+  .card-name { font-weight: 600; font-size: 14px; color: #e0e0e0; word-break: break-word; }
+  .card-category { font-size: 12px; color: #aaa; background: #2a2a4a; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+  .card-link { display: flex; align-items: center; justify-content: center; }
+  .card-link a { color: #7ec8e3; text-decoration: none; font-size: 13px; font-weight: 500; padding: 4px 10px; border: 1px solid #7ec8e3; border-radius: 6px; transition: all 0.2s; }
+  .card-link a:hover { background: #7ec8e3; color: #1a1a2e; }
+  .screenshot-col { text-align: center; }
+  .screenshot-col img { max-width: 100%; width: 390px; border: 1px solid #3a3a5a; border-radius: 6px; cursor: pointer; transition: transform 0.2s; image-rendering: -webkit-optimize-contrast; }
+  .screenshot-col img:hover { transform: scale(1.02); border-color: #7ec8e3; }
+  .screenshot-col .platform-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .no-screenshot { color: #e74c3c; font-size: 13px; font-style: italic; padding: 40px 0; }
+  /* Review checkbox */
+  .review-col { display: flex; align-items: flex-start; justify-content: center; padding-top: 4px; }
+  .review-check { width: 22px; height: 22px; cursor: pointer; accent-color: #2ecc71; }
+  .review-check:checked + .review-label { color: #2ecc71; }
+  .card-row.reviewed { border-left: 3px solid #2ecc71; }
+  .review-filter { display: flex; gap: 8px; align-items: center; font-size: 14px; color: #ccc; }
+  .review-filter input { accent-color: #2ecc71; }
+  .review-counter { background: #2ecc71; color: #1a1a2e; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  /* Review status + notes */
+  .status-col { display: flex; flex-direction: column; gap: 6px; min-width: 120px; }
+  .status-select { padding: 4px 8px; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 12px; background: #2a2a4a; color: #e0e0e0; cursor: pointer; width: 100%; }
+  .status-select.approved { border-color: #2ecc71; color: #2ecc71; }
+  .status-select.needs-changes { border-color: #e67e22; color: #e67e22; }
+  .note-input { padding: 4px 8px; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 11px; background: #2a2a4a; color: #e0e0e0; resize: vertical; min-height: 28px; width: 100%; font-family: inherit; }
+  .note-input::placeholder { color: #666; }
+  .note-input:focus { border-color: #7ec8e3; outline: none; }
+  .card-row.status-approved { border-left: 3px solid #2ecc71; }
+  .card-row.status-needs-changes { border-left: 3px solid #e67e22; }
+  /* Reviewer bar */
+  .reviewer-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; padding: 12px 16px; background: #16213e; border-radius: 10px; border: 1px solid #2a2a4a; }
+  .reviewer-bar label { font-size: 14px; color: #ccc; white-space: nowrap; }
+  .reviewer-bar input { padding: 6px 12px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 14px; background: #2a2a4a; color: #e0e0e0; width: 200px; }
+  .reviewer-bar input::placeholder { color: #666; }
+  .reviewer-bar .reviewer-name { color: #7ec8e3; font-weight: 600; }
+  .reviewer-bar button { padding: 6px 14px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 13px; background: #2a2a4a; color: #e0e0e0; cursor: pointer; }
+  .reviewer-bar button:hover { background: #3a3a5a; }
+  .status-filter select { padding: 6px 10px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 13px; background: #2a2a4a; color: #e0e0e0; }
+  /* Setup guide */
+  .setup-guide { margin-bottom: 20px; background: #16213e; border: 1px solid #2a2a4a; border-radius: 10px; overflow: hidden; }
+  .setup-guide summary { padding: 12px 16px; cursor: pointer; font-size: 14px; color: #7ec8e3; font-weight: 600; user-select: none; }
+  .setup-guide summary:hover { background: rgba(126,200,227,0.05); }
+  .setup-guide .guide-content { padding: 0 16px 16px; font-size: 13px; line-height: 1.7; color: #ccc; }
+  .setup-guide .guide-content ol { padding-left: 20px; }
+  .setup-guide .guide-content li { margin-bottom: 8px; }
+  .setup-guide .guide-content code { background: #2a2a4a; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #7ec8e3; }
+  .setup-guide .guide-content a { color: #7ec8e3; }
+  .setup-guide .guide-content .step-note { color: #888; font-size: 12px; }
+  /* Lightbox */
+  .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; cursor: pointer; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 95vw; max-height: 95vh; border-radius: 8px; image-rendering: -webkit-optimize-contrast; }
+  .lightbox .close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer; }
+  .footer { text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 13px; }
+  .footer a { color: #7ec8e3; }
+  /* Tablet: stack screenshots below metadata */
+  @media (max-width: 1200px) {
+    .card-row { grid-template-columns: 40px 120px 1fr auto; grid-template-rows: auto auto; }
+    .card-row .screenshot-col:nth-of-type(1) { grid-column: 1 / 3; grid-row: 2; }
+    .card-row .screenshot-col:nth-of-type(2) { grid-column: 3 / 5; grid-row: 2; }
+    .screenshot-col img { width: 100%; max-width: 390px; }
+  }
+  /* Mobile */
+  @media (max-width: 768px) {
+    body { padding: 10px; }
+    .header { padding: 20px 12px; margin-bottom: 16px; }
+    .header h1 { font-size: 18px; }
+    .header p { font-size: 12px; }
+    .stat { font-size: 11px; padding: 4px 10px; }
+    .controls { flex-direction: column; gap: 8px; }
+    .controls select, .controls input { width: 100%; min-width: unset; }
+    .controls input[type="text"] { min-width: unset; }
+    .review-filter { flex-wrap: wrap; gap: 6px; font-size: 13px; }
+    .review-counter { width: 100%; text-align: center; }
+    .reviewer-bar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+    .reviewer-bar input { width: 100%; }
+    .reviewer-bar button { flex: 1; min-width: 60px; }
+    #tokenInput { width: 100% !important; }
+    .section-title { font-size: 16px; }
+    /* Stack card rows vertically on mobile */
+    .card-row { grid-template-columns: 1fr; grid-template-rows: auto; gap: 10px; padding: 12px; }
+    .card-row > * { grid-column: 1; }
+    .review-col { flex-direction: row; justify-content: flex-start; gap: 8px; }
+    .status-col { min-width: unset; }
+    .card-link { justify-content: flex-start; }
+    .card-link a { width: 100%; text-align: center; }
+    .screenshot-col { text-align: center; }
+    .screenshot-col img { width: 100%; max-width: 100%; }
+    .lightbox .close-btn { top: 10px; right: 16px; font-size: 24px; }
+    .setup-guide summary { font-size: 13px; }
+    .setup-guide .guide-content { font-size: 12px; }
+    .footer { padding: 12px; font-size: 12px; }
+  }
+  /* Small phones */
+  @media (max-width: 400px) {
+    body { padding: 6px; }
+    .header { padding: 16px 8px; border-radius: 8px; }
+    .header h1 { font-size: 16px; }
+    .stats { gap: 6px; }
+    .stat { font-size: 10px; padding: 3px 8px; }
+    .card-row { padding: 10px; gap: 8px; border-radius: 8px; }
+    .card-name { font-size: 13px; }
+    .reviewer-bar { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Adaptive Cards Mobile — Design Review Catalog</h1>
+  <p>Side-by-side iOS & Android rendering for design review | <a href="https://vikrantsingh01.github.io/AdaptiveCards-Mobile/" style="color:#7ec8e3">Live Catalog</a></p>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div class="controls">
+  <select id="categoryFilter" onchange="filterCards()">
+    <option value="all">All Categories</option>
+  </select>
+  <input type="text" id="searchBox" placeholder="Search card names..." oninput="filterCards()">
+  <div class="review-filter">
+    <label><input type="checkbox" id="hideReviewed" onchange="filterCards()"> Hide reviewed</label>
+    <label><input type="checkbox" id="showOnlyUnreviewed" onchange="filterCards()"> Unreviewed only</label>
+    <div class="status-filter">
+      <select id="statusFilter" onchange="filterCards()">
+        <option value="all">All statuses</option>
+        <option value="not-reviewed">Not reviewed</option>
+        <option value="approved">Approved</option>
+        <option value="needs-changes">Needs changes</option>
+      </select>
+    </div>
+    <span id="reviewCounter" class="review-counter">0 / 0 reviewed</span>
+  </div>
+</div>
+
+<div class="reviewer-bar" id="reviewerBar">
+  <label>👤 Reviewer:</label>
+  <span id="reviewerDisplay" style="display:none"><span class="reviewer-name" id="reviewerName"></span></span>
+  <input type="text" id="reviewerInput" placeholder="Enter your GitHub username..." onkeydown="if(event.key==='Enter')setReviewer()">
+  <button onclick="setReviewer()" id="reviewerSetBtn">Set</button>
+  <button onclick="changeReviewer()" id="reviewerChangeBtn" style="display:none">Change</button>
+  <span style="color:#555">|</span>
+  <span id="tokenStatus" style="font-size:13px"></span>
+  <input type="password" id="tokenInput" placeholder="GitHub PAT (repo scope)..." style="width:220px;font-size:12px" onkeydown="if(event.key==='Enter')setToken()">
+  <button onclick="setToken()" id="tokenSetBtn" title="Fine-grained PAT with Contents:write on this repo">Save Token</button>
+  <button onclick="removeToken()" id="tokenRemoveBtn" style="display:none">Remove Token</button>
+  <span style="color:#555">|</span>
+  <button onclick="forceSyncNow()" title="Force sync to GitHub now">Sync</button>
+  <button onclick="exportReviewData()" title="Export review data as JSON">Export</button>
+  <span id="syncStatus" style="font-size:12px;color:#888"></span>
+</div>
+
+<details class="setup-guide">
+  <summary>Reviewer Setup Guide (one-time)</summary>
+  <div class="guide-content">
+    <p>Your review status and notes persist across page updates and work on any browser/device once synced.</p>
+    <ol>
+      <li><strong>Enter your GitHub username</strong> in the Reviewer field above and click <strong>Set</strong>.</li>
+      <li>
+        <strong>Create a fine-grained GitHub PAT</strong> for syncing reviews to the repo:
+        <ol type="a">
+          <li>Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Settings &rarr; Fine-grained tokens</a></li>
+          <li>Click <strong>Generate new token</strong></li>
+          <li>Name: <code>AC Design Review</code>, Expiration: 90 days</li>
+          <li>Repository access: <strong>Only select repositories</strong> &rarr; search for <code>AdaptiveCards-Mobile</code> &rarr; select <code>VikrantSingh01/AdaptiveCards-Mobile</code></li>
+          <li>Permissions &rarr; Repository permissions &rarr; <strong>Contents: Read and write</strong> (everything else: No access)</li>
+          <li>Click <strong>Generate token</strong> and copy it</li>
+        </ol>
+      </li>
+      <li><strong>Paste the token</strong> into the PAT field above and click <strong>Save Token</strong>.
+        <span class="step-note">The token is stored in your browser only, never sent to any server other than github.com.</span>
+      </li>
+    </ol>
+    <p><strong>How it works:</strong> Reviews save to your browser instantly. With a token configured, they also auto-sync (after 5s) to <code>reviews/{username}.json</code> on the <code>gh-pages</code> branch via a GitHub Actions workflow. On page load, remote reviews are fetched and merged with local data so your feedback survives catalog updates, browser changes, and device switches.</p>
+    <p><strong>Without a token:</strong> Reviews still work but are stored in your browser's localStorage only. Use the <strong>Export</strong> button to save a JSON backup.</p>
+  </div>
+</details>
+
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <span class="close-btn">&times;</span>
+  <img id="lightbox-img" src="" alt="Full size screenshot">
+</div>
+
+<div id="catalog"></div>
+
+<div class="footer">
+  <p>Generated from <a href="https://github.com/VikrantSingh01/AdaptiveCards-Mobile">AdaptiveCards-Mobile</a></p>
+  <p id="timestamp"></p>
+</div>
+
+<script>
+const CATALOG_DATA = [
+  { name: "Bookmarks", screenshot: "_app-bookmarks", category: "Visualizer Screen", jsonUrl: "", isApp: true, ios: true, android: true },
+  { name: "Editor", screenshot: "_app-editor", category: "Visualizer Screen", jsonUrl: "", isApp: true, ios: true, android: true },
+  { name: "Gallery", screenshot: "_app-gallery", category: "Visualizer Screen", jsonUrl: "", isApp: true, ios: true, android: true },
+  { name: "More", screenshot: "_app-more", category: "Visualizer Screen", jsonUrl: "", isApp: true, ios: true, android: true },
+  { name: "Performance", screenshot: "_app-performance", category: "Visualizer Screen", jsonUrl: "", isApp: true, ios: true, android: true },
+  { name: "Settings", screenshot: "_app-settings", category: "Visualizer Screen", jsonUrl: "", isApp: true, ios: true, android: true },
+  { name: "accordion", screenshot: "accordion", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/accordion.json", isApp: false, ios: true, android: true },
+  { name: "action-overflow", screenshot: "action-overflow", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/action-overflow.json", isApp: false, ios: true, android: true },
+  { name: "advanced-combined", screenshot: "advanced-combined", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/advanced-combined.json", isApp: false, ios: true, android: true },
+  { name: "all-actions", screenshot: "all-actions", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/all-actions.json", isApp: false, ios: true, android: true },
+  { name: "all-inputs", screenshot: "all-inputs", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/all-inputs.json", isApp: false, ios: true, android: true },
+  { name: "carousel", screenshot: "carousel", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/carousel.json", isApp: false, ios: true, android: true },
+  { name: "charts", screenshot: "charts", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/charts.json", isApp: false, ios: true, android: true },
+  { name: "code-block", screenshot: "code-block", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/code-block.json", isApp: false, ios: true, android: true },
+  { name: "code-block-languages", screenshot: "code-block-languages", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/code-block-languages.json", isApp: false, ios: true, android: true },
+  { name: "compound-buttons", screenshot: "compound-buttons", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/compound-buttons.json", isApp: false, ios: true, android: true },
+  { name: "containers", screenshot: "containers", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/containers.json", isApp: false, ios: true, android: true },
+  { name: "copilot-citations", screenshot: "copilot-citations", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/copilot-citations.json", isApp: false, ios: true, android: true },
+  { name: "datagrid", screenshot: "datagrid", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/datagrid.json", isApp: false, ios: true, android: true },
+  { name: "edge-action-crashes", screenshot: "edge-action-crashes", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-action-crashes.json", isApp: false, ios: true, android: true },
+  { name: "edge-all-unknown-types", screenshot: "edge-all-unknown-types", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-all-unknown-types.json", isApp: false, ios: true, android: true },
+  { name: "edge-deeply-nested", screenshot: "edge-deeply-nested", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-deeply-nested.json", isApp: false, ios: true, android: true },
+  { name: "edge-empty-card", screenshot: "edge-empty-card", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-empty-card.json", isApp: false, ios: true, android: true },
+  { name: "edge-empty-containers", screenshot: "edge-empty-containers", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-empty-containers.json", isApp: false, ios: true, android: true },
+  { name: "edge-long-text", screenshot: "edge-long-text", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-long-text.json", isApp: false, ios: true, android: true },
+  { name: "edge-max-actions", screenshot: "edge-max-actions", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-max-actions.json", isApp: false, ios: true, android: true },
+  { name: "edge-mixed-inputs", screenshot: "edge-mixed-inputs", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-mixed-inputs.json", isApp: false, ios: true, android: true },
+  { name: "edge-rtl-content", screenshot: "edge-rtl-content", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/edge-rtl-content.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-execute-is-enabled", screenshot: "element-samples-action-execute-is-enabled", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-execute-is-enabled.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-execute-mode", screenshot: "element-samples-action-execute-mode", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-execute-mode.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-execute-tooltip", screenshot: "element-samples-action-execute-tooltip", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-execute-tooltip.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-openurl-is-enabled", screenshot: "element-samples-action-openurl-is-enabled", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-openurl-is-enabled.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-openurl-mode", screenshot: "element-samples-action-openurl-mode", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-openurl-mode.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-openurl-tooltip", screenshot: "element-samples-action-openurl-tooltip", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-openurl-tooltip.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-role", screenshot: "element-samples-action-role", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-role.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-showcard-is-enabled", screenshot: "element-samples-action-showcard-is-enabled", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-showcard-is-enabled.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-showcard-mode", screenshot: "element-samples-action-showcard-mode", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-showcard-mode.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-showcard-tooltip", screenshot: "element-samples-action-showcard-tooltip", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-showcard-tooltip.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-submit-is-enabled", screenshot: "element-samples-action-submit-is-enabled", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-submit-is-enabled.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-submit-mode", screenshot: "element-samples-action-submit-mode", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-submit-mode.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-action-submit-tooltip", screenshot: "element-samples-action-submit-tooltip", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/action-submit-tooltip.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-adaptive-card-rtl", screenshot: "element-samples-adaptive-card-rtl", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/adaptive-card-rtl.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-basic", screenshot: "element-samples-carousel-basic", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-basic.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-header", screenshot: "element-samples-carousel-header", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-header.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-height", screenshot: "element-samples-carousel-height", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-height.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-height-pixels", screenshot: "element-samples-carousel-height-pixels", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-height-pixels.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-height-vertical", screenshot: "element-samples-carousel-height-vertical", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-height-vertical.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-initial-page", screenshot: "element-samples-carousel-initial-page", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-initial-page.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-loop", screenshot: "element-samples-carousel-loop", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-loop.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-scenario-cards", screenshot: "element-samples-carousel-scenario-cards", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-scenario-cards.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-scenario-timer", screenshot: "element-samples-carousel-scenario-timer", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-scenario-timer.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-styles", screenshot: "element-samples-carousel-styles", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-styles.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-carousel-vertical", screenshot: "element-samples-carousel-vertical", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/carousel-vertical.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-column-rtl", screenshot: "element-samples-column-rtl", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/column-rtl.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-container-rtl", screenshot: "element-samples-container-rtl", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/container-rtl.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-container-scrollable", screenshot: "element-samples-container-scrollable", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/container-scrollable.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-image-force-load", screenshot: "element-samples-image-force-load", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/image-force-load.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-image-select-action", screenshot: "element-samples-image-select-action", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/image-select-action.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-imageset-stacked-style", screenshot: "element-samples-imageset-stacked-style", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/imageset-stacked-style.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-input-choiceset-dynamic-typeahead", screenshot: "element-samples-input-choiceset-dynamic-typeahead", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/input-choiceset-dynamic-typeahead.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-input-choiceset-filtered", screenshot: "element-samples-input-choiceset-filtered", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/input-choiceset-filtered.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-input-label-position", screenshot: "element-samples-input-label-position", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/input-label-position.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-input-style", screenshot: "element-samples-input-style", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/input-style.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-input-text-password-style", screenshot: "element-samples-input-text-password-style", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/input-text-password-style.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-input-toggle-consolidated", screenshot: "element-samples-input-toggle-consolidated", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/input-toggle-consolidated.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-media-basic", screenshot: "element-samples-media-basic", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/media-basic.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-media-sources", screenshot: "element-samples-media-sources", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/media-sources.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-table-basic", screenshot: "element-samples-table-basic", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/table-basic.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-table-first-row-headers", screenshot: "element-samples-table-first-row-headers", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/table-first-row-headers.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-table-grid-style", screenshot: "element-samples-table-grid-style", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/table-grid-style.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-table-horizontal-alignment", screenshot: "element-samples-table-horizontal-alignment", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/table-horizontal-alignment.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-table-show-grid-lines", screenshot: "element-samples-table-show-grid-lines", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/table-show-grid-lines.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-table-vertical-alignment", screenshot: "element-samples-table-vertical-alignment", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/table-vertical-alignment.json", isApp: false, ios: true, android: true },
+  { name: "element-samples-textblock-style", screenshot: "element-samples-textblock-style", category: "Element Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/element-samples/textblock-style.json", isApp: false, ios: true, android: true },
+  { name: "fluent-theming", screenshot: "fluent-theming", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/fluent-theming.json", isApp: false, ios: true, android: true },
+  { name: "input-form", screenshot: "input-form", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/input-form.json", isApp: false, ios: true, android: true },
+  { name: "list", screenshot: "list", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/list.json", isApp: false, ios: true, android: true },
+  { name: "markdown", screenshot: "markdown", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/markdown.json", isApp: false, ios: true, android: true },
+  { name: "media", screenshot: "media", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/media.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-activity-update", screenshot: "official-samples-activity-update", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/activity-update.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-agenda", screenshot: "official-samples-agenda", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/agenda.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-application-login", screenshot: "official-samples-application-login", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/application-login.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-calendar-reminder", screenshot: "official-samples-calendar-reminder", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/calendar-reminder.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-expense-report", screenshot: "official-samples-expense-report", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/expense-report.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-flight-details", screenshot: "official-samples-flight-details", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/flight-details.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-flight-itinerary", screenshot: "official-samples-flight-itinerary", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/flight-itinerary.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-flight-update", screenshot: "official-samples-flight-update", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/flight-update.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-flight-update-table", screenshot: "official-samples-flight-update-table", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/flight-update-table.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-food-order", screenshot: "official-samples-food-order", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/food-order.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-image-gallery", screenshot: "official-samples-image-gallery", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/image-gallery.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-input-form-official", screenshot: "official-samples-input-form-official", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/input-form-official.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-input-form-rtl", screenshot: "official-samples-input-form-rtl", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/input-form-rtl.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-inputs-with-validation", screenshot: "official-samples-inputs-with-validation", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/inputs-with-validation.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-order-confirmation", screenshot: "official-samples-order-confirmation", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/order-confirmation.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-order-delivery", screenshot: "official-samples-order-delivery", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/order-delivery.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-product-video", screenshot: "official-samples-product-video", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/product-video.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-restaurant", screenshot: "official-samples-restaurant", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/restaurant.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-restaurant-order", screenshot: "official-samples-restaurant-order", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/restaurant-order.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-show-card-wizard", screenshot: "official-samples-show-card-wizard", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/show-card-wizard.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-sporting-event", screenshot: "official-samples-sporting-event", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/sporting-event.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-stock-update", screenshot: "official-samples-stock-update", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/stock-update.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-weather-compact", screenshot: "official-samples-weather-compact", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/weather-compact.json", isApp: false, ios: true, android: true },
+  { name: "official-samples-weather-large", screenshot: "official-samples-weather-large", category: "Official Samples", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/official-samples/weather-large.json", isApp: false, ios: true, android: true },
+  { name: "popover-action", screenshot: "popover-action", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/popover-action.json", isApp: false, ios: true, android: true },
+  { name: "progress-indicators", screenshot: "progress-indicators", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/progress-indicators.json", isApp: false, ios: true, android: true },
+  { name: "rating", screenshot: "rating", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/rating.json", isApp: false, ios: true, android: true },
+  { name: "responsive-layout", screenshot: "responsive-layout", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/responsive-layout.json", isApp: false, ios: true, android: true },
+  { name: "rich-text", screenshot: "rich-text", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/rich-text.json", isApp: false, ios: true, android: true },
+  { name: "simple-text", screenshot: "simple-text", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/simple-text.json", isApp: false, ios: true, android: true },
+  { name: "split-buttons", screenshot: "split-buttons", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/split-buttons.json", isApp: false, ios: true, android: true },
+  { name: "streaming-card", screenshot: "streaming-card", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/streaming-card.json", isApp: false, ios: true, android: true },
+  { name: "tab-set", screenshot: "tab-set", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/tab-set.json", isApp: false, ios: true, android: true },
+  { name: "table", screenshot: "table", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/table.json", isApp: false, ios: true, android: true },
+  { name: "teams-connector", screenshot: "teams-connector", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-connector.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-account", screenshot: "teams-official-samples-account", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/account.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-author-highlight-video", screenshot: "teams-official-samples-author-highlight-video", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/author-highlight-video.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-book-a-room", screenshot: "teams-official-samples-book-a-room", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/book-a-room.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-cafe-menu", screenshot: "teams-official-samples-cafe-menu", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/cafe-menu.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-communication", screenshot: "teams-official-samples-communication", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/communication.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-course-video", screenshot: "teams-official-samples-course-video", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/course-video.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-editorial", screenshot: "teams-official-samples-editorial", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/editorial.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-expense-report", screenshot: "teams-official-samples-expense-report", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/expense-report.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-insights", screenshot: "teams-official-samples-insights", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/insights.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-issue", screenshot: "teams-official-samples-issue", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/issue.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-list", screenshot: "teams-official-samples-list", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/list.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-project-dashboard", screenshot: "teams-official-samples-project-dashboard", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/project-dashboard.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-recipe", screenshot: "teams-official-samples-recipe", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/recipe.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-simple-event", screenshot: "teams-official-samples-simple-event", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/simple-event.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-simple-time-off-request", screenshot: "teams-official-samples-simple-time-off-request", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/simple-time-off-request.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-standard-video", screenshot: "teams-official-samples-standard-video", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/standard-video.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-team-standup-summary", screenshot: "teams-official-samples-team-standup-summary", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/team-standup-summary.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-time-off-request", screenshot: "teams-official-samples-time-off-request", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/time-off-request.json", isApp: false, ios: true, android: true },
+  { name: "teams-official-samples-work-item", screenshot: "teams-official-samples-work-item", category: "Teams Official", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-official-samples/work-item.json", isApp: false, ios: true, android: true },
+  { name: "teams-task-module", screenshot: "teams-task-module", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/teams-task-module.json", isApp: false, ios: true, android: true },
+  { name: "templates-ActivityUpdate.template", screenshot: "templates-ActivityUpdate.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/ActivityUpdate.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-Agenda.template", screenshot: "templates-Agenda.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Agenda.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-ApplicationLogin.template", screenshot: "templates-ApplicationLogin.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/ApplicationLogin.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-CalendarReminder.template", screenshot: "templates-CalendarReminder.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/CalendarReminder.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-CarouselTemplatedPages.template", screenshot: "templates-CarouselTemplatedPages.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/CarouselTemplatedPages.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-CarouselWhenShowCarousel.template", screenshot: "templates-CarouselWhenShowCarousel.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/CarouselWhenShowCarousel.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-ExpenseReport.template", screenshot: "templates-ExpenseReport.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/ExpenseReport.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-FlightDetails.template", screenshot: "templates-FlightDetails.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/FlightDetails.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-FlightItinerary.template", screenshot: "templates-FlightItinerary.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/FlightItinerary.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-FlightUpdate.template", screenshot: "templates-FlightUpdate.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/FlightUpdate.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-FlightUpdateTable.template", screenshot: "templates-FlightUpdateTable.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/FlightUpdateTable.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-FoodOrder.template", screenshot: "templates-FoodOrder.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/FoodOrder.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-ImageGallery.template", screenshot: "templates-ImageGallery.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/ImageGallery.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-InputForm.template", screenshot: "templates-InputForm.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/InputForm.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-InputFormWithRTL.template", screenshot: "templates-InputFormWithRTL.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/InputFormWithRTL.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-InputsWithValidation.template", screenshot: "templates-InputsWithValidation.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/InputsWithValidation.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-OrderConfirmation.template", screenshot: "templates-OrderConfirmation.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/OrderConfirmation.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-OrderDelivery.template", screenshot: "templates-OrderDelivery.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/OrderDelivery.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-ProductVideo.template", screenshot: "templates-ProductVideo.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/ProductVideo.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-Restaurant.template", screenshot: "templates-Restaurant.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Restaurant.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-RestaurantOrder.template", screenshot: "templates-RestaurantOrder.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/RestaurantOrder.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-ShowCardWizard.template", screenshot: "templates-ShowCardWizard.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/ShowCardWizard.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-SimpleFallback.template", screenshot: "templates-SimpleFallback.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/SimpleFallback.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-Solitaire.template", screenshot: "templates-Solitaire.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Solitaire.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-SportingEvent.template", screenshot: "templates-SportingEvent.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/SportingEvent.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-StockUpdate.template", screenshot: "templates-StockUpdate.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/StockUpdate.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.ConditionalLayout", screenshot: "templates-Template.ConditionalLayout", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.ConditionalLayout.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.DataBinding", screenshot: "templates-Template.DataBinding", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.DataBinding.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.DataBinding.Inline", screenshot: "templates-Template.DataBinding.Inline", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.DataBinding.Inline.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.Functions.DataManipulation", screenshot: "templates-Template.Functions.DataManipulation", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.Functions.DataManipulation.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.Functions.DateFunctions", screenshot: "templates-Template.Functions.DateFunctions", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.Functions.DateFunctions.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.Functions.LogicalComparison", screenshot: "templates-Template.Functions.LogicalComparison", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.Functions.LogicalComparison.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.Functions.Number", screenshot: "templates-Template.Functions.Number", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.Functions.Number.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.Functions.String", screenshot: "templates-Template.Functions.String", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.Functions.String.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.Keywords", screenshot: "templates-Template.Keywords", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.Keywords.json", isApp: false, ios: true, android: true },
+  { name: "templates-Template.RepeatingItems", screenshot: "templates-Template.RepeatingItems", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/Template.RepeatingItems.json", isApp: false, ios: true, android: true },
+  { name: "templates-WeatherCompact.template", screenshot: "templates-WeatherCompact.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/WeatherCompact.template.json", isApp: false, ios: true, android: true },
+  { name: "templates-WeatherLarge.template", screenshot: "templates-WeatherLarge.template", category: "Templates", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templates/WeatherLarge.template.json", isApp: false, ios: true, android: true },
+  { name: "templating-basic", screenshot: "templating-basic", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templating-basic.json", isApp: false, ios: true, android: true },
+  { name: "templating-conditional", screenshot: "templating-conditional", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templating-conditional.json", isApp: false, ios: true, android: true },
+  { name: "templating-expressions", screenshot: "templating-expressions", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templating-expressions.json", isApp: false, ios: true, android: true },
+  { name: "templating-iteration", screenshot: "templating-iteration", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templating-iteration.json", isApp: false, ios: true, android: true },
+  { name: "templating-nested", screenshot: "templating-nested", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/templating-nested.json", isApp: false, ios: true, android: true },
+  { name: "test-bar-chart-only", screenshot: "test-bar-chart-only", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/test-bar-chart-only.json", isApp: false, ios: true, android: true },
+  { name: "themed-images", screenshot: "themed-images", category: "Root", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/themed-images.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Action.IsEnabled", screenshot: "versioned-v1.5-Action.IsEnabled", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Action.IsEnabled.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Action.MenuActions", screenshot: "versioned-v1.5-Action.MenuActions", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Action.MenuActions.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Action.Popover", screenshot: "versioned-v1.5-Action.Popover", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Action.Popover.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ActionModeTestCard", screenshot: "versioned-v1.5-ActionModeTestCard", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ActionModeTestCard.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-AdaptiveCard.AreaGrid", screenshot: "versioned-v1.5-AdaptiveCard.AreaGrid", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/AdaptiveCard.AreaGrid.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-AdaptiveCard.Rtl.False", screenshot: "versioned-v1.5-AdaptiveCard.Rtl.False", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/AdaptiveCard.Rtl.False.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-AdaptiveCard.Rtl.True", screenshot: "versioned-v1.5-AdaptiveCard.Rtl.True", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/AdaptiveCard.Rtl.True.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-AdaptiveCard.Rtl.unset", screenshot: "versioned-v1.5-AdaptiveCard.Rtl.unset", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/AdaptiveCard.Rtl.unset.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-AdaptiveCardFlowLayout", screenshot: "versioned-v1.5-AdaptiveCardFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/AdaptiveCardFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-AdaptiveCardFlowLayoutWithInputElements", screenshot: "versioned-v1.5-AdaptiveCardFlowLayoutWithInputElements", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/AdaptiveCardFlowLayoutWithInputElements.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Agenda", screenshot: "versioned-v1.5-Agenda", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Agenda.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Carousel", screenshot: "versioned-v1.5-Carousel", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Carousel.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Citations", screenshot: "versioned-v1.5-Citations", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Citations.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Citations.Icons", screenshot: "versioned-v1.5-Citations.Icons", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Citations.Icons.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Column.AreaGrid", screenshot: "versioned-v1.5-Column.AreaGrid", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Column.AreaGrid.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Column.Flow", screenshot: "versioned-v1.5-Column.Flow", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Column.Flow.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ColumnSetWithDifferentWidths", screenshot: "versioned-v1.5-ColumnSetWithDifferentWidths", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ColumnSetWithDifferentWidths.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-CompoundButtonSample", screenshot: "versioned-v1.5-CompoundButtonSample", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/CompoundButtonSample.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ConditionallyEnabled", screenshot: "versioned-v1.5-ConditionallyEnabled", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ConditionallyEnabled.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Container.AreaGrid", screenshot: "versioned-v1.5-Container.AreaGrid", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Container.AreaGrid.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Container.Flow", screenshot: "versioned-v1.5-Container.Flow", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Container.Flow.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Container.Nested.Flow", screenshot: "versioned-v1.5-Container.Nested.Flow", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Container.Nested.Flow.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Container.ScrollableSelectableList", screenshot: "versioned-v1.5-Container.ScrollableSelectableList", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Container.ScrollableSelectableList.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid", screenshot: "versioned-v1.5-ContainerAreaGrid", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid10", screenshot: "versioned-v1.5-ContainerAreaGrid10", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid10.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid11", screenshot: "versioned-v1.5-ContainerAreaGrid11", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid11.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid2", screenshot: "versioned-v1.5-ContainerAreaGrid2", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid2.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid3", screenshot: "versioned-v1.5-ContainerAreaGrid3", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid3.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid4", screenshot: "versioned-v1.5-ContainerAreaGrid4", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid4.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid5", screenshot: "versioned-v1.5-ContainerAreaGrid5", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid5.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid6", screenshot: "versioned-v1.5-ContainerAreaGrid6", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid6.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid7", screenshot: "versioned-v1.5-ContainerAreaGrid7", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid7.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid8", screenshot: "versioned-v1.5-ContainerAreaGrid8", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid8.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerAreaGrid9", screenshot: "versioned-v1.5-ContainerAreaGrid9", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerAreaGrid9.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ContainerFlowLayout", screenshot: "versioned-v1.5-ContainerFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ContainerFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-DynamicActions", screenshot: "versioned-v1.5-DynamicActions", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/DynamicActions.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-DynamicText", screenshot: "versioned-v1.5-DynamicText", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/DynamicText.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ExpenseReport", screenshot: "versioned-v1.5-ExpenseReport", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ExpenseReport.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Fallback", screenshot: "versioned-v1.5-Fallback", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Fallback.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-FallbackAction", screenshot: "versioned-v1.5-FallbackAction", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/FallbackAction.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-FlightDetails", screenshot: "versioned-v1.5-FlightDetails", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/FlightDetails.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-FluentIcon", screenshot: "versioned-v1.5-FluentIcon", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/FluentIcon.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-FluentIcon.RTL", screenshot: "versioned-v1.5-FluentIcon.RTL", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/FluentIcon.RTL.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Image.FitMode.Contain", screenshot: "versioned-v1.5-Image.FitMode.Contain", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Image.FitMode.Contain.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Image.FitMode.Cover", screenshot: "versioned-v1.5-Image.FitMode.Cover", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Image.FitMode.Cover.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Image.FitMode.Fill", screenshot: "versioned-v1.5-Image.FitMode.Fill", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Image.FitMode.Fill.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Image.SelectAction.IsEnabled", screenshot: "versioned-v1.5-Image.SelectAction.IsEnabled", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Image.SelectAction.IsEnabled.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Image.Svg", screenshot: "versioned-v1.5-Image.Svg", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Image.Svg.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Input.ChoiceSet.Filtered", screenshot: "versioned-v1.5-Input.ChoiceSet.Filtered", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Input.ChoiceSet.Filtered.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Input.ChoiceSet.FilteredStyle.TestCard", screenshot: "versioned-v1.5-Input.ChoiceSet.FilteredStyle.TestCard", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Input.ChoiceSet.FilteredStyle.TestCard.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Input.Rating.Actions", screenshot: "versioned-v1.5-Input.Rating.Actions", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Input.Rating.Actions.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Input.Text.Password.IgnoresMultiline", screenshot: "versioned-v1.5-Input.Text.Password.IgnoresMultiline", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Input.Text.Password.IgnoresMultiline.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-InputFormWithRTL", screenshot: "versioned-v1.5-InputFormWithRTL", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/InputFormWithRTL.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-InputLabel", screenshot: "versioned-v1.5-InputLabel", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/InputLabel.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-MultiColumnFlowLayout", screenshot: "versioned-v1.5-MultiColumnFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/MultiColumnFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-NestedFallbackBody", screenshot: "versioned-v1.5-NestedFallbackBody", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/NestedFallbackBody.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-NestedFallbackRoot", screenshot: "versioned-v1.5-NestedFallbackRoot", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/NestedFallbackRoot.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-NestedFlowLayout", screenshot: "versioned-v1.5-NestedFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/NestedFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-PrimarySecondaryShowCards", screenshot: "versioned-v1.5-PrimarySecondaryShowCards", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/PrimarySecondaryShowCards.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ProgressBar", screenshot: "versioned-v1.5-ProgressBar", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ProgressBar.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ProgressRing", screenshot: "versioned-v1.5-ProgressRing", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ProgressRing.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-RatingInput", screenshot: "versioned-v1.5-RatingInput", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/RatingInput.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-RatingInputsFlowLayout", screenshot: "versioned-v1.5-RatingInputsFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/RatingInputsFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ResponsiveLayout", screenshot: "versioned-v1.5-ResponsiveLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ResponsiveLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-RichTextBlock.TextRun.SelectAction.IsEnabled", screenshot: "versioned-v1.5-RichTextBlock.TextRun.SelectAction.IsEnabled", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/RichTextBlock.TextRun.SelectAction.IsEnabled.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-RtlTestCard", screenshot: "versioned-v1.5-RtlTestCard", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/RtlTestCard.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-SingleColumnFlowLayout", screenshot: "versioned-v1.5-SingleColumnFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/SingleColumnFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-StandaloneTableRow", screenshot: "versioned-v1.5-StandaloneTableRow", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/StandaloneTableRow.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-StringResources", screenshot: "versioned-v1.5-StringResources", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/StringResources.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-StringResources.Invalid.1", screenshot: "versioned-v1.5-StringResources.Invalid.1", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/StringResources.Invalid.1.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-StringResources.Invalid.2", screenshot: "versioned-v1.5-StringResources.Invalid.2", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/StringResources.Invalid.2.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-StringResources.Invalid.3", screenshot: "versioned-v1.5-StringResources.Invalid.3", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/StringResources.Invalid.3.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-StringResources.Invalid.4", screenshot: "versioned-v1.5-StringResources.Invalid.4", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/StringResources.Invalid.4.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Table.AreaGrid", screenshot: "versioned-v1.5-Table.AreaGrid", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Table.AreaGrid.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-Table.Flow", screenshot: "versioned-v1.5-Table.Flow", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/Table.Flow.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-TableColumnSetComparison", screenshot: "versioned-v1.5-TableColumnSetComparison", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/TableColumnSetComparison.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-TableFlowLayout", screenshot: "versioned-v1.5-TableFlowLayout", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/TableFlowLayout.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-TableImpliedType", screenshot: "versioned-v1.5-TableImpliedType", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/TableImpliedType.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-TextBlock.Markdown.NumberStart", screenshot: "versioned-v1.5-TextBlock.Markdown.NumberStart", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/TextBlock.Markdown.NumberStart.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-TextBlock.StyleOverrides", screenshot: "versioned-v1.5-TextBlock.StyleOverrides", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/TextBlock.StyleOverrides.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ThemedUrls.Actions", screenshot: "versioned-v1.5-ThemedUrls.Actions", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ThemedUrls.Actions.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ThemedUrls.BackgroundImage", screenshot: "versioned-v1.5-ThemedUrls.BackgroundImage", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ThemedUrls.BackgroundImage.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ThemedUrls.Image", screenshot: "versioned-v1.5-ThemedUrls.Image", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ThemedUrls.Image.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ToggleVisibility.ShowCard.ActionSet", screenshot: "versioned-v1.5-ToggleVisibility.ShowCard.ActionSet", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ToggleVisibility.ShowCard.ActionSet.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ToggleVisibility.ShowCard.actions", screenshot: "versioned-v1.5-ToggleVisibility.ShowCard.actions", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ToggleVisibility.ShowCard.actions.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-TooltipTestCard", screenshot: "versioned-v1.5-TooltipTestCard", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/TooltipTestCard.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ValueChangedAction", screenshot: "versioned-v1.5-ValueChangedAction", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ValueChangedAction.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-ValueChangedActionAllInputType", screenshot: "versioned-v1.5-ValueChangedActionAllInputType", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/ValueChangedActionAllInputType.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-WeatherCompact", screenshot: "versioned-v1.5-WeatherCompact", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/WeatherCompact.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-WeatherLarge", screenshot: "versioned-v1.5-WeatherLarge", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/WeatherLarge.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-badge", screenshot: "versioned-v1.5-badge", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/badge.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.5-spacing_sample", screenshot: "versioned-v1.5-spacing_sample", category: "Versioned v1.5", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.5/spacing_sample.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.ForbiddenActions", screenshot: "versioned-v1.6-Carousel.ForbiddenActions", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.ForbiddenActions.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.ForbiddenElements", screenshot: "versioned-v1.6-Carousel.ForbiddenElements", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.ForbiddenElements.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.HostConfig", screenshot: "versioned-v1.6-Carousel.HostConfig", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.HostConfig.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.NestedForbiddenElements", screenshot: "versioned-v1.6-Carousel.NestedForbiddenElements", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.NestedForbiddenElements.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.Properties", screenshot: "versioned-v1.6-Carousel.Properties", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.Properties.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.ScenarioCards", screenshot: "versioned-v1.6-Carousel.ScenarioCards", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.ScenarioCards.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.ScenarioCards.Timer", screenshot: "versioned-v1.6-Carousel.ScenarioCards.Timer", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.ScenarioCards.Timer.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.SelectAction.In.ParentContainer", screenshot: "versioned-v1.6-Carousel.SelectAction.In.ParentContainer", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.SelectAction.In.ParentContainer.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.ShowCard", screenshot: "versioned-v1.6-Carousel.ShowCard", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.ShowCard.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.ToggleVisibility", screenshot: "versioned-v1.6-Carousel.ToggleVisibility", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.ToggleVisibility.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.rtl", screenshot: "versioned-v1.6-Carousel.rtl", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.rtl.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.rtl.Vertical", screenshot: "versioned-v1.6-Carousel.rtl.Vertical", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.rtl.Vertical.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.sample", screenshot: "versioned-v1.6-Carousel.sample", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.sample.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.sample.CrossFade", screenshot: "versioned-v1.6-Carousel.sample.CrossFade", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.sample.CrossFade.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Carousel.sample.None", screenshot: "versioned-v1.6-Carousel.sample.None", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Carousel.sample.None.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-CompoundButton", screenshot: "versioned-v1.6-CompoundButton", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/CompoundButton.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Fallback.Root", screenshot: "versioned-v1.6-Fallback.Root", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Fallback.Root.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Fallback.Root.Recursive", screenshot: "versioned-v1.6-Fallback.Root.Recursive", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Fallback.Root.Recursive.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Icon.Clickable", screenshot: "versioned-v1.6-Icon.Clickable", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Icon.Clickable.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Icon.Styles", screenshot: "versioned-v1.6-Icon.Styles", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Icon.Styles.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Input.ChoiceSet.Static.DynamicTypeahead", screenshot: "versioned-v1.6-Input.ChoiceSet.Static.DynamicTypeahead", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Input.ChoiceSet.Static.DynamicTypeahead.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Media", screenshot: "versioned-v1.6-Media", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Media.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-Media.Sources", screenshot: "versioned-v1.6-Media.Sources", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/Media.Sources.json", isApp: false, ios: true, android: true },
+  { name: "versioned-v1.6-ProductVideo", screenshot: "versioned-v1.6-ProductVideo", category: "Versioned v1.6", jsonUrl: "https://github.com/VikrantSingh01/AdaptiveCards-Mobile/blob/main/shared/test-cards/versioned/v1.6/ProductVideo.json", isApp: false, ios: true, android: true },
+];
+
+const TIMESTAMP = "design-catalog-20260319-162916";
+
+function init() {
+  // Build category list
+  const categories = [...new Set(CATALOG_DATA.map(c => c.category))];
+  const select = document.getElementById('categoryFilter');
+  categories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    select.appendChild(opt);
+  });
+
+  // Stats
+  const totalCards = CATALOG_DATA.filter(c => !c.isApp).length;
+  const totalApp = CATALOG_DATA.filter(c => c.isApp).length;
+  const iosCount = CATALOG_DATA.filter(c => c.ios).length;
+  const androidCount = CATALOG_DATA.filter(c => c.android).length;
+  const statsEl = document.getElementById('stats');
+  statsEl.innerHTML = `
+    <span class="stat">📊 ${totalCards} cards</span>
+    <span class="stat">📱 ${totalApp} app screens</span>
+    <span class="stat">🍎 ${iosCount} iOS</span>
+    <span class="stat">🤖 ${androidCount} Android</span>
+    <span class="stat">📅 ${TIMESTAMP}</span>
+  `;
+  document.getElementById('timestamp').textContent = `Captured: ${TIMESTAMP}`;
+
+  renderCatalog();
+}
+
+function filterCards() {
+  renderCatalog();
+}
+
+function renderCatalog() {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  const hideReviewed = document.getElementById('hideReviewed').checked;
+  const showOnlyUnreviewed = document.getElementById('showOnlyUnreviewed').checked;
+  const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+  const reviewed = getReviewedSet();
+
+  let filtered = CATALOG_DATA;
+  if (categoryFilter !== 'all') {
+    filtered = filtered.filter(c => c.category === categoryFilter);
+  }
+  if (search) {
+    filtered = filtered.filter(c => c.name.toLowerCase().includes(search));
+  }
+  if (hideReviewed || showOnlyUnreviewed) {
+    filtered = filtered.filter(c => !reviewed.has(c.screenshot));
+  }
+  if (statusFilter !== 'all') {
+    filtered = filtered.filter(c => getCardStatus(c.screenshot) === statusFilter);
+  }
+
+  // Group by category
+  const groups = {};
+  filtered.forEach(c => {
+    if (!groups[c.category]) groups[c.category] = [];
+    groups[c.category].push(c);
+  });
+
+  let html = '';
+
+  // Defined category order
+  const categoryOrder = [
+    'Visualizer Screen',
+    'Teams Official',
+    'Official Samples',
+    'Element Samples',
+    'Root',
+    'Templates',
+    'Host Configs',
+    'Versioned v1.5',
+    'Versioned v1.6'
+  ];
+
+  // Visualizer Screen: custom item order (Gallery, Performance, More, Settings first)
+  const appScreenOrder = ['Gallery', 'Performance', 'More', 'Settings'];
+  if (groups['Visualizer Screen']) {
+    groups['Visualizer Screen'].sort((a, b) => {
+      const ai = appScreenOrder.indexOf(a.name);
+      const bi = appScreenOrder.indexOf(b.name);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  // Render in defined order
+  categoryOrder.forEach(cat => {
+    if (groups[cat]) {
+      const label = cat === 'Visualizer Screen' ? 'Visualizer Screens' : cat + ' (' + groups[cat].length + ')';
+      html += renderSection(label, groups[cat]);
+      delete groups[cat];
+    }
+  });
+
+  // Any remaining categories not in the defined order
+  Object.keys(groups).sort().forEach(cat => {
+    html += renderSection(cat + ' (' + groups[cat].length + ')', groups[cat]);
+  });
+
+  document.getElementById('catalog').innerHTML = html;
+}
+
+function renderSection(title, cards) {
+  let html = `<h2 class="section-title">${title}</h2><div class="grid">`;
+  cards.forEach(card => {
+    const missing = (!card.ios || !card.android) ? ' missing' : '';
+    const linkHtml = card.jsonUrl
+      ? `<a href="${card.jsonUrl}" target="_blank">JSON</a>`
+      : '';
+
+    const status = getCardStatus(card.screenshot);
+    const note = getCardNote(card.screenshot);
+    const statusClass = status !== 'not-reviewed' ? ` status-${status}` : '';
+    const checkedAttr = status !== 'not-reviewed' ? ' checked' : '';
+
+    html += `<div class="card-row${missing}${statusClass}" data-category="${card.category}" data-screenshot="${card.screenshot}">
+      <div class="review-col">
+        <input type="checkbox" class="review-check" title="Mark as reviewed" ${checkedAttr} onchange="quickToggleReview('${card.screenshot}', this)">
+      </div>
+      <div class="status-col">
+        <select class="status-select ${status}" onchange="setCardStatus('${card.screenshot}', this.value, this)" title="Review status">
+          <option value="not-reviewed"${status==='not-reviewed'?' selected':''}>Not reviewed</option>
+          <option value="approved"${status==='approved'?' selected':''}>✓ Approved</option>
+          <option value="needs-changes"${status==='needs-changes'?' selected':''}>✗ Needs changes</option>
+        </select>
+        <textarea class="note-input" placeholder="Add note..." rows="1" onchange="setCardNote('${card.screenshot}', this.value)" onfocus="this.rows=3" onblur="if(!this.value)this.rows=1">${note}</textarea>
+      </div>
+      <div class="card-info">
+        <div class="card-name">${card.name}</div>
+        <span class="card-category">${card.category}</span>
+      </div>
+      <div class="card-link">${linkHtml}</div>
+      <div class="screenshot-col">
+        <div class="platform-label">iOS</div>
+        ${card.ios
+          ? `<img src="screenshots/ios/${card.screenshot}.png" alt="${card.name} iOS" onclick="openLightbox(this.src)" loading="lazy">`
+          : `<div class="no-screenshot">No screenshot</div>`}
+      </div>
+      <div class="screenshot-col">
+        <div class="platform-label">Android</div>
+        ${card.android
+          ? `<img src="screenshots/android/${card.screenshot}.png" alt="${card.name} Android" onclick="openLightbox(this.src)" loading="lazy">`
+          : `<div class="no-screenshot">No screenshot</div>`}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// === Config ===
+const REVIEWER_KEY = 'ac-design-reviewer';
+const REVIEW_DATA_KEY = 'ac-design-review-data';
+const TOKEN_KEY = 'ac-design-github-token';
+const REPO = 'VikrantSingh01/AdaptiveCards-Mobile';
+let syncTimer = null;
+let syncStatus = 'idle'; // idle, syncing, synced, error
+
+// === Reviewer identity ===
+function getCurrentReviewer() { return localStorage.getItem(REVIEWER_KEY) || ''; }
+
+function setReviewer() {
+  const input = document.getElementById('reviewerInput');
+  const name = input.value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!name) return;
+  localStorage.setItem(REVIEWER_KEY, name);
+  updateReviewerUI();
+  fetchRemoteReviews().then(() => { renderCatalog(); updateReviewCounter(); });
+}
+
+function changeReviewer() {
+  localStorage.removeItem(REVIEWER_KEY);
+  updateReviewerUI();
+  renderCatalog();
+}
+
+function updateReviewerUI() {
+  const reviewer = getCurrentReviewer();
+  const display = document.getElementById('reviewerDisplay');
+  const input = document.getElementById('reviewerInput');
+  const setBtn = document.getElementById('reviewerSetBtn');
+  const changeBtn = document.getElementById('reviewerChangeBtn');
+  const nameEl = document.getElementById('reviewerName');
+  if (reviewer) {
+    display.style.display = '';
+    nameEl.textContent = '@' + reviewer;
+    input.style.display = 'none';
+    setBtn.style.display = 'none';
+    changeBtn.style.display = '';
+  } else {
+    display.style.display = 'none';
+    input.style.display = '';
+    input.value = '';
+    setBtn.style.display = '';
+    changeBtn.style.display = 'none';
+  }
+}
+
+// === GitHub token ===
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+
+function setToken() {
+  const input = document.getElementById('tokenInput');
+  const val = input.value.trim();
+  if (val) localStorage.setItem(TOKEN_KEY, val);
+  input.value = '';
+  updateTokenUI();
+}
+
+function updateTokenUI() {
+  const hasToken = !!getToken();
+  const indicator = document.getElementById('tokenStatus');
+  const input = document.getElementById('tokenInput');
+  const setBtn = document.getElementById('tokenSetBtn');
+  const removeBtn = document.getElementById('tokenRemoveBtn');
+  if (hasToken) {
+    indicator.textContent = '🔑 Token set';
+    indicator.style.color = '#2ecc71';
+    input.style.display = 'none';
+    setBtn.style.display = 'none';
+    removeBtn.style.display = '';
+  } else {
+    indicator.textContent = '⚠ No token (reviews saved locally only)';
+    indicator.style.color = '#e67e22';
+    input.style.display = '';
+    setBtn.style.display = '';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function removeToken() {
+  localStorage.removeItem(TOKEN_KEY);
+  updateTokenUI();
+}
+
+// === Local review data (write-through cache) ===
+function getAllReviewData() {
+  try { return JSON.parse(localStorage.getItem(REVIEW_DATA_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveAllReviewData(data) {
+  localStorage.setItem(REVIEW_DATA_KEY, JSON.stringify(data));
+}
+
+function getReviewerData() {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) return {};
+  return getAllReviewData()[reviewer] || {};
+}
+
+function getCardStatus(screenshot) {
+  return getReviewerData()[screenshot]?.status || 'not-reviewed';
+}
+
+function getCardNote(screenshot) {
+  return getReviewerData()[screenshot]?.note || '';
+}
+
+function setCardStatus(screenshot, status, selectEl) {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) { alert('Please set your GitHub username first.'); if (selectEl) selectEl.value = 'not-reviewed'; return; }
+  const allData = getAllReviewData();
+  if (!allData[reviewer]) allData[reviewer] = {};
+  if (!allData[reviewer][screenshot]) allData[reviewer][screenshot] = {};
+  allData[reviewer][screenshot].status = status;
+  allData[reviewer][screenshot].updatedAt = new Date().toISOString();
+  saveAllReviewData(allData);
+  const row = selectEl?.closest('.card-row');
+  if (row) {
+    row.classList.remove('status-approved', 'status-needs-changes');
+    if (status !== 'not-reviewed') row.classList.add('status-' + status);
+  }
+  if (selectEl) selectEl.className = 'status-select ' + status;
+  const checkbox = row?.querySelector('.review-check');
+  if (checkbox) checkbox.checked = status !== 'not-reviewed';
+  updateReviewCounter();
+  scheduleSyncToGitHub();
+}
+
+function setCardNote(screenshot, note) {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) return;
+  const allData = getAllReviewData();
+  if (!allData[reviewer]) allData[reviewer] = {};
+  if (!allData[reviewer][screenshot]) allData[reviewer][screenshot] = {};
+  allData[reviewer][screenshot].note = note;
+  allData[reviewer][screenshot].updatedAt = new Date().toISOString();
+  saveAllReviewData(allData);
+  scheduleSyncToGitHub();
+}
+
+function quickToggleReview(screenshot, checkbox) {
+  setCardStatus(screenshot, checkbox.checked ? 'approved' : 'not-reviewed', null);
+  renderCatalog();
+}
+
+function getReviewedSet() {
+  const data = getReviewerData();
+  return new Set(Object.keys(data).filter(k => data[k].status && data[k].status !== 'not-reviewed'));
+}
+
+function isReviewed(name) { return getReviewedSet().has(name); }
+
+function updateReviewCounter() {
+  const reviewed = getReviewedSet();
+  const total = CATALOG_DATA.length;
+  const count = CATALOG_DATA.filter(c => reviewed.has(c.screenshot)).length;
+  const el = document.getElementById('reviewCounter');
+  if (el) el.textContent = count + ' / ' + total + ' reviewed';
+}
+
+// === Remote fetch (read from gh-pages, no auth needed) ===
+async function fetchRemoteReviews() {
+  try {
+    const resp = await fetch('./reviews/_index.json', { cache: 'no-store' });
+    if (!resp.ok) return;
+    const index = await resp.json();
+    const allData = getAllReviewData();
+    for (const reviewer of (index.reviewers || [])) {
+      try {
+        const r = await fetch(`./reviews/${reviewer}.json`, { cache: 'no-store' });
+        if (!r.ok) continue;
+        const remote = await r.json();
+        if (!remote.reviews) continue;
+        // Merge: remote wins unless local entry is newer
+        const local = allData[reviewer] || {};
+        for (const [key, remoteEntry] of Object.entries(remote.reviews)) {
+          const localEntry = local[key];
+          if (!localEntry || (remoteEntry.updatedAt && (!localEntry.updatedAt || remoteEntry.updatedAt > localEntry.updatedAt))) {
+            local[key] = remoteEntry;
+          }
+        }
+        allData[reviewer] = local;
+      } catch {}
+    }
+    saveAllReviewData(allData);
+  } catch {}
+}
+
+// === Sync to GitHub (write via repository_dispatch) ===
+function scheduleSyncToGitHub() {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncToGitHub, 5000);
+  setSyncStatus('pending');
+}
+
+async function syncToGitHub() {
+  const token = getToken();
+  const reviewer = getCurrentReviewer();
+  if (!token || !reviewer) return;
+  setSyncStatus('syncing');
+  try {
+    const data = getReviewerData();
+    const payload = { reviewer, reviews: data, syncedAt: new Date().toISOString() };
+    const resp = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify({ event_type: 'sync-review', client_payload: { reviewer, review_data: JSON.stringify(payload) } })
+    });
+    if (resp.status === 204) {
+      setSyncStatus('synced');
+    } else {
+      console.error('Sync failed:', resp.status);
+      setSyncStatus('error');
+    }
+  } catch (e) {
+    console.error('Sync error:', e);
+    setSyncStatus('error');
+  }
+}
+
+function setSyncStatus(status) {
+  syncStatus = status;
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const labels = { idle: '', pending: '⏳ Saving...', syncing: '🔄 Syncing to GitHub...', synced: '✅ Synced', error: '❌ Sync failed' };
+  el.textContent = labels[status] || '';
+  if (status === 'synced') setTimeout(() => { if (syncStatus === 'synced') setSyncStatus('idle'); }, 3000);
+}
+
+function forceSyncNow() {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncToGitHub();
+}
+
+function exportReviewData() {
+  const reviewer = getCurrentReviewer();
+  if (!reviewer) { alert('Set your GitHub username first.'); return; }
+  const data = getReviewerData();
+  const blob = new Blob([JSON.stringify({ reviewer, reviews: data, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `review-${reviewer}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// === Init ===
+init();
+updateReviewerUI();
+updateTokenUI();
+fetchRemoteReviews().then(() => { renderCatalog(); updateReviewCounter(); });
+</script>
+</body>
+</html>
