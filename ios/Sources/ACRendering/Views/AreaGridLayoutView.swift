@@ -49,15 +49,25 @@ public struct AreaGridLayoutView: View {
 
     @available(iOS 16.0, *)
     private var nativeGridView: some View {
+        #if canImport(UIKit)
+        let screenWidth = UIScreen.main.bounds.width
+        #else
+        let screenWidth: CGFloat = 375
+        #endif
+        let containerPadding: CGFloat = CGFloat(hostConfig.spacing.padding) * 2
+        let availableWidth = screenWidth - containerPadding
+
         let maxAreaCol = gridLayout.areas.map { $0.column + ($0.columnSpan ?? 1) - 1 }.max() ?? 1
         let columnCount = max(gridLayout.columns.count, maxAreaCol)
         let maxRow = gridLayout.areas.map { $0.row + ($0.rowSpan ?? 1) - 1 }.max() ?? 1
         let colSpacing = spacingValue(gridLayout.columnSpacing ?? .default)
         let rowSpacing = spacingValue(gridLayout.rowSpacing ?? .default)
-
-        // Use weight-based proportional columns (matching Android Modifier.weight())
-        // instead of fixed pixel widths from screen width, so the grid adapts
-        // to its actual container width and content can grow vertically.
+        let columnWidths = resolveColumnWidths(
+            columnDefs: gridLayout.columns,
+            columnCount: columnCount,
+            availableWidth: availableWidth,
+            spacing: colSpacing
+        )
 
         return Grid(horizontalSpacing: colSpacing, verticalSpacing: rowSpacing) {
             ForEach(1...maxRow, id: \.self) { row in
@@ -65,6 +75,11 @@ public struct AreaGridLayoutView: View {
                     ForEach(1...max(columnCount, 1), id: \.self) { col in
                         if let area = areaAt(row: row, col: col) {
                             let matchingItems = items(for: area.name)
+                            let spanWidth = resolveSpanWidth(
+                                area: area,
+                                columnWidths: columnWidths,
+                                colSpacing: colSpacing
+                            )
                             if !matchingItems.isEmpty {
                                 VStack(spacing: 0) {
                                     ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
@@ -72,12 +87,16 @@ public struct AreaGridLayoutView: View {
                                     }
                                 }
                                 .gridCellColumns(area.columnSpan ?? 1)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(
+                                    minWidth: 0,
+                                    maxWidth: spanWidth ?? .infinity,
+                                    alignment: .leading
+                                )
                                 .fixedSize(horizontal: false, vertical: true)
                             } else {
                                 Color.clear
                                     .gridCellColumns(area.columnSpan ?? 1)
-                                    .frame(maxWidth: .infinity)
+                                    .frame(maxWidth: spanWidth ?? .infinity)
                             }
                         } else if !isCoveredBySpan(row: row, col: col) {
                             Color.clear
@@ -177,52 +196,6 @@ public struct AreaGridLayoutView: View {
             total += colSpacing * CGFloat(span - 1)
         }
         return total
-    }
-
-    /// Resolve column definitions into proportional weight values
-    /// (matching Android's resolveColumnWeights). Used by Grid to distribute
-    /// available width proportionally without relying on screen width.
-    private func resolveColumnWeightValues(
-        columnDefs: [String],
-        columnCount: Int
-    ) -> [CGFloat] {
-        if columnDefs.isEmpty && columnCount > 0 {
-            return Array(repeating: 1.0, count: columnCount)
-        }
-
-        var usedPercentage: CGFloat = 0
-        var autoCount = 0
-        let implicitCount = max(columnCount - columnDefs.count, 0)
-
-        for i in 0..<min(columnCount, columnDefs.count) {
-            let def = columnDefs[i].trimmingCharacters(in: .whitespaces)
-            if def.hasSuffix("fr") {
-                // fr columns handled separately
-            } else if def == "auto" || def == "*" {
-                autoCount += 1
-            } else {
-                let numeric = def.replacingOccurrences(of: "px", with: "")
-                if let pct = Double(numeric) { usedPercentage += CGFloat(pct) }
-            }
-        }
-
-        let remainingPercentage = max(100 - usedPercentage, 0)
-        let implicitAndAutoCount = autoCount + implicitCount
-        let sharedWeight = implicitAndAutoCount > 0 ? remainingPercentage / CGFloat(implicitAndAutoCount) : 1
-
-        return (0..<columnCount).map { i in
-            if i >= columnDefs.count { return max(sharedWeight, 1) }
-            let def = columnDefs[i].trimmingCharacters(in: .whitespaces)
-            if def.hasSuffix("fr") {
-                let numeric = def.replacingOccurrences(of: "fr", with: "")
-                return max(CGFloat(Double(numeric) ?? 1), 1)
-            } else if def == "auto" || def == "*" {
-                return max(sharedWeight, 1)
-            } else {
-                let numeric = def.replacingOccurrences(of: "px", with: "")
-                return max(CGFloat(Double(numeric) ?? 1), 1)
-            }
-        }
     }
 
     /// Resolve column definitions into concrete widths using weight-based
