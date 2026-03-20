@@ -19,7 +19,8 @@ struct ListView: View {
         static let numberWidth: CGFloat = 24
         static let itemSpacing: CGFloat = 8
         static let minTouchTarget: CGFloat = 44
-        static let itemVerticalPadding: CGFloat = 4
+        static let itemVerticalPadding: CGFloat = 2
+        static let innerVerticalPadding: CGFloat = 2
     }
 
     var body: some View {
@@ -65,8 +66,9 @@ struct ListView: View {
                     // Render item content
                     ElementView(element: item, hostConfig: hostConfig, depth: depth)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, Layout.innerVerticalPadding)
                 }
-                .frame(minHeight: Layout.minTouchTarget) // Minimum touch target
+                .frame(minHeight: Layout.minTouchTarget)
             }
         }
         .padding(.horizontal, listStyle != "default" ? 0 : Layout.itemSpacing)

@@ -67,7 +67,6 @@ struct CompoundButtonView: View {
                         .foregroundColor(primaryTextColor)
                         .lineLimit(2)
                         .truncationMode(.tail)
-                        .layoutPriority(1)
 
                     if let badge = button.badge {
                         Text(badge)
@@ -89,7 +88,7 @@ struct CompoundButtonView: View {
                         .truncationMode(.tail)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             if button.iconPosition == "trailing" {
                 iconView

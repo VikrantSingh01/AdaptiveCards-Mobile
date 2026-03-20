@@ -35,8 +35,15 @@ struct TextBlockView: View {
                 color: foregroundColor
             )
 
+            let hasListItems = tokens.contains { token in
+                if case .bulletItem = token { return true }
+                if case .numberedItem = token { return true }
+                return false
+            }
+
             Text(attributedString)
                 .multilineTextAlignment(textAlignment)
+                .lineSpacing(hasListItems ? -2 : 0)
                 .lineLimit(effectiveLineLimit)
                 .if(needsFullWidthFrame) { view in
                     view.frame(maxWidth: .infinity, alignment: frameAlignment)

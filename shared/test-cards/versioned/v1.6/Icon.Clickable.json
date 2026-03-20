@@ -12,14 +12,228 @@
       "spacing": "large"
     },
     {
-      "type": "Icon",
-      "name": "Emoji",
-      "selectAction": {
-        "type": "Action.OpenUrl",
-        "url": "https://www.microsoft.com",
-        "title": "Click me!",
-        "tooltip": "Icons can handle actions"
-      }
+      "type": "TextBlock",
+      "text": "Default size",
+      "wrap": true,
+      "weight": "Bolder"
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Heart",
+              "style": "Filled",
+              "color": "Attention",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Like",
+                "tooltip": "Heart icon with action"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Star",
+              "style": "Filled",
+              "color": "Warning",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Favorite",
+                "tooltip": "Star icon with action"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Share",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Share",
+                "tooltip": "Share icon with action"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Bookmark",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Bookmark",
+                "tooltip": "Bookmark icon with action"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "Large size with colors",
+      "wrap": true,
+      "weight": "Bolder",
+      "spacing": "medium"
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "ThumbLike",
+              "size": "Large",
+              "color": "Good",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Approve"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "ThumbDislike",
+              "size": "Large",
+              "color": "Attention",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Reject"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Edit",
+              "size": "Large",
+              "color": "Accent",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Edit"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Delete",
+              "size": "Large",
+              "color": "Attention",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Delete"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "Filled style clickable",
+      "wrap": true,
+      "weight": "Bolder",
+      "spacing": "medium"
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Mail",
+              "size": "Large",
+              "style": "Filled",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Email"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Calendar",
+              "size": "Large",
+              "style": "Filled",
+              "color": "Accent",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Calendar"
+              }
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Call",
+              "size": "Large",
+              "style": "Filled",
+              "color": "Good",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "https://www.microsoft.com",
+                "title": "Call"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

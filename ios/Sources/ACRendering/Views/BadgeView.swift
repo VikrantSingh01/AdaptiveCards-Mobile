@@ -29,6 +29,9 @@ struct BadgeView: View {
         .foregroundColor(foregroundColor)
         .padding(.horizontal, horizontalPadding)
         .padding(.vertical, verticalPadding)
+        // Ensure icon-only badges have minimum dimensions to prevent
+        // collapsing to a narrow vertical bar (matching Android minWidth)
+        .frame(minWidth: isIconOnly ? badgeMinSize : nil, minHeight: isIconOnly ? badgeMinSize : nil)
         .background(backgroundColor)
         .clipShape(badgeShape)
         .overlay(
@@ -42,6 +45,16 @@ struct BadgeView: View {
         } else {
             pill
         }
+    }
+
+    /// Whether this badge has only an icon and no text
+    private var isIconOnly: Bool {
+        badge.icon != nil && (badge.text == nil || badge.text?.isEmpty == true)
+    }
+
+    /// Minimum size for icon-only badges to prevent collapsing
+    private var badgeMinSize: CGFloat {
+        fontSize + horizontalPadding * 2
     }
 
     private var badgeShape: AnyShape {

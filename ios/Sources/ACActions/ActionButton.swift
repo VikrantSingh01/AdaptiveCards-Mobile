@@ -32,10 +32,15 @@ public struct ActionButton: View {
                     let iconSize = CGFloat(hostConfig.actions.iconSize)
                     if iconUrl.hasPrefix("icon:") {
                         let iconName = String(iconUrl.dropFirst("icon:".count))
-                        Image(systemName: Self.sfSymbol(for: iconName))
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: iconSize, height: iconSize)
+                        let symbol = Self.sfSymbol(for: iconName)
+                        // Only render icon if it resolved to a known SF Symbol
+                        // (matching Android which returns null for unknown Fluent icons)
+                        if symbol != "questionmark.square" {
+                            Image(systemName: symbol)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: iconSize, height: iconSize)
+                        }
                     } else {
                         AsyncImage(url: URL(string: iconUrl)) { image in
                             image

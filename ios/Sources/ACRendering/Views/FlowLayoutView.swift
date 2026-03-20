@@ -112,17 +112,10 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
             }
         }
 
-        // When only maxItemWidth is specified, calculate the minimum number
-        // of columns where each column width ≤ maxItemWidth, then distribute
-        // available width evenly. This matches Android FlowRow behavior where
-        // items use intrinsic widths (smaller than maxItemWidth) and naturally
-        // fit multiple per row. iOS can't get true intrinsic widths for views
-        // with .frame(maxWidth: .infinity), so we compute columns mathematically.
-        if let maxW = maxItemWidth, maxW > 0, available < .infinity {
-            let cols = max(1, Int(ceil((available + horizontalSpacing) / (maxW + horizontalSpacing))))
-            let w = (available - CGFloat(cols - 1) * horizontalSpacing) / CGFloat(cols)
-            return min(w, maxW)
-        }
+        // When only maxItemWidth is specified (no itemWidth/minItemWidth),
+        // return nil to let items use intrinsic widths capped by maxItemWidth.
+        // This matches Android FlowRow behavior where items render at their
+        // natural width (capped by maxItemWidth) and wrap to new rows as needed.
 
         return nil
     }
@@ -152,7 +145,17 @@ private struct FlowLayoutContainer: SwiftUI.Layout {
                 // Use calculated dynamic width (from itemWidth/minItemWidth/maxItemWidth)
                 itemWidth = dynWidth
             } else if idealSize.width >= 1 && idealSize.width < maxWidth && maxWidth < .infinity {
-                itemWidth = idealSize.width
+                // Cross-check: measure at available width to detect flexible items
+                // (e.g., CompoundButtons with frame(maxWidth: .infinity)) that report
+                // a tiny ideal width but expand to fill available space.
+                let concreteSize = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+                if concreteSize.width > idealSize.width * 3 && concreteSize.width >= maxWidth * 0.8 {
+                    // Item is flexible — use maxItemWidth if available (matching Android
+                    // where intrinsic widths are capped), otherwise use available width.
+                    itemWidth = maxItemWidth ?? min(concreteSize.width, maxWidth)
+                } else {
+                    itemWidth = idealSize.width
+                }
             } else if maxWidth < .infinity {
                 let concreteSize = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
                 itemWidth = min(concreteSize.width, maxWidth)

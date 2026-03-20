@@ -66,12 +66,21 @@ private struct SVGWebView: UIViewRepresentable {
 
     private func decodeSVGDataURI(_ uri: String) -> String? {
         if uri.contains("base64,"), let base64Part = uri.components(separatedBy: "base64,").last {
-            guard let data = Data(base64Encoded: base64Part),
+            // Handle base64 with possible whitespace/newlines
+            let cleaned = base64Part.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let data = Data(base64Encoded: cleaned),
                   let svg = String(data: data, encoding: .utf8) else { return nil }
             return svg
         }
-        // URL-encoded SVG
+        // URL-encoded or plain SVG (handles ;utf8, ;charset=utf-8, etc.)
         if uri.contains(","), let encodedPart = uri.components(separatedBy: ",").last {
+            if let decoded = encodedPart.removingPercentEncoding, decoded.contains("<svg") {
+                return decoded
+            }
+            // Raw SVG content after the comma
+            if encodedPart.contains("<svg") {
+                return encodedPart
+            }
             return encodedPart.removingPercentEncoding
         }
         return nil
@@ -82,6 +91,15 @@ private struct SVGWebView: UIViewRepresentable {
             UIView.animate(withDuration: 0.15) {
                 webView.alpha = 1
             }
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            // Show view even on failure to prevent permanent black rectangle
+            webView.alpha = 1
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            webView.alpha = 1
         }
     }
 }

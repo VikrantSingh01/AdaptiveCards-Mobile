@@ -14,14 +14,21 @@ struct IconElementView: View {
         let symbol = sfSymbolName(for: icon.name)
         let size = iconSize(icon.size)
         let color = iconColor(icon.color)
+        let align = icon.horizontalAlignment?.lowercased()
 
-        Image(systemName: symbol)
+        let iconImage = Image(systemName: symbol)
             .font(.system(size: size))
             .foregroundColor(color)
-            .frame(
-                maxWidth: .infinity,
-                alignment: alignment(icon.horizontalAlignment)
-            )
+
+        // Only expand to full width when horizontal alignment is explicitly set
+        // (center/right need the container to position). Default/left uses natural size
+        // so auto-width columns don't over-expand.
+        if align == "center" || align == "right" {
+            iconImage
+                .frame(maxWidth: .infinity, alignment: alignment(icon.horizontalAlignment))
+        } else {
+            iconImage
+        }
     }
 
     private func iconSize(_ size: String?) -> CGFloat {

@@ -83,12 +83,14 @@ fun BadgeView(
                 )
             }
 
-            Text(
-                text = element.text,
-                color = fgColor,
-                fontSize = fontSize,
-                fontWeight = FontWeight.Medium
-            )
+            if (element.text.isNotEmpty()) {
+                Text(
+                    text = element.text,
+                    color = fgColor,
+                    fontSize = fontSize,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }

@@ -198,9 +198,12 @@ struct TableCellView: View {
                                     // (matching Android MediaAndTableViews.kt:203-211)
                                     // ElementView's TextBlockView overrides parent foregroundColor,
                                     // so we must render Text() directly for accent to apply.
-                                    Text(tb.text ?? "")
+                                    let headerText = tb.text ?? ""
+                                    Text(headerText)
                                         .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
                                         .foregroundColor(Color(hex: hostConfig.containerStyles.default.foregroundColors.accent.default))
+                                        .lineLimit(tb.wrap == true ? nil : 1)
+                                        .fixedSize(horizontal: false, vertical: tb.wrap == true)
                                 } else if isHeader {
                                     ElementView(element: element, hostConfig: hostConfig, depth: depth)
                                         .font(.system(size: CGFloat(hostConfig.fontSizes.default), weight: headerFontWeight))
