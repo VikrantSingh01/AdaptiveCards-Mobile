@@ -83,37 +83,26 @@ WARN_THRESHOLD=$(echo "$THRESHOLD / 2" | bc -l | xargs printf "%.1f")
 # =============================================================================
 # Hardcoded file-to-card mapping (fallback when impact-map.json is unavailable)
 # =============================================================================
-declare -A FILE_CARD_MAP
-FILE_CARD_MAP["FlowLayoutView.swift"]="versioned/v1.5/MultiColumnFlowLayout,versioned/v1.5/ContainerFlowLayout"
-FILE_CARD_MAP["FlowLayoutView.kt"]="versioned/v1.5/MultiColumnFlowLayout,versioned/v1.5/ContainerFlowLayout"
-FILE_CARD_MAP["AreaGridLayoutView.swift"]="versioned/v1.5/Table.AreaGrid,versioned/v1.5/Container.AreaGrid,versioned/v1.5/AdaptiveCard.AreaGrid"
-FILE_CARD_MAP["AreaGridLayoutView.kt"]="versioned/v1.5/Table.AreaGrid,versioned/v1.5/Container.AreaGrid,versioned/v1.5/AdaptiveCard.AreaGrid"
-FILE_CARD_MAP["ImageView.swift"]="versioned/v1.5/Image.Svg,versioned/v1.5/Image.FitMode.Contain"
-FILE_CARD_MAP["ImageView.kt"]="versioned/v1.5/Image.Svg,versioned/v1.5/Image.FitMode.Contain"
-FILE_CARD_MAP["CompoundButtonView.swift"]="versioned/v1.6/CompoundButton,compound-buttons"
-FILE_CARD_MAP["CompoundButtonView.kt"]="versioned/v1.6/CompoundButton,compound-buttons"
-FILE_CARD_MAP["TableView.swift"]="table,element-samples/table-first-row-headers,versioned/v1.5/Table.AreaGrid"
-FILE_CARD_MAP["TableView.kt"]="table,element-samples/table-first-row-headers,versioned/v1.5/Table.AreaGrid"
-FILE_CARD_MAP["BadgeView.swift"]="versioned/v1.5/badge"
-FILE_CARD_MAP["BadgeView.kt"]="versioned/v1.5/badge"
-FILE_CARD_MAP["IconElementView.swift"]="versioned/v1.6/Icon.Clickable,versioned/v1.6/Icon.Styles"
-FILE_CARD_MAP["IconElementView.kt"]="versioned/v1.6/Icon.Clickable,versioned/v1.6/Icon.Styles"
-FILE_CARD_MAP["ListView.swift"]="list"
-FILE_CARD_MAP["ListView.kt"]="list"
-FILE_CARD_MAP["TextBlockView.swift"]="markdown,rich-text"
-FILE_CARD_MAP["TextBlockView.kt"]="markdown,rich-text"
-FILE_CARD_MAP["ActionButton.swift"]="versioned/v1.6/Icon.Styles"
-FILE_CARD_MAP["ActionButton.kt"]="versioned/v1.6/Icon.Styles"
-FILE_CARD_MAP["ActionSetView.swift"]="versioned/v1.6/Icon.Styles"
-FILE_CARD_MAP["ActionSetView.kt"]="versioned/v1.6/Icon.Styles"
-FILE_CARD_MAP["ColumnSetView.swift"]="official-samples/agenda,official-samples/flight-update,official-samples/expense-report"
-FILE_CARD_MAP["ColumnSetView.kt"]="official-samples/agenda,official-samples/flight-update,official-samples/expense-report"
-FILE_CARD_MAP["ContainerView.swift"]="versioned/v1.5/AdaptiveCardFlowLayout"
-FILE_CARD_MAP["ContainerView.kt"]="versioned/v1.5/AdaptiveCardFlowLayout"
-FILE_CARD_MAP["CarouselView.swift"]="carousel"
-FILE_CARD_MAP["CarouselView.kt"]="carousel"
-FILE_CARD_MAP["MarkdownRenderer.swift"]="markdown"
-FILE_CARD_MAP["MarkdownRenderer.kt"]="markdown"
+# File-to-card mapping as a function (bash 3 compatible — no associative arrays)
+file_card_lookup() {
+    case "$1" in
+        FlowLayoutView.swift|FlowLayoutView.kt) echo "versioned/v1.5/MultiColumnFlowLayout,versioned/v1.5/ContainerFlowLayout" ;;
+        AreaGridLayoutView.swift|AreaGridLayoutView.kt) echo "versioned/v1.5/Table.AreaGrid,versioned/v1.5/Container.AreaGrid,versioned/v1.5/AdaptiveCard.AreaGrid" ;;
+        ImageView.swift|ImageView.kt) echo "versioned/v1.5/Image.Svg,versioned/v1.5/Image.FitMode.Contain" ;;
+        CompoundButtonView.swift|CompoundButtonView.kt) echo "versioned/v1.6/CompoundButton,compound-buttons" ;;
+        TableView.swift|TableView.kt|MediaAndTableViews.kt) echo "table,element-samples/table-first-row-headers,versioned/v1.5/Table.AreaGrid" ;;
+        BadgeView.swift|BadgeView.kt) echo "versioned/v1.5/badge" ;;
+        IconElementView.swift|IconView.kt) echo "versioned/v1.6/Icon.Clickable,versioned/v1.6/Icon.Styles" ;;
+        ListView.swift|ListView.kt) echo "list" ;;
+        TextBlockView.swift|TextBlockView.kt) echo "markdown,rich-text" ;;
+        ActionButton.swift|ActionSetView.swift|ActionSetView.kt) echo "versioned/v1.6/Icon.Styles" ;;
+        ColumnSetView.swift|ColumnSetView.kt) echo "official-samples/agenda,official-samples/flight-update,official-samples/expense-report" ;;
+        ContainerView.swift|ContainerView.kt) echo "versioned/v1.5/AdaptiveCardFlowLayout" ;;
+        CarouselView.swift|CarouselView.kt) echo "carousel" ;;
+        MarkdownRenderer.swift|MarkdownRenderer.kt) echo "markdown" ;;
+        *) echo "" ;;
+    esac
+}
 
 # =============================================================================
 # Python pixel-diff script (written to temp file)
@@ -209,10 +198,12 @@ resolve_cards_from_hardcoded_map() {
     local cards=""
 
     while IFS= read -r file; do
-        local basename
-        basename=$(basename "$file")
-        if [[ -n "${FILE_CARD_MAP[$basename]:-}" ]]; then
-            cards="${cards:+$cards,}${FILE_CARD_MAP[$basename]}"
+        local bname
+        bname=$(basename "$file")
+        local mapped
+        mapped=$(file_card_lookup "$bname")
+        if [ -n "$mapped" ]; then
+            cards="${cards:+$cards,}$mapped"
         fi
     done <<< "$changed_files"
 
@@ -251,7 +242,13 @@ build_ios() {
         -destination "platform=iOS Simulator,name=$IOS_SIMULATOR" \
         CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
         build 2>&1 | tail -5)
-    log "iOS build complete."
+    # Install on simulator
+    local app_path
+    app_path=$(find ~/Library/Developer/Xcode/DerivedData/SampleApp-*/Build/Products/Debug-iphonesimulator -name "ACVisualizer.app" -maxdepth 1 2>/dev/null | head -1)
+    if [ -n "$app_path" ]; then
+        xcrun simctl install "$IOS_SIMULATOR" "$app_path" 2>/dev/null || true
+    fi
+    log "iOS build + install complete."
 }
 
 build_android() {
