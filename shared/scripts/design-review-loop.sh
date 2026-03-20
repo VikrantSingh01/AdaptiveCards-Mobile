@@ -1042,7 +1042,15 @@ e. DO NOT remove fallback logic, proportional distribution, or multi-tier measur
 f. DO NOT simplify complex layout algorithms — they exist for edge cases. Add to them, do not subtract.
 g. If your fix touches more than 5 lines in a layout file, pause and verify EACH changed line is necessary.
 
-### Step 3: Build (catch errors immediately)
+### Step 3: Verify (catch silent regressions)
+a. For every NEW function/method you added, grep for its name in the file. If it has ZERO callers, your fix is incomplete — wire it up or delete it.
+b. For every function you REMOVED or stopped calling, verify nothing else depends on it.
+c. If you replaced a layout approach (e.g., Grid with HStack), verify that EVERY feature of the old approach is preserved (column widths, spans, alignment, height expansion).
+d. SwiftUI .layoutPriority(N) is NOT equivalent to Compose Modifier.weight(N). layoutPriority only controls shrink/grow ORDER. For proportional width distribution, use a custom Layout protocol implementation (see WeightedRow in TableView.swift as a template).
+e. Do NOT use GeometryReader inside views that participate in height negotiation (table cells, grid areas) — it collapses height on the first layout pass.
+f. Do NOT use UIScreen.main.bounds.width for layout calculations — it breaks when the view is nested inside a table cell or constrained container. Use the proposed width from parent (custom Layout) instead.
+
+### Step 4: Build (catch errors immediately)
 a. Build iOS: cd $REPO_ROOT/ios && swift build
 b. Build Android: cd $REPO_ROOT/android && ./gradlew :sample-app:compileDebugKotlin
 c. If build fails, fix the error NOW before moving on.
@@ -1065,6 +1073,8 @@ Before committing ANY change to these files, verify the fix does not break unrel
 - ImageView.swift — test: versioned/v1.5/Image.FitMode.Contain, versioned/v1.5/Image.FitMode.Fill (fitMode with explicit dimensions)
 - CompoundButtonView.swift / CompoundButtonView.kt — test: compound-buttons (badge + title layout)
 - ContainerView.swift / ContainerView.kt — test: versioned/v1.5/AdaptiveCardFlowLayout (emphasis backgrounds)
+- AreaGridLayoutView.swift — test: versioned/v1.5/Table.AreaGrid (image+text 2-col in table cell), versioned/v1.5/Container.AreaGrid (multi-row with images), ALL 17 AreaGrid cards. DO NOT replace the custom AreaGridRow Layout with Grid, HStack+layoutPriority, or GeometryReader — they all fail for different reasons (see learnings).
+- TableView.swift — test: table, element-samples/table-first-row-headers, versioned/v1.5/Table.AreaGrid (AreaGrid inside table cell). Do NOT remove .clipped() without verifying all table cards — it prevents row height overflow.
 
 Verify by reading the card JSON and tracing through your changed code mentally. If ANY code path for those cards would hit your changed lines, you MUST ensure the behavior is preserved.
 
@@ -1101,10 +1111,11 @@ $learnings_content
 - .frame(maxWidth: .infinity) expands to available width — causes overflow if parent is unconstrained
 - .fixedSize(horizontal: false, vertical: true) uses intrinsic height, prevents vertical squashing
 - .fixedSize() uses intrinsic size for BOTH axes — use cautiously, can cause horizontal overflow
-- .layoutPriority(1) raises view priority in layout negotiation
-- GeometryReader provides parent size but causes lazy evaluation — avoid in snapshot views
+- .layoutPriority(1) raises view priority in layout negotiation — BUT NOT proportional distribution
+- GeometryReader provides parent size but COLLAPSES HEIGHT in nested contexts (table cells, grid areas) — avoid
 - .frame(idealWidth:) sets preferred size without forcing — respects parent constraints
 - Never use ScrollView in card rendering views (breaks layer.render snapshot capture)
+- UIScreen.main.bounds.width is WRONG for nested views — use custom Layout protocol to get proposed width
 
 ## Compose Layout Quick Reference (Android fixes)
 - Modifier.fillMaxWidth() expands to parent width — equivalent to iOS frame(maxWidth: .infinity)
@@ -1114,6 +1125,14 @@ $learnings_content
 - Modifier.heightIn(min, max) constrains height range — max must be >= min
 - Modifier.weight(1f) in Row/Column distributes remaining space proportionally
 - IntrinsicSize.Min/Max used with .height(IntrinsicSize.Min) for cross-axis sizing
+
+## CRITICAL: SwiftUI vs Compose Parity Traps (common agent mistakes)
+| Compose | Correct SwiftUI | WRONG SwiftUI (compiles but broken) |
+|---|---|---|
+| Modifier.weight(N) | Custom Layout with proportional placeSubviews (see AreaGridRow, WeightedRow) | .layoutPriority(N) — only controls order, not ratio |
+| maxIntrinsicWidth | sizeThatFits(width: nil) BUT flexible views (maxWidth:.infinity) report tiny ideal widths | Must cross-check: if concrete >> ideal, item is flexible |
+| BoxWithConstraints | Custom Layout receives ProposedViewSize | GeometryReader — collapses height in constrained parents |
+| constraints.maxWidth | proposal.width in custom Layout | UIScreen.main.bounds.width — wrong when nested |
 
 ## Key Architecture Notes
 - iOS SwiftUI views: ios/Sources/ACRendering/Views/
@@ -1364,6 +1383,28 @@ run_smoke_test() {
                 failures=$((failures + 1))
                 echo "FAIL ios $card size=${ios_size}" >> "$smoke_log"
             fi
+        fi
+
+        # Before/after size comparison against Phase 1 catalog screenshots.
+        # Catches regressions where a card renders (big screenshot) but loses
+        # content (e.g., image disappears, columns collapse to single-column).
+        # A >40% size DROP vs the catalog baseline suggests content loss.
+        if [ -n "$CATALOG_DIR" ]; then
+            for plat in ios android; do
+                local smoke_shot="$smoke_dir/${plat}-${card_safe}.png"
+                local catalog_shot="$CATALOG_DIR/screenshots/${plat}/${card_safe}.png"
+                [ ! -f "$smoke_shot" ] || [ ! -f "$catalog_shot" ] && continue
+                local smoke_sz catalog_sz
+                smoke_sz=$(stat -f%z "$smoke_shot" 2>/dev/null || stat -c%s "$smoke_shot" 2>/dev/null || echo "0")
+                catalog_sz=$(stat -f%z "$catalog_shot" 2>/dev/null || stat -c%s "$catalog_shot" 2>/dev/null || echo "0")
+                if [ "$catalog_sz" -gt 0 ] && [ "$smoke_sz" -gt 0 ]; then
+                    local ratio=$((smoke_sz * 100 / catalog_sz))
+                    if [ "$ratio" -lt 60 ]; then
+                        log "  SMOKE WARN: $card — $plat screenshot shrank ${ratio}% vs catalog (${smoke_sz}B vs ${catalog_sz}B, possible content loss)"
+                        echo "WARN size-drop $plat $card ratio=${ratio}% smoke=${smoke_sz} catalog=${catalog_sz}" >> "$smoke_log"
+                    fi
+                fi
+            done
         fi
 
         # OCR check for error messages
