@@ -1403,6 +1403,32 @@ run_smoke_test() {
                         log "  SMOKE WARN: $card — $plat screenshot shrank ${ratio}% vs catalog (${smoke_sz}B vs ${catalog_sz}B, possible content loss)"
                         echo "WARN size-drop $plat $card ratio=${ratio}% smoke=${smoke_sz} catalog=${catalog_sz}" >> "$smoke_log"
                     fi
+                    # Pixel-level diff using Pillow (catches layout regressions
+                    # where file size is similar but content moved/disappeared)
+                    local pixel_diff
+                    pixel_diff=$(python3 -c "
+from PIL import Image
+import sys
+try:
+    a = Image.open('$catalog_shot').convert('RGB')
+    b = Image.open('$smoke_shot').convert('RGB')
+    if a.size != b.size:
+        b = b.resize(a.size, Image.LANCZOS)
+    pa, pb = a.load(), b.load()
+    w, h = a.size
+    diff = sum(1 for y in range(0, h, 3) for x in range(0, w, 3)
+               if abs(pa[x,y][0]-pb[x,y][0])>30 or abs(pa[x,y][1]-pb[x,y][1])>30 or abs(pa[x,y][2]-pb[x,y][2])>30)
+    print(f'{diff * 9 * 100 / (w * h):.1f}')
+except Exception:
+    print('-1')
+" 2>/dev/null || echo "-1")
+                    if [ "$pixel_diff" != "-1" ]; then
+                        local diff_int=${pixel_diff%.*}
+                        if [ "$diff_int" -gt 25 ]; then
+                            log "  SMOKE WARN: $card — $plat ${pixel_diff}% pixel diff vs catalog (>25% threshold)"
+                            echo "WARN pixel-diff $plat $card diff=${pixel_diff}%" >> "$smoke_log"
+                        fi
+                    fi
                 fi
             done
         fi
