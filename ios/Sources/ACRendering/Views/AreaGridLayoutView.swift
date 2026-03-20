@@ -49,60 +49,84 @@ public struct AreaGridLayoutView: View {
 
     @available(iOS 16.0, *)
     private var nativeGridView: some View {
-        #if canImport(UIKit)
-        let screenWidth = UIScreen.main.bounds.width
-        #else
-        let screenWidth: CGFloat = 375
-        #endif
-        let containerPadding: CGFloat = CGFloat(hostConfig.spacing.padding) * 2
-        let availableWidth = screenWidth - containerPadding
-
         let maxAreaCol = gridLayout.areas.map { $0.column + ($0.columnSpan ?? 1) - 1 }.max() ?? 1
         let columnCount = max(gridLayout.columns.count, maxAreaCol)
         let maxRow = gridLayout.areas.map { $0.row + ($0.rowSpan ?? 1) - 1 }.max() ?? 1
         let colSpacing = spacingValue(gridLayout.columnSpacing ?? .default)
         let rowSpacing = spacingValue(gridLayout.rowSpacing ?? .default)
-        let columnWidths = resolveColumnWidths(
-            columnDefs: gridLayout.columns,
-            columnCount: columnCount,
-            availableWidth: availableWidth,
-            spacing: colSpacing
-        )
+        let weights = resolveColumnWeights(columnDefs: gridLayout.columns, columnCount: columnCount)
 
-        return Grid(horizontalSpacing: colSpacing, verticalSpacing: rowSpacing) {
+        // Use AreaGridRow (custom Layout) per row with weight-based proportional widths
+        // (matching Android Row + Modifier.weight() in LayoutViews.kt:227).
+        // This adapts to actual container width (unlike UIScreen-based Grid),
+        // allowing text to wrap correctly when nested inside table cells.
+        return VStack(spacing: rowSpacing) {
             ForEach(1...maxRow, id: \.self) { row in
-                GridRow {
-                    ForEach(1...max(columnCount, 1), id: \.self) { col in
-                        if let area = areaAt(row: row, col: col) {
-                            let matchingItems = items(for: area.name)
-                            let spanWidth = resolveSpanWidth(
-                                area: area,
-                                columnWidths: columnWidths,
-                                colSpacing: colSpacing
-                            )
+                let rowAreas = areasInRow(row)
+                let rowWeights = rowAreas.map { areaColumnWeight(area: $0, weights: weights) }
+                AreaGridRow(weights: rowWeights, spacing: colSpacing) {
+                    ForEach(rowAreas, id: \.name) { area in
+                        let matchingItems = items(for: area.name)
+                        VStack(spacing: 0) {
                             if !matchingItems.isEmpty {
-                                VStack(spacing: 0) {
-                                    ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
-                                        ElementView(element: item, hostConfig: hostConfig, depth: depth)
-                                    }
+                                ForEach(Array(matchingItems.enumerated()), id: \.offset) { _, item in
+                                    ElementView(element: item, hostConfig: hostConfig, depth: depth)
                                 }
-                                .gridCellColumns(area.columnSpan ?? 1)
-                                .frame(
-                                    minWidth: 0,
-                                    maxWidth: spanWidth ?? .infinity,
-                                    alignment: .leading
-                                )
-                                .fixedSize(horizontal: false, vertical: true)
-                            } else {
-                                Color.clear
-                                    .gridCellColumns(area.columnSpan ?? 1)
-                                    .frame(maxWidth: spanWidth ?? .infinity)
                             }
-                        } else if !isCoveredBySpan(row: row, col: col) {
-                            Color.clear
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+            }
+        }
+    }
+
+    /// Calculate the total weight for a grid area based on its column span.
+    /// Matches Android columnWeight() in LayoutViews.kt:247-258.
+    private func areaColumnWeight(area: GridArea, weights: [CGFloat]) -> CGFloat {
+        let span = area.columnSpan ?? 1
+        var total: CGFloat = 0
+        for col in area.column..<min(area.column + span, weights.count + 1) {
+            total += weights.indices.contains(col - 1) ? weights[col - 1] : 1
+        }
+        return max(total, 1)
+    }
+
+    /// Resolve column definitions into proportional weight values.
+    /// Matches Android resolveColumnWeights() in LayoutViews.kt:267-294.
+    private func resolveColumnWeights(columnDefs: [String], columnCount: Int) -> [CGFloat] {
+        if columnDefs.isEmpty && columnCount > 0 {
+            return Array(repeating: 1.0, count: columnCount)
+        }
+
+        var usedPercentage: CGFloat = 0
+        var autoCount = 0
+
+        for i in 0..<min(columnCount, columnDefs.count) {
+            let def = columnDefs[i].trimmingCharacters(in: .whitespaces)
+            if def.hasSuffix("fr") {
+                // fr columns don't consume percentage
+            } else if def == "auto" || def == "*" {
+                autoCount += 1
+            } else {
+                let numeric = def.replacingOccurrences(of: "px", with: "")
+                if let pct = Double(numeric) { usedPercentage += CGFloat(pct) }
+            }
+        }
+
+        let remainingPercentage = max(100 - usedPercentage, 0)
+        let autoWeight = autoCount > 0 ? remainingPercentage / CGFloat(autoCount) : 1
+
+        return (0..<columnCount).map { i in
+            guard i < columnDefs.count else { return max(autoWeight, 1) }
+            let def = columnDefs[i].trimmingCharacters(in: .whitespaces)
+            if def.hasSuffix("fr") {
+                return max(CGFloat(Double(def.replacingOccurrences(of: "fr", with: "")) ?? 1), 1)
+            } else if def == "auto" || def == "*" {
+                return max(autoWeight, 1)
+            } else {
+                return max(CGFloat(Double(def.replacingOccurrences(of: "px", with: "")) ?? 1), 1)
             }
         }
     }
@@ -283,6 +307,51 @@ public struct AreaGridLayoutView: View {
         case .large: return CGFloat(hostConfig.spacing.large)
         case .extraLarge: return CGFloat(hostConfig.spacing.extraLarge)
         case .padding: return CGFloat(hostConfig.spacing.padding)
+        }
+    }
+}
+
+// MARK: - AreaGridRow Layout
+
+/// Custom Layout that distributes width proportionally by weight for grid area rows.
+/// Matches Android's Row + Modifier.weight() pattern. Uses the actual proposed width
+/// from the parent (not UIScreen), so it works correctly inside table cells.
+@available(iOS 16.0, *)
+private struct AreaGridRow: SwiftUI.Layout {
+    let weights: [CGFloat]
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let availableWidth = proposal.width ?? 300
+        let totalSpacing = spacing * CGFloat(max(subviews.count - 1, 0))
+        let contentWidth = max(availableWidth - totalSpacing, 0)
+        let totalWeight = weights.reduce(0, +)
+
+        var maxHeight: CGFloat = 0
+        for (index, subview) in subviews.enumerated() {
+            let weight = index < weights.count ? weights[index] : 1
+            let cellWidth = totalWeight > 0 ? contentWidth * (weight / totalWeight) : contentWidth / CGFloat(max(subviews.count, 1))
+            let size = subview.sizeThatFits(ProposedViewSize(width: cellWidth, height: nil))
+            maxHeight = max(maxHeight, size.height)
+        }
+
+        return CGSize(width: availableWidth, height: maxHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let totalSpacing = spacing * CGFloat(max(subviews.count - 1, 0))
+        let contentWidth = max(bounds.width - totalSpacing, 0)
+        let totalWeight = weights.reduce(0, +)
+
+        var x = bounds.minX
+        for (index, subview) in subviews.enumerated() {
+            let weight = index < weights.count ? weights[index] : 1
+            let cellWidth = totalWeight > 0 ? contentWidth * (weight / totalWeight) : contentWidth / CGFloat(max(subviews.count, 1))
+            subview.place(
+                at: CGPoint(x: x, y: bounds.minY),
+                proposal: ProposedViewSize(width: cellWidth, height: bounds.height)
+            )
+            x += cellWidth + spacing
         }
     }
 }
