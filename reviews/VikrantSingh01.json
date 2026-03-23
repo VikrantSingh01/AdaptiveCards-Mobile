@@ -1,0 +1,16 @@
+{
+  "reviewer": "VikrantSingh01",
+  "reviews": {
+    "teams-official-samples-course-video": {
+      "status": "approved",
+      "updatedAt": "2026-03-15T00:42:31.092Z",
+      "note": "Vikrant Test Note"
+    },
+    "_app-gallery": {
+      "status": "approved",
+      "updatedAt": "2026-03-15T00:43:58.227Z",
+      "note": "Vikrant Feedback - Android start from Zero State."
+    }
+  },
+  "syncedAt": "2026-03-23T21:15:51.224Z"
+}
