@@ -194,7 +194,7 @@
         <span class="step-note">The token is stored in your browser only, never sent to any server other than github.com.</span>
       </li>
     </ol>
-    <p><strong>How it works:</strong> Reviews save to your browser instantly. With a token configured, they also auto-sync (after 5s) to <code>reviews/{username}.json</code> on the <code>gh-pages</code> branch via a GitHub Actions workflow. On page load, remote reviews are fetched and merged with local data so your feedback survives catalog updates, browser changes, and device switches.</p>
+    <p><strong>How it works:</strong> Reviews save to your browser instantly. With a token configured, they also auto-sync (after 5s) to <code>reviews/{username}.json</code> on the <code>gh-pages</code> branch via the GitHub Contents API. On page load, remote reviews are fetched and merged with local data so your feedback survives catalog updates, browser changes, and device switches.</p>
     <p><strong>Without a token:</strong> Reviews still work but are stored in your browser's localStorage only. Use the <strong>Export</strong> button to save a JSON backup.</p>
   </div>
 </details>
@@ -868,7 +868,7 @@ async function fetchRemoteReviews() {
   } catch {}
 }
 
-// === Sync to GitHub (write via repository_dispatch) ===
+// === Sync to GitHub (write via Contents API — no workflow needed) ===
 function scheduleSyncToGitHub() {
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(syncToGitHub, 5000);
@@ -883,20 +883,76 @@ async function syncToGitHub() {
   try {
     const data = getReviewerData();
     const payload = { reviewer, reviews: data, syncedAt: new Date().toISOString() };
-    const resp = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
-      body: JSON.stringify({ event_type: 'sync-review', client_payload: { reviewer, review_data: JSON.stringify(payload) } })
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    const filePath = `reviews/${reviewer}.json`;
+    const apiHeaders = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' };
+
+    // Get current file SHA (needed for updates)
+    let sha = null;
+    try {
+      const existing = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}?ref=gh-pages`, { headers: apiHeaders });
+      if (existing.ok) {
+        const meta = await existing.json();
+        sha = meta.sha;
+      }
+    } catch {}
+
+    // Write reviewer file
+    const body = { message: `review: update ${reviewer}`, content, branch: 'gh-pages' };
+    if (sha) body.sha = sha;
+    const resp = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: apiHeaders,
+      body: JSON.stringify(body)
     });
-    if (resp.status === 204) {
+
+    if (resp.ok) {
+      // Update _index.json with this reviewer
+      await updateRemoteIndex(token, reviewer, apiHeaders);
       setSyncStatus('synced');
     } else {
-      console.error('Sync failed:', resp.status);
+      console.error('Sync failed:', resp.status, await resp.text());
       setSyncStatus('error');
     }
   } catch (e) {
     console.error('Sync error:', e);
     setSyncStatus('error');
+  }
+}
+
+async function updateRemoteIndex(token, reviewer, apiHeaders) {
+  try {
+    const indexPath = 'reviews/_index.json';
+    let indexSha = null;
+    let index = { reviewers: [], lastUpdated: '' };
+
+    // Fetch current index
+    try {
+      const existing = await fetch(`https://api.github.com/repos/${REPO}/contents/${indexPath}?ref=gh-pages`, { headers: apiHeaders });
+      if (existing.ok) {
+        const meta = await existing.json();
+        indexSha = meta.sha;
+        index = JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g, '')))));
+      }
+    } catch {}
+
+    // Add reviewer if not present
+    if (!index.reviewers.includes(reviewer)) {
+      index.reviewers.push(reviewer);
+      index.reviewers.sort();
+    }
+    index.lastUpdated = new Date().toISOString();
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2))));
+    const body = { message: `review: update index`, content, branch: 'gh-pages' };
+    if (indexSha) body.sha = indexSha;
+    await fetch(`https://api.github.com/repos/${REPO}/contents/${indexPath}`, {
+      method: 'PUT',
+      headers: apiHeaders,
+      body: JSON.stringify(body)
+    });
+  } catch (e) {
+    console.error('Index update error:', e);
   }
 }
 
