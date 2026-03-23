@@ -116,14 +116,17 @@
     .footer { padding: 12px; font-size: 12px; }
   }
   /* Team reviews */
-  .team-reviews { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-  .team-review-badge { display: flex; align-items: baseline; gap: 6px; font-size: 11px; line-height: 1.4; padding: 3px 0; }
+  .team-reviews { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #3a3a5a; padding-top: 8px; }
+  .team-review-badge { display: flex; flex-direction: column; gap: 2px; font-size: 11px; line-height: 1.5; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 2px solid #3a3a5a; }
+  .team-review-badge.badge-approved { border-left-color: #2ecc71; }
+  .team-review-badge.badge-needs-changes { border-left-color: #e67e22; }
+  .team-review-badge .badge-header { display: flex; align-items: center; gap: 6px; }
   .team-review-badge .badge-reviewer { font-weight: 600; color: #7ec8e3; white-space: nowrap; }
   .team-review-badge .badge-status { padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
   .team-review-badge .badge-status.approved { background: rgba(46,204,113,0.15); color: #2ecc71; }
   .team-review-badge .badge-status.needs-changes { background: rgba(230,126,34,0.15); color: #e67e22; }
   .team-review-badge .badge-status.not-reviewed { background: rgba(255,255,255,0.05); color: #888; }
-  .team-review-badge .badge-note { color: #999; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px; }
+  .team-review-badge .badge-note { color: #bbb; font-size: 11px; line-height: 1.6; white-space: pre-line; word-break: break-word; }
   .team-toggle { padding: 6px 14px; border: 1px solid #3a3a5a; border-radius: 8px; font-size: 13px; background: #2a2a4a; color: #e0e0e0; cursor: pointer; }
   .team-toggle:hover { background: #3a3a5a; }
   .team-toggle.active { border-color: #7ec8e3; color: #7ec8e3; }
@@ -1001,10 +1004,13 @@ function renderTeamBadges(screenshot) {
   let html = '<div class="team-reviews">';
   for (const r of reviews) {
     const statusLabel = r.status === 'approved' ? 'Approved' : 'Needs changes';
-    const noteHtml = r.note ? ` <span class="badge-note" title="${r.note.replace(/"/g, '&quot;')}">${r.note}</span>` : '';
-    html += `<div class="team-review-badge">
-      <span class="badge-reviewer">@${r.reviewer}</span>
-      <span class="badge-status ${r.status}">${statusLabel}</span>${noteHtml}
+    const escapedNote = r.note.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const noteHtml = escapedNote ? `<div class="badge-note">${escapedNote}</div>` : '';
+    html += `<div class="team-review-badge badge-${r.status}">
+      <div class="badge-header">
+        <span class="badge-reviewer">@${r.reviewer}</span>
+        <span class="badge-status ${r.status}">${statusLabel}</span>
+      </div>${noteHtml}
     </div>`;
   }
   html += '</div>';
