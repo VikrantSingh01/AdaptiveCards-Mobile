@@ -1,0 +1,140 @@
+{
+  "reviewer": "dclaux",
+  "reviews": {
+    "teams-official-samples-account": {
+      "note": "Incorrect spacing between elements on iOS\nMissing See more on iOS\nIncorrect image sizing on Android\nIncorrect image vertical positioning on Android\nUnclear if See more works or not\nLooks like incorrect spacing on Android as well",
+      "updatedAt": "2026-03-23T18:16:02.611Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-author-highlight-video": {
+      "note": "Incorrect image/text vertical alignment on Android\nRandom icons used in buttons on both isdes",
+      "updatedAt": "2026-03-23T18:17:12.036Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-book-a-room": {
+      "note": "Lots of problems on the iOS side: date/time inputs, incorrect layout of these inputs, incorrect input label color, incorrect spacings\n\nRandom icons used on both sides\nProbably more",
+      "updatedAt": "2026-03-23T18:27:34.253Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-cafe-menu": {
+      "note": "Incorrect rendering of emulated tabs on both sides\nContainers without borders on iOS\nSpacings seem incorrect on iOS\nPosition of right arrow on line item inconsistent between OSes. Seems correct on iOS, not on Android. Its size is also inconsistent\nCafeteria 24 tax not placed consistently\nTop image lacks padding",
+      "updatedAt": "2026-03-23T18:22:14.183Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-communication": {
+      "note": "Inconsisten text size - although might be \"normal\" if proper use of different HostConfigs under the covers",
+      "updatedAt": "2026-03-23T18:23:19.017Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-course-video": {
+      "note": "Incorrect spaings on iOS\nRandom icons used on both side. This is a recurring problem, the renderes probably don't use the actual AC icon library\nUnclear if \"Show more\" actually works",
+      "updatedAt": "2026-03-23T18:24:24.544Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-editorial": {
+      "note": "Inconsistent placement of header text\nLack of padding in header\nIncorrect icons",
+      "updatedAt": "2026-03-23T18:25:11.508Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-expense-report": {
+      "note": "Incorrect spacings, incorrect icons, incorrect alignments on Android",
+      "updatedAt": "2026-03-23T18:26:12.205Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-insights": {
+      "note": "Inconsistent badges\nIncorrect spacings",
+      "updatedAt": "2026-03-23T18:26:44.867Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-standard-video": {
+      "note": "Inconsistent \"...\" button size/shape",
+      "updatedAt": "2026-03-23T18:28:25.532Z",
+      "status": "needs-changes"
+    },
+    "teams-official-samples-time-off-request": {
+      "note": "Toggle input should be a checkbox, not a toggle",
+      "updatedAt": "2026-03-23T18:29:06.405Z",
+      "status": "needs-changes"
+    },
+    "official-samples-agenda": {
+      "note": "Inconsistent image sizes\nMissing vertical lines joining icons/dots in middle column\nInconsistent/incorrect alignments",
+      "updatedAt": "2026-03-23T18:30:10.747Z",
+      "status": "needs-changes"
+    },
+    "official-samples-flight-details": {
+      "note": "Doesn't render well at all on either side. Please check the original.",
+      "updatedAt": "2026-03-23T18:31:27.060Z",
+      "status": "needs-changes"
+    },
+    "official-samples-flight-itinerary": {
+      "note": "Spacing and alignment issues, inconsistent image sizes",
+      "updatedAt": "2026-03-23T18:31:59.030Z",
+      "status": "needs-changes"
+    },
+    "official-samples-food-order": {
+      "note": "Inconsistent alignment of images",
+      "updatedAt": "2026-03-23T18:32:31.358Z",
+      "status": "needs-changes"
+    },
+    "official-samples-image-gallery": {
+      "note": "Inconsistent alignment of images",
+      "updatedAt": "2026-03-23T18:32:47.616Z",
+      "status": "needs-changes"
+    },
+    "official-samples-order-delivery": {
+      "note": "Text not ellipsed on Android",
+      "updatedAt": "2026-03-23T18:33:22.304Z",
+      "status": "needs-changes"
+    },
+    "official-samples-product-video": {
+      "note": "Unclear if video playback works?",
+      "updatedAt": "2026-03-23T18:33:45.483Z",
+      "status": "needs-changes"
+    },
+    "official-samples-sporting-event": {
+      "note": "Alignment/column sizing issues on both sides",
+      "updatedAt": "2026-03-23T18:34:16.361Z",
+      "status": "needs-changes"
+    },
+    "element-samples-carousel-basic": {
+      "note": "Inconsistent carousel rendering (iOS seems to be more on the correct side)\nUnclear if the carousel actually works",
+      "updatedAt": "2026-03-23T18:35:38.597Z",
+      "status": "needs-changes"
+    },
+    "element-samples-table-basic": {
+      "note": "If this is the sample I know of, then rendering isn't correct on either side (missing grid lines for instance)",
+      "updatedAt": "2026-03-23T18:37:22.223Z",
+      "status": "needs-changes"
+    },
+    "element-samples-table-show-grid-lines": {
+      "note": "Obviously missing gridlines, and also incorrect rendering overall on Android",
+      "updatedAt": "2026-03-23T18:37:58.649Z",
+      "status": "needs-changes"
+    },
+    "element-samples-table-vertical-alignment": {
+      "note": "Inconsistent layout of cell content",
+      "updatedAt": "2026-03-23T18:38:22.681Z",
+      "status": "needs-changes"
+    },
+    "charts": {
+      "note": "There a lot going on with charts in general. Rendering in this example isn't correct, plus the payload itself isn't valid.",
+      "updatedAt": "2026-03-23T18:42:27.175Z",
+      "status": "needs-changes"
+    },
+    "code-block": {
+      "note": "Looks pretty good, but uses dark theme in an otherwise light theme app.",
+      "updatedAt": "2026-03-23T18:43:19.286Z",
+      "status": "needs-changes"
+    },
+    "datagrid": {
+      "note": "Datagrid isn't actually an official feature, so there is no need to ensure this works at this time",
+      "updatedAt": "2026-03-23T18:44:15.068Z"
+    },
+    "test-bar-chart-only": {
+      "note": "This chart isn't valid at the JSON level",
+      "updatedAt": "2026-03-23T18:45:50.122Z",
+      "status": "needs-changes"
+    }
+  },
+  "syncedAt": "2026-03-23T21:44:02.925Z"
+}
